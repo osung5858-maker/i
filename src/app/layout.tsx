@@ -31,14 +31,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">
-        <Script
-          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false&libraries=services`}
-          strategy="beforeInteractive"
-        />
-        <main className="flex-1">{children}</main>
-        <BottomNav />
-        <PWAInstallPrompt />
+      <body className="min-h-full bg-gray-100 flex justify-center">
+        <div className="w-full max-w-[430px] min-h-full bg-white flex flex-col relative shadow-xl">
+          <Script
+            src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false&libraries=services`}
+            strategy="beforeInteractive"
+          />
+          <main className="flex-1 pb-20">{children}</main>
+          <BottomNav />
+          <PWAInstallPrompt />
+        </div>
       </body>
     </html>
   )
