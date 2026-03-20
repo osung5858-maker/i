@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronRightIcon } from '@/components/ui/Icons'
 import CommunityComparison from '@/components/growth-chart/CommunityComparison'
-import type { Child, GrowthRecord } from '@/types'
+import StatsReport from '@/components/growth-chart/StatsReport'
+import type { Child, GrowthRecord, CareEvent } from '@/types'
 
 // WHO 표준 성장 곡선 데이터 (남아 몸무게 kg, 3rd/50th/97th percentile)
 const WHO_WEIGHT_BOYS: Record<number, [number, number, number]> = {
@@ -47,10 +48,14 @@ function getPercentile(weight: number, ageMonths: number, sex: string | undefine
   return Math.min(99, Math.round(97 + ((weight - p97) / p97) * 3))
 }
 
+type GrowthTab = 'growth' | 'stats'
+
 export default function GrowthPage() {
   const [child, setChild] = useState<Child | null>(null)
   const [records, setRecords] = useState<GrowthRecord[]>([])
+  const [events, setEvents] = useState<CareEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<GrowthTab>('growth')
   const router = useRouter()
   const supabase = createClient()
 
@@ -77,6 +82,18 @@ export default function GrowthPage() {
         .order('measured_at', { ascending: true })
 
       if (growthData) setRecords(growthData as GrowthRecord[])
+
+      // 통계 리포트용 이벤트 로딩 (최근 30일)
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const { data: eventData } = await supabase
+        .from('events')
+        .select('*')
+        .eq('child_id', c.id)
+        .gte('start_ts', thirtyDaysAgo.toISOString())
+        .order('start_ts', { ascending: false })
+      if (eventData) setEvents(eventData as CareEvent[])
+
       setLoading(false)
     }
     load()
@@ -116,7 +133,33 @@ export default function GrowthPage() {
         </div>
       </header>
 
+      {/* 서브탭 */}
+      <div className="bg-white dark:bg-[#0A0B0D] border-b border-[#f0f0f0] dark:border-[#2a2a2a]">
+        <div className="flex max-w-lg mx-auto">
+          {([
+            { key: 'growth' as GrowthTab, label: '성장곡선' },
+            { key: 'stats' as GrowthTab, label: '통계리포트' },
+          ]).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 py-2.5 text-[13px] font-semibold text-center border-b-2 transition-colors ${
+                activeTab === tab.key
+                  ? 'border-[#212124] text-[#212124] dark:border-white dark:text-white'
+                  : 'border-transparent text-[#AEB1B9]'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="max-w-lg mx-auto pb-24">
+        {activeTab === 'stats' ? (
+          <StatsReport events={events} ageMonths={ageMonths} />
+        ) : (
+        <>
         {/* 아이 요약 */}
         <div className="m-4 p-5 rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a]">
           <div className="flex items-center gap-3 mb-4">
@@ -246,6 +289,8 @@ export default function GrowthPage() {
             ))
           )}
         </div>
+        </>
+        )}
       </div>
     </div>
   )

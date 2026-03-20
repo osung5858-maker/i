@@ -13,6 +13,7 @@ import FeedSheet from '@/components/quick-buttons/FeedSheet'
 import PoopSheet from '@/components/quick-buttons/PoopSheet'
 import TempSheet from '@/components/quick-buttons/TempSheet'
 import Timeline from '@/components/timeline/Timeline'
+import DiaryView from '@/components/diary/DiaryView'
 import Toast from '@/components/ui/Toast'
 import { BellIcon, ChevronRightIcon } from '@/components/ui/Icons'
 import { createClient } from '@/lib/supabase/client'
@@ -42,7 +43,7 @@ function getTodayRange() {
 }
 
 // --- 탭 타입 ---
-type HomeTab = 'record' | 'insight'
+type HomeTab = 'record' | 'diary' | 'insight'
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
@@ -279,6 +280,7 @@ export default function HomePage() {
         <div className="flex border-b border-[#ECECEC] px-5 max-w-lg mx-auto">
           {[
             { key: 'record' as HomeTab, label: '기록' },
+            { key: 'diary' as HomeTab, label: '일기' },
             { key: 'insight' as HomeTab, label: '인사이트' },
           ].map((tab) => (
             <button
@@ -327,6 +329,8 @@ export default function HomePage() {
               </div>
               <Timeline events={events} />
             </>
+          ) : activeTab === 'diary' ? (
+            <DiaryView events={events} childName={child?.name || '도담이'} />
           ) : (
             <>
               {/* 인사이트 탭 */}
