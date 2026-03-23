@@ -125,17 +125,28 @@ export default function PreparingPage() {
 
   const phaseLabel: Record<string, string> = { fertile: '가임기', ovulation: '배란일', tww: '착상 대기', period: '생리 중', follicular: '난포기', unknown: '-' }
 
-  // AI 브리핑
+  // AI 브리핑 (하루 1회 캐시)
   const [aiError, setAiError] = useState<string | null>(null)
+  const today = new Date().toISOString().split('T')[0]
 
-  const fetchAIBriefing = async () => {
+  const fetchAIBriefing = async (force = false) => {
     if (!cycle) return
+    // 캐시 확인 (오늘 이미 받았으면 스킵)
+    if (!force) {
+      const cached = localStorage.getItem('dodam_ai_briefing')
+      if (cached) {
+        try {
+          const { date, data } = JSON.parse(cached)
+          if (date === today && data.greeting) { setAiBriefing(data); return }
+        } catch { /* */ }
+      }
+    }
     setAiLoading(true)
     setAiError(null)
     try {
       const healthRaw = localStorage.getItem('dodam_health_records')
       const health = healthRaw ? JSON.parse(healthRaw) : {}
-      const todayHealth = health[new Date().toISOString().split('T')[0]]
+      const todayHealth = health[today]
       const res = await fetch('/api/ai-preparing', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -151,6 +162,7 @@ export default function PreparingPage() {
         setAiError(`AI 오류: ${data.error}`)
       } else {
         setAiBriefing(data)
+        localStorage.setItem('dodam_ai_briefing', JSON.stringify({ date: today, data }))
       }
     } catch (e) {
       setAiError(`요청 실패: ${e}`)
@@ -160,6 +172,14 @@ export default function PreparingPage() {
 
   const fetchAIMeal = async () => {
     if (!cycle) return
+    // 캐시 확인
+    const cached = localStorage.getItem('dodam_ai_meal')
+    if (cached) {
+      try {
+        const { date, data } = JSON.parse(cached)
+        if (date === today && data.breakfast) { setAiMeal(data); return }
+      } catch { /* */ }
+    }
     setAiMealLoading(true)
     try {
       const res = await fetch('/api/ai-preparing', {
@@ -167,7 +187,10 @@ export default function PreparingPage() {
         body: JSON.stringify({ type: 'meal', phase: getCyclePhase(), cycleDay: cycle.cycleDay }),
       })
       const data = await res.json()
-      if (!data.error) setAiMeal(data)
+      if (!data.error) {
+        setAiMeal(data)
+        localStorage.setItem('dodam_ai_meal', JSON.stringify({ date: today, data }))
+      }
     } catch { /* */ }
     setAiMealLoading(false)
   }
@@ -285,7 +308,7 @@ export default function PreparingPage() {
                 <p className="text-[12px] text-[#1A1918] leading-relaxed bg-white/60 rounded-lg p-2.5">{aiBriefing.mainAdvice}</p>
                 {aiBriefing.cycleInsight && <p className="text-[11px] text-[#868B94]">🔄 {aiBriefing.cycleInsight}</p>}
                 {aiBriefing.emotionalCare && <p className="text-[11px] text-[#868B94]">💚 {aiBriefing.emotionalCare}</p>}
-                <button onClick={fetchAIBriefing} className="text-[10px] text-[#AEB1B9]">새로고침</button>
+                <button onClick={() => fetchAIBriefing(true)} className="text-[10px] text-[#AEB1B9]">새로고침</button>
               </div>
             ) : (
               <button onClick={fetchAIBriefing} className="w-full py-3 text-[12px] text-[#3D8A5A] font-semibold">AI 조언 받기 ✨</button>
