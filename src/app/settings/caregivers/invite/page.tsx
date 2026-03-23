@@ -52,7 +52,34 @@ export default function InvitePage() {
 
   const handleShareKakao = () => {
     if (!inviteLink) return
-    // 카카오톡 공유 (웹 공유 API 폴백)
+
+    // 카카오 SDK로 카카오톡 공유
+    if (typeof window !== 'undefined' && window.Kakao?.isInitialized()) {
+      window.Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: '도담 - 함께 기록해요 💌',
+          description: '도담에서 아이의 수유, 수면, 기저귀 기록을 함께 볼 수 있어요. 가족으로 참여해주세요!',
+          imageUrl: 'https://www.dodam.life/og-image.png',
+          link: {
+            mobileWebUrl: inviteLink,
+            webUrl: inviteLink,
+          },
+        },
+        buttons: [
+          {
+            title: '초대 수락하기',
+            link: {
+              mobileWebUrl: inviteLink,
+              webUrl: inviteLink,
+            },
+          },
+        ],
+      })
+      return
+    }
+
+    // 카카오 SDK 미로드 시 웹 공유 API 폴백
     if (navigator.share) {
       navigator.share({
         title: '도담 - 함께 기록해요',
@@ -94,20 +121,21 @@ export default function InvitePage() {
               <p className="text-xs text-[#9B9B9B] truncate font-mono">{inviteLink}</p>
             </div>
 
-            {/* 공유 버튼 */}
+            {/* 카카오톡으로 보내기 */}
             <button
               onClick={handleShareKakao}
-              className="w-full h-[52px] rounded-xl font-semibold text-[15px] bg-[#FF6F0F] text-white shadow-[0_4px_12px_rgba(0,82,255,0.3)] active:scale-[0.98] transition-transform"
+              className="w-full h-[52px] rounded-xl font-semibold text-[15px] bg-[#FEE500] text-[#191919] active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
             >
-              공유하기
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path fillRule="evenodd" clipRule="evenodd" d="M9 0.6C4.03 0.6 0 3.713 0 7.534c0 2.476 1.641 4.648 4.106 5.876l-1.05 3.886c-.093.343.3.616.59.41l4.654-3.072c.23.018.462.028.7.028 4.97 0 9-3.113 9-6.928S13.97.6 9 .6" fill="#191919"/></svg>
+              카카오톡으로 초대하기
             </button>
 
-            {/* 복사 버튼 */}
+            {/* 링크 복사 */}
             <button
               onClick={handleCopy}
               className="w-full h-[48px] rounded-xl font-medium text-[15px] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[#0A0B0D] dark:text-white active:scale-[0.98] transition-transform"
             >
-              {copied ? '복사 완료!' : '링크 복사'}
+              {copied ? '✅ 복사 완료!' : '📋 링크 복사'}
             </button>
           </div>
         ) : (
