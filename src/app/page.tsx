@@ -3,12 +3,10 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import InsightHub from '@/components/insight/InsightHub'
 import FeedSheet from '@/components/quick-buttons/FeedSheet'
 import PoopSheet from '@/components/quick-buttons/PoopSheet'
 import TempSheet from '@/components/quick-buttons/TempSheet'
 import Timeline from '@/components/timeline/Timeline'
-import StreakBanner from '@/components/reward/StreakBanner'
 import Toast from '@/components/ui/Toast'
 import { BellIcon, ChevronRightIcon } from '@/components/ui/Icons'
 import { createClient } from '@/lib/supabase/client'
@@ -286,28 +284,29 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 오늘 요약 카드 */}
-          <div className="flex gap-2 mb-1">
-            {[
-              { label: '수유', count: todayFeedCount, unit: '회', color: 'text-[#FF6F0F]', bg: 'bg-[#FFF8F3]' },
-              { label: '수면', count: todaySleepCount, unit: '회', color: 'text-[#5B6DFF]', bg: 'bg-[#F0F2FF]' },
-              { label: '대변', count: todayPoopCount, unit: '회', color: 'text-[#C68A2E]', bg: 'bg-[#FFF8F0]' },
-            ].map((stat) => (
-              <div key={stat.label} className={`flex-1 ${stat.bg} rounded-2xl px-3 py-2.5`}>
-                <p className="text-[11px] text-[#868B94]">{stat.label}</p>
-                <p className={`text-[18px] font-bold ${stat.color}`}>
-                  {stat.count}<span className="text-[11px] font-normal text-[#AEB1B9] ml-0.5">{stat.unit}</span>
-                </p>
+          {/* 오늘 요약 + 스트릭 */}
+          <div className="flex items-center gap-2 mb-1">
+            <div className="flex gap-2 flex-1">
+              {[
+                { label: '수유', count: todayFeedCount, color: 'text-[#3D8A5A]' },
+                { label: '수면', count: todaySleepCount, color: 'text-[#6366F1]' },
+                { label: '배변', count: todayPoopCount, color: 'text-[#D89575]' },
+              ].map((s) => (
+                <div key={s.label} className="flex-1 bg-[#F7F8FA] rounded-xl px-2.5 py-2 text-center">
+                  <p className={`text-[16px] font-bold ${s.color}`}>{s.count}</p>
+                  <p className="text-[10px] text-[#AEB1B9]">{s.label}</p>
+                </div>
+              ))}
+            </div>
+            {events.length > 0 && (
+              <div className="bg-[#F0F9F4] rounded-xl px-3 py-2 text-center">
+                <p className="text-[16px] font-bold text-[#3D8A5A]">🔥</p>
+                <p className="text-[10px] text-[#3D8A5A] font-medium">{events.length > 0 ? '연속' : ''}</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
-        {/* 스트릭 배너 */}
-        <StreakBanner events={events} />
-
-        {/* 구분선 */}
-        <div className="border-b border-[#ECECEC]" />
       </header>
 
       {/* 배너 */}
@@ -324,30 +323,30 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 콘텐츠 영역 */}
-      {/* 콘텐츠 — 한 화면 스크롤 (인사이트 + 타임라인) */}
+      {/* 콘텐츠 */}
       <div className="flex-1 overflow-y-auto bg-[#F7F8FA]">
         <div className="max-w-lg mx-auto pt-3 pb-44">
-          {/* AI 인사이트 */}
-          <InsightHub
-            events={events}
-            birthdate={child?.birthdate}
-            childName={child?.name || '도담이'}
-          />
-
-          {/* 오늘의 기록 타임라인 */}
-          <div className="mt-2">
-            <div className="flex items-center justify-between px-5 pb-2">
-              <p className="text-[14px] font-bold text-[#212124]">오늘의 기록</p>
-              <Link
-                href={`/records/${new Date().toISOString().split('T')[0]}`}
-                className="flex items-center gap-0.5 text-[12px] font-medium text-[#3D8A5A]"
-              >
-                전체보기 <ChevronRightIcon className="w-3 h-3" />
-              </Link>
+          {/* AI 한 줄 요약 */}
+          {events.length >= 2 && (
+            <div className="mx-4 mb-3 px-4 py-3 bg-white rounded-xl">
+              <p className="text-[13px] text-[#5A5854]">
+                <span className="text-[#3D8A5A] font-semibold">✨ AI</span>{' '}
+                {child?.name || '도담이'}가 오늘 수유 {todayFeedCount}회{todaySleepCount > 0 ? `, 수면 ${todaySleepCount}회` : ''}로 안정적인 리듬이에요
+              </p>
             </div>
-            <Timeline events={events} />
+          )}
+
+          {/* 오늘의 기록 */}
+          <div className="flex items-center justify-between px-5 pb-2">
+            <p className="text-[14px] font-bold text-[#212124]">오늘의 기록</p>
+            <Link
+              href={`/records/${new Date().toISOString().split('T')[0]}`}
+              className="flex items-center gap-0.5 text-[12px] font-medium text-[#3D8A5A]"
+            >
+              전체보기 <ChevronRightIcon className="w-3 h-3" />
+            </Link>
           </div>
+          <Timeline events={events} />
         </div>
       </div>
 
