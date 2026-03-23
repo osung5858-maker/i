@@ -22,6 +22,7 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
     {
       label: '함께 준비',
       items: [
+        { href: '/name', icon: '✨', title: '태명 · 이름 짓기', desc: 'AI 추천 · 음양오행 분석' },
         { href: '/preparing', icon: '📋', title: '함께 볼 체크리스트', desc: '검사 · 준비물 · 생활습관' },
         { href: '/map', icon: '🏥', title: '산부인과 찾기', desc: '근처 산부인과 · 난임 클리닉' },
       ],
@@ -51,6 +52,12 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
       items: [
         { href: '/settings/caregivers', icon: '👥', title: '공동양육자', desc: '가족 초대 · 기록 공유' },
         { href: '/settings/caregivers/invite', icon: '💌', title: '가족 초대하기', desc: '카카오톡으로 초대 링크 보내기' },
+      ],
+    },
+    {
+      label: '준비',
+      items: [
+        { href: '/name', icon: '✨', title: '이름 짓기', desc: 'AI 추천 · 음양오행 · 점수' },
       ],
     },
     {
