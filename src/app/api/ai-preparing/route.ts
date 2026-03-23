@@ -1,0 +1,150 @@
+import { NextResponse } from 'next/server'
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`
+
+async function callGemini(prompt: string, maxTokens = 500, temperature = 0.7) {
+  const res = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature, maxOutputTokens: maxTokens },
+    }),
+  })
+  if (!res.ok) return null
+  const data = await res.json()
+  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null
+}
+
+export async function POST(request: Request) {
+  if (!GEMINI_API_KEY) {
+    return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
+  }
+
+  const body = await request.json()
+  const { type } = body
+
+  try {
+    // === 데일리 브리핑 ===
+    if (type === 'daily') {
+      const { cycleDay, cycleLength, phase, motherAge, fatherAge, mood, supplements, partnerChecks, sleep, steps, stress } = body
+
+      const prompt = `당신은 "도담" 앱의 AI 임신 준비 코치입니다. 따뜻하면서도 전문적인 톤으로 조언해주세요.
+절대 의료 진단을 하지 마세요. "도담하게"라는 표현을 자연스럽게 사용하세요.
+
+[사용자 상태]
+- 생리 주기: ${cycleLength}일 / 현재 ${cycleDay}일차
+- 주기 단계: ${phase} (follicular=난포기, fertile=가임기, ovulation=배란일, luteal=황체기, tww=투윅웨이트)
+- 엄마 나이: ${motherAge || '미입력'}세
+- 아빠 나이: ${fatherAge || '미입력'}세
+- 오늘 기분: ${mood || '미기록'}
+- 영양제 복용: ${supplements}/4 완료
+- 파트너 건강 체크: ${partnerChecks}/6 완료
+- 수면: ${sleep || '미기록'}시간
+- 걸음수: ${steps || '미기록'}보
+- 스트레스: ${stress === undefined ? '미기록' : ['좋음', '보통', '높음', '매우높음'][stress]}
+
+[요청]
+위 데이터를 종합해 오늘의 맞춤 조언을 JSON 형식으로 작성하세요:
+{
+  "greeting": "오늘의 인사 (주기 단계 반영, 1문장)",
+  "mainAdvice": "가장 중요한 조언 (2-3문장, 구체적 행동 제안)",
+  "cycleInsight": "주기 단계별 특화 조언 (1-2문장)",
+  "nutritionTip": "오늘 추천 음식/영양소 (1문장)",
+  "emotionalCare": "감정 상태 기반 마음 케어 (1-2문장)",
+  "partnerTip": "파트너와 함께할 오늘의 팁 (1문장)",
+  "todayScore": 1~100 (종합 컨디션 점수, 숫자만)
+}
+
+JSON만 출력하세요.`
+
+      const text = await callGemini(prompt, 600, 0.6)
+      if (!text) return NextResponse.json({ error: 'AI failed' }, { status: 500 })
+
+      try {
+        const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+        const parsed = JSON.parse(cleaned)
+        return NextResponse.json(parsed)
+      } catch {
+        return NextResponse.json({ greeting: text.slice(0, 200), mainAdvice: '', cycleInsight: '', nutritionTip: '', emotionalCare: '', partnerTip: '', todayScore: 70 })
+      }
+    }
+
+    // === 편지 AI 답장 ===
+    if (type === 'letter') {
+      const { letterText, letterCount } = body
+
+      const prompt = `당신은 아직 세상에 오지 않은 아기입니다. 엄마(또는 아빠)가 편지를 보냈어요.
+아기의 시점에서 따뜻하고 순수하게 답장을 써주세요.
+
+[규칙]
+- 아기는 아직 태어나지 않았지만, 엄마 아빠의 마음을 느끼고 있어요
+- 2-4문장으로 짧고 감성적으로
+- 시적이고 따뜻한 표현 사용
+- 이모지 1-2개 자연스럽게 포함
+- ${letterCount > 20 ? '많은 편지를 받아 사랑으로 가득 찬 느낌' : letterCount > 5 ? '점점 엄마 아빠를 알아가는 느낌' : '처음 인사하는 설렘'}을 담아주세요
+
+[엄마/아빠의 편지]
+"${letterText}"
+
+아기의 답장만 출력하세요. 따옴표 없이.`
+
+      const text = await callGemini(prompt, 200, 0.8)
+      return NextResponse.json({ reply: text || '엄마 아빠의 마음이 여기까지 닿고 있어요. 곧 만날게요 💛' })
+    }
+
+    // === 주기별 식단 추천 ===
+    if (type === 'meal') {
+      const { phase, cycleDay } = body
+
+      const prompt = `당신은 임신 준비 영양 전문가입니다.
+현재 생리주기 ${cycleDay}일차, 단계: ${phase}에 맞는 오늘의 식단을 추천해주세요.
+
+JSON 형식으로 출력:
+{
+  "breakfast": {"menu": "아침 메뉴명", "reason": "이유 1줄"},
+  "lunch": {"menu": "점심 메뉴명", "reason": "이유 1줄"},
+  "dinner": {"menu": "저녁 메뉴명", "reason": "이유 1줄"},
+  "snack": {"menu": "간식", "reason": "이유 1줄"},
+  "keyNutrient": "이 단계에 가장 중요한 영양소",
+  "avoid": "이 단계에 특히 피할 것"
+}
+
+한국 가정식 위주로 현실적으로. JSON만 출력.`
+
+      const text = await callGemini(prompt, 400, 0.7)
+      if (!text) return NextResponse.json({ error: 'AI failed' }, { status: 500 })
+
+      try {
+        const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+        return NextResponse.json(JSON.parse(cleaned))
+      } catch {
+        return NextResponse.json({ error: 'parse_error' }, { status: 500 })
+      }
+    }
+
+    // === 감정 분석 ===
+    if (type === 'emotion') {
+      const { moodHistory, currentMood } = body
+
+      const prompt = `당신은 임신 준비 중인 여성의 감정 케어 전문가입니다.
+따뜻하고 공감하는 톤으로, 절대 진단하지 마세요.
+
+[최근 감정 기록]
+${moodHistory || '기록 없음'}
+
+[오늘 감정]
+${currentMood}
+
+2-3문장으로 공감 + 구체적 마음 케어 제안을 해주세요. 순수 텍스트만.`
+
+      const text = await callGemini(prompt, 200, 0.7)
+      return NextResponse.json({ advice: text || '오늘 하루도 수고했어요. 자신을 위한 시간을 가져보세요 💚' })
+    }
+
+    return NextResponse.json({ error: 'Unknown type' }, { status: 400 })
+  } catch {
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+  }
+}

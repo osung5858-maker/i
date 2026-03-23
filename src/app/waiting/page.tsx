@@ -127,32 +127,37 @@ export default function WaitingPage() {
     return 'none'
   }
 
-  const generateReply = (text: string): string => {
-    if (text.includes('건강')) return '엄마가 챙겨주는 건강, 하나하나 느끼고 있어요. 고마워요, 엄마 🌿'
-    if (text.includes('사랑')) return '아직 만나지 못했지만, 이미 세상에서 가장 사랑받는 아이예요. 그 마음, 잊지 않을게요 💕'
-    if (text.includes('기다')) return '기다림의 끝에서 엄마 아빠를 안아줄 준비를 하고 있어요. 조금만요 🌈'
-    if (text.includes('이름')) return '어떤 이름이든, 엄마 아빠가 불러주면 그게 세상에서 가장 예쁜 이름이 될 거예요 ✨'
-    if (text.includes('아빠')) return '아빠 목소리가 여기까지 들려요. 낮고 따뜻해서 좋아요. 빨리 안기고 싶어요 🤗'
-    if (text.includes('걱정') || text.includes('불안')) return '걱정하는 만큼 사랑하는 거잖아요. 괜찮아요, 저는 씩씩하게 준비하고 있어요 💪'
-    if (text.includes('꿈')) return '어젯밤 엄마 꿈을 꾸었어요. 웃고 있었어요. 저도 따라 웃었어요 😊'
-    const poetic = [
-      '엄마 아빠의 마음이 별빛처럼 따뜻하게 닿고 있어요. 곧 그 품에 안길게요 ⭐',
-      '세상에 나가면 처음으로 할 일은, 엄마 아빠 눈을 바라보는 거예요 👀💛',
-      '아직 작은 씨앗이지만, 매일 조금씩 엄마 아빠를 닮아가고 있어요 🌱',
-      '이 편지를 받을 때마다 마음이 한 뼘씩 자라는 것 같아요 📏💚',
-      '엄마 아빠가 나누는 이야기가 자장가처럼 들려요. 포근해요 🎵',
-      '언젠가 이 편지들을 함께 읽는 날이 올 거예요. 그날이 기다려져요 📖',
-      '매일 보내주는 사랑, 꼭꼭 모아두고 있어요. 만나면 다 돌려줄게요 🎁',
-    ]
-    return poetic[Math.floor(Math.random() * poetic.length)]
-  }
+  const [letterSaving, setLetterSaving] = useState(false)
 
-  const saveLetter = () => {
-    if (!letterText.trim()) return
-    const reply = generateReply(letterText)
+  const saveLetter = async () => {
+    if (!letterText.trim() || letterSaving) return
+    setLetterSaving(true)
+
+    // AI 답장 시도
+    let reply = ''
+    try {
+      const res = await fetch('/api/ai-preparing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'letter', letterText: letterText.trim(), letterCount: letters.length }),
+      })
+      const data = await res.json()
+      reply = data.reply || ''
+    } catch { /* fallback */ }
+
+    // AI 실패 시 폴백
+    if (!reply) {
+      const fallback = [
+        '엄마 아빠의 마음이 별빛처럼 따뜻하게 닿고 있어요. 곧 그 품에 안길게요 ⭐',
+        '아직 작은 씨앗이지만, 매일 조금씩 엄마 아빠를 닮아가고 있어요 🌱',
+        '매일 보내주는 사랑, 꼭꼭 모아두고 있어요. 만나면 다 돌려줄게요 🎁',
+      ]
+      reply = fallback[Math.floor(Math.random() * fallback.length)]
+    }
+
     const next = [{ text: letterText.trim(), date: new Date().toISOString(), from: '엄마', reply }, ...letters]
     setLetters(next); localStorage.setItem('dodam_letters', JSON.stringify(next))
-    setLetterText(''); setLetterOpen(false)
+    setLetterText(''); setLetterOpen(false); setLetterSaving(false)
   }
 
   const toggleCheck = (id: string) => {
@@ -220,7 +225,9 @@ export default function WaitingPage() {
               <textarea value={letterText} onChange={(e) => setLetterText(e.target.value.slice(0, 500))} placeholder="아이에게 하고 싶은 말..." className="w-full h-20 text-[13px] p-3 bg-[#F5F4F1] rounded-xl resize-none focus:outline-none" autoFocus />
               <div className="flex justify-between mt-2">
                 <button onClick={() => setLetterOpen(false)} className="text-[12px] text-[#868B94]">취소</button>
-                <button onClick={saveLetter} disabled={!letterText.trim()} className={`text-[12px] font-semibold px-3 py-1 rounded-lg ${letterText.trim() ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#AEB1B9]'}`}>보내기</button>
+                <button onClick={saveLetter} disabled={!letterText.trim() || letterSaving} className={`text-[12px] font-semibold px-3 py-1 rounded-lg ${letterText.trim() && !letterSaving ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#AEB1B9]'}`}>
+                  {letterSaving ? 'AI가 답장 쓰는 중...' : '보내기'}
+                </button>
               </div>
             </div>
           ) : (

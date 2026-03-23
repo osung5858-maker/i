@@ -317,16 +317,81 @@ export default function PreparingPage() {
     )
   }
 
-  const twwTips = [
-    '너무 이른 시기예요. 평소처럼 지내세요.',
-    '착상이 시작되는 시기. 무리하지 마세요.',
-    '착상이 진행 중일 수 있어요. 따뜻한 차 한 잔.',
-    '카페인을 줄이고 충분히 쉬세요.',
-    '조급해하지 않아도 돼요. 자신을 돌보세요.',
-    '좋아하는 일에 집중해보세요.',
-    '빠르면 테스트 가능. 서두르지 않아도 괜찮아요.',
-    '생리 예정일이 다가오고 있어요.',
-  ]
+  // AI 데일리 브리핑
+  interface AIBriefing {
+    greeting: string; mainAdvice: string; cycleInsight: string
+    nutritionTip: string; emotionalCare: string; partnerTip: string; todayScore: number
+  }
+  const [aiBriefing, setAiBriefing] = useState<AIBriefing | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiMeal, setAiMeal] = useState<any>(null)
+  const [aiMealLoading, setAiMealLoading] = useState(false)
+
+  const getCyclePhase = useCallback(() => {
+    if (!cycle) return 'unknown'
+    const today = new Date()
+    const dpo = Math.floor((today.getTime() - cycle.ovulationDay.getTime()) / 86400000)
+    if (today >= cycle.fertileStart && today <= cycle.fertileEnd) return 'fertile'
+    if (dpo === 0) return 'ovulation'
+    if (dpo > 0 && dpo <= 14) return 'tww'
+    if (cycle.cycleDay <= 5) return 'period'
+    return 'follicular'
+  }, [cycle])
+
+  const fetchAIBriefing = useCallback(async () => {
+    if (!cycle || aiLoading) return
+    setAiLoading(true)
+    try {
+      // 건강 데이터 가져오기
+      const healthRaw = localStorage.getItem('dodam_health_records')
+      const health = healthRaw ? JSON.parse(healthRaw) : {}
+      const todayHealth = health[new Date().toISOString().split('T')[0]]
+
+      const res = await fetch('/api/ai-preparing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'daily',
+          cycleDay: cycle.cycleDay,
+          cycleLength,
+          phase: getCyclePhase(),
+          motherAge,
+          fatherAge,
+          mood: todayMood,
+          supplements: Object.values(supplements).filter(Boolean).length,
+          partnerChecks: Object.values(partnerChecks).filter(Boolean).length,
+          sleep: todayHealth?.sleep,
+          steps: todayHealth?.steps,
+          stress: todayHealth?.stress,
+        }),
+      })
+      const data = await res.json()
+      if (!data.error) setAiBriefing(data)
+    } catch { /* ignore */ }
+    setAiLoading(false)
+  }, [cycle, cycleLength, motherAge, fatherAge, todayMood, supplements, partnerChecks, getCyclePhase, aiLoading])
+
+  const fetchAIMeal = useCallback(async () => {
+    if (!cycle || aiMealLoading) return
+    setAiMealLoading(true)
+    try {
+      const res = await fetch('/api/ai-preparing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'meal', phase: getCyclePhase(), cycleDay: cycle.cycleDay }),
+      })
+      const data = await res.json()
+      if (!data.error) setAiMeal(data)
+    } catch { /* ignore */ }
+    setAiMealLoading(false)
+  }, [cycle, getCyclePhase, aiMealLoading])
+
+  // 페이지 로드 시 AI 브리핑 자동 호출
+  useEffect(() => {
+    if (cycle && !aiBriefing && !aiLoading) {
+      fetchAIBriefing()
+    }
+  }, [cycle]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-[100dvh] bg-[#F5F4F1]">
@@ -342,35 +407,122 @@ export default function PreparingPage() {
 
       <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
 
-        {/* AI 케어 */}
+        {/* AI 데일리 브리핑 */}
+        {cycle && (
+          <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">✨</span>
+                <p className="text-[14px] font-bold text-[#1A1918]">AI 데일리 케어</p>
+              </div>
+              {aiBriefing?.todayScore && (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-8 h-8 rounded-full bg-[#3D8A5A] flex items-center justify-center">
+                    <span className="text-[11px] font-bold text-white">{aiBriefing.todayScore}</span>
+                  </div>
+                  <span className="text-[9px] text-[#868B94]">컨디션</span>
+                </div>
+              )}
+            </div>
+
+            {aiLoading ? (
+              <div className="flex items-center justify-center py-6 gap-2">
+                <div className="w-4 h-4 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" />
+                <p className="text-[13px] text-[#868B94]">AI가 오늘의 조언을 준비하고 있어요...</p>
+              </div>
+            ) : aiBriefing ? (
+              <div className="space-y-3">
+                {/* 인사 */}
+                <p className="text-[14px] font-semibold text-[#1A1918]">{aiBriefing.greeting}</p>
+
+                {/* 메인 조언 */}
+                <div className="bg-white/80 rounded-xl p-3">
+                  <p className="text-[13px] text-[#1A1918] leading-relaxed">{aiBriefing.mainAdvice}</p>
+                </div>
+
+                {/* 주기 인사이트 */}
+                {aiBriefing.cycleInsight && (
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs mt-0.5">🔄</span>
+                    <p className="text-[12px] text-[#1A1918]">{aiBriefing.cycleInsight}</p>
+                  </div>
+                )}
+
+                {/* 영양 팁 */}
+                {aiBriefing.nutritionTip && (
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs mt-0.5">🥗</span>
+                    <p className="text-[12px] text-[#1A1918]">{aiBriefing.nutritionTip}</p>
+                  </div>
+                )}
+
+                {/* 감정 케어 */}
+                {aiBriefing.emotionalCare && (
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs mt-0.5">💚</span>
+                    <p className="text-[12px] text-[#1A1918]">{aiBriefing.emotionalCare}</p>
+                  </div>
+                )}
+
+                {/* 파트너 팁 */}
+                {aiBriefing.partnerTip && (
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs mt-0.5">💑</span>
+                    <p className="text-[12px] text-[#868B94]">{aiBriefing.partnerTip}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button onClick={fetchAIBriefing} className="w-full py-3 text-[13px] text-[#3D8A5A] font-semibold">
+                AI 조언 받기 ✨
+              </button>
+            )}
+
+            {aiBriefing && (
+              <button onClick={fetchAIBriefing} className="mt-2 text-[10px] text-[#AEB1B9]">새로고침</button>
+            )}
+          </div>
+        )}
+
+        {/* AI 오늘의 식단 */}
         {cycle && (
           <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm">✨</span>
-              <p className="text-[14px] font-bold text-[#1A1918]">AI 케어</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[14px] font-bold text-[#1A1918]">🍽️ AI 맞춤 식단</p>
+              <span className="text-[10px] text-[#868B94]">{getCyclePhase() === 'fertile' ? '가임기' : getCyclePhase() === 'tww' ? '착상기' : getCyclePhase() === 'follicular' ? '난포기' : '주기'} 맞춤</span>
             </div>
-            {(() => {
-              const today = new Date()
-              const dpo = Math.floor((today.getTime() - cycle.ovulationDay.getTime()) / 86400000)
-              if (today >= cycle.fertileStart && today <= cycle.fertileEnd) {
-                return <p className="text-[13px] text-[#1A1918]">지금은 <span className="text-[#3D8A5A] font-semibold">가임기</span>예요.</p>
-              }
-              if (dpo >= 0 && dpo <= 14) {
-                return <p className="text-[13px] text-[#1A1918]">배란 후 {dpo}일차. {twwTips[Math.min(Math.floor(dpo / 2), twwTips.length - 1)]}</p>
-              }
-              const daysToNext = Math.ceil((cycle.nextPeriod.getTime() - today.getTime()) / 86400000)
-              return <p className="text-[13px] text-[#1A1918]">다음 생리까지 <span className="font-semibold">{daysToNext}일</span>. 컨디션 관리 잘 하고 있어요.</p>
-            })()}
-            {motherAge > 0 && (
-              <p className="text-[12px] text-[#868B94] mt-2">
-                {motherAge <= 29 && '시간적 여유가 있어요. 건강한 생활습관에 집중하세요 🌿'}
-                {motherAge >= 30 && motherAge <= 34 && '최적의 시기예요. 기본 검사를 미리 받아두세요 ✨'}
-                {motherAge >= 35 && motherAge <= 39 && '고령 임신 검사를 미리 받아보세요. AMH 검사를 권장해요 🏥'}
-                {motherAge >= 40 && '난임 전문의 상담을 권장해요. 시간이 중요한 시기예요 💪'}
-              </p>
-            )}
-            {fatherAge >= 40 && (
-              <p className="text-[12px] text-[#868B94] mt-1">파트너도 정자 건강 검사를 받아보세요</p>
+            {aiMeal ? (
+              <div className="space-y-2">
+                {[
+                  { label: '아침', icon: '🌅', data: aiMeal.breakfast },
+                  { label: '점심', icon: '☀️', data: aiMeal.lunch },
+                  { label: '저녁', icon: '🌙', data: aiMeal.dinner },
+                  { label: '간식', icon: '🍎', data: aiMeal.snack },
+                ].map((m) => m.data && (
+                  <div key={m.label} className="flex items-start gap-2.5 py-1.5">
+                    <span className="text-sm">{m.icon}</span>
+                    <div>
+                      <p className="text-[12px] font-semibold text-[#1A1918]">{m.data.menu}</p>
+                      <p className="text-[10px] text-[#868B94]">{m.data.reason}</p>
+                    </div>
+                  </div>
+                ))}
+                {aiMeal.keyNutrient && (
+                  <div className="bg-[#F0F9F4] rounded-lg p-2 mt-1">
+                    <p className="text-[10px] text-[#3D8A5A]">핵심 영양소: <span className="font-semibold">{aiMeal.keyNutrient}</span></p>
+                    {aiMeal.avoid && <p className="text-[10px] text-[#D08068] mt-0.5">주의: {aiMeal.avoid}</p>}
+                  </div>
+                )}
+                <button onClick={fetchAIMeal} className="text-[10px] text-[#AEB1B9]">다른 식단 추천</button>
+              </div>
+            ) : (
+              <button
+                onClick={fetchAIMeal}
+                disabled={aiMealLoading}
+                className="w-full py-2.5 text-[13px] font-semibold text-[#3D8A5A] bg-[#F0F9F4] rounded-xl"
+              >
+                {aiMealLoading ? '추천 중...' : '오늘의 식단 추천받기 🍽️'}
+              </button>
             )}
           </div>
         )}
