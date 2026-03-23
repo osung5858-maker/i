@@ -8,7 +8,6 @@ import FeedSheet from '@/components/quick-buttons/FeedSheet'
 import PoopSheet from '@/components/quick-buttons/PoopSheet'
 import TempSheet from '@/components/quick-buttons/TempSheet'
 import Timeline from '@/components/timeline/Timeline'
-import DiaryView from '@/components/diary/DiaryView'
 import StreakBanner from '@/components/reward/StreakBanner'
 import Toast from '@/components/ui/Toast'
 import { BellIcon, ChevronRightIcon } from '@/components/ui/Icons'
@@ -39,7 +38,6 @@ function getTodayRange() {
 }
 
 // --- 탭 타입 ---
-type HomeTab = 'record' | 'diary' | 'insight'
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
@@ -52,7 +50,6 @@ export default function HomePage() {
   const [poopSheetOpen, setPoopSheetOpen] = useState(false)
   const [tempSheetOpen, setTempSheetOpen] = useState(false)
   const [pendingEventId, setPendingEventId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<HomeTab>('insight')
   const { isOnline, pendingCount, syncing } = useOfflineSync()
 
   const router = useRouter()
@@ -285,26 +282,8 @@ export default function HomePage() {
         {/* 스트릭 배너 */}
         <StreakBanner events={events} />
 
-        {/* 탭 전환 */}
-        <div className="flex border-b border-[#ECECEC] px-5 max-w-lg mx-auto">
-          {[
-            { key: 'insight' as HomeTab, label: '인사이트' },
-            { key: 'record' as HomeTab, label: '기록' },
-            { key: 'diary' as HomeTab, label: '일기' },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 py-2.5 text-[14px] font-semibold text-center border-b-2 transition-colors ${
-                activeTab === tab.key
-                  ? 'border-[#212124] text-[#212124]'
-                  : 'border-transparent text-[#AEB1B9]'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {/* 구분선 */}
+        <div className="border-b border-[#ECECEC]" />
       </header>
 
       {/* 배너 */}
@@ -322,31 +301,29 @@ export default function HomePage() {
       )}
 
       {/* 콘텐츠 영역 */}
+      {/* 콘텐츠 — 한 화면 스크롤 (인사이트 + 타임라인) */}
       <div className="flex-1 overflow-y-auto bg-[#F7F8FA]">
         <div className="max-w-lg mx-auto pt-3 pb-44">
-          {activeTab === 'insight' ? (
-            <InsightHub
-              events={events}
-              birthdate={child?.birthdate}
-              childName={child?.name || '도담이'}
-            />
-          ) : activeTab === 'record' ? (
-            <>
-              {/* 기록 탭 */}
-              <div className="flex items-center justify-between px-5 pb-2">
-                <p className="text-[13px] text-[#868B94]">오늘 {events.length}건</p>
-                <Link
-                  href={`/records/${new Date().toISOString().split('T')[0]}`}
-                  className="flex items-center gap-0.5 text-[12px] font-medium text-[#FF6F0F]"
-                >
-                  전체보기 <ChevronRightIcon className="w-3 h-3" />
-                </Link>
-              </div>
-              <Timeline events={events} />
-            </>
-          ) : (
-            <DiaryView events={events} childName={child?.name || '도담이'} />
-          )}
+          {/* AI 인사이트 */}
+          <InsightHub
+            events={events}
+            birthdate={child?.birthdate}
+            childName={child?.name || '도담이'}
+          />
+
+          {/* 오늘의 기록 타임라인 */}
+          <div className="mt-2">
+            <div className="flex items-center justify-between px-5 pb-2">
+              <p className="text-[14px] font-bold text-[#212124]">오늘의 기록</p>
+              <Link
+                href={`/records/${new Date().toISOString().split('T')[0]}`}
+                className="flex items-center gap-0.5 text-[12px] font-medium text-[#3D8A5A]"
+              >
+                전체보기 <ChevronRightIcon className="w-3 h-3" />
+              </Link>
+            </div>
+            <Timeline events={events} />
+          </div>
         </div>
       </div>
 

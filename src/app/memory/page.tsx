@@ -17,7 +17,7 @@ function getAgeMonths(birthdate: string): number {
   return (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
 }
 
-type MemoryTab = 'diary' | 'growth' | 'stats' | 'develop'
+type MemoryTab = 'diary' | 'growth'
 
 export default function MemoryPage() {
   const [child, setChild] = useState<Child | null>(null)
@@ -77,16 +77,14 @@ export default function MemoryPage() {
 
         <div className="flex px-4 pb-1 max-w-lg mx-auto gap-1">
           {([
-            { key: 'diary' as MemoryTab, label: '일기' },
-            { key: 'growth' as MemoryTab, label: '성장' },
-            { key: 'stats' as MemoryTab, label: '통계' },
-            { key: 'develop' as MemoryTab, label: '발달' },
+            { key: 'diary' as MemoryTab, label: '📖 일기' },
+            { key: 'growth' as MemoryTab, label: '📊 성장' },
           ]).map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex-1 py-2 text-[12px] font-semibold text-center rounded-lg transition-colors ${
-                tab === t.key ? 'bg-[#3D8A5A] text-white' : 'text-[#AEB1B9]'
+              className={`flex-1 py-2.5 text-[13px] font-semibold text-center rounded-xl transition-colors ${
+                tab === t.key ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#AEB1B9]'
               }`}
             >
               {t.label}
@@ -100,50 +98,51 @@ export default function MemoryPage() {
           <DiaryView events={events} childName={child?.name || '도담이'} />
         )}
         {tab === 'growth' && (
-          <div className="p-4 space-y-4">
-            {/* 최신 측정 요약 */}
-            {latestRecord && (
-              <div className="bg-white rounded-2xl p-5 border border-[#f0f0f0]">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3D8A5A] to-[#5B6DFF] flex items-center justify-center">
-                    <span className="text-lg">👶</span>
+          <div className="space-y-3">
+            {/* 성장 요약 */}
+            <div className="px-4 pt-4">
+              {latestRecord ? (
+                <div className="bg-white rounded-2xl p-5 border border-[#f0f0f0]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3D8A5A] to-[#5B6DFF] flex items-center justify-center">
+                      <span className="text-lg">👶</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[14px] font-bold text-[#1A1918]">{child?.name}</p>
+                      <p className="text-[11px] text-[#9C9B99]">{ageMonths}개월</p>
+                    </div>
+                    <Link href="/growth/add" className="text-[11px] font-semibold text-[#3D8A5A] px-3 py-1.5 bg-[#F0F9F4] rounded-lg">+ 측정</Link>
                   </div>
-                  <div>
-                    <p className="text-[14px] font-bold text-[#1A1918]">{child?.name}</p>
-                    <p className="text-[11px] text-[#9C9B99]">{ageMonths}개월</p>
+                  <div className="flex gap-3">
+                    {latestRecord.weight_kg && (
+                      <div className="flex-1 p-3 rounded-xl bg-[#F5F9F6]">
+                        <p className="text-[10px] text-[#9C9B99]">몸무게</p>
+                        <p className="text-lg font-bold text-[#1A1918]">{Number(latestRecord.weight_kg).toFixed(1)}<span className="text-[11px] font-normal text-[#9C9B99] ml-0.5">kg</span></p>
+                      </div>
+                    )}
+                    {latestRecord.height_cm && (
+                      <div className="flex-1 p-3 rounded-xl bg-[#F5F5FA]">
+                        <p className="text-[10px] text-[#9C9B99]">키</p>
+                        <p className="text-lg font-bold text-[#1A1918]">{Number(latestRecord.height_cm).toFixed(1)}<span className="text-[11px] font-normal text-[#9C9B99] ml-0.5">cm</span></p>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  {latestRecord.weight_kg && (
-                    <div className="flex-1 p-3 rounded-xl bg-[#F5F9F6]">
-                      <p className="text-[10px] text-[#9C9B99]">몸무게</p>
-                      <p className="text-lg font-bold text-[#1A1918]">{Number(latestRecord.weight_kg).toFixed(1)}<span className="text-[11px] font-normal text-[#9C9B99] ml-0.5">kg</span></p>
-                    </div>
-                  )}
-                  {latestRecord.height_cm && (
-                    <div className="flex-1 p-3 rounded-xl bg-[#F5F5FA]">
-                      <p className="text-[10px] text-[#9C9B99]">키</p>
-                      <p className="text-lg font-bold text-[#1A1918]">{Number(latestRecord.height_cm).toFixed(1)}<span className="text-[11px] font-normal text-[#9C9B99] ml-0.5">cm</span></p>
-                    </div>
-                  )}
+              ) : (
+                <div className="bg-white rounded-2xl p-8 border border-[#f0f0f0] text-center">
+                  <p className="text-2xl mb-2">📏</p>
+                  <p className="text-[13px] text-[#9C9B99]">아직 성장 기록이 없어요</p>
+                  <Link href="/growth/add" className="inline-block mt-4 px-5 py-2 rounded-xl bg-[#3D8A5A] text-white text-[13px] font-semibold">기록 추가</Link>
                 </div>
-              </div>
-            )}
-            {child && <CommunityComparison childId={child.id} ageMonths={ageMonths} sex={child.sex ?? undefined} />}
-            {!latestRecord && (
-              <div className="text-center py-12">
-                <p className="text-2xl mb-2">📏</p>
-                <p className="text-[13px] text-[#9C9B99]">아직 성장 기록이 없어요</p>
-                <Link href="/growth/add" className="inline-block mt-4 px-5 py-2 rounded-xl bg-[#3D8A5A] text-white text-[13px] font-semibold">기록 추가</Link>
-              </div>
-            )}
+              )}
+            </div>
+
+            {/* 통계 하이라이트 */}
+            <StatsReport events={events} ageMonths={ageMonths} />
+
+            {/* 발달 체크 */}
+            <DevelopmentCheck ageMonths={ageMonths} />
           </div>
-        )}
-        {tab === 'stats' && (
-          <StatsReport events={events} ageMonths={ageMonths} />
-        )}
-        {tab === 'develop' && (
-          <DevelopmentCheck ageMonths={ageMonths} />
         )}
       </div>
     </div>
