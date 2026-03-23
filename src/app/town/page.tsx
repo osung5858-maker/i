@@ -178,27 +178,26 @@ function CommunityFeed() {
 
   return (
     <div className="space-y-2">
+      {/* 글쓰기 바로가기 */}
+      <Link href="/community" className="block bg-[#F0F9F4] rounded-xl p-3 text-center active:opacity-80">
+        <p className="text-[12px] text-[#3D8A5A] font-semibold">✏️ 수다 떨러가기</p>
+      </Link>
+
       {loadingPosts ? (
-        <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-6"><div className="w-5 h-5 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" /></div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-[13px] text-[#AEB1B9]">아직 글이 없어요</p>
-          <Link href="/community" className="text-[12px] text-[#3D8A5A] font-semibold mt-2 inline-block">첫 글 쓰러가기 →</Link>
-        </div>
+        <p className="text-[13px] text-[#AEB1B9] text-center py-6">아직 글이 없어요</p>
       ) : (
-        <>
-          {posts.map(post => (
-            <Link key={post.id} href="/community" className="block bg-white rounded-xl border border-[#f0f0f0] p-3 active:bg-[#F5F4F1]">
-              <p className="text-[13px] text-[#1A1918] line-clamp-2">{post.content}</p>
-              <div className="flex items-center gap-3 mt-1.5">
-                <span className="text-[10px] text-[#868B94]">❤️ {post.like_count || 0}</span>
-                <span className="text-[10px] text-[#868B94]">💬 {post.comment_count || 0}</span>
-                <span className="text-[10px] text-[#AEB1B9]">{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
-              </div>
-            </Link>
-          ))}
-          <Link href="/community" className="block text-center text-[12px] text-[#3D8A5A] font-semibold py-2">더보기 →</Link>
-        </>
+        posts.map(post => (
+          <Link key={post.id} href="/community" className="block bg-white rounded-xl border border-[#f0f0f0] p-3 active:bg-[#F5F4F1]">
+            <p className="text-[13px] text-[#1A1918] line-clamp-2">{post.content}</p>
+            <div className="flex items-center gap-3 mt-1.5">
+              <span className="text-[10px] text-[#868B94]">❤️ {post.like_count || 0}</span>
+              <span className="text-[10px] text-[#868B94]">💬 {post.comment_count || 0}</span>
+              <span className="text-[10px] text-[#AEB1B9]">{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
+            </div>
+          </Link>
+        ))
       )}
     </div>
   )
@@ -240,7 +239,6 @@ function MarketFeed() {
               <p className="text-[10px] text-[#868B94] mt-0.5 line-clamp-1">{item.description}</p>
             </Link>
           ))}
-          <Link href="/community?tab=market" className="block text-center text-[12px] text-[#3D8A5A] font-semibold py-2">더보기 →</Link>
         </>
       )}
     </div>

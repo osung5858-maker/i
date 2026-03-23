@@ -56,6 +56,63 @@ const STRESS_TIPS = [
   { icon: '🎵', title: '음악 테라피', desc: '편안한 음악 20분' },
 ]
 
+// ===== AI 타이핑 디스플레이 =====
+function AITypingDisplay({ briefing, onRefresh, onShare }: { briefing: any; onRefresh: () => void; onShare: () => void }) {
+  const [displayedText, setDisplayedText] = useState('')
+  const [done, setDone] = useState(false)
+
+  const fullText = [
+    briefing.greeting,
+    briefing.mainAdvice,
+    briefing.cycleInsight ? `🔄 ${briefing.cycleInsight}` : '',
+    briefing.emotionalCare ? `💚 ${briefing.emotionalCare}` : '',
+    briefing.partnerTip ? `💑 ${briefing.partnerTip}` : '',
+  ].filter(Boolean).join('\n\n')
+
+  useEffect(() => {
+    // 캐시에서 온 경우 즉시 표시
+    const cached = localStorage.getItem('dodam_ai_briefing')
+    if (cached) {
+      try {
+        const { date } = JSON.parse(cached)
+        if (date === new Date().toISOString().split('T')[0]) {
+          setDisplayedText(fullText); setDone(true); return
+        }
+      } catch { /* */ }
+    }
+
+    let i = 0
+    const timer = setInterval(() => {
+      i += 2 // 2글자씩
+      if (i >= fullText.length) {
+        setDisplayedText(fullText); setDone(true); clearInterval(timer)
+      } else {
+        setDisplayedText(fullText.slice(0, i))
+      }
+    }, 20)
+    return () => clearInterval(timer)
+  }, [fullText])
+
+  return (
+    <div>
+      <div className="flex items-start gap-2">
+        <div className="w-6 h-6 rounded-full bg-[#3D8A5A] flex items-center justify-center shrink-0 mt-0.5">
+          <span className="text-[9px] text-white font-bold">AI</span>
+        </div>
+        <div className="flex-1 bg-white/60 rounded-lg p-2.5">
+          <p className="text-[12px] text-[#1A1918] leading-relaxed whitespace-pre-line">{displayedText}{!done && <span className="animate-pulse">▊</span>}</p>
+        </div>
+      </div>
+      {done && (
+        <div className="flex items-center gap-3 mt-2 ml-8">
+          <button onClick={onRefresh} className="text-[10px] text-[#AEB1B9]">다시 받기</button>
+          <button onClick={onShare} className="text-[10px] text-[#3D8A5A] font-medium">카톡 공유</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function PreparingPage() {
   const [lastPeriod, setLastPeriod] = useState<string>(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('dodam_last_period') || ''
@@ -293,12 +350,22 @@ export default function PreparingPage() {
             <div className="flex justify-between text-[9px] text-[#AEB1B9]"><span>21일</span><span>28일</span><span>40일</span></div>
           </div>
           <div>
-            <p className="text-[12px] font-semibold text-[#868B94] mb-1">엄마 생년월일 {tempMotherAge > 0 && <span className="text-[#3D8A5A]">({tempMotherAge}세)</span>}</p>
-            <input type="date" value={tempMotherBirth} onChange={(e) => setTempMotherBirth(e.target.value)} className="w-full h-12 rounded-xl border border-[#f0f0f0] px-4 text-[14px]" />
+            <p className="text-[12px] font-semibold text-[#868B94] mb-1">엄마 출생연도 {tempMotherAge > 0 && <span className="text-[#3D8A5A] font-bold">{tempMotherAge}세</span>}</p>
+            <select value={tempMotherBirth} onChange={(e) => setTempMotherBirth(e.target.value)} className="w-full h-12 rounded-xl border border-[#f0f0f0] px-3 text-[14px] bg-white">
+              <option value="">선택</option>
+              {Array.from({ length: 40 }, (_, i) => new Date().getFullYear() - 20 - i).map(y => (
+                <option key={y} value={`${y}-06-15`}>{y}년생</option>
+              ))}
+            </select>
           </div>
           <div>
-            <p className="text-[12px] font-semibold text-[#868B94] mb-1">아빠 생년월일 {tempFatherAge > 0 && <span className="text-[#3D8A5A]">({tempFatherAge}세)</span>}</p>
-            <input type="date" value={tempFatherBirth} onChange={(e) => setTempFatherBirth(e.target.value)} className="w-full h-12 rounded-xl border border-[#f0f0f0] px-4 text-[14px]" />
+            <p className="text-[12px] font-semibold text-[#868B94] mb-1">아빠 출생연도 {tempFatherAge > 0 && <span className="text-[#3D8A5A] font-bold">{tempFatherAge}세</span>}</p>
+            <select value={tempFatherBirth} onChange={(e) => setTempFatherBirth(e.target.value)} className="w-full h-12 rounded-xl border border-[#f0f0f0] px-3 text-[14px] bg-white">
+              <option value="">선택</option>
+              {Array.from({ length: 40 }, (_, i) => new Date().getFullYear() - 20 - i).map(y => (
+                <option key={y} value={`${y}-06-15`}>{y}년생</option>
+              ))}
+            </select>
           </div>
         </div>
         <button
@@ -354,23 +421,16 @@ export default function PreparingPage() {
             )}
 
             {aiLoading ? (
-              <div className="flex items-center justify-center py-4 gap-2">
-                <div className="w-4 h-4 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" />
-                <p className="text-[12px] text-[#868B94]">AI가 조언을 준비 중...</p>
-              </div>
-            ) : aiBriefing ? (
-              <div className="space-y-2">
-                <p className="text-[13px] font-semibold text-[#1A1918]">{aiBriefing.greeting}</p>
-                <p className="text-[12px] text-[#1A1918] leading-relaxed bg-white/60 rounded-lg p-2.5">{aiBriefing.mainAdvice}</p>
-                {aiBriefing.cycleInsight && <p className="text-[11px] text-[#868B94]">🔄 {aiBriefing.cycleInsight}</p>}
-                {aiBriefing.emotionalCare && <p className="text-[11px] text-[#868B94]">💚 {aiBriefing.emotionalCare}</p>}
-                <div className="flex items-center gap-3">
-                  <button onClick={() => fetchAIBriefing(true)} className="text-[10px] text-[#AEB1B9]">새로고침</button>
-                  <button onClick={() => shareAIAdvice(aiBriefing.greeting, aiBriefing.mainAdvice, getCyclePhase())} className="text-[10px] text-[#3D8A5A] font-medium">카톡 공유</button>
+              <div className="py-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-full bg-[#3D8A5A] flex items-center justify-center"><span className="text-[10px] text-white">AI</span></div>
+                  <div className="flex gap-1"><span className="w-1.5 h-1.5 bg-[#3D8A5A] rounded-full animate-bounce" style={{ animationDelay: '0s' }} /><span className="w-1.5 h-1.5 bg-[#3D8A5A] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }} /><span className="w-1.5 h-1.5 bg-[#3D8A5A] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} /></div>
                 </div>
               </div>
+            ) : aiBriefing ? (
+              <AITypingDisplay briefing={aiBriefing} onRefresh={() => fetchAIBriefing(true)} onShare={() => shareAIAdvice(aiBriefing.greeting, aiBriefing.mainAdvice, getCyclePhase())} />
             ) : (
-              <div className="text-center py-2">
+              <div className="text-center py-3">
                 <p className="text-[13px] text-[#1A1918] mb-2">오늘의 맞춤 조언을 받아보세요</p>
                 <button onClick={() => fetchAIBriefing()} className="px-6 py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 shadow-[0_2px_12px_rgba(61,138,90,0.3)]">
                   ✨ AI 조언 받기

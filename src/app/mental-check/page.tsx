@@ -105,31 +105,50 @@ export default function MentalCheckPage() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28">
-        <p className="text-[12px] text-[#868B94] mb-4 text-center">지난 7일간의 기분을 떠올리며 답해주세요</p>
+      <div className="max-w-lg mx-auto px-6 pt-6 pb-28">
+        {/* 프로그레스 */}
+        <div className="flex gap-1 mb-6">
+          {QUESTIONS.map((_, i) => (
+            <div key={i} className={`flex-1 h-1 rounded-full ${answers[i] !== null ? 'bg-[#3D8A5A]' : i === currentQ ? 'bg-[#3D8A5A]/40' : 'bg-[#F0F0F0]'}`} />
+          ))}
+        </div>
 
-        <div className="space-y-3">
-          {QUESTIONS.map((q, qi) => (
-            <div key={qi} className={`bg-white rounded-xl border p-4 transition-all ${currentQ === qi ? 'border-[#3D8A5A] shadow-sm' : 'border-[#f0f0f0]'}`}>
-              <p className="text-[13px] font-semibold text-[#1A1918] mb-3">{qi + 1}. {q.q}</p>
-              <div className="space-y-1.5">
+        <p className="text-[12px] text-[#868B94] mb-2 text-center">지난 7일간의 기분을 떠올려주세요</p>
+
+        {/* 현재 문항만 표시 */}
+        {(() => {
+          const q = QUESTIONS[currentQ]
+          return (
+            <div className="bg-white rounded-2xl border border-[#f0f0f0] p-5">
+              <p className="text-[11px] text-[#3D8A5A] font-semibold mb-2">{currentQ + 1} / 10</p>
+              <p className="text-[16px] font-bold text-[#1A1918] mb-5 leading-relaxed">{q.q}</p>
+              <div className="space-y-2">
                 {q.options.map((opt, oi) => (
-                  <button key={oi} onClick={() => handleAnswer(qi, oi)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-[12px] transition-all ${answers[qi] === oi ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#1A1918] active:bg-[#ECECEC]'}`}>
+                  <button key={oi} onClick={() => handleAnswer(currentQ, oi)}
+                    className={`w-full text-left px-4 py-3 rounded-xl text-[14px] transition-all ${answers[currentQ] === oi ? 'bg-[#3D8A5A] text-white font-semibold' : 'bg-[#F5F4F1] text-[#1A1918] active:bg-[#ECECEC]'}`}>
                     {opt}
                   </button>
                 ))}
               </div>
             </div>
-          ))}
-        </div>
+          )
+        })()}
 
-        {allAnswered && (
-          <button onClick={() => { saveResult(); setShowResult(true) }}
-            className="w-full mt-4 py-3 bg-[#3D8A5A] text-white text-[14px] font-semibold rounded-xl active:opacity-80">
-            결과 보기
-          </button>
-        )}
+        {/* 이전/다음 네비게이션 */}
+        <div className="flex items-center justify-between mt-4">
+          <button onClick={() => setCurrentQ(Math.max(0, currentQ - 1))} disabled={currentQ === 0}
+            className={`text-[13px] ${currentQ === 0 ? 'text-[#F0F0F0]' : 'text-[#868B94]'}`}>← 이전</button>
+
+          {allAnswered ? (
+            <button onClick={() => { saveResult(); setShowResult(true) }}
+              className="px-6 py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80">
+              결과 보기
+            </button>
+          ) : (
+            <button onClick={() => setCurrentQ(Math.min(9, currentQ + 1))} disabled={answers[currentQ] === null}
+              className={`text-[13px] ${answers[currentQ] === null ? 'text-[#F0F0F0]' : 'text-[#3D8A5A] font-semibold'}`}>다음 →</button>
+          )}
+        </div>
       </div>
     </div>
   )

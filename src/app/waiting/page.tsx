@@ -45,9 +45,11 @@ const CHECKLIST = [
 ]
 
 const GOV_SUPPORTS = [
-  { title: '난임부부 시술비 지원', desc: '체외수정·인공수정 시술비 지원', link: 'https://www.gov.kr/portal/service/serviceInfo/SME000000100' },
-  { title: '임신 사전건강관리', desc: '보건소 무료 산전검사·상담', link: 'https://www.e-health.go.kr/gh/caSrvcGud/selectMdclSupGudInfo.do?heBiz=PG00003&menuId=200097' },
-  { title: '엽산제·철분제 무료 지원', desc: '보건소 등록 임산부 대상', link: 'https://www.gov.kr/portal/service/serviceInfo/SD0000016094' },
+  { title: '난임부부 시술비 지원', desc: '체외수정 최대 110만원 · 인공수정 최대 30만원', link: 'https://www.gov.kr/portal/service/serviceInfo/SME000000100' },
+  { title: '임신 사전건강관리', desc: '보건소 무료 산전검사 · 풍진/빈혈 검사', link: 'https://www.mohw.go.kr/menu.es?mid=a10711020200' },
+  { title: '엽산제·철분제 무료', desc: '보건소 등록 시 무료 제공', link: 'https://www.gov.kr/portal/service/serviceInfo/SD0000016094' },
+  { title: '난임 원스톱 서비스', desc: '시술비·심리상담 통합 지원', link: 'https://www.gov.kr/portal/onestopSvc/Infertility' },
+  { title: '맘편한임신 통합신청', desc: '임신 후 각종 지원 한번에 신청', link: 'https://www.gov.kr/portal/onestopSvc/fertility' },
 ]
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
