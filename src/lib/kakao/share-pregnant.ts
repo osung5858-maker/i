@@ -1,8 +1,14 @@
 const SITE_URL = 'https://dodam.life'
 
 function sendKakao(params: { title: string; description: string; link?: string; buttonTitle?: string }) {
-  if (typeof window === 'undefined' || !window.Kakao?.isInitialized()) {
-    alert('카카오톡 공유를 사용할 수 없어요')
+  if (typeof window === 'undefined') return
+  if (window.Kakao && !window.Kakao.isInitialized()) {
+    const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+    if (key) window.Kakao.init(key)
+  }
+  if (!window.Kakao?.isInitialized()) {
+    if (navigator.share) { navigator.share({ title: params.title, text: params.description, url: params.link || SITE_URL }).catch(() => {}); return }
+    navigator.clipboard.writeText(`${params.title}\n${params.description}\n${params.link || SITE_URL}`).then(() => alert('공유 내용이 복사되었어요!')).catch(() => {})
     return
   }
   window.Kakao.Share.sendDefault({

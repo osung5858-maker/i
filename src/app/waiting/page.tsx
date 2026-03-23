@@ -242,9 +242,9 @@ export default function WaitingPage() {
         {/* 주기 캘린더 */}
         <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
           <div className="flex items-center justify-between mb-3">
-            <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1) } else setCalMonth(calMonth - 1) }} className="text-[#868B94] px-2">←</button>
+            <button type="button" onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1) } else setCalMonth(calMonth - 1) }} className="text-[#868B94] px-3 py-1">←</button>
             <p className="text-[14px] font-bold text-[#1A1918]">{calYear}년 {calMonth + 1}월</p>
-            <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1) } else setCalMonth(calMonth + 1) }} className="text-[#868B94] px-2">→</button>
+            <button type="button" onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1) } else setCalMonth(calMonth + 1) }} className="text-[#868B94] px-3 py-1">→</button>
           </div>
           <div className="grid grid-cols-7 gap-1 mb-1">
             {WEEKDAYS.map((d) => <div key={d} className="text-center text-[9px] text-[#AEB1B9]">{d}</div>)}

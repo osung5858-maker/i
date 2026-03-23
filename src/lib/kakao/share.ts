@@ -8,8 +8,24 @@ function sendKakao(params: {
   link?: string
   buttonTitle?: string
 }) {
-  if (typeof window === 'undefined' || !window.Kakao?.isInitialized()) {
-    alert('카카오톡 공유를 사용할 수 없어요')
+  if (typeof window === 'undefined') return
+
+  // SDK 미로딩 시 초기화 시도
+  if (window.Kakao && !window.Kakao.isInitialized()) {
+    const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+    if (key) window.Kakao.init(key)
+  }
+
+  if (!window.Kakao?.isInitialized()) {
+    // 카카오 SDK 사용 불가 시 웹 공유 폴백
+    if (navigator.share) {
+      navigator.share({ title: params.title, text: params.description, url: params.link || SITE_URL }).catch(() => {})
+      return
+    }
+    // 클립보드 폴백
+    navigator.clipboard.writeText(`${params.title}\n${params.description}\n${params.link || SITE_URL}`)
+      .then(() => alert('공유 내용이 복사되었어요!'))
+      .catch(() => alert('카카오톡 공유를 사용할 수 없어요'))
     return
   }
 
