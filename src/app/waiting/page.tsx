@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { shareLetter, sharePositiveTest } from '@/lib/kakao/share'
 
 // ===== 주기 계산 =====
 function addDays(date: Date, days: number): Date {
@@ -216,7 +217,10 @@ export default function WaitingPage() {
               </div>
               <div className="p-3 bg-[#FFF8F3] rounded-xl rounded-tr-sm mt-1 ml-6">
                 <p className="text-[12px] text-[#1A1918]">💌 {l.reply}</p>
-                <p className="text-[9px] text-[#AEB1B9] mt-1">아이의 답장</p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-[9px] text-[#AEB1B9]">아이의 답장</p>
+                  <button onClick={() => shareLetter(l.text, l.reply, letters.length - i)} className="text-[9px] text-[#3D8A5A] font-medium">카톡 공유</button>
+                </div>
               </div>
             </div>
           ))}
@@ -312,14 +316,20 @@ export default function WaitingPage() {
               </p>
               <div className="space-y-2">
                 <button
-                  onClick={() => router.push('/celebration')}
+                  onClick={() => { sharePositiveTest(); router.push('/celebration') }}
                   className="w-full py-3 bg-[#3D8A5A] text-white text-[14px] font-semibold rounded-xl active:opacity-80"
                 >
                   네, 임신했어요! 💛
                 </button>
                 <button
+                  onClick={() => router.push('/celebration')}
+                  className="w-full py-2.5 text-[13px] text-[#3D8A5A]"
+                >
+                  공유 없이 넘어가기
+                </button>
+                <button
                   onClick={() => setShowPregConfirm(false)}
-                  className="w-full py-2.5 text-[13px] text-[#868B94]"
+                  className="w-full py-2 text-[12px] text-[#868B94]"
                 >
                   아직 확인이 더 필요해요
                 </button>

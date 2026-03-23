@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
+import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
 
 function addDays(date: Date, days: number): Date {
   const d = new Date(date); d.setDate(d.getDate() + days); return d
@@ -319,7 +320,10 @@ export default function PreparingPage() {
                 <p className="text-[12px] text-[#1A1918] leading-relaxed bg-white/60 rounded-lg p-2.5">{aiBriefing.mainAdvice}</p>
                 {aiBriefing.cycleInsight && <p className="text-[11px] text-[#868B94]">🔄 {aiBriefing.cycleInsight}</p>}
                 {aiBriefing.emotionalCare && <p className="text-[11px] text-[#868B94]">💚 {aiBriefing.emotionalCare}</p>}
-                <button onClick={() => fetchAIBriefing(true)} className="text-[10px] text-[#AEB1B9]">새로고침</button>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => fetchAIBriefing(true)} className="text-[10px] text-[#AEB1B9]">새로고침</button>
+                  <button onClick={() => shareAIAdvice(aiBriefing.greeting, aiBriefing.mainAdvice, getCyclePhase())} className="text-[10px] text-[#3D8A5A] font-medium">카톡 공유</button>
+                </div>
               </div>
             ) : (
               <button onClick={() => fetchAIBriefing()} className="w-full py-3 text-[12px] text-[#3D8A5A] font-semibold">AI 조언 받기 ✨</button>
@@ -470,7 +474,19 @@ export default function PreparingPage() {
           )}
         </div>
 
-        {/* ━━━ 4. 더보기 (접이식) ━━━ */}
+        {/* 준비 현황 공유 */}
+        <button
+          onClick={() => {
+            const letters = (() => { try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]').length } catch { return 0 } })()
+            const days = cycle ? cycle.cycleDay : 0
+            shareProgress({ letters, appointments: apptCount, totalAppointments: 8, supplements: supplCount, partnerChecks: partnerCount, days })
+          }}
+          className="w-full bg-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-3 text-center text-[13px] font-semibold text-[#3D8A5A] active:opacity-80"
+        >
+          📋 준비 현황 카톡으로 공유하기
+        </button>
+
+        {/* ━━━ 5. 더보기 (접이식) ━━━ */}
         <button
           onClick={() => setMoreOpen(!moreOpen)}
           className="w-full bg-white rounded-xl border border-[#f0f0f0] p-3 flex items-center justify-between"
@@ -483,7 +499,10 @@ export default function PreparingPage() {
           <div className="space-y-3">
             {/* 파트너 건강 상세 */}
             <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
-              <p className="text-[13px] font-bold text-[#1A1918] mb-2">💑 파트너 건강 체크</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[13px] font-bold text-[#1A1918]">💑 파트너 건강 체크</p>
+                <button onClick={() => sharePartnerNudge(partnerCount, 6)} className="text-[10px] text-[#3D8A5A] font-medium">카톡 넛지 보내기</button>
+              </div>
               <div className="grid grid-cols-2 gap-1.5">
                 {[
                   { key: 'p_nosmoking', label: '금연' }, { key: 'p_nodrink', label: '금주' },
