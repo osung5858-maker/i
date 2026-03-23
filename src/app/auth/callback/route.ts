@@ -26,9 +26,29 @@ export async function GET(request: Request) {
       }
     )
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error && data.session) {
+      // Google Fit 연동을 위해 provider_token 쿠키에 저장
+      const res = NextResponse.redirect(`${origin}${next}`)
+      if (data.session.provider_token) {
+        res.cookies.set('gfit_token', data.session.provider_token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'lax',
+          maxAge: 3600, // 1시간
+          path: '/',
+        })
+      }
+      if (data.session.provider_refresh_token) {
+        res.cookies.set('gfit_refresh', data.session.provider_refresh_token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 30, // 30일
+          path: '/',
+        })
+      }
+      return res
     }
   }
 

@@ -9,7 +9,7 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
     {
       label: '건강',
       items: [
-        { href: '/health', icon: '💚', title: '내 건강', desc: '수면 · 스트레스 · 걸음수 · 체중' },
+        { href: '/health', icon: '💚', title: '내 건강', desc: 'Google Fit 연동 · 수면 · 걸음수 · 심박' },
       ],
     },
     {
@@ -43,7 +43,7 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
     {
       label: '건강',
       items: [
-        { href: '/health', icon: '💚', title: '내 건강', desc: '수면 · 체중 · 스트레스 · 걸음수' },
+        { href: '/health', icon: '💚', title: '내 건강', desc: 'Google Fit 연동 · 수면 · 걸음수 · 심박' },
       ],
     },
     {
@@ -76,7 +76,7 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
     {
       label: '건강',
       items: [
-        { href: '/health', icon: '💚', title: '내 건강', desc: '수면 · 스트레스 · AI 건강 케어' },
+        { href: '/health', icon: '💚', title: '내 건강', desc: 'Google Fit 연동 · 수면 · 걸음수 · 심박' },
       ],
     },
     {
