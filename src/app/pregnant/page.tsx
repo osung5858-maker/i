@@ -1,26 +1,59 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import Link from 'next/link'
+import { useState, useMemo, useEffect } from 'react'
+import { shareFetalSize, shareDday } from '@/lib/kakao/share-pregnant'
 
+// ===== 태아 데이터 =====
 const FETAL_DATA = [
-  { week: 4, fruit: '🌰', fruitName: '참깨', length: '0.1cm', weight: '-', desc: '수정란이 자궁에 착상했어요', tip: '엽산 복용을 시작하세요' },
-  { week: 8, fruit: '🫐', fruitName: '블루베리', length: '1.6cm', weight: '1g', desc: '심장이 뛰기 시작했어요!', tip: '첫 초음파 검사를 받아보세요' },
-  { week: 12, fruit: '🍑', fruitName: '자두', length: '5.4cm', weight: '14g', desc: '손가락 발가락이 생겼어요', tip: '입덧이 줄어들기 시작해요' },
-  { week: 16, fruit: '🍊', fruitName: '오렌지', length: '11.6cm', weight: '100g', desc: '태동을 느낄 수 있어요!', tip: '안정기 진입! 가벼운 산책을 시작하세요' },
-  { week: 20, fruit: '🍌', fruitName: '바나나', length: '25cm', weight: '300g', desc: '성별을 확인할 수 있어요', tip: '정밀 초음파 검사 시기예요' },
-  { week: 24, fruit: '🌽', fruitName: '옥수수', length: '30cm', weight: '600g', desc: '소리를 들을 수 있어요', tip: '태교 음악을 들려주세요' },
-  { week: 28, fruit: '🥥', fruitName: '코코넛', length: '37cm', weight: '1kg', desc: '눈을 뜨기 시작해요', tip: '임신성 당뇨 검사를 받으세요' },
-  { week: 32, fruit: '🍈', fruitName: '멜론', length: '42cm', weight: '1.7kg', desc: '폐가 성숙해지고 있어요', tip: '출산 가방을 준비하세요' },
-  { week: 36, fruit: '🍉', fruitName: '수박', length: '47cm', weight: '2.6kg', desc: '출산 자세로 내려오고 있어요', tip: '2주마다 검진을 받으세요' },
-  { week: 40, fruit: '🎃', fruitName: '호박', length: '51cm', weight: '3.4kg', desc: '만삭! 언제든 만날 수 있어요', tip: '진통 신호를 확인해두세요' },
+  { week: 4, fruit: '🌰', name: '참깨', length: '0.1cm', weight: '-', desc: '수정란이 자궁에 착상했어요', tip: '엽산 복용을 시작하세요' },
+  { week: 8, fruit: '🫐', name: '블루베리', length: '1.6cm', weight: '1g', desc: '심장이 뛰기 시작했어요!', tip: '첫 초음파 검사를 받아보세요' },
+  { week: 12, fruit: '🍑', name: '자두', length: '5.4cm', weight: '14g', desc: '손가락 발가락이 생겼어요', tip: '입덧이 줄어들기 시작해요' },
+  { week: 16, fruit: '🍊', name: '오렌지', length: '11.6cm', weight: '100g', desc: '태동을 느낄 수 있어요!', tip: '안정기 진입! 가벼운 산책을 시작하세요' },
+  { week: 20, fruit: '🍌', name: '바나나', length: '25cm', weight: '300g', desc: '성별을 확인할 수 있어요', tip: '정밀 초음파 검사 시기예요' },
+  { week: 24, fruit: '🌽', name: '옥수수', length: '30cm', weight: '600g', desc: '소리를 들을 수 있어요', tip: '태교 음악을 들려주세요' },
+  { week: 28, fruit: '🥥', name: '코코넛', length: '37cm', weight: '1kg', desc: '눈을 뜨기 시작해요', tip: '임신성 당뇨 검사를 받으세요' },
+  { week: 32, fruit: '🍈', name: '멜론', length: '42cm', weight: '1.7kg', desc: '폐가 성숙해지고 있어요', tip: '출산 가방을 준비하세요' },
+  { week: 36, fruit: '🍉', name: '수박', length: '47cm', weight: '2.6kg', desc: '출산 자세로 내려오고 있어요', tip: '2주마다 검진을 받으세요' },
+  { week: 40, fruit: '🎃', name: '호박', length: '51cm', weight: '3.4kg', desc: '만삭! 언제든 만날 수 있어요', tip: '진통 신호를 확인해두세요' },
 ]
 
-const CHECKLIST_BY_TRIMESTER = {
-  first: ['산부인과 초진', '엽산 복용 시작', '임신 확인서 발급', '모자보건수첩 수령', '직장 보고 (선택)', '보험 확인'],
-  second: ['정밀 초음파', '임신성 당뇨 검사', '태교 시작', '이름 후보 정하기', '출산 교실 등록', '아기 용품 리서치'],
-  third: ['출산 가방 준비', '출산 병원 확정', '신생아 용품 구매', '산후조리원 예약', '육아 앱 설정 완료', '자동차 카시트 설치'],
+// ===== 검진 리마인더 =====
+const CHECKUPS = [
+  { week: 8, id: 'first_us', title: '첫 초음파', desc: '심장 박동 확인', icon: '🫀' },
+  { week: 11, id: 'nt', title: 'NT 검사', desc: '목덜미 투명대 측정', icon: '🔬' },
+  { week: 16, id: 'quad', title: '쿼드 검사', desc: '기형아 선별 검사', icon: '🧪' },
+  { week: 20, id: 'precise_us', title: '정밀 초음파', desc: '태아 정밀 구조 확인', icon: '📸' },
+  { week: 24, id: 'gtt', title: '임신성 당뇨 검사', desc: '포도당 부하 검사', icon: '🍬' },
+  { week: 28, id: 'antibody', title: '항체 검사', desc: 'Rh 음성 시 필수', icon: '💉' },
+  { week: 32, id: 'nst1', title: 'NST 검사 (1차)', desc: '태아 심박수 모니터링', icon: '💓' },
+  { week: 36, id: 'gbs', title: 'GBS 검사', desc: 'B군 연쇄상구균', icon: '🦠' },
+  { week: 37, id: 'nst2', title: 'NST (매주)', desc: '주 1회 태아 안녕 평가', icon: '📊' },
+]
+
+// ===== 출산 가방 =====
+const HOSPITAL_BAG = {
+  mom: [
+    '산모 수첩 · 보험증', '수유 브라 2개', '산모 패드', '산모복 · 속옷',
+    '세면도구 · 수건', '슬리퍼', '보온 양말', '간식 · 음료', '충전기', '산후 복대',
+  ],
+  baby: [
+    '배냇저고리 2벌', '속싸개 · 겉싸개', '기저귀 (신생아)', '물티슈',
+    '카시트 (퇴원용)', '모자 · 양말', '젖병 1개', '분유 소량 (비상용)',
+  ],
+  partner: [
+    '간식 · 음료', '충전기 · 보조배터리', '카메라', '갈아입을 옷',
+    '출생신고 서류', '주차 동전',
+  ],
 }
+
+// ===== 감정 =====
+const MOODS = [
+  { emoji: '🥰', key: 'happy', label: '행복' },
+  { emoji: '😌', key: 'calm', label: '평온' },
+  { emoji: '😰', key: 'anxious', label: '불안' },
+  { emoji: '🤢', key: 'sick', label: '입덧' },
+  { emoji: '😴', key: 'tired', label: '피곤' },
+]
 
 export default function PregnantPage() {
   const [dueDate, setDueDate] = useState<string>(() => {
@@ -28,21 +61,60 @@ export default function PregnantPage() {
     return ''
   })
   const [editingDate, setEditingDate] = useState(!dueDate)
-  const [checked, setChecked] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('dodam_pregnancy_checks')
-      return saved ? JSON.parse(saved) : {}
-    }
+
+  // 건강 기록
+  const today = new Date().toISOString().split('T')[0]
+  const [weight, setWeight] = useState<number>(() => {
+    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')[today]?.weight || 0 } catch { return 0 } }
+    return 0
+  })
+  const [bp, setBp] = useState<string>(() => {
+    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')[today]?.bp || '' } catch { return '' } }
+    return ''
+  })
+  const [fetalMove, setFetalMove] = useState<number>(() => {
+    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')[today]?.fetalMove || 0 } catch { return 0 } }
+    return 0
+  })
+  const [mood, setMood] = useState<string>(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem(`dodam_preg_mood_${today}`) || ''
+    return ''
+  })
+
+  // 태교 일기
+  const [diaryText, setDiaryText] = useState('')
+  const [diaryOpen, setDiaryOpen] = useState(false)
+  const [diarySaving, setDiarySaving] = useState(false)
+  const [diaries, setDiaries] = useState<{ text: string; date: string; mood: string; comment: string }[]>(() => {
+    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] } }
+    return []
+  })
+
+  // 체크
+  const [checkupDone, setCheckupDone] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_checkups') || '{}') } catch { return {} } }
+    return {}
+  })
+  const [bagChecked, setBagChecked] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_hospital_bag') || '{}') } catch { return {} } }
     return {}
   })
 
+  // 진통 타이머
+  const [contractions, setContractions] = useState<{ start: number; end?: number }[]>([])
+  const [contractionActive, setContractionActive] = useState(false)
+
+  // AI
+  const [aiBriefing, setAiBriefing] = useState<any>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+
+  // 더보기
+  const [moreOpen, setMoreOpen] = useState(false)
+
   const currentWeek = useMemo(() => {
     if (!dueDate) return 0
-    const due = new Date(dueDate)
-    const now = new Date()
-    const diffDays = Math.floor((due.getTime() - now.getTime()) / 86400000)
-    const week = 40 - Math.floor(diffDays / 7)
-    return Math.max(1, Math.min(42, week))
+    const diff = Math.floor((new Date(dueDate).getTime() - Date.now()) / 86400000)
+    return Math.max(1, Math.min(42, 40 - Math.floor(diff / 7)))
   }, [dueDate])
 
   const daysLeft = useMemo(() => {
@@ -51,139 +123,343 @@ export default function PregnantPage() {
   }, [dueDate])
 
   const currentFetal = useMemo(() => {
-    const sorted = [...FETAL_DATA].reverse()
-    return sorted.find((f) => currentWeek >= f.week) || FETAL_DATA[0]
+    return [...FETAL_DATA].reverse().find(f => currentWeek >= f.week) || FETAL_DATA[0]
   }, [currentWeek])
 
-  const trimester = currentWeek <= 13 ? 'first' : currentWeek <= 27 ? 'second' : 'third'
-  const trimesterLabel = trimester === 'first' ? '초기 (1~13주)' : trimester === 'second' ? '중기 (14~27주)' : '후기 (28~40주)'
-  const checklist = CHECKLIST_BY_TRIMESTER[trimester]
+  const trimester = currentWeek <= 13 ? '초기' : currentWeek <= 27 ? '중기' : '후기'
+  const upcomingCheckups = CHECKUPS.filter(c => c.week >= currentWeek && !checkupDone[c.id]).slice(0, 3)
 
-  const handleSaveDueDate = (date: string) => {
-    setDueDate(date)
-    localStorage.setItem('dodam_due_date', date)
-    setEditingDate(false)
+  // 저장 핸들러
+  const saveHealth = () => {
+    const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
+    all[today] = { weight, bp, fetalMove }
+    localStorage.setItem('dodam_preg_health', JSON.stringify(all))
+  }
+  const saveMood = (m: string) => {
+    setMood(m); localStorage.setItem(`dodam_preg_mood_${today}`, m)
+  }
+  const toggleCheckup = (id: string) => {
+    const next = { ...checkupDone, [id]: !checkupDone[id] }
+    setCheckupDone(next); localStorage.setItem('dodam_preg_checkups', JSON.stringify(next))
+  }
+  const toggleBag = (item: string) => {
+    const next = { ...bagChecked, [item]: !bagChecked[item] }
+    setBagChecked(next); localStorage.setItem('dodam_hospital_bag', JSON.stringify(next))
   }
 
-  const toggleCheck = (item: string) => {
-    const next = { ...checked, [item]: !checked[item] }
-    setChecked(next)
-    localStorage.setItem('dodam_pregnancy_checks', JSON.stringify(next))
+  // 태교 일기 저장
+  const saveDiary = async () => {
+    if (!diaryText.trim()) return
+    setDiarySaving(true)
+    let comment = '오늘도 도담하게 잘 지내고 있어요 💚'
+    try {
+      const res = await fetch('/api/ai-pregnant', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'diary', text: diaryText, week: currentWeek, mood }),
+      })
+      const data = await res.json()
+      if (data.comment) comment = data.comment
+    } catch { /* fallback */ }
+    const entry = { text: diaryText.trim(), date: new Date().toISOString(), mood, comment }
+    const next = [entry, ...diaries]
+    setDiaries(next); localStorage.setItem('dodam_preg_diary', JSON.stringify(next))
+    setDiaryText(''); setDiaryOpen(false); setDiarySaving(false)
   }
 
+  // 진통 타이머
+  const startContraction = () => {
+    setContractionActive(true)
+    setContractions(prev => [...prev, { start: Date.now() }])
+  }
+  const endContraction = () => {
+    setContractionActive(false)
+    setContractions(prev => {
+      const copy = [...prev]
+      if (copy.length > 0) copy[copy.length - 1].end = Date.now()
+      return copy
+    })
+  }
+  const lastInterval = contractions.length >= 2
+    ? Math.round((contractions[contractions.length - 1].start - contractions[contractions.length - 2].start) / 60000)
+    : null
+
+  // AI 브리핑
+  const fetchAI = async (force = false) => {
+    if (!force) {
+      const cached = localStorage.getItem('dodam_preg_ai')
+      if (cached) { try { const { date, data } = JSON.parse(cached); if (date === today && data.greeting) { setAiBriefing(data); return } } catch { /* */ } }
+    }
+    setAiLoading(true)
+    try {
+      const healthRaw = localStorage.getItem('dodam_health_records')
+      const health = healthRaw ? JSON.parse(healthRaw) : {}
+      const res = await fetch('/api/ai-pregnant', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'daily', week: currentWeek, trimester, daysLeft, weight, bloodPressure: bp, fetalMovement: fetalMove, mood, sleep: health[today]?.sleep }),
+      })
+      const data = await res.json()
+      if (!data.error) { setAiBriefing(data); localStorage.setItem('dodam_preg_ai', JSON.stringify({ date: today, data })) }
+    } catch { /* */ }
+    setAiLoading(false)
+  }
+
+  useEffect(() => { if (dueDate && !aiBriefing) fetchAI() }, [!!dueDate]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 출산 예정일 입력
   if (editingDate) {
     return (
       <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6">
         <h1 className="text-[22px] font-bold text-[#1A1918] mb-2">출산 예정일이 언제인가요?</h1>
         <p className="text-[13px] text-[#868B94] mb-8">주차별 성장 정보를 알려드릴게요</p>
-        <input
-          type="date"
-          defaultValue={dueDate}
-          onChange={(e) => e.target.value && handleSaveDueDate(e.target.value)}
-          className="w-full max-w-xs h-[52px] rounded-xl border border-[#f0f0f0] px-4 text-[15px] text-[#1A1918] text-center"
-        />
-        {dueDate && (
-          <button onClick={() => setEditingDate(false)} className="mt-4 text-[13px] text-[#3D8A5A] font-semibold">
-            돌아가기
-          </button>
-        )}
+        <input type="date" defaultValue={dueDate} onChange={(e) => { if (e.target.value) { setDueDate(e.target.value); localStorage.setItem('dodam_due_date', e.target.value); setEditingDate(false) } }}
+          className="w-full max-w-xs h-[52px] rounded-xl border border-[#f0f0f0] px-4 text-[15px] text-center" />
+        {dueDate && <button onClick={() => setEditingDate(false)} className="mt-4 text-[13px] text-[#3D8A5A] font-semibold">돌아가기</button>}
       </div>
     )
   }
+
+  const bagTotal = [...HOSPITAL_BAG.mom, ...HOSPITAL_BAG.baby, ...HOSPITAL_BAG.partner].length
+  const bagDone = Object.values(bagChecked).filter(Boolean).length
 
   return (
     <div className="min-h-[100dvh] bg-[#F5F4F1]">
       <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto">
           <div>
-            <p className="text-[12px] text-[#868B94]">임신 {currentWeek}주차</p>
+            <p className="text-[12px] text-[#868B94]">임신 {currentWeek}주차 · {trimester}</p>
             <p className="text-[16px] font-bold text-[#1A1918]">D-{daysLeft}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <button onClick={() => setEditingDate(true)} className="text-[11px] text-[#868B94]">예정일 수정</button>
-            <Link href="/" className="text-[11px] text-[#3D8A5A] font-semibold">육아 모드 →</Link>
-          </div>
+          <button onClick={() => setEditingDate(true)} className="text-[11px] text-[#868B94]">수정</button>
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-5 pb-28 space-y-3 pt-4">
-        {/* 태아 히어로 */}
-        <div className="bg-white rounded-xl p-4 border border-[#f0f0f0] text-center">
-          <div className="text-4xl mb-2">{currentFetal.fruit}</div>
-          <p className="text-[13px] text-[#868B94]">지금 아기는 <span className="font-semibold text-[#3D8A5A]">{currentFetal.fruitName}</span>만해요</p>
-          <p className="text-[18px] font-bold text-[#1A1918] mt-1">{currentWeek}주차</p>
-          <div className="flex justify-center gap-4 mt-3">
-            <div className="text-center">
-              <p className="text-[10px] text-[#868B94]">키</p>
-              <p className="text-[14px] font-bold text-[#1A1918]">{currentFetal.length}</p>
-            </div>
-            <div className="w-px bg-[#f0f0f0]" />
-            <div className="text-center">
-              <p className="text-[10px] text-[#868B94]">무게</p>
-              <p className="text-[14px] font-bold text-[#1A1918]">{currentFetal.weight}</p>
-            </div>
-            <div className="w-px bg-[#f0f0f0]" />
-            <div className="text-center">
-              <p className="text-[10px] text-[#868B94]">D-day</p>
-              <p className="text-[14px] font-bold text-[#3D8A5A]">{daysLeft}일</p>
-            </div>
-          </div>
-        </div>
+      <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
 
-        {/* 이번 주 발달 */}
-        <div className="bg-white rounded-xl p-4 border border-[#f0f0f0]">
-          <h3 className="text-[14px] font-bold text-[#1A1918] mb-2">이번 주 아기는</h3>
-          <p className="text-[13px] text-[#868B94] leading-relaxed">{currentFetal.desc}</p>
-          <div className="mt-3 p-3 rounded-xl bg-[#F5F4F1]">
-            <p className="text-[12px] text-[#3D8A5A]">{currentFetal.tip}</p>
+        {/* ━━━ 1. AI 히어로 + 태아 ━━━ */}
+        <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-4">
+          {/* 태아 비주얼 */}
+          <div className="flex items-center gap-4 mb-3">
+            <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-sm">
+              <span className="text-3xl">{currentFetal.fruit}</span>
+            </div>
+            <div>
+              <p className="text-[13px] text-[#868B94]">지금 아기는 <span className="font-semibold text-[#3D8A5A]">{currentFetal.name}</span>만해요</p>
+              <div className="flex gap-3 mt-1">
+                <span className="text-[11px] text-[#1A1918]">📏 {currentFetal.length}</span>
+                <span className="text-[11px] text-[#1A1918]">⚖️ {currentFetal.weight}</span>
+              </div>
+            </div>
+            <button onClick={() => shareFetalSize(currentWeek, currentFetal.fruit, currentFetal.name, currentFetal.length, currentFetal.weight, daysLeft)} className="ml-auto text-[9px] text-[#3D8A5A]">공유</button>
           </div>
-        </div>
 
-        {/* 주차 프로그레스 */}
-        <div className="bg-white rounded-xl p-4 border border-[#f0f0f0]">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[14px] font-bold text-[#1A1918]">임신 여정</h3>
-            <span className="text-[11px] text-[#868B94]">{currentWeek}/40주</span>
-          </div>
-          <div className="w-full h-1.5 bg-[#F0F0F0] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[#3D8A5A] rounded-full transition-all duration-500"
-              style={{ width: `${Math.min((currentWeek / 40) * 100, 100)}%` }}
-            />
-          </div>
-          <div className="flex justify-between mt-2">
-            <span className="text-[9px] text-[#AEB1B9]">초기</span>
-            <span className="text-[9px] text-[#AEB1B9]">중기</span>
-            <span className="text-[9px] text-[#AEB1B9]">후기</span>
-            <span className="text-[9px] text-[#AEB1B9]">출산</span>
-          </div>
-        </div>
-
-        {/* 체크리스트 */}
-        <div className="bg-white rounded-xl p-4 border border-[#f0f0f0]">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[14px] font-bold text-[#1A1918]">{trimesterLabel} 체크리스트</h3>
-            <span className="text-[11px] text-[#868B94]">{checklist.filter((c) => checked[c]).length}/{checklist.length}</span>
-          </div>
-          <div className="space-y-1">
-            {checklist.map((item) => (
-              <button
-                key={item}
-                onClick={() => toggleCheck(item)}
-                className="w-full flex items-center gap-3 p-2.5 rounded-xl text-left active:bg-[#F5F4F1] transition-colors"
-              >
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                  checked[item] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : 'border-[#AEB1B9]'
-                }`}>
-                  {checked[item] && <span className="text-white text-[10px]">✓</span>}
+          {/* AI 브리핑 */}
+          {aiLoading ? (
+            <div className="flex items-center justify-center py-3 gap-2">
+              <div className="w-4 h-4 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" />
+              <p className="text-[12px] text-[#868B94]">AI 케어 준비 중...</p>
+            </div>
+          ) : aiBriefing ? (
+            <div className="space-y-2">
+              <p className="text-[13px] font-semibold text-[#1A1918]">{aiBriefing.greeting}</p>
+              {aiBriefing.babyMessage && (
+                <div className="bg-[#FFF8F3] rounded-lg p-2">
+                  <p className="text-[11px] text-[#1A1918]">💌 {aiBriefing.babyMessage}</p>
                 </div>
-                <span className={`text-[13px] ${checked[item] ? 'text-[#AEB1B9] line-through' : 'text-[#1A1918]'}`}>
-                  {item}
-                </span>
-              </button>
-            ))}
+              )}
+              <p className="text-[12px] text-[#1A1918] leading-relaxed">{aiBriefing.mainAdvice}</p>
+              {aiBriefing.weekHighlight && <p className="text-[11px] text-[#868B94]">🧒 {aiBriefing.weekHighlight}</p>}
+              {aiBriefing.bodyTip && <p className="text-[11px] text-[#868B94]">🏃‍♀️ {aiBriefing.bodyTip}</p>}
+              <div className="flex gap-3">
+                <button onClick={() => fetchAI(true)} className="text-[10px] text-[#AEB1B9]">새로고침</button>
+                <button onClick={() => shareDday(currentWeek, daysLeft, currentFetal.fruit)} className="text-[10px] text-[#3D8A5A]">D-day 공유</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => fetchAI()} className="w-full py-2 text-[12px] text-[#3D8A5A] font-semibold">AI 조언 받기 ✨</button>
+          )}
+
+          {/* 프로그레스 */}
+          <div className="mt-3 pt-3 border-t border-[#C8F0D8]/50">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[10px] text-[#868B94]">임신 여정</p>
+              <p className="text-[10px] text-[#3D8A5A]">{currentWeek}/40주</p>
+            </div>
+            <div className="w-full h-1.5 bg-white/50 rounded-full">
+              <div className="h-full bg-[#3D8A5A] rounded-full" style={{ width: `${(currentWeek / 40) * 100}%` }} />
+            </div>
           </div>
         </div>
+
+        {/* ━━━ 2. 오늘 할 일 ━━━ */}
+        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+          <p className="text-[14px] font-bold text-[#1A1918] mb-3">오늘 기록</p>
+
+          {/* 감정 */}
+          <div className="mb-3">
+            <p className="text-[12px] font-semibold text-[#868B94] mb-1.5">오늘 기분</p>
+            <div className="flex gap-1.5">
+              {MOODS.map(m => (
+                <button key={m.key} onClick={() => saveMood(m.key)}
+                  className={`flex-1 py-1.5 rounded-lg text-center ${mood === m.key ? 'bg-[#3D8A5A] ring-2 ring-[#3D8A5A]/30' : 'bg-[#F5F4F1]'}`}>
+                  <p className="text-lg">{m.emoji}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 건강 기록 인라인 */}
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <div>
+              <p className="text-[10px] text-[#868B94] mb-1">체중 (kg)</p>
+              <input type="number" step="0.1" value={weight || ''} onChange={e => setWeight(Number(e.target.value))}
+                placeholder="00.0" className="w-full h-9 rounded-lg border border-[#f0f0f0] px-2 text-[13px] text-center" />
+            </div>
+            <div>
+              <p className="text-[10px] text-[#868B94] mb-1">혈압</p>
+              <input type="text" value={bp} onChange={e => setBp(e.target.value)}
+                placeholder="120/80" className="w-full h-9 rounded-lg border border-[#f0f0f0] px-2 text-[13px] text-center" />
+            </div>
+            <div>
+              <p className="text-[10px] text-[#868B94] mb-1">태동</p>
+              <div className="flex items-center justify-center h-9 gap-2">
+                <button onClick={() => setFetalMove(Math.max(0, fetalMove - 1))} className="w-7 h-7 rounded-full bg-[#F5F4F1] text-[14px]">−</button>
+                <span className="text-[14px] font-bold w-6 text-center">{fetalMove}</span>
+                <button onClick={() => setFetalMove(fetalMove + 1)} className="w-7 h-7 rounded-full bg-[#3D8A5A] text-white text-[14px]">+</button>
+              </div>
+            </div>
+          </div>
+          <button onClick={saveHealth} className="w-full py-2 bg-[#3D8A5A] text-white text-[12px] font-semibold rounded-lg active:opacity-80">기록 저장</button>
+
+          {/* 태교 일기 */}
+          <div className="mt-3 pt-3 border-t border-[#f0f0f0]">
+            {diaryOpen ? (
+              <div>
+                <textarea value={diaryText} onChange={e => setDiaryText(e.target.value.slice(0, 500))} placeholder="오늘 아이에게 하고 싶은 말..."
+                  className="w-full h-16 text-[13px] p-3 bg-[#F5F4F1] rounded-xl resize-none focus:outline-none" autoFocus />
+                <div className="flex justify-between mt-2">
+                  <button onClick={() => setDiaryOpen(false)} className="text-[12px] text-[#868B94]">취소</button>
+                  <button onClick={saveDiary} disabled={!diaryText.trim() || diarySaving}
+                    className={`text-[12px] font-semibold px-3 py-1 rounded-lg ${diaryText.trim() && !diarySaving ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#AEB1B9]'}`}>
+                    {diarySaving ? 'AI 코멘트 작성 중...' : '저장'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <button onClick={() => setDiaryOpen(true)} className="w-full py-2 text-[12px] font-semibold text-[#3D8A5A] bg-[#F0F9F4] rounded-lg">태교 일기 쓰기 📝</button>
+                {diaries.length > 0 && (
+                  <div className="mt-2 p-2.5 bg-[#F5F4F1] rounded-lg">
+                    <p className="text-[11px] text-[#1A1918] line-clamp-2">{diaries[0].text}</p>
+                    <p className="text-[10px] text-[#3D8A5A] mt-1">{diaries[0].comment}</p>
+                    <p className="text-[9px] text-[#AEB1B9] mt-0.5">{new Date(diaries[0].date).toLocaleDateString('ko-KR')} · {diaries.length}편</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ━━━ 3. 상태 카드 3열 ━━━ */}
+        <div className="grid grid-cols-3 gap-2">
+          {/* 다음 검진 */}
+          <div className="bg-white rounded-xl border border-[#f0f0f0] p-2.5 text-center">
+            <p className="text-[10px] text-[#868B94]">🏥 다음 검진</p>
+            {upcomingCheckups.length > 0 ? (
+              <>
+                <p className="text-[12px] font-bold text-[#1A1918] mt-0.5 line-clamp-1">{upcomingCheckups[0].title}</p>
+                <p className="text-[9px] text-[#3D8A5A]">{upcomingCheckups[0].week}주</p>
+              </>
+            ) : <p className="text-[11px] text-[#AEB1B9] mt-1">완료!</p>}
+          </div>
+
+          {/* 출산 가방 */}
+          <div className="bg-white rounded-xl border border-[#f0f0f0] p-2.5 text-center">
+            <p className="text-[10px] text-[#868B94]">🎒 출산 가방</p>
+            <p className="text-[20px] font-bold text-[#1A1918] mt-0.5">{bagDone}<span className="text-[12px] text-[#AEB1B9]">/{bagTotal}</span></p>
+          </div>
+
+          {/* 태동 */}
+          <div className="bg-white rounded-xl border border-[#f0f0f0] p-2.5 text-center">
+            <p className="text-[10px] text-[#868B94]">👶 오늘 태동</p>
+            <p className="text-[20px] font-bold text-[#3D8A5A] mt-0.5">{fetalMove}<span className="text-[12px] text-[#AEB1B9]">회</span></p>
+          </div>
+        </div>
+
+        {/* ━━━ 4. 진통 타이머 (후기만) ━━━ */}
+        {currentWeek >= 36 && (
+          <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+            <p className="text-[14px] font-bold text-[#1A1918] mb-2">⏱️ 진통 타이머</p>
+            <div className="flex items-center gap-3 mb-2">
+              <button
+                onClick={contractionActive ? endContraction : startContraction}
+                className={`flex-1 py-3 rounded-xl text-[14px] font-semibold ${contractionActive ? 'bg-[#D08068] text-white animate-pulse' : 'bg-[#3D8A5A] text-white'}`}
+              >
+                {contractionActive ? '진통 끝' : '진통 시작'}
+              </button>
+              {contractions.length > 0 && (
+                <button onClick={() => setContractions([])} className="text-[11px] text-[#AEB1B9]">초기화</button>
+              )}
+            </div>
+            {lastInterval !== null && (
+              <div className="bg-[#F5F4F1] rounded-lg p-2 text-center">
+                <p className="text-[12px] text-[#868B94]">마지막 간격</p>
+                <p className="text-[20px] font-bold text-[#1A1918]">{lastInterval}분</p>
+                {lastInterval <= 5 && <p className="text-[11px] text-[#D08068] font-semibold mt-1">간격이 5분 이하! 병원에 연락하세요 🚨</p>}
+              </div>
+            )}
+            <p className="text-[9px] text-[#AEB1B9] mt-2">기록: {contractions.length}회{contractions.length >= 3 ? ` · 평균 ${Math.round(contractions.slice(1).reduce((sum, c, i) => sum + (c.start - contractions[i].start), 0) / ((contractions.length - 1) * 60000))}분 간격` : ''}</p>
+          </div>
+        )}
+
+        {/* ━━━ 5. 더보기 ━━━ */}
+        <button onClick={() => setMoreOpen(!moreOpen)} className="w-full bg-white rounded-xl border border-[#f0f0f0] p-3 flex items-center justify-between">
+          <p className="text-[13px] font-semibold text-[#1A1918]">검진 · 출산 가방 · 발달 정보</p>
+          <span className={`text-[#AEB1B9] text-sm transition-transform ${moreOpen ? 'rotate-180' : ''}`}>▼</span>
+        </button>
+
+        {moreOpen && (
+          <div className="space-y-3">
+            {/* 검진 리마인더 */}
+            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+              <p className="text-[13px] font-bold text-[#1A1918] mb-2">🏥 검진 리마인더</p>
+              {CHECKUPS.map(c => (
+                <button key={c.id} onClick={() => toggleCheckup(c.id)} className="w-full flex items-center gap-2 py-1.5">
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${checkupDone[c.id] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : 'border-[#AEB1B9]'}`}>
+                    {checkupDone[c.id] && <span className="text-white text-[8px]">✓</span>}
+                  </div>
+                  <span className={`text-[12px] flex-1 text-left ${checkupDone[c.id] ? 'text-[#AEB1B9] line-through' : 'text-[#1A1918]'}`}>{c.icon} {c.title}</span>
+                  <span className={`text-[10px] ${c.week <= currentWeek && !checkupDone[c.id] ? 'text-[#D08068] font-semibold' : 'text-[#AEB1B9]'}`}>{c.week}주</span>
+                </button>
+              ))}
+            </div>
+
+            {/* 출산 가방 */}
+            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+              <p className="text-[13px] font-bold text-[#1A1918] mb-2">🎒 출산 가방 체크리스트</p>
+              {(['mom', 'baby', 'partner'] as const).map(cat => (
+                <div key={cat} className="mb-3 last:mb-0">
+                  <p className="text-[11px] font-semibold text-[#868B94] mb-1">{cat === 'mom' ? '👩 엄마' : cat === 'baby' ? '👶 아기' : '👨 파트너'}</p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {HOSPITAL_BAG[cat].map(item => (
+                      <button key={item} onClick={() => toggleBag(item)} className={`text-[11px] py-1.5 px-2 rounded-lg text-left ${bagChecked[item] ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#1A1918]'}`}>
+                        {bagChecked[item] ? '✓ ' : ''}{item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 이번 주 발달 */}
+            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+              <p className="text-[13px] font-bold text-[#1A1918] mb-2">🧒 이번 주 발달</p>
+              <p className="text-[12px] text-[#1A1918] mb-2">{currentFetal.desc}</p>
+              <div className="bg-[#F0F9F4] rounded-lg p-2">
+                <p className="text-[11px] text-[#3D8A5A]">💡 {currentFetal.tip}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
