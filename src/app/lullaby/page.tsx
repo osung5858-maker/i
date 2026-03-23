@@ -37,7 +37,13 @@ const TRACKS: Track[] = [
   { id: 'w1', title: '빗소리', category: 'nature', duration: '∞', youtubeId: 'yIQd2Ya0Ziw', avgSleepMin: 10, isRecommended: true },
   { id: 'w2', title: '파도소리', category: 'nature', duration: '∞', youtubeId: 'Nep1qytq9JM', avgSleepMin: 12 },
   { id: 'w3', title: '백색소음', category: 'nature', duration: '∞', youtubeId: 'nMfPqeZjc2c', avgSleepMin: 14 },
-  { id: 'w4', title: '심장소리', category: 'nature', duration: '∞', youtubeId: 'dfeIYStsEtI', avgSleepMin: 9 },
+  { id: 'w4', title: '심장소리 (엄마 뱃속)', category: 'nature', duration: '∞', youtubeId: 'dfeIYStsEtI', avgSleepMin: 9 },
+  { id: 'w5', title: '진공청소기', category: 'nature', duration: '∞', youtubeId: 'I-5f5FbgVPk', avgSleepMin: 8 },
+  { id: 'w6', title: '헤어드라이어', category: 'nature', duration: '∞', youtubeId: '2wg7FMiEKBE', avgSleepMin: 7 },
+  { id: 'w7', title: '세탁기 소리', category: 'nature', duration: '∞', youtubeId: 'KJzOJKCt3M4', avgSleepMin: 11 },
+  { id: 'w8', title: '시냇물 소리', category: 'nature', duration: '∞', youtubeId: 'IvjMgVS6kng', avgSleepMin: 13 },
+  { id: 'w9', title: '새소리 (숲)', category: 'nature', duration: '∞', youtubeId: 'xNN7iTA57jM', avgSleepMin: 15 },
+  { id: 'w10', title: '뱃속 소리 (자궁음)', category: 'nature', duration: '∞', youtubeId: 'u0gk2Hn6dLA', avgSleepMin: 8, isRecommended: true },
 ]
 
 const CATEGORY_LABELS: Record<Category, string> = {

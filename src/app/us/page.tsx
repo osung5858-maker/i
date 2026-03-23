@@ -48,6 +48,12 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
       ],
     },
     {
+      label: '마음',
+      items: [
+        { href: '/mental-check', icon: '💚', title: '마음 체크', desc: '산후우울증 자가검사 (EPDS)' },
+      ],
+    },
+    {
       label: '설정',
       items: [
         { href: '/settings', icon: '⚙️', title: '설정', desc: '알림 · 계정' },
@@ -70,8 +76,16 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
     {
       label: '돌봄',
       items: [
+        { href: '/feed-timer', icon: '🤱', title: '수유 타이머', desc: '좌/우 교대 · 시간 측정' },
         { href: '/lullaby', icon: '🌙', title: '자장가 · 동요', desc: '수면 도우미 · 120곡+' },
+        { href: '/vaccination', icon: '💉', title: '예방접종', desc: '전체 스케줄 · 완료 체크' },
         { href: '/memory', icon: '📋', title: '발달 체크', desc: '월령별 발달 · AI 분석' },
+      ],
+    },
+    {
+      label: '마음',
+      items: [
+        { href: '/mental-check', icon: '💚', title: '마음 체크', desc: '산후우울증 자가검사 (EPDS)' },
       ],
     },
     {
@@ -82,9 +96,15 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
       ],
     },
     {
+      label: '긴급',
+      items: [
+        { href: '/emergency', icon: '🚨', title: '응급 소아과', desc: '지금 영업 중인 가까운 소아과' },
+      ],
+    },
+    {
       label: '설정',
       items: [
-        { href: '/settings', icon: '⚙️', title: '설정', desc: '알림 · 계정' },
+        { href: '/settings', icon: '⚙️', title: '설정', desc: '알림 · 계정 · 다크 모드' },
         { href: '/settings/children', icon: '👶', title: '아이 프로필', desc: '이름 · 생일 · 특이사항' },
       ],
     },

@@ -41,3 +41,20 @@ main {
 /* 스크롤바 숨기기 */
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ===== 다크 모드 ===== */
+html.dark body { background: #121212; color: #E0E0E0; }
+html.dark .bg-white { background: #1E1E1E !important; }
+html.dark .bg-\[\#F5F4F1\] { background: #121212 !important; }
+html.dark .bg-\[\#F7F8FA\] { background: #121212 !important; }
+html.dark .bg-\[\#F0F0F0\] { background: #2A2A2A !important; }
+html.dark .bg-\[\#F0F9F4\] { background: #1A2E1F !important; }
+html.dark .bg-\[\#FFF8F3\] { background: #2E1F1A !important; }
+html.dark .border-\[\#f0f0f0\] { border-color: #333 !important; }
+html.dark .border-\[\#C8F0D8\] { border-color: #2A4A32 !important; }
+html.dark .text-\[\#1A1918\] { color: #E0E0E0 !important; }
+html.dark .text-\[\#212124\] { color: #E0E0E0 !important; }
+html.dark .text-\[\#868B94\] { color: #999 !important; }
+html.dark .text-\[\#AEB1B9\] { color: #777 !important; }
+html.dark .bg-gray-100 { background: #0A0A0A !important; }
+html.dark .shadow-xl { box-shadow: none !important; }
