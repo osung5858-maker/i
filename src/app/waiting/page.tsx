@@ -31,9 +31,9 @@ const CHECKLIST = [
 ]
 
 const GOV_SUPPORTS = [
-  { title: '난임 시술비 지원', desc: '체외수정 최대 110만원' },
-  { title: '산전검사 무료 쿠폰', desc: '보건소 기본 산전검사' },
-  { title: '엽산/철분제 무료', desc: '보건소 등록 시' },
+  { title: '난임 시술비 지원', desc: '체외수정 최대 110만원', link: 'https://www.gov.kr/portal/rcvfvrSvc/dtlEx/148000000045' },
+  { title: '산전검사 무료 쿠폰', desc: '보건소 기본 산전검사', link: 'https://www.childcare.go.kr' },
+  { title: '엽산/철분제 무료', desc: '보건소 등록 시', link: 'https://www.childcare.go.kr' },
 ]
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -112,15 +112,23 @@ export default function WaitingPage() {
   }
 
   const generateReply = (text: string): string => {
-    const replies = [
-      '엄마 아빠, 마음이 느껴져요. 빨리 만나고 싶어요 🌱',
-      '따뜻한 마음 고마워요. 건강하게 준비하고 있을게요 💛',
-      '사랑이 가득한 편지네요. 덕분에 용기가 나요 ☺️',
-      '매일 저를 생각해주시는 거 알아요. 곧 만나요! 🤗',
+    if (text.includes('건강')) return '엄마가 챙겨주는 건강, 하나하나 느끼고 있어요. 고마워요, 엄마 🌿'
+    if (text.includes('사랑')) return '아직 만나지 못했지만, 이미 세상에서 가장 사랑받는 아이예요. 그 마음, 잊지 않을게요 💕'
+    if (text.includes('기다')) return '기다림의 끝에서 엄마 아빠를 안아줄 준비를 하고 있어요. 조금만요 🌈'
+    if (text.includes('이름')) return '어떤 이름이든, 엄마 아빠가 불러주면 그게 세상에서 가장 예쁜 이름이 될 거예요 ✨'
+    if (text.includes('아빠')) return '아빠 목소리가 여기까지 들려요. 낮고 따뜻해서 좋아요. 빨리 안기고 싶어요 🤗'
+    if (text.includes('걱정') || text.includes('불안')) return '걱정하는 만큼 사랑하는 거잖아요. 괜찮아요, 저는 씩씩하게 준비하고 있어요 💪'
+    if (text.includes('꿈')) return '어젯밤 엄마 꿈을 꾸었어요. 웃고 있었어요. 저도 따라 웃었어요 😊'
+    const poetic = [
+      '엄마 아빠의 마음이 별빛처럼 따뜻하게 닿고 있어요. 곧 그 품에 안길게요 ⭐',
+      '세상에 나가면 처음으로 할 일은, 엄마 아빠 눈을 바라보는 거예요 👀💛',
+      '아직 작은 씨앗이지만, 매일 조금씩 엄마 아빠를 닮아가고 있어요 🌱',
+      '이 편지를 받을 때마다 마음이 한 뼘씩 자라는 것 같아요 📏💚',
+      '엄마 아빠가 나누는 이야기가 자장가처럼 들려요. 포근해요 🎵',
+      '언젠가 이 편지들을 함께 읽는 날이 올 거예요. 그날이 기다려져요 📖',
+      '매일 보내주는 사랑, 꼭꼭 모아두고 있어요. 만나면 다 돌려줄게요 🎁',
     ]
-    if (text.includes('건강')) return '건강하게 자라고 있을게요! 🌿'
-    if (text.includes('사랑')) return '저도 많이 사랑해요 💕'
-    return replies[Math.floor(Math.random() * replies.length)]
+    return poetic[Math.floor(Math.random() * poetic.length)]
   }
 
   const saveLetter = () => {
@@ -177,7 +185,7 @@ export default function WaitingPage() {
           {letters.slice(0, 2).map((l, i) => (
             <div key={i} className="mb-2">
               <div className="p-3 bg-[#F0F9F4] rounded-xl rounded-bl-sm">
-                <p className="text-[12px] text-[#1A1918]">{l.text}</p>
+                <p className="text-[12px] text-[#1A1918] line-clamp-3">{l.text}</p>
                 <p className="text-[9px] text-[#AEB1B9] mt-1 text-right">{l.from} · {new Date(l.date).toLocaleDateString('ko-KR')}</p>
               </div>
               <div className="p-3 bg-[#FFF8F3] rounded-xl rounded-tr-sm mt-1 ml-6">
@@ -287,6 +295,7 @@ export default function WaitingPage() {
             <div key={item.title} className="p-3 bg-[#F5F4F1] rounded-xl mb-2 last:mb-0">
               <p className="text-[13px] font-semibold text-[#1A1918]">{item.title}</p>
               <p className="text-[11px] text-[#868B94]">{item.desc}</p>
+              <a href={item.link} target="_blank" className="text-[10px] text-[#3D8A5A] mt-1 inline-block">자세히 보기 →</a>
             </div>
           ))}
         </div>

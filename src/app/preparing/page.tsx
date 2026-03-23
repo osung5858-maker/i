@@ -209,11 +209,11 @@ export default function PreparingPage() {
             { key: 'p_nosauna', label: '사우나 자제' },
             { key: 'p_weight', label: '적정 체중' },
           ].map((item) => (
-            <button key={item.key} onClick={() => togglePartnerCheck(item.key)} className="w-full flex items-center gap-3 py-1.5 rounded-lg active:bg-[#F5F4F1]">
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${partnerChecks[item.key] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : 'border-[#AEB1B9]'}`}>
-                {partnerChecks[item.key] && <span className="text-white text-[8px]">✓</span>}
+            <button key={item.key} onClick={() => togglePartnerCheck(item.key)} className="w-full flex items-center gap-3 py-2.5 rounded-lg active:bg-[#F5F4F1]">
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${partnerChecks[item.key] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : 'border-[#AEB1B9]'}`}>
+                {partnerChecks[item.key] && <span className="text-white text-[10px]">✓</span>}
               </div>
-              <span className={`text-[12px] ${partnerChecks[item.key] ? 'text-[#AEB1B9] line-through' : 'text-[#1A1918]'}`}>{item.label}</span>
+              <span className={`text-[13px] ${partnerChecks[item.key] ? 'text-[#AEB1B9] line-through' : 'text-[#1A1918]'}`}>{item.label}</span>
             </button>
           ))}
         </div>

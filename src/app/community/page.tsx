@@ -92,7 +92,10 @@ export default function CommunityPage() {
   const [mPrice, setMPrice] = useState(0)
   const [mCategory, setMCategory] = useState('clothes')
   const [mAge, setMAge] = useState('0~6')
-  const [mRegion, setMRegion] = useState('')
+  const [mRegion, setMRegion] = useState(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('dodam_region') || '내 동네'
+    return '내 동네'
+  })
 
   const router = useRouter()
   const supabase = createClient()
@@ -271,7 +274,7 @@ export default function CommunityPage() {
                       <p className="text-[10px] text-[#AEB1B9]">{timeAgo(post.created_at)}</p>
                     </div>
                     {post.user_id === userId && (
-                      <button onClick={() => handleDelete(post.id)} className="text-[10px] text-[#AEB1B9]">삭제</button>
+                      <button onClick={() => { if (confirm('정말 삭제할까요?')) handleDelete(post.id) }} className="text-[10px] text-[#AEB1B9]">삭제</button>
                     )}
                   </div>
                   <p className="text-[13px] text-[#1A1918] leading-relaxed mb-3 whitespace-pre-line">{post.content}</p>
@@ -306,7 +309,7 @@ export default function CommunityPage() {
                                 <div className="flex items-center gap-2 mt-0.5">
                                   <span className="text-[9px] text-[#AEB1B9]">{timeAgo(c.created_at)}</span>
                                   {c.user_id === userId && (
-                                    <button onClick={() => deleteComment(c.id, post.id)} className="text-[9px] text-[#AEB1B9]">삭제</button>
+                                    <button onClick={() => { if (confirm('댓글을 삭제할까요?')) deleteComment(c.id, post.id) }} className="text-[9px] text-[#AEB1B9]">삭제</button>
                                   )}
                                 </div>
                               </div>
@@ -453,7 +456,7 @@ export default function CommunityPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-[12px] font-semibold text-[#868B94] mb-1">지역</p>
-                  <input value={mRegion} onChange={(e) => setMRegion(e.target.value)} placeholder="예: 강남구" className="w-full h-9 px-3 rounded-xl border border-[#f0f0f0] text-[13px] focus:outline-none" />
+                  <div className="w-full h-9 px-3 rounded-xl border border-[#f0f0f0] text-[13px] flex items-center text-[#1A1918] bg-[#F7F8FA]">{mRegion}</div>
                 </div>
               </div>
               <div>
