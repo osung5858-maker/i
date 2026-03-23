@@ -126,9 +126,12 @@ export default function PreparingPage() {
   const phaseLabel: Record<string, string> = { fertile: '가임기', ovulation: '배란일', tww: '착상 대기', period: '생리 중', follicular: '난포기', unknown: '-' }
 
   // AI 브리핑
-  const fetchAIBriefing = useCallback(async () => {
-    if (!cycle || aiLoading) return
+  const [aiError, setAiError] = useState<string | null>(null)
+
+  const fetchAIBriefing = async () => {
+    if (!cycle) return
     setAiLoading(true)
+    setAiError(null)
     try {
       const healthRaw = localStorage.getItem('dodam_health_records')
       const health = healthRaw ? JSON.parse(healthRaw) : {}
@@ -144,13 +147,19 @@ export default function PreparingPage() {
         }),
       })
       const data = await res.json()
-      if (!data.error) setAiBriefing(data)
-    } catch { /* ignore */ }
+      if (data.error) {
+        setAiError(`AI 오류: ${data.error}`)
+      } else {
+        setAiBriefing(data)
+      }
+    } catch (e) {
+      setAiError(`요청 실패: ${e}`)
+    }
     setAiLoading(false)
-  }, [cycle, cycleLength, motherAge, fatherAge, todayMood, supplements, partnerChecks, getCyclePhase, aiLoading])
+  }
 
-  const fetchAIMeal = useCallback(async () => {
-    if (!cycle || aiMealLoading) return
+  const fetchAIMeal = async () => {
+    if (!cycle) return
     setAiMealLoading(true)
     try {
       const res = await fetch('/api/ai-preparing', {
@@ -159,13 +168,15 @@ export default function PreparingPage() {
       })
       const data = await res.json()
       if (!data.error) setAiMeal(data)
-    } catch { /* ignore */ }
+    } catch { /* */ }
     setAiMealLoading(false)
-  }, [cycle, getCyclePhase, aiMealLoading])
+  }
 
   useEffect(() => {
-    if (cycle && !aiBriefing && !aiLoading) fetchAIBriefing()
-  }, [cycle]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (cycle && !aiBriefing) {
+      fetchAIBriefing()
+    }
+  }, [!!cycle]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 핸들러
   const toggleSupplement = (key: string) => {
@@ -256,6 +267,12 @@ export default function PreparingPage() {
                 </div>
               ) : null}
             </div>
+
+            {aiError && (
+              <div className="bg-[#FFF0E6] rounded-lg p-2 mb-2">
+                <p className="text-[11px] text-[#D08068]">{aiError}</p>
+              </div>
+            )}
 
             {aiLoading ? (
               <div className="flex items-center justify-center py-4 gap-2">
