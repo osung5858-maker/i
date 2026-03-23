@@ -80,14 +80,7 @@ const SECTIONS = [
         desc: '말 안 들을 때 보여주는 영상 · 13편',
         badge: '꿀팁',
       },
-      {
-        href: 'https://www.youtube.com/playlist?list=PLAyG7B7am9daqQ9u267CZoOIJzihXIYTA',
-        icon: '📖',
-        bg: 'bg-[#FFF4E6]',
-        title: '전래동화 실사판',
-        desc: '동심파괴(?) 촬영장 비하인드 · 6편',
-      },
-      {
+{
         href: 'https://www.youtube.com/playlist?list=PLAyG7B7am9daqQ9u267CZoOIJzihXIYTA',
         icon: '🎬',
         bg: 'bg-[#F0F0F0]',
