@@ -7,6 +7,12 @@ import Link from 'next/link'
 const MENUS: Record<string, { label: string; items: { href: string; icon: string; title: string; desc: string; external?: boolean }[] }[]> = {
   preparing: [
     {
+      label: '건강',
+      items: [
+        { href: '/health', icon: '💚', title: '내 건강', desc: '수면 · 스트레스 · 걸음수 · 체중' },
+      ],
+    },
+    {
       label: '파트너',
       items: [
         { href: '/settings/caregivers/invite', icon: '💑', title: '파트너 초대하기', desc: '카카오톡으로 초대 · 함께 준비해요' },
@@ -35,6 +41,12 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
   ],
   pregnant: [
     {
+      label: '건강',
+      items: [
+        { href: '/health', icon: '💚', title: '내 건강', desc: '수면 · 체중 · 스트레스 · 걸음수' },
+      ],
+    },
+    {
       label: '가족',
       items: [
         { href: '/settings/caregivers', icon: '👥', title: '공동양육자', desc: '가족 초대 · 기록 공유' },
@@ -61,6 +73,12 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
     },
   ],
   parenting: [
+    {
+      label: '건강',
+      items: [
+        { href: '/health', icon: '💚', title: '내 건강', desc: '수면 · 스트레스 · AI 건강 케어' },
+      ],
+    },
     {
       label: '케어',
       items: [
