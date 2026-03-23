@@ -16,7 +16,7 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
       label: '둘이서',
       items: [
         { href: '/settings/caregivers/invite', icon: '💑', title: '파트너 초대', desc: '카카오톡으로 함께 준비해요' },
-        { href: '/name', icon: '✨', title: '태명 · 이름 짓기', desc: 'AI 추천 · 음양오행 · 점수' },
+        { href: '/mental-check', icon: '💚', title: '마음 체크', desc: '스트레스 자가검사 · 감정 돌봄' },
       ],
     },
     {

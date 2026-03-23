@@ -161,31 +161,90 @@ function GovSupports({ mode }: { mode: string }) {
   )
 }
 
-// ===== 수다 (커뮤니티) — 기존 community 페이지 임베드 =====
+// ===== 수다 — Supabase에서 직접 목록 로드 =====
 function CommunityFeed() {
-  // 기존 /community로 리다이렉트하는 대신 간단한 링크
+  const [posts, setPosts] = useState<any[]>([])
+  const [loadingPosts, setLoadingPosts] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    async function load() {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { data } = await supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(10)
+      setPosts(data || [])
+      setLoadingPosts(false)
+    }
+    load()
+  }, [])
+
   return (
-    <div className="space-y-3">
-      <p className="text-[12px] text-[#868B94] text-center py-2">동네 엄마들과 수다 떨어요</p>
-      <Link href="/community" className="block bg-white rounded-xl border border-[#f0f0f0] p-4 text-center active:bg-[#F5F4F1]">
-        <span className="text-2xl">💬</span>
-        <p className="text-[13px] font-semibold text-[#1A1918] mt-2">수다방 들어가기</p>
-        <p className="text-[11px] text-[#868B94]">이야기 · 질문 · 고민 나누기</p>
-      </Link>
+    <div className="space-y-2">
+      {loadingPosts ? (
+        <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" /></div>
+      ) : posts.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-[13px] text-[#AEB1B9]">아직 글이 없어요</p>
+          <Link href="/community" className="text-[12px] text-[#3D8A5A] font-semibold mt-2 inline-block">첫 글 쓰러가기 →</Link>
+        </div>
+      ) : (
+        <>
+          {posts.map(post => (
+            <Link key={post.id} href="/community" className="block bg-white rounded-xl border border-[#f0f0f0] p-3 active:bg-[#F5F4F1]">
+              <p className="text-[13px] text-[#1A1918] line-clamp-2">{post.content}</p>
+              <div className="flex items-center gap-3 mt-1.5">
+                <span className="text-[10px] text-[#868B94]">❤️ {post.like_count || 0}</span>
+                <span className="text-[10px] text-[#868B94]">💬 {post.comment_count || 0}</span>
+                <span className="text-[10px] text-[#AEB1B9]">{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
+              </div>
+            </Link>
+          ))}
+          <Link href="/community" className="block text-center text-[12px] text-[#3D8A5A] font-semibold py-2">더보기 →</Link>
+        </>
+      )}
     </div>
   )
 }
 
-// ===== 장터 =====
+// ===== 장터 — Supabase에서 직접 목록 로드 =====
 function MarketFeed() {
+  const [items, setItems] = useState<any[]>([])
+  const [loadingItems, setLoadingItems] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { data } = await supabase.from('market_items').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(10)
+      setItems(data || [])
+      setLoadingItems(false)
+    }
+    load()
+  }, [])
+
   return (
-    <div className="space-y-3">
-      <p className="text-[12px] text-[#868B94] text-center py-2">동네 육아용품 나눔 · 거래</p>
-      <Link href="/community?tab=market" className="block bg-white rounded-xl border border-[#f0f0f0] p-4 text-center active:bg-[#F5F4F1]">
-        <span className="text-2xl">🛍️</span>
-        <p className="text-[13px] font-semibold text-[#1A1918] mt-2">장터 들어가기</p>
-        <p className="text-[11px] text-[#868B94]">도담장터 · 나눔 · 중고거래</p>
-      </Link>
+    <div className="space-y-2">
+      {loadingItems ? (
+        <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" /></div>
+      ) : items.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-[13px] text-[#AEB1B9]">아직 장터 글이 없어요</p>
+          <Link href="/community?tab=market" className="text-[12px] text-[#3D8A5A] font-semibold mt-2 inline-block">첫 글 쓰러가기 →</Link>
+        </div>
+      ) : (
+        <>
+          {items.map(item => (
+            <Link key={item.id} href="/community?tab=market" className="block bg-white rounded-xl border border-[#f0f0f0] p-3 active:bg-[#F5F4F1]">
+              <div className="flex items-center justify-between">
+                <p className="text-[13px] font-semibold text-[#1A1918] line-clamp-1">{item.title}</p>
+                <p className="text-[12px] font-bold text-[#3D8A5A]">{item.price > 0 ? `${item.price.toLocaleString()}원` : '나눔'}</p>
+              </div>
+              <p className="text-[10px] text-[#868B94] mt-0.5 line-clamp-1">{item.description}</p>
+            </Link>
+          ))}
+          <Link href="/community?tab=market" className="block text-center text-[12px] text-[#3D8A5A] font-semibold py-2">더보기 →</Link>
+        </>
+      )}
     </div>
   )
 }

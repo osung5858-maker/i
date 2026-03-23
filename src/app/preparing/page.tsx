@@ -80,14 +80,24 @@ export default function PreparingPage() {
     }
     return ''
   })
-  const [motherAge, setMotherAge] = useState<number>(() => {
-    if (typeof window !== 'undefined') return Number(localStorage.getItem('dodam_mother_age')) || 0
-    return 0
+  const [motherBirth, setMotherBirth] = useState<string>(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('dodam_mother_birth') || ''
+    return ''
   })
-  const [fatherAge, setFatherAge] = useState<number>(() => {
-    if (typeof window !== 'undefined') return Number(localStorage.getItem('dodam_father_age')) || 0
-    return 0
+  const [fatherBirth, setFatherBirth] = useState<string>(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('dodam_father_birth') || ''
+    return ''
   })
+  const calcAge = (birth: string) => {
+    if (!birth) return 0
+    const b = new Date(birth)
+    const now = new Date()
+    let age = now.getFullYear() - b.getFullYear()
+    if (now.getMonth() < b.getMonth() || (now.getMonth() === b.getMonth() && now.getDate() < b.getDate())) age--
+    return age
+  }
+  const motherAge = calcAge(motherBirth)
+  const fatherAge = calcAge(fatherBirth)
   const [partnerChecks, setPartnerChecks] = useState<Record<string, boolean>>(() => {
     if (typeof window !== 'undefined') {
       const s = localStorage.getItem('dodam_partner_checks'); return s ? JSON.parse(s) : {}
@@ -234,38 +244,56 @@ export default function PreparingPage() {
     if (next[id]) delete next[id]; else next[id] = new Date().toISOString().split('T')[0]
     setAppointments(next); localStorage.setItem('dodam_appointments', JSON.stringify(next))
   }
-  const savePeriodStart = (date: string) => {
-    setLastPeriod(date); localStorage.setItem('dodam_last_period', date); setEditingCycle(false)
-  }
-  const saveCycleLength = (len: number) => {
-    setCycleLength(len); localStorage.setItem('dodam_cycle_length', String(len))
+  // 주기 설정 저장 (완료 버튼 시에만)
+  const [tempPeriod, setTempPeriod] = useState(lastPeriod)
+  const [tempCycleLen, setTempCycleLen] = useState(cycleLength)
+  const [tempMotherBirth, setTempMotherBirth] = useState(motherBirth)
+  const [tempFatherBirth, setTempFatherBirth] = useState(fatherBirth)
+
+  const handleSaveCycleSetup = () => {
+    if (!tempPeriod) return
+    setLastPeriod(tempPeriod); localStorage.setItem('dodam_last_period', tempPeriod)
+    setCycleLength(tempCycleLen); localStorage.setItem('dodam_cycle_length', String(tempCycleLen))
+    if (tempMotherBirth) { setMotherBirth(tempMotherBirth); localStorage.setItem('dodam_mother_birth', tempMotherBirth) }
+    if (tempFatherBirth) { setFatherBirth(tempFatherBirth); localStorage.setItem('dodam_father_birth', tempFatherBirth) }
+    setEditingCycle(false)
   }
 
   // 주기 설정 화면
   if (editingCycle) {
+    const tempMotherAge = calcAge(tempMotherBirth)
+    const tempFatherAge = calcAge(tempFatherBirth)
+
     return (
       <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6">
-        <h1 className="text-[22px] font-bold text-[#1A1918] mb-2">생리 주기를 알려주세요</h1>
-        <p className="text-[13px] text-[#868B94] mb-6">배란일과 가임기를 예측해드릴게요</p>
+        <h1 className="text-[22px] font-bold text-[#1A1918] mb-2">기본 정보를 알려주세요</h1>
+        <p className="text-[13px] text-[#868B94] mb-6">배란일과 맞춤 조언을 위해 필요해요</p>
         <div className="w-full max-w-xs space-y-4">
           <div>
             <p className="text-[12px] font-semibold text-[#868B94] mb-1">마지막 생리 시작일</p>
-            <input type="date" defaultValue={lastPeriod} onChange={(e) => e.target.value && savePeriodStart(e.target.value)} className="w-full h-12 rounded-xl border border-[#f0f0f0] px-4 text-[14px]" />
+            <input type="date" value={tempPeriod} onChange={(e) => setTempPeriod(e.target.value)} className="w-full h-12 rounded-xl border border-[#f0f0f0] px-4 text-[14px]" />
           </div>
           <div>
-            <p className="text-[12px] font-semibold text-[#868B94] mb-1">평균 주기 ({cycleLength}일)</p>
-            <input type="range" min={21} max={40} value={cycleLength} onChange={(e) => saveCycleLength(Number(e.target.value))} className="w-full accent-[#3D8A5A]" />
+            <p className="text-[12px] font-semibold text-[#868B94] mb-1">평균 주기 <span className="text-[#3D8A5A] font-bold">{tempCycleLen}일</span></p>
+            <input type="range" min={21} max={40} value={tempCycleLen} onChange={(e) => setTempCycleLen(Number(e.target.value))} className="w-full accent-[#3D8A5A]" />
+            <div className="flex justify-between text-[9px] text-[#AEB1B9]"><span>21일</span><span>28일</span><span>40일</span></div>
           </div>
           <div>
-            <p className="text-[12px] font-semibold text-[#868B94] mb-1">엄마 나이</p>
-            <input type="number" min={18} max={55} value={motherAge || ''} onChange={(e) => { const v = Number(e.target.value); setMotherAge(v); localStorage.setItem('dodam_mother_age', String(v)) }} placeholder="나이" className="w-full h-12 rounded-xl border border-[#f0f0f0] px-4 text-[14px]" />
+            <p className="text-[12px] font-semibold text-[#868B94] mb-1">엄마 생년월일 {tempMotherAge > 0 && <span className="text-[#3D8A5A]">({tempMotherAge}세)</span>}</p>
+            <input type="date" value={tempMotherBirth} onChange={(e) => setTempMotherBirth(e.target.value)} className="w-full h-12 rounded-xl border border-[#f0f0f0] px-4 text-[14px]" />
           </div>
           <div>
-            <p className="text-[12px] font-semibold text-[#868B94] mb-1">아빠 나이</p>
-            <input type="number" min={18} max={55} value={fatherAge || ''} onChange={(e) => { const v = Number(e.target.value); setFatherAge(v); localStorage.setItem('dodam_father_age', String(v)) }} placeholder="나이" className="w-full h-12 rounded-xl border border-[#f0f0f0] px-4 text-[14px]" />
+            <p className="text-[12px] font-semibold text-[#868B94] mb-1">아빠 생년월일 {tempFatherAge > 0 && <span className="text-[#3D8A5A]">({tempFatherAge}세)</span>}</p>
+            <input type="date" value={tempFatherBirth} onChange={(e) => setTempFatherBirth(e.target.value)} className="w-full h-12 rounded-xl border border-[#f0f0f0] px-4 text-[14px]" />
           </div>
         </div>
-        {lastPeriod && <button onClick={() => setEditingCycle(false)} className="mt-6 text-[13px] text-[#3D8A5A] font-semibold">완료 →</button>}
+        <button
+          onClick={handleSaveCycleSetup}
+          disabled={!tempPeriod}
+          className={`mt-6 w-full max-w-xs py-3 rounded-xl text-[14px] font-semibold ${tempPeriod ? 'bg-[#3D8A5A] text-white active:opacity-80' : 'bg-[#F0F0F0] text-[#AEB1B9]'}`}
+        >
+          완료
+        </button>
       </div>
     )
   }
@@ -290,13 +318,13 @@ export default function PreparingPage() {
 
       <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
 
-        {/* ━━━ 1. AI 히어로 카드 ━━━ */}
+        {/* ━━━ 1. AI 히어로 — CTA 형태 ━━━ */}
         {cycle && (
           <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm">✨</span>
-                <p className="text-[14px] font-bold text-[#1A1918]">AI 데일리 케어</p>
+                <p className="text-[14px] font-bold text-[#1A1918]">오늘의 AI 케어</p>
               </div>
               {aiBriefing?.todayScore ? (
                 <div className="w-8 h-8 rounded-full bg-[#3D8A5A] flex items-center justify-center">
@@ -328,7 +356,12 @@ export default function PreparingPage() {
                 </div>
               </div>
             ) : (
-              <button onClick={() => fetchAIBriefing()} className="w-full py-3 text-[12px] text-[#3D8A5A] font-semibold">AI 조언 받기 ✨</button>
+              <div className="text-center py-2">
+                <p className="text-[13px] text-[#1A1918] mb-2">오늘의 맞춤 조언을 받아보세요</p>
+                <button onClick={() => fetchAIBriefing()} className="px-6 py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 shadow-[0_2px_12px_rgba(61,138,90,0.3)]">
+                  ✨ AI 조언 받기
+                </button>
+              </div>
             )}
 
             {/* 투윅웨이트 인라인 */}
