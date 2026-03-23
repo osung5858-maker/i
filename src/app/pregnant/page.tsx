@@ -74,14 +74,13 @@ export default function PregnantPage() {
   if (editingDate) {
     return (
       <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6">
-        <span className="text-5xl mb-4">🤰</span>
         <h1 className="text-[22px] font-bold text-[#1A1918] mb-2">출산 예정일이 언제인가요?</h1>
         <p className="text-[13px] text-[#868B94] mb-8">주차별 성장 정보를 알려드릴게요</p>
         <input
           type="date"
           defaultValue={dueDate}
           onChange={(e) => e.target.value && handleSaveDueDate(e.target.value)}
-          className="w-full max-w-xs h-[52px] rounded-2xl border border-[#ECECEC] px-4 text-[15px] text-[#212124] text-center"
+          className="w-full max-w-xs h-[52px] rounded-xl border border-[#f0f0f0] px-4 text-[15px] text-[#1A1918] text-center"
         />
         {dueDate && (
           <button onClick={() => setEditingDate(false)} className="mt-4 text-[13px] text-[#3D8A5A] font-semibold">
@@ -94,62 +93,61 @@ export default function PregnantPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[#F5F4F1]">
-      {/* 헤더 */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto">
           <div>
-            <p className="text-[12px] text-[#9C9B99]">임신 {currentWeek}주차</p>
+            <p className="text-[12px] text-[#868B94]">임신 {currentWeek}주차</p>
             <p className="text-[16px] font-bold text-[#1A1918]">D-{daysLeft}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setEditingDate(true)} className="text-[11px] text-[#9C9B99]">예정일 수정</button>
-            <Link href="/" className="text-[11px] text-[#3D8A5A] font-semibold">육아 모드 전환 →</Link>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setEditingDate(true)} className="text-[11px] text-[#868B94]">예정일 수정</button>
+            <Link href="/" className="text-[11px] text-[#3D8A5A] font-semibold">육아 모드 →</Link>
           </div>
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto pb-28">
-        {/* 태아 시각화 히어로 */}
-        <div className="mx-4 mt-4 bg-white rounded-3xl p-6 text-center border border-[#f0f0f0]">
-          <div className="text-7xl mb-3">{currentFetal.fruit}</div>
-          <p className="text-[13px] text-[#9C9B99] mb-1">지금 아기는 <span className="font-semibold text-[#3D8A5A]">{currentFetal.fruitName}</span>만해요</p>
-          <p className="text-[22px] font-bold text-[#1A1918] mb-1">{currentWeek}주차</p>
+      <div className="max-w-lg mx-auto px-5 pb-28 space-y-3 pt-4">
+        {/* 태아 히어로 */}
+        <div className="bg-white rounded-xl p-4 border border-[#f0f0f0] text-center">
+          <div className="text-4xl mb-2">{currentFetal.fruit}</div>
+          <p className="text-[13px] text-[#868B94]">지금 아기는 <span className="font-semibold text-[#3D8A5A]">{currentFetal.fruitName}</span>만해요</p>
+          <p className="text-[18px] font-bold text-[#1A1918] mt-1">{currentWeek}주차</p>
           <div className="flex justify-center gap-4 mt-3">
             <div className="text-center">
-              <p className="text-[10px] text-[#9C9B99]">키</p>
+              <p className="text-[10px] text-[#868B94]">키</p>
               <p className="text-[14px] font-bold text-[#1A1918]">{currentFetal.length}</p>
             </div>
-            <div className="w-px bg-[#ECECEC]" />
+            <div className="w-px bg-[#f0f0f0]" />
             <div className="text-center">
-              <p className="text-[10px] text-[#9C9B99]">무게</p>
+              <p className="text-[10px] text-[#868B94]">무게</p>
               <p className="text-[14px] font-bold text-[#1A1918]">{currentFetal.weight}</p>
             </div>
-            <div className="w-px bg-[#ECECEC]" />
+            <div className="w-px bg-[#f0f0f0]" />
             <div className="text-center">
-              <p className="text-[10px] text-[#9C9B99]">D-day</p>
+              <p className="text-[10px] text-[#868B94]">D-day</p>
               <p className="text-[14px] font-bold text-[#3D8A5A]">{daysLeft}일</p>
             </div>
           </div>
         </div>
 
         {/* 이번 주 발달 */}
-        <div className="mx-4 mt-3 bg-white rounded-2xl p-5 border border-[#f0f0f0]">
-          <h3 className="text-[14px] font-bold text-[#1A1918] mb-2">✨ 이번 주 아기는</h3>
-          <p className="text-[13px] text-[#5A5854] leading-relaxed">{currentFetal.desc}</p>
-          <div className="mt-3 p-3 rounded-xl bg-[#F0F9F4]">
-            <p className="text-[12px] text-[#3D8A5A]">💡 {currentFetal.tip}</p>
+        <div className="bg-white rounded-xl p-4 border border-[#f0f0f0]">
+          <h3 className="text-[14px] font-bold text-[#1A1918] mb-2">이번 주 아기는</h3>
+          <p className="text-[13px] text-[#868B94] leading-relaxed">{currentFetal.desc}</p>
+          <div className="mt-3 p-3 rounded-xl bg-[#F5F4F1]">
+            <p className="text-[12px] text-[#3D8A5A]">{currentFetal.tip}</p>
           </div>
         </div>
 
         {/* 주차 프로그레스 */}
-        <div className="mx-4 mt-3 bg-white rounded-2xl p-5 border border-[#f0f0f0]">
+        <div className="bg-white rounded-xl p-4 border border-[#f0f0f0]">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[14px] font-bold text-[#1A1918]">📅 임신 여정</h3>
-            <span className="text-[11px] text-[#9C9B99]">{currentWeek}/40주</span>
+            <h3 className="text-[14px] font-bold text-[#1A1918]">임신 여정</h3>
+            <span className="text-[11px] text-[#868B94]">{currentWeek}/40주</span>
           </div>
-          <div className="w-full h-3 bg-[#F0F0F0] rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-[#F0F0F0] rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-[#C8F0D8] to-[#3D8A5A] rounded-full transition-all duration-500"
+              className="h-full bg-[#3D8A5A] rounded-full transition-all duration-500"
               style={{ width: `${Math.min((currentWeek / 40) * 100, 100)}%` }}
             />
           </div>
@@ -162,20 +160,20 @@ export default function PregnantPage() {
         </div>
 
         {/* 체크리스트 */}
-        <div className="mx-4 mt-3 bg-white rounded-2xl p-5 border border-[#f0f0f0]">
-          <h3 className="text-[14px] font-bold text-[#1A1918] mb-1">✅ {trimesterLabel} 체크리스트</h3>
-          <p className="text-[11px] text-[#9C9B99] mb-3">
-            {checklist.filter((c) => checked[c]).length}/{checklist.length} 완료
-          </p>
-          <div className="space-y-2">
+        <div className="bg-white rounded-xl p-4 border border-[#f0f0f0]">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[14px] font-bold text-[#1A1918]">{trimesterLabel} 체크리스트</h3>
+            <span className="text-[11px] text-[#868B94]">{checklist.filter((c) => checked[c]).length}/{checklist.length}</span>
+          </div>
+          <div className="space-y-1">
             {checklist.map((item) => (
               <button
                 key={item}
                 onClick={() => toggleCheck(item)}
-                className="w-full flex items-center gap-3 p-3 rounded-xl text-left active:bg-[#F7F8FA] transition-colors"
+                className="w-full flex items-center gap-3 p-2.5 rounded-xl text-left active:bg-[#F5F4F1] transition-colors"
               >
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                  checked[item] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : 'border-[#D1D0CD]'
+                  checked[item] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : 'border-[#AEB1B9]'
                 }`}>
                   {checked[item] && <span className="text-white text-[10px]">✓</span>}
                 </div>
@@ -186,18 +184,6 @@ export default function PregnantPage() {
             ))}
           </div>
         </div>
-
-        {/* 자장가 바로가기 */}
-        <Link
-          href="/lullaby"
-          className="mx-4 mt-3 p-4 bg-[#E8E0F8] rounded-2xl flex items-center gap-3 active:scale-[0.98] transition-transform block"
-        >
-          <span className="text-2xl">🎵</span>
-          <div>
-            <p className="text-[13px] font-semibold text-[#1A1918]">태교 음악 듣기</p>
-            <p className="text-[11px] text-[#5B4A8A]">AI 자장가 · 클래식 · 자연음</p>
-          </div>
-        </Link>
       </div>
     </div>
   )
