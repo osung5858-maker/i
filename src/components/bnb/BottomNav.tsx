@@ -15,12 +15,26 @@ interface Tab {
   icon: React.FC<{ className?: string }>
 }
 
-const tabs: Tab[] = [
-  { href: '/', icon: SunIcon, label: '오늘' },
-  { href: '/memory', icon: HeartIcon, label: '추억' },
-  { href: '/care', icon: ShieldIcon, label: '케어' },
-  { href: '/us', icon: UsersIcon, label: '우리' },
-]
+const TABS_BY_MODE: Record<string, Tab[]> = {
+  parenting: [
+    { href: '/', icon: SunIcon, label: '오늘' },
+    { href: '/memory', icon: HeartIcon, label: '추억' },
+    { href: '/care', icon: ShieldIcon, label: '케어' },
+    { href: '/us', icon: UsersIcon, label: '우리' },
+  ],
+  pregnant: [
+    { href: '/pregnant', icon: SunIcon, label: '오늘' },
+    { href: '/memory', icon: HeartIcon, label: '일기' },
+    { href: '/care', icon: ShieldIcon, label: '케어' },
+    { href: '/us', icon: UsersIcon, label: '우리' },
+  ],
+  preparing: [
+    { href: '/', icon: SunIcon, label: '준비' },
+    { href: '/care', icon: ShieldIcon, label: '가이드' },
+    { href: '/community', icon: UsersIcon, label: '커뮤니티' },
+    { href: '/us', icon: HeartIcon, label: '마이' },
+  ],
+}
 
 const QUICK_BUTTONS = [
   { type: 'feed', icon: BottleIcon, label: '수유', bg: '#C8F0D8', iconClass: 'text-[#3D8A5A]' },
@@ -42,6 +56,15 @@ const ARC_POSITIONS = [
 export default function BottomNav() {
   const pathname = usePathname()
   const [fabOpen, setFabOpen] = useState(false)
+  const [mode, setMode] = useState('parenting')
+
+  // localStorage에서 모드 읽기
+  useEffect(() => {
+    const saved = localStorage.getItem('dodam_mode')
+    if (saved) setMode(saved)
+  }, [])
+
+  const tabs = TABS_BY_MODE[mode] || TABS_BY_MODE.parenting
 
   // 다른 페이지로 이동하면 FAB 닫기
   useEffect(() => { setFabOpen(false) }, [pathname])
@@ -109,38 +132,47 @@ export default function BottomNav() {
       )}
 
       {/* BNB 바 */}
-      <nav className="absolute bottom-0 left-0 right-0 z-[65] bg-white border-t border-[#ECECEC] pb-[env(safe-area-inset-bottom)]">
+      <nav className="absolute bottom-0 left-0 right-0 z-[65] bg-white border-t border-[#f0f0f0] pb-[env(safe-area-inset-bottom)]">
         <div className="flex items-center justify-around h-14">
-          {/* 좌측 2탭 */}
-          {tabs.slice(0, 2).map((tab) => (
-            <NavTab key={tab.href} tab={tab} pathname={pathname} />
-          ))}
+          {mode === 'preparing' ? (
+            /* preparing 모드: FAB 없이 4탭 균등 */
+            tabs.map((tab) => (
+              <NavTab key={tab.href} tab={tab} pathname={pathname} />
+            ))
+          ) : (
+            <>
+              {/* 좌측 2탭 */}
+              {tabs.slice(0, 2).map((tab) => (
+                <NavTab key={tab.href} tab={tab} pathname={pathname} />
+              ))}
 
-          {/* 중앙 FAB */}
-          <button
-            onClick={() => setFabOpen((v) => !v)}
-            className={`flex flex-col items-center justify-center -mt-5 transition-transform duration-200 ${fabOpen ? 'scale-95' : ''}`}
-          >
-            <div
-              className={`w-14 h-14 rounded-full flex items-center justify-center shadow-[0_4px_16px_rgba(61,138,90,0.35)] active:scale-90 transition-all duration-200 ${
-                fabOpen ? 'bg-[#212124] rotate-0' : 'bg-[#3D8A5A]'
-              }`}
-            >
-              {fabOpen ? (
-                <XIcon className="w-6 h-6 text-white" />
-              ) : (
-                <PlusIcon className="w-6 h-6 text-white" />
-              )}
-            </div>
-            <span className={`text-[10px] mt-0.5 font-semibold ${fabOpen ? 'text-[#212124]' : 'text-[#3D8A5A]'}`}>
-              기록
-            </span>
-          </button>
+              {/* 중앙 FAB */}
+              <button
+                onClick={() => setFabOpen((v) => !v)}
+                className={`flex flex-col items-center justify-center -mt-5 transition-transform duration-200 ${fabOpen ? 'scale-95' : ''}`}
+              >
+                <div
+                  className={`w-14 h-14 rounded-full flex items-center justify-center shadow-[0_4px_16px_rgba(61,138,90,0.35)] active:scale-90 transition-all duration-200 ${
+                    fabOpen ? 'bg-[#212124]' : 'bg-[#3D8A5A]'
+                  }`}
+                >
+                  {fabOpen ? (
+                    <XIcon className="w-6 h-6 text-white" />
+                  ) : (
+                    <PlusIcon className="w-6 h-6 text-white" />
+                  )}
+                </div>
+                <span className={`text-[10px] mt-0.5 font-semibold ${fabOpen ? 'text-[#212124]' : 'text-[#3D8A5A]'}`}>
+                  기록
+                </span>
+              </button>
 
-          {/* 우측 2탭 */}
-          {tabs.slice(2).map((tab) => (
-            <NavTab key={tab.href} tab={tab} pathname={pathname} />
-          ))}
+              {/* 우측 2탭 */}
+              {tabs.slice(2).map((tab) => (
+                <NavTab key={tab.href} tab={tab} pathname={pathname} />
+              ))}
+            </>
+          )}
         </div>
       </nav>
 
