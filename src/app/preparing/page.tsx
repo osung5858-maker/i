@@ -41,6 +41,14 @@ export default function PreparingPage() {
     }
     return ''
   })
+  const [motherAge, setMotherAge] = useState<number>(() => {
+    if (typeof window !== 'undefined') return Number(localStorage.getItem('dodam_mother_age')) || 0
+    return 0
+  })
+  const [fatherAge, setFatherAge] = useState<number>(() => {
+    if (typeof window !== 'undefined') return Number(localStorage.getItem('dodam_father_age')) || 0
+    return 0
+  })
   const [partnerChecks, setPartnerChecks] = useState<Record<string, boolean>>(() => {
     if (typeof window !== 'undefined') {
       const s = localStorage.getItem('dodam_partner_checks'); return s ? JSON.parse(s) : {}
@@ -86,6 +94,14 @@ export default function PreparingPage() {
           <div>
             <p className="text-[12px] font-semibold text-[#868B94] mb-1">평균 주기 ({cycleLength}일)</p>
             <input type="range" min={21} max={40} value={cycleLength} onChange={(e) => saveCycleLength(Number(e.target.value))} className="w-full accent-[#3D8A5A]" />
+          </div>
+          <div>
+            <p className="text-[12px] font-semibold text-[#868B94] mb-1">엄마 나이</p>
+            <input type="number" min={18} max={55} value={motherAge || ''} onChange={(e) => { const v = Number(e.target.value); setMotherAge(v); localStorage.setItem('dodam_mother_age', String(v)) }} placeholder="나이 입력" className="w-full h-12 rounded-xl border border-[#f0f0f0] px-4 text-[14px]" />
+          </div>
+          <div>
+            <p className="text-[12px] font-semibold text-[#868B94] mb-1">아빠 나이</p>
+            <input type="number" min={18} max={55} value={fatherAge || ''} onChange={(e) => { const v = Number(e.target.value); setFatherAge(v); localStorage.setItem('dodam_father_age', String(v)) }} placeholder="나이 입력" className="w-full h-12 rounded-xl border border-[#f0f0f0] px-4 text-[14px]" />
           </div>
         </div>
         {lastPeriod && <button onClick={() => setEditingCycle(false)} className="mt-6 text-[13px] text-[#3D8A5A] font-semibold">완료 →</button>}
@@ -137,6 +153,17 @@ export default function PreparingPage() {
               const daysToNext = Math.ceil((cycle.nextPeriod.getTime() - today.getTime()) / 86400000)
               return <p className="text-[13px] text-[#1A1918]">다음 생리까지 <span className="font-semibold">{daysToNext}일</span>. 컨디션 관리 잘 하고 있어요.</p>
             })()}
+            {motherAge > 0 && (
+              <p className="text-[12px] text-[#868B94] mt-2">
+                {motherAge <= 29 && '시간적 여유가 있어요. 건강한 생활습관에 집중하세요 🌿'}
+                {motherAge >= 30 && motherAge <= 34 && '최적의 시기예요. 기본 검사를 미리 받아두세요 ✨'}
+                {motherAge >= 35 && motherAge <= 39 && '고령 임신 검사를 미리 받아보세요. AMH 검사를 권장해요 🏥'}
+                {motherAge >= 40 && '난임 전문의 상담을 권장해요. 시간이 중요한 시기예요 💪'}
+              </p>
+            )}
+            {fatherAge >= 40 && (
+              <p className="text-[12px] text-[#868B94] mt-1">파트너도 정자 건강 검사를 받아보세요</p>
+            )}
           </div>
         )}
 

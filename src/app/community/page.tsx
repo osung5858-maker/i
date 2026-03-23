@@ -47,6 +47,16 @@ const CATEGORY_LABELS: Record<string, string> = {
   etc: '📦 기타',
 }
 
+const WEEKLY_POLLS = [
+  { q: '이유식 첫 메뉴는?', options: ['쌀미음', '감자', '고구마'] },
+  { q: '수면 교육 방법은?', options: ['퍼버법', '쉬닥법', '안 함'] },
+  { q: '기저귀 브랜드는?', options: ['하기스', '팸퍼스', '기타'] },
+  { q: '분유 vs 모유?', options: ['완모', '혼합', '완분'] },
+  { q: '육아 가장 힘든 시간?', options: ['새벽', '저녁', '온종일'] },
+  { q: '첫 외출은 언제?', options: ['2주 후', '1개월 후', '2개월 후'] },
+  { q: '육아 필수 앱은?', options: ['도담', '베이비타임', '삐요로그'] },
+]
+
 const DAILY_QUESTIONS = [
   '우리 아기 첫 이유식 뭐였어요?',
   '통잠 성공 비결이 있다면?',
@@ -74,6 +84,33 @@ export default function CommunityPage() {
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
   const [userLikes, setUserLikes] = useState<Set<string>>(new Set())
+
+  // 북마크
+  const [bookmarks, setBookmarks] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      const s = localStorage.getItem('dodam_bookmarks')
+      return s ? new Set(JSON.parse(s)) : new Set()
+    }
+    return new Set()
+  })
+
+  // 주간 투표
+  const todayPoll = WEEKLY_POLLS[new Date().getDay() % WEEKLY_POLLS.length]
+  const pollKey = `dodam_poll_${new Date().getDay()}`
+  const [pollVote, setPollVote] = useState<number | null>(() => {
+    if (typeof window !== 'undefined') {
+      const v = localStorage.getItem(pollKey)
+      return v !== null ? Number(v) : null
+    }
+    return null
+  })
+  const [pollVotes, setPollVotes] = useState<number[]>(() => {
+    if (typeof window !== 'undefined') {
+      const s = localStorage.getItem(`${pollKey}_votes`)
+      return s ? JSON.parse(s) : todayPoll.options.map(() => 0)
+    }
+    return todayPoll.options.map(() => 0)
+  })
 
   // 글쓰기
   const [writeOpen, setWriteOpen] = useState(false)
@@ -103,6 +140,25 @@ export default function CommunityPage() {
   const router = useRouter()
   const supabase = createClient()
   const dailyQuestion = DAILY_QUESTIONS[new Date().getDay() % DAILY_QUESTIONS.length]
+
+  const toggleBookmark = (postId: string) => {
+    setBookmarks((prev) => {
+      const next = new Set(prev)
+      if (next.has(postId)) next.delete(postId); else next.add(postId)
+      localStorage.setItem('dodam_bookmarks', JSON.stringify([...next]))
+      return next
+    })
+  }
+
+  const votePoll = (idx: number) => {
+    if (pollVote !== null) return
+    setPollVote(idx)
+    localStorage.setItem(pollKey, String(idx))
+    const next = [...pollVotes]
+    next[idx] += 1
+    setPollVotes(next)
+    localStorage.setItem(`${pollKey}_votes`, JSON.stringify(next))
+  }
 
   useEffect(() => {
     async function init() {
@@ -288,6 +344,37 @@ export default function CommunityPage() {
               </button>
             </div>
 
+            {/* 주간 투표 */}
+            <div className="mt-3 p-4 bg-white rounded-xl border border-[#f0f0f0]">
+              <p className="text-[10px] font-semibold text-[#3D8A5A] mb-1">주간 투표</p>
+              <p className="text-[14px] font-bold text-[#1A1918] mb-3">{todayPoll.q}</p>
+              <div className="space-y-2">
+                {todayPoll.options.map((opt, idx) => {
+                  const total = pollVotes.reduce((a, b) => a + b, 0)
+                  const pct = total > 0 ? Math.round((pollVotes[idx] / total) * 100) : 0
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => votePoll(idx)}
+                      disabled={pollVote !== null}
+                      className={`w-full text-left rounded-xl px-3 py-2 text-[13px] relative overflow-hidden border ${
+                        pollVote === idx ? 'border-[#3D8A5A] bg-[#3D8A5A]/5 font-semibold text-[#1A1918]' : 'border-[#f0f0f0] text-[#1A1918]'
+                      }`}
+                    >
+                      {pollVote !== null && (
+                        <div className="absolute inset-y-0 left-0 bg-[#3D8A5A]/10 rounded-xl" style={{ width: `${pct}%` }} />
+                      )}
+                      <span className="relative">{opt}</span>
+                      {pollVote !== null && <span className="relative float-right text-[12px] text-[#868B94]">{pct}%</span>}
+                    </button>
+                  )
+                })}
+              </div>
+              {pollVote !== null && (
+                <p className="text-[10px] text-[#AEB1B9] mt-2 text-right">총 {pollVotes.reduce((a, b) => a + b, 0)}명 참여</p>
+              )}
+            </div>
+
             <div className="mt-3 space-y-2">
               {posts.length === 0 ? (
                 <div className="bg-white rounded-xl p-8 border border-[#f0f0f0] text-center">
@@ -302,6 +389,7 @@ export default function CommunityPage() {
                         <span className="text-[10px] font-bold text-[#3D8A5A]">도</span>
                       </div>
                       <p className="text-[10px] text-[#AEB1B9]">{timeAgo(post.created_at)}</p>
+                      {post.like_count >= 5 && <span className="text-[9px] font-semibold text-[#D89575]">🔥 인기</span>}
                     </div>
                     {post.user_id === userId && (
                       <button onClick={() => { if (confirm('정말 삭제할까요?')) handleDelete(post.id) }} className="text-[10px] text-[#AEB1B9]">삭제</button>
@@ -320,6 +408,12 @@ export default function CommunityPage() {
                       className={`flex items-center gap-1 text-[11px] ${openComments === post.id ? 'text-[#3D8A5A] font-semibold' : 'text-[#868B94]'}`}
                     >
                       💬 {post.comment_count}
+                    </button>
+                    <button
+                      onClick={() => toggleBookmark(post.id)}
+                      className={`flex items-center gap-1 text-[11px] ml-auto ${bookmarks.has(post.id) ? 'text-[#3D8A5A] font-semibold' : 'text-[#868B94]'}`}
+                    >
+                      {bookmarks.has(post.id) ? '🔖' : '🔖'}
                     </button>
                   </div>
 
