@@ -6,6 +6,7 @@ import BottomNav from '@/components/bnb/BottomNav'
 import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import KakaoSDK from '@/components/ui/KakaoSDK'
 import DarkModeProvider from '@/components/ui/DarkModeProvider'
+import DevResetButton from '@/components/ui/DevResetButton'
 
 export const metadata: Metadata = {
   title: '도담 - 오늘도 도담하게',
@@ -45,6 +46,7 @@ export default function RootLayout({
           <main className="flex-1 pb-20">{children}</main>
           <BottomNav />
           <PWAInstallPrompt />
+          <DevResetButton />
           <Analytics />
         </div>
       </body>
