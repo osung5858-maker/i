@@ -32,6 +32,32 @@ const CHECKUPS = [
   { week: 37, id: 'nst2', title: 'NST (매주)', desc: '주 1회 태아 안녕 평가', icon: '📊' },
 ]
 
+// ===== 혜택 · 제도 타임라인 =====
+const BENEFITS_TIMELINE = [
+  // 임신 확인 즉시
+  { week: 0, id: 'happy_card', title: '국민행복카드 신청', desc: '임신 1회당 100만원 (다태아 140만원) 바우처', when: '임신 확인 즉시', icon: '💳', link: 'https://www.gov.kr/portal/service/serviceInfo/SD0000007672', priority: 'high' },
+  { week: 0, id: 'health_center', title: '보건소 등록', desc: '엽산제 · 철분제 무료 제공 + 산전검사', when: '임신 확인 즉시', icon: '🏥', link: 'https://www.mohw.go.kr/menu.es?mid=a10711020200', priority: 'high' },
+  { week: 0, id: 'mother_book', title: '모자보건수첩 발급', desc: '산부인과 또는 보건소에서 발급', when: '임신 확인 즉시', icon: '📗', priority: 'high' },
+  // 초기
+  { week: 8, id: 'workplace', title: '직장 보고 (선택)', desc: '근로기준법상 임산부 보호 적용', when: '8주 이후', icon: '🏢', priority: 'medium' },
+  { week: 12, id: 'high_risk', title: '고위험 임산부 확인', desc: '해당 시 의료비 90% 지원 (소득 무관)', when: '12주 전후', icon: '🩺', link: 'https://www.gov.kr/portal/service/serviceInfo/135200000114', priority: 'medium' },
+  // 중기
+  { week: 16, id: 'postpartum_reserve', title: '산후조리원 예약', desc: '인기 조리원은 초기에 예약해야 함', when: '16주 전후', icon: '🤱', priority: 'high' },
+  { week: 20, id: 'baby_box_apply', title: '출산 축하박스 신청', desc: '지자체별 무료 출산 꾸러미 (사전 신청)', when: '20주 전후', icon: '🎁', priority: 'medium' },
+  { week: 20, id: 'transport', title: '임산부 교통비 확인', desc: '서울 월 7만원, 지자체별 상이', when: '20주~', icon: '🚌', priority: 'low' },
+  { week: 24, id: 'insurance', title: '태아 보험 가입', desc: '출산 전 가입 시 선천이상 보장', when: '24주 전', icon: '🛡️', priority: 'high' },
+  // 후기
+  { week: 30, id: 'birth_plan', title: '출산 병원 확정', desc: '분만실 예약 · 입원 절차 확인', when: '30주 전후', icon: '🏨', priority: 'high' },
+  { week: 32, id: 'postnatal_helper', title: '산후도우미 신청', desc: '정부 바우처 산후도우미 서비스', when: '32주~', icon: '👩‍⚕️', link: 'https://www.gov.kr/portal/onestopSvc/happyBirth', priority: 'medium' },
+  { week: 36, id: 'birth_docs', title: '출생신고 서류 준비', desc: '신분증 · 혼인관계증명서 · 인감', when: '36주~', icon: '📄', priority: 'medium' },
+  // 출산 후
+  { week: 41, id: 'birth_report', title: '출생신고', desc: '14일 이내 (행복출산 원스톱)', when: '출산 후 14일 내', icon: '📋', link: 'https://www.gov.kr/portal/onestopSvc/happyBirth', priority: 'high' },
+  { week: 41, id: 'first_meet', title: '첫만남이용권', desc: '200만원 바우처 (출생신고 시 자동)', when: '출산 후', icon: '🎉', link: 'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00004656', priority: 'high' },
+  { week: 41, id: 'parent_pay', title: '부모급여 신청', desc: '0세 월 100만원 · 1세 월 50만원', when: '출산 후 60일 내', icon: '💰', link: 'https://www.gov.kr/portal/service/serviceInfo/135200000143', priority: 'high' },
+  { week: 41, id: 'child_allow', title: '아동수당 신청', desc: '만 8세 미만 월 10만원', when: '출산 후', icon: '👶', link: 'https://www.gov.kr/portal/service/serviceInfo/135200000120', priority: 'high' },
+  { week: 41, id: 'baby_insurance_add', title: '건강보험 피부양자 등록', desc: '출생 후 14일 내', when: '출산 후', icon: '🏥', priority: 'high' },
+]
+
 // ===== 출산 가방 =====
 const HOSPITAL_BAG = {
   mom: [
@@ -102,6 +128,12 @@ export default function PregnantPage() {
     return {}
   })
 
+  // 혜택 체크
+  const [benefitDone, setBenefitDone] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_benefits') || '{}') } catch { return {} } }
+    return {}
+  })
+
   // 진통 타이머
   const [contractions, setContractions] = useState<{ start: number; end?: number }[]>([])
   const [contractionActive, setContractionActive] = useState(false)
@@ -147,6 +179,10 @@ export default function PregnantPage() {
   const toggleBag = (item: string) => {
     const next = { ...bagChecked, [item]: !bagChecked[item] }
     setBagChecked(next); localStorage.setItem('dodam_hospital_bag', JSON.stringify(next))
+  }
+  const toggleBenefit = (id: string) => {
+    const next = { ...benefitDone, [id]: !benefitDone[id] }
+    setBenefitDone(next); localStorage.setItem('dodam_benefits', JSON.stringify(next))
   }
 
   // 태교 일기 저장
@@ -454,6 +490,21 @@ export default function PregnantPage() {
           </div>
         )}
 
+        {/* ━━━ 긴급 혜택 알림 ━━━ */}
+        {(() => {
+          const urgent = BENEFITS_TIMELINE.filter(b => b.week <= currentWeek && !benefitDone[b.id] && b.priority === 'high' && b.week <= 40)
+          if (urgent.length === 0) return null
+          return (
+            <div className="bg-[#FFF8F3] rounded-xl border border-[#FFDDC8] p-3">
+              <p className="text-[12px] font-semibold text-[#D08068] mb-1">⚡ 아직 안 챙긴 혜택이 {urgent.length}개 있어요</p>
+              {urgent.slice(0, 2).map(b => (
+                <p key={b.id} className="text-[11px] text-[#1A1918]">{b.icon} {b.title} — {b.desc.slice(0, 30)}</p>
+              ))}
+              {urgent.length > 2 && <p className="text-[10px] text-[#868B94]">+{urgent.length - 2}개 더 (아래 더보기)</p>}
+            </div>
+          )
+        })()}
+
         {/* ━━━ 스트릭 + 커뮤니티 ━━━ */}
         <StreakCard mode="pregnant" />
         <CommunityTeaser />
@@ -478,6 +529,71 @@ export default function PregnantPage() {
                   <span className={`text-[10px] ${c.week <= currentWeek && !checkupDone[c.id] ? 'text-[#D08068] font-semibold' : 'text-[#AEB1B9]'}`}>{c.week}주</span>
                 </button>
               ))}
+            </div>
+
+            {/* 혜택 · 제도 타임라인 */}
+            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[13px] font-bold text-[#1A1918]">🎁 혜택 · 제도 챙기기</p>
+                <p className="text-[10px] text-[#3D8A5A] font-semibold">{BENEFITS_TIMELINE.filter(b => benefitDone[b.id]).length}/{BENEFITS_TIMELINE.length}</p>
+              </div>
+
+              {/* 지금 해야 할 것 (현재 주차 기준) */}
+              {(() => {
+                const urgent = BENEFITS_TIMELINE.filter(b => b.week <= currentWeek && !benefitDone[b.id] && b.week <= 40)
+                const upcoming = BENEFITS_TIMELINE.filter(b => b.week > currentWeek && b.week <= 40 && !benefitDone[b.id]).slice(0, 3)
+                const afterBirth = BENEFITS_TIMELINE.filter(b => b.week > 40)
+
+                return (
+                  <div className="space-y-1">
+                    {urgent.length > 0 && (
+                      <p className="text-[10px] font-semibold text-[#D08068] mb-1">⚡ 지금 챙기세요</p>
+                    )}
+                    {urgent.map(b => (
+                      <button key={b.id} onClick={() => toggleBenefit(b.id)} className="w-full flex items-start gap-2 py-1.5 active:bg-[#F5F4F1] rounded-lg">
+                        <div className={`w-4 h-4 mt-0.5 rounded-full border-2 flex items-center justify-center shrink-0 ${benefitDone[b.id] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : 'border-[#D08068]'}`}>
+                          {benefitDone[b.id] && <span className="text-white text-[8px]">✓</span>}
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className="text-[12px] font-semibold text-[#1A1918]">{b.icon} {b.title}</p>
+                          <p className="text-[10px] text-[#868B94]">{b.desc}</p>
+                        </div>
+                        {b.link && <a href={b.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-[9px] text-[#3D8A5A] shrink-0 mt-1">신청 →</a>}
+                      </button>
+                    ))}
+
+                    {upcoming.length > 0 && (
+                      <p className="text-[10px] font-semibold text-[#868B94] mt-2 mb-1">📅 다가오는 일정</p>
+                    )}
+                    {upcoming.map(b => (
+                      <button key={b.id} onClick={() => toggleBenefit(b.id)} className="w-full flex items-start gap-2 py-1.5 active:bg-[#F5F4F1] rounded-lg">
+                        <div className={`w-4 h-4 mt-0.5 rounded-full border-2 flex items-center justify-center shrink-0 ${benefitDone[b.id] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : 'border-[#AEB1B9]'}`}>
+                          {benefitDone[b.id] && <span className="text-white text-[8px]">✓</span>}
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className={`text-[12px] ${benefitDone[b.id] ? 'text-[#AEB1B9] line-through' : 'text-[#1A1918]'}`}>{b.icon} {b.title}</p>
+                          <p className="text-[10px] text-[#868B94]">{b.desc}</p>
+                        </div>
+                        <span className="text-[9px] text-[#AEB1B9] shrink-0 mt-1">{b.when}</span>
+                      </button>
+                    ))}
+
+                    <p className="text-[10px] font-semibold text-[#868B94] mt-2 mb-1">🍼 출산 후 챙길 것</p>
+                    {afterBirth.map(b => (
+                      <button key={b.id} onClick={() => toggleBenefit(b.id)} className="w-full flex items-start gap-2 py-1.5 active:bg-[#F5F4F1] rounded-lg">
+                        <div className={`w-4 h-4 mt-0.5 rounded-full border-2 flex items-center justify-center shrink-0 ${benefitDone[b.id] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : 'border-[#AEB1B9]'}`}>
+                          {benefitDone[b.id] && <span className="text-white text-[8px]">✓</span>}
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className={`text-[12px] ${benefitDone[b.id] ? 'text-[#AEB1B9] line-through' : 'text-[#1A1918]'}`}>{b.icon} {b.title}</p>
+                          <p className="text-[10px] text-[#868B94]">{b.desc}</p>
+                        </div>
+                        {b.link && <a href={b.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-[9px] text-[#3D8A5A] shrink-0 mt-1">신청 →</a>}
+                      </button>
+                    ))}
+                  </div>
+                )
+              })()}
             </div>
 
             {/* 출산 가방 */}
