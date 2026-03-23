@@ -82,8 +82,9 @@ JSON만 출력하세요.`
       if (!text) return NextResponse.json({ error: geminiErr || 'AI failed' }, { status: 500 })
 
       try {
-        const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-        const parsed = JSON.parse(cleaned)
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        if (!jsonMatch) return NextResponse.json({ greeting: text.slice(0, 200), mainAdvice: '', cycleInsight: '', nutritionTip: '', emotionalCare: '', partnerTip: '', todayScore: 70 })
+        const parsed = JSON.parse(jsonMatch[0])
         return NextResponse.json(parsed)
       } catch {
         return NextResponse.json({ greeting: text.slice(0, 200), mainAdvice: '', cycleInsight: '', nutritionTip: '', emotionalCare: '', partnerTip: '', todayScore: 70 })
@@ -136,10 +137,12 @@ JSON 형식으로 출력:
       if (!mealText) return NextResponse.json({ error: mealErr || 'AI failed' }, { status: 500 })
 
       try {
-        const cleaned = mealText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-        return NextResponse.json(JSON.parse(cleaned))
-      } catch {
-        return NextResponse.json({ error: 'parse_error' }, { status: 500 })
+        // 마크다운 코드블록, 앞뒤 텍스트 제거 후 JSON만 추출
+        const jsonMatch = mealText.match(/\{[\s\S]*\}/)
+        if (!jsonMatch) return NextResponse.json({ error: `JSON 없음: ${mealText.slice(0, 100)}` }, { status: 500 })
+        return NextResponse.json(JSON.parse(jsonMatch[0]))
+      } catch (e) {
+        return NextResponse.json({ error: `파싱 실패: ${mealText.slice(0, 100)}` }, { status: 500 })
       }
     }
 
