@@ -7,24 +7,16 @@ import Link from 'next/link'
 const MENUS: Record<string, { label: string; items: { href: string; icon: string; title: string; desc: string; external?: boolean }[] }[]> = {
   preparing: [
     {
-      label: '건강',
+      label: '나',
       items: [
-        { href: '/health', icon: '💚', title: '내 건강', desc: 'Google Fit 연동 · 수면 · 걸음수 · 심박' },
+        { href: '/health', icon: '💚', title: '내 건강', desc: 'Google Fit · 수면 · 걸음수 · 심박' },
       ],
     },
     {
-      label: '파트너',
+      label: '둘이서',
       items: [
-        { href: '/settings/caregivers/invite', icon: '💑', title: '파트너 초대하기', desc: '카카오톡으로 초대 · 함께 준비해요' },
-        { href: '/settings/caregivers', icon: '💌', title: '응원 메시지', desc: '서로 격려 · 준비 과정 공유' },
-      ],
-    },
-    {
-      label: '함께 준비',
-      items: [
-        { href: '/name', icon: '✨', title: '태명 · 이름 짓기', desc: 'AI 추천 · 음양오행 분석' },
-        { href: '/preparing', icon: '📋', title: '함께 볼 체크리스트', desc: '검사 · 준비물 · 생활습관' },
-        { href: '/map', icon: '🏥', title: '산부인과 찾기', desc: '근처 산부인과 · 난임 클리닉' },
+        { href: '/settings/caregivers/invite', icon: '💑', title: '파트너 초대', desc: '카카오톡으로 함께 준비해요' },
+        { href: '/name', icon: '✨', title: '태명 · 이름 짓기', desc: 'AI 추천 · 음양오행 · 점수' },
       ],
     },
     {
@@ -34,36 +26,25 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
       ],
     },
     {
-      label: '콘텐츠',
+      label: '즐겨보기',
       items: [
-        { href: 'https://www.youtube.com/@todaydoha', icon: '🎬', title: '도하, 오늘도', desc: '육아 가이드 · 유튜브 채널', external: true },
+        { href: 'https://www.youtube.com/@todaydoha', icon: '🎬', title: '도하, 오늘도', desc: '육아 가이드 유튜브', external: true },
       ],
     },
   ],
   pregnant: [
     {
-      label: '건강',
+      label: '나',
       items: [
-        { href: '/health', icon: '💚', title: '내 건강', desc: 'Google Fit 연동 · 수면 · 걸음수 · 심박' },
+        { href: '/health', icon: '💚', title: '내 건강', desc: 'Google Fit · 수면 · 걸음수 · 심박' },
       ],
     },
     {
-      label: '가족',
+      label: '둘이서',
       items: [
-        { href: '/settings/caregivers', icon: '👥', title: '공동양육자', desc: '가족 초대 · 기록 공유' },
-        { href: '/settings/caregivers/invite', icon: '💌', title: '가족 초대하기', desc: '카카오톡으로 초대 링크 보내기' },
-      ],
-    },
-    {
-      label: '준비',
-      items: [
+        { href: '/settings/caregivers/invite', icon: '💌', title: '가족 초대', desc: '카카오톡으로 초대' },
         { href: '/name', icon: '✨', title: '이름 짓기', desc: 'AI 추천 · 음양오행 · 점수' },
-      ],
-    },
-    {
-      label: '동네',
-      items: [
-        { href: '/map', icon: '🏥', title: '산부인과 · 소아과', desc: '동네 의료 시설 찾기' },
+        { href: '/birth', icon: '🎉', title: '출산했어요!', desc: '축하 → 육아 모드 전환' },
       ],
     },
     {
@@ -73,51 +54,44 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
       ],
     },
     {
-      label: '콘텐츠',
+      label: '즐겨보기',
       items: [
-        { href: 'https://www.youtube.com/@todaydoha', icon: '🎬', title: '도하, 오늘도', desc: '육아 가이드 · 유튜브 채널', external: true },
+        { href: 'https://www.youtube.com/@todaydoha', icon: '🎬', title: '도하, 오늘도', desc: '육아 가이드 유튜브', external: true },
       ],
     },
   ],
   parenting: [
     {
-      label: '건강',
+      label: '나',
       items: [
-        { href: '/health', icon: '💚', title: '내 건강', desc: 'Google Fit 연동 · 수면 · 걸음수 · 심박' },
+        { href: '/health', icon: '💚', title: '내 건강', desc: 'Google Fit · 수면 · 걸음수 · 심박' },
       ],
     },
     {
-      label: '케어',
+      label: '돌봄',
       items: [
         { href: '/lullaby', icon: '🌙', title: '자장가 · 동요', desc: '수면 도우미 · 120곡+' },
-        { href: '/memory', icon: '📋', title: '발달 체크리스트', desc: '월령별 발달 확인 · AI 분석' },
+        { href: '/memory', icon: '📋', title: '발달 체크', desc: '월령별 발달 · AI 분석' },
       ],
     },
     {
-      label: '가족',
+      label: '함께',
       items: [
-        { href: '/settings/caregivers', icon: '👥', title: '공동양육자', desc: '가족 초대 · 기록 공유' },
-        { href: '/settings/caregivers/invite', icon: '💌', title: '가족 초대하기', desc: '카카오톡으로 초대 링크 보내기' },
-      ],
-    },
-    {
-      label: '동네',
-      items: [
-        { href: '/map', icon: '🗺️', title: '동네 육아 지도', desc: '소아과 · 키즈카페 · 문화센터' },
-        { href: '/emergency', icon: '🚨', title: '응급 소아과 찾기', desc: '지금 영업 중인 가까운 소아과' },
+        { href: '/settings/caregivers', icon: '👥', title: '동반양육자', desc: '기록 공유 · 함께 돌봄' },
+        { href: '/settings/caregivers/invite', icon: '💌', title: '가족 초대', desc: '카카오톡으로 초대' },
       ],
     },
     {
       label: '설정',
       items: [
-        { href: '/settings', icon: '⚙️', title: '설정', desc: '알림 · 계정 · 다크 모드' },
-        { href: '/settings/children', icon: '👶', title: '아기 프로필', desc: '이름 · 생일 · 특이사항 관리' },
+        { href: '/settings', icon: '⚙️', title: '설정', desc: '알림 · 계정' },
+        { href: '/settings/children', icon: '👶', title: '아이 프로필', desc: '이름 · 생일 · 특이사항' },
       ],
     },
     {
-      label: '콘텐츠',
+      label: '즐겨보기',
       items: [
-        { href: 'https://www.youtube.com/@todaydoha', icon: '🎬', title: '도하, 오늘도', desc: '육아 가이드 · 유튜브 채널', external: true },
+        { href: 'https://www.youtube.com/@todaydoha', icon: '🎬', title: '도하, 오늘도', desc: '육아 가이드 유튜브', external: true },
       ],
     },
   ],

@@ -19,19 +19,19 @@ const TABS_BY_MODE: Record<string, Tab[]> = {
   parenting: [
     { href: '/', icon: SunIcon, label: '오늘' },
     { href: '/memory', icon: HeartIcon, label: '추억' },
-    { href: '/community', icon: ShieldIcon, label: '소통' },
+    { href: '/town', icon: ShieldIcon, label: '동네' },
     { href: '/us', icon: UsersIcon, label: '우리' },
   ],
   pregnant: [
     { href: '/pregnant', icon: SunIcon, label: '오늘' },
     { href: '/memory', icon: HeartIcon, label: '일기' },
-    { href: '/community', icon: ShieldIcon, label: '소통' },
+    { href: '/town', icon: ShieldIcon, label: '동네' },
     { href: '/us', icon: UsersIcon, label: '우리' },
   ],
   preparing: [
     { href: '/preparing', icon: SunIcon, label: '오늘' },
     { href: '/waiting', icon: HeartIcon, label: '기다림' },
-    { href: '/community', icon: ShieldIcon, label: '소통' },
+    { href: '/town', icon: ShieldIcon, label: '동네' },
     { href: '/us', icon: UsersIcon, label: '우리' },
   ],
 }
