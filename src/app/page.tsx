@@ -262,6 +262,30 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* 🔧 테스트 메뉴 (개발용) */}
+          <div className="mb-2 overflow-x-auto">
+            <div className="flex gap-1.5 pb-1" style={{ minWidth: 'max-content' }}>
+              {[
+                { href: '/', label: '오늘' },
+                { href: '/memory', label: '추억' },
+                { href: '/care', label: '케어' },
+                { href: '/us', label: '우리' },
+                { href: '/lullaby', label: '자장가' },
+                { href: '/pregnant', label: '임신모드' },
+                { href: '/community', label: '커뮤니티' },
+                { href: '/growth', label: '성장' },
+                { href: '/map', label: '지도' },
+                { href: '/emergency', label: '응급' },
+                { href: '/settings', label: '설정' },
+                { href: '/onboarding', label: '온보딩' },
+              ].map((m) => (
+                <Link key={m.href} href={m.href} className="px-2.5 py-1 bg-[#F0F0F0] rounded-md text-[10px] font-medium text-[#868B94] whitespace-nowrap active:bg-[#E0E0E0]">
+                  {m.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
           {/* 오늘 요약 카드 */}
           <div className="flex gap-2 mb-1">
             {[
