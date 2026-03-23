@@ -68,35 +68,33 @@ export default function TownPage() {
       <div className="max-w-lg mx-auto">
         {/* ===== 지도 탭 ===== */}
         {subTab === 'map' && (
-          <div className="px-5 pt-4 pb-28 space-y-3">
-            <div className="grid grid-cols-3 gap-2">
-              {categories.map(cat => (
-                <Link key={cat.query} href={`/map?q=${encodeURIComponent(cat.query)}`}
-                  className="bg-white rounded-xl border border-[#f0f0f0] p-3 text-center active:bg-[#F5F4F1]">
-                  <span className="text-2xl">{cat.icon}</span>
-                  <p className="text-[12px] font-semibold text-[#1A1918] mt-1">{cat.label}</p>
-                </Link>
-              ))}
-            </div>
-
-            {/* 지도 바로가기 */}
-            <Link href="/map" className="block bg-white rounded-xl border border-[#f0f0f0] p-4 active:bg-[#F5F4F1]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#F0F9F4] flex items-center justify-center">
-                  <span className="text-lg">🗺️</span>
-                </div>
-                <div className="flex-1">
-                  <p className="text-[13px] font-semibold text-[#1A1918]">지도에서 찾기</p>
-                  <p className="text-[11px] text-[#868B94]">내 주변 시설 검색</p>
-                </div>
-                <span className="text-[#AEB1B9]">→</span>
+          <div className="pb-28">
+            {/* 지도 프리뷰 (탭하면 전체 지도로) */}
+            <Link href="/map" className="block relative bg-[#E8F0E8] h-40 flex items-center justify-center active:opacity-90">
+              <div className="text-center">
+                <span className="text-3xl">🗺️</span>
+                <p className="text-[13px] font-semibold text-[#1A1918] mt-1">지도 열기</p>
+                <p className="text-[10px] text-[#868B94]">내 주변 시설 검색</p>
               </div>
             </Link>
 
-            {/* 정부 지원 */}
-            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
-              <p className="text-[14px] font-bold text-[#1A1918] mb-3">🏛️ 동네 지원 정보</p>
-              <GovSupports mode={mode} />
+            <div className="px-5 pt-3 space-y-3">
+              {/* 카테고리 바로가기 */}
+              <div className="flex gap-2 overflow-x-auto hide-scrollbar -mx-5 px-5">
+                {categories.map(cat => (
+                  <Link key={cat.query} href={`/map?q=${encodeURIComponent(cat.query)}`}
+                    className="shrink-0 bg-white rounded-xl border border-[#f0f0f0] px-4 py-2.5 flex items-center gap-2 active:bg-[#F5F4F1]">
+                    <span className="text-lg">{cat.icon}</span>
+                    <p className="text-[12px] font-semibold text-[#1A1918]">{cat.label}</p>
+                  </Link>
+                ))}
+              </div>
+
+              {/* 정부 지원 */}
+              <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+                <p className="text-[13px] font-bold text-[#1A1918] mb-3">🏛️ 지원 정보</p>
+                <GovSupports mode={mode} />
+              </div>
             </div>
           </div>
         )}
