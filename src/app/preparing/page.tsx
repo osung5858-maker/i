@@ -384,8 +384,8 @@ export default function PreparingPage() {
           </div>
         </div>
 
-        {/* ━━━ 3. 빠른 카드 그리드 ━━━ */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* ━━━ 3. 상태 카드 3열 ━━━ */}
+        <div className="grid grid-cols-3 gap-2">
           {/* 임신 확률 */}
           {cycle && (() => {
             const isFertile = getCyclePhase() === 'fertile'
@@ -395,59 +395,79 @@ export default function PreparingPage() {
             prob += Math.floor(partnerCount * 1.5) + supplCount
             prob = Math.max(5, Math.min(45, prob))
             return (
-              <div className="bg-white rounded-xl border border-[#f0f0f0] p-3">
-                <p className="text-[11px] text-[#868B94] mb-1">🎯 이번 주기</p>
-                <p className="text-[24px] font-bold text-[#3D8A5A]">{prob}%</p>
+              <div className="bg-white rounded-xl border border-[#f0f0f0] p-2.5 text-center">
+                <p className="text-[10px] text-[#868B94]">🎯 이번 주기</p>
+                <p className="text-[20px] font-bold text-[#3D8A5A] mt-0.5">{prob}%</p>
                 <div className="w-full h-1 bg-[#F0F0F0] rounded-full mt-1">
                   <div className="h-full bg-[#3D8A5A] rounded-full" style={{ width: `${prob}%` }} />
                 </div>
-                <p className="text-[9px] text-[#AEB1B9] mt-1">예상 확률</p>
               </div>
             )
           })()}
 
           {/* 파트너 건강 */}
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-3">
-            <p className="text-[11px] text-[#868B94] mb-1">💑 파트너</p>
-            <p className="text-[24px] font-bold text-[#1A1918]">{partnerCount}<span className="text-[14px] text-[#AEB1B9]">/6</span></p>
+          <div className="bg-white rounded-xl border border-[#f0f0f0] p-2.5 text-center">
+            <p className="text-[10px] text-[#868B94]">💑 파트너</p>
+            <p className="text-[20px] font-bold text-[#1A1918] mt-0.5">{partnerCount}<span className="text-[12px] text-[#AEB1B9]">/6</span></p>
             <div className="flex gap-0.5 mt-1">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className={`flex-1 h-1 rounded-full ${i < partnerCount ? 'bg-[#3D8A5A]' : 'bg-[#F0F0F0]'}`} />
               ))}
             </div>
-            <p className="text-[9px] text-[#AEB1B9] mt-1">건강 체크</p>
-          </div>
-
-          {/* AI 식단 */}
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-3">
-            <p className="text-[11px] text-[#868B94] mb-1">🍽️ 오늘 식단</p>
-            {aiMeal ? (
-              <>
-                <p className="text-[12px] font-semibold text-[#1A1918] line-clamp-1">{aiMeal.breakfast?.menu}</p>
-                <p className="text-[10px] text-[#868B94] line-clamp-1">{aiMeal.lunch?.menu}</p>
-                <button onClick={() => fetchAIMeal(true)} className="text-[9px] text-[#3D8A5A] mt-1">다른 추천</button>
-              </>
-            ) : (
-              <>
-                {mealError && <p className="text-[10px] text-[#D08068] mb-1">{mealError}</p>}
-                <button onClick={() => fetchAIMeal()} disabled={aiMealLoading} className="text-[12px] text-[#3D8A5A] font-semibold mt-1">
-                  {aiMealLoading ? '...' : '추천받기'}
-                </button>
-              </>
-            )}
           </div>
 
           {/* 검사 현황 */}
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-3">
-            <p className="text-[11px] text-[#868B94] mb-1">🏥 검사</p>
-            <p className="text-[24px] font-bold text-[#1A1918]">{apptCount}<span className="text-[14px] text-[#AEB1B9]">/8</span></p>
+          <div className="bg-white rounded-xl border border-[#f0f0f0] p-2.5 text-center">
+            <p className="text-[10px] text-[#868B94]">🏥 검사</p>
+            <p className="text-[20px] font-bold text-[#1A1918] mt-0.5">{apptCount}<span className="text-[12px] text-[#AEB1B9]">/8</span></p>
             <div className="flex gap-0.5 mt-1">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className={`flex-1 h-1 rounded-full ${i < apptCount ? 'bg-[#3D8A5A]' : 'bg-[#F0F0F0]'}`} />
               ))}
             </div>
-            <p className="text-[9px] text-[#AEB1B9] mt-1">완료</p>
           </div>
+        </div>
+
+        {/* ━━━ 4. AI 오늘 식단 (풀사이즈) ━━━ */}
+        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[14px] font-bold text-[#1A1918]">🍽️ AI 오늘 식단</p>
+            {aiMeal && <button onClick={() => fetchAIMeal(true)} className="text-[10px] text-[#3D8A5A]">다른 추천</button>}
+          </div>
+          {aiMeal ? (
+            <div className="space-y-2.5">
+              {[
+                { label: '아침', icon: '🌅', data: aiMeal.breakfast },
+                { label: '점심', icon: '☀️', data: aiMeal.lunch },
+                { label: '저녁', icon: '🌙', data: aiMeal.dinner },
+                { label: '간식', icon: '🍎', data: aiMeal.snack },
+              ].map((m) => m.data && (
+                <div key={m.label} className="flex items-start gap-2.5">
+                  <span className="text-sm mt-0.5">{m.icon}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-[#AEB1B9] w-6">{m.label}</span>
+                      <p className="text-[13px] font-semibold text-[#1A1918]">{m.data.menu}</p>
+                    </div>
+                    <p className="text-[10px] text-[#868B94] ml-8">{m.data.reason}</p>
+                  </div>
+                </div>
+              ))}
+              {aiMeal.keyNutrient && (
+                <div className="bg-[#F0F9F4] rounded-lg p-2.5 mt-1">
+                  <p className="text-[11px] text-[#3D8A5A]">핵심 영양소: <span className="font-semibold">{aiMeal.keyNutrient}</span></p>
+                  {aiMeal.avoid && <p className="text-[11px] text-[#D08068] mt-0.5">주의: {aiMeal.avoid}</p>}
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {mealError && <p className="text-[11px] text-[#D08068] mb-2">{mealError}</p>}
+              <button onClick={() => fetchAIMeal()} disabled={aiMealLoading} className="w-full py-2.5 text-[13px] font-semibold text-[#3D8A5A] bg-[#F0F9F4] rounded-xl">
+                {aiMealLoading ? 'AI가 식단을 준비 중...' : '오늘의 식단 추천받기 🍽️'}
+              </button>
+            </>
+          )}
         </div>
 
         {/* ━━━ 4. 더보기 (접이식) ━━━ */}
