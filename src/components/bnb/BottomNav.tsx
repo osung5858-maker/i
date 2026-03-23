@@ -132,7 +132,7 @@ export default function BottomNav() {
       )}
 
       {/* BNB 바 */}
-      <nav className="absolute bottom-0 left-0 right-0 z-[65] bg-white border-t border-[#f0f0f0] pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[65] bg-white border-t border-[#f0f0f0] pb-[env(safe-area-inset-bottom)]">
         <div className="flex items-center justify-around h-14">
           {mode === 'preparing' ? (
             /* preparing 모드: FAB 없이 4탭 균등 */
