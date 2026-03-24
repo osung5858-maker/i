@@ -16,10 +16,8 @@ function JourneyTimeline({ childName }: { childName: string }) {
   const diaries = (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] } })()
   const checkups = (() => { try { return JSON.parse(localStorage.getItem('dodam_checkup_records') || '[]') } catch { return [] } })()
   const pregTests = (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_tests') || '[]') } catch { return [] } })()
-  const kidsnoteItems = (() => { try { return JSON.parse(localStorage.getItem('dodam_kidsnote_saved') || '[]') } catch { return [] } })()
-
   // 모든 이벤트를 날짜순 타임라인으로 합치기
-  const timeline: { date: string; type: string; emoji: string; title: string; content: string; sub?: string; images?: string[] }[] = []
+  const timeline: { date: string; type: string; emoji: string; title: string; content: string; sub?: string }[] = []
 
   letters.forEach((l: any) => {
     timeline.push({ date: l.date, type: 'letter', emoji: '✉️', title: '아이에게 보낸 편지', content: l.text?.slice(0, 60) || '', sub: l.reply?.slice(0, 40) })
@@ -32,9 +30,6 @@ function JourneyTimeline({ childName }: { childName: string }) {
   })
   pregTests.forEach((t: any) => {
     if (t.result === '양성') timeline.push({ date: t.date, type: 'positive', emoji: '🎉', title: '양성! 아이가 찾아왔어요', content: `D+${t.dpo}에 확인` })
-  })
-  kidsnoteItems.forEach((k: any) => {
-    timeline.push({ date: k.date, type: 'kidsnote', emoji: '🏫', title: k.title || '키즈노트', content: k.content?.slice(0, 60) || '', images: k.images?.slice(0, 3) })
   })
 
   // 날짜 정렬 (최신 먼저)
@@ -55,7 +50,6 @@ function JourneyTimeline({ childName }: { childName: string }) {
             {letters.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{letters.length}</p><p className="text-[9px] text-[#868B94]">편지</p></div>}
             {diaries.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{diaries.length}</p><p className="text-[9px] text-[#868B94]">태교일기</p></div>}
             {checkups.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{checkups.length}</p><p className="text-[9px] text-[#868B94]">검진</p></div>}
-            {kidsnoteItems.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{kidsnoteItems.length}</p><p className="text-[9px] text-[#868B94]">키즈노트</p></div>}
           </div>
         )}
         {!hasJourney && <p className="text-[12px] text-[#868B94] mt-2">편지, 태교일기, 검진 기록이 여기에 모여요</p>}
@@ -83,13 +77,6 @@ function JourneyTimeline({ childName }: { childName: string }) {
                 </div>
                 {item.content && <p className="text-[11px] text-[#868B94] line-clamp-2">{item.content}</p>}
                 {item.sub && <p className="text-[10px] text-[#3D8A5A] mt-0.5 italic">{item.sub}</p>}
-                {item.images && item.images.length > 0 && (
-                  <div className="flex gap-1 mt-1.5">
-                    {item.images.map((src: string, j: number) => (
-                      <img key={j} src={src} alt="" className="w-12 h-12 rounded-lg object-cover" />
-                    ))}
-                  </div>
-                )}
                 {item.type === 'positive' && <p className="text-[11px] text-[#3D8A5A] font-semibold mt-1">🎉 이 순간부터 모든 게 시작되었어요</p>}
               </div>
             </div>

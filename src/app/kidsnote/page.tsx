@@ -189,19 +189,23 @@ export default function KidsnotePage() {
     setAlbums([]); setReports([])
   }
 
-  // 사진을 도담에 저장
-  const saveToDodam = (item: any) => {
-    const existing = JSON.parse(localStorage.getItem('dodam_kidsnote_saved') || '[]')
-    existing.unshift({
-      id: item.id,
-      title: item.title || '',
-      content: item.content || '',
-      date: item.created || new Date().toISOString(),
-      images: (item.images || []).map((img: any) => img.original || img.thumbnail || ''),
-      savedAt: new Date().toISOString(),
-    })
-    localStorage.setItem('dodam_kidsnote_saved', JSON.stringify(existing.slice(0, 200)))
-    alert('도담에 저장했어요! 📸')
+  // 사진 다운로드
+  const downloadImages = async (item: any) => {
+    const images = item.images || []
+    if (images.length === 0) { alert('다운로드할 사진이 없어요'); return }
+    for (let i = 0; i < images.length; i++) {
+      try {
+        const url = images[i].original || images[i].thumbnail
+        if (!url) continue
+        const res = await fetch(url)
+        const blob = await res.blob()
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = `kidsnote_${item.id}_${i + 1}.jpg`
+        a.click()
+        URL.revokeObjectURL(a.href)
+      } catch { /* */ }
+    }
   }
 
   return (
@@ -372,7 +376,7 @@ export default function KidsnotePage() {
                     {album.content && <p className="text-[12px] text-[#1A1918] line-clamp-3">{album.content}</p>}
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-[9px] text-[#AEB1B9]">{album.created ? new Date(album.created).toLocaleDateString('ko-KR') : ''}</span>
-                      <button onClick={() => saveToDodam(album)} className="text-[10px] text-[#3D8A5A] font-semibold active:opacity-60">도담에 저장 📥</button>
+                      <button onClick={() => downloadImages(album)} className="text-[10px] text-[#3D8A5A] font-semibold active:opacity-60">사진 다운로드 📥</button>
                     </div>
                   </div>
                 ))}
@@ -403,7 +407,7 @@ export default function KidsnotePage() {
                     )}
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-[9px] text-[#AEB1B9]">{report.created ? new Date(report.created).toLocaleDateString('ko-KR') : ''}</span>
-                      <button onClick={() => saveToDodam(report)} className="text-[10px] text-[#3D8A5A] font-semibold active:opacity-60">도담에 저장 📥</button>
+                      <button onClick={() => downloadImages(report)} className="text-[10px] text-[#3D8A5A] font-semibold active:opacity-60">사진 다운로드 📥</button>
                     </div>
                   </div>
                 ))}

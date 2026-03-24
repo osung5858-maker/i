@@ -439,18 +439,43 @@ export default function HomePage() {
 }
 
 function KidsnoteCard() {
-  const [items, setItems] = useState<any[]>([])
   const [connected, setConnected] = useState(false)
+  const [reports, setReports] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+
   useEffect(() => {
-    const saved = localStorage.getItem('dodam_kidsnote_saved')
-    if (saved) {
-      try { setItems(JSON.parse(saved).slice(0, 3)) } catch { /* */ }
+    const hasCreds = !!localStorage.getItem('kn_credentials')
+    setConnected(hasCreds)
+    // 자동 로그인 → 최신 알림장 1건 가져오기
+    if (hasCreds) {
+      autoFetch()
     }
-    setConnected(!!localStorage.getItem('kn_credentials') || !!sessionStorage.getItem('kn_session'))
   }, [])
 
-  // 연결 전: 유도 카드
-  if (items.length === 0) {
+  const autoFetch = async () => {
+    try {
+      const creds = JSON.parse(localStorage.getItem('kn_credentials') || '{}')
+      if (!creds.u || !creds.p) return
+      setLoading(true)
+      const loginRes = await fetch('/api/kidsnote', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', username: creds.u, password: creds.p }),
+      })
+      const loginData = await loginRes.json()
+      if (!loginData.success || !loginData.children?.length) { setLoading(false); return }
+      const childId = loginData.children[0].id
+      const reportRes = await fetch('/api/kidsnote', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reports', sessionCookie: loginData.sessionCookie, childId }),
+      })
+      const reportData = await reportRes.json()
+      setReports((reportData.results || []).slice(0, 2))
+    } catch { /* */ }
+    setLoading(false)
+  }
+
+  // 미연결: 유도 카드
+  if (!connected) {
     return (
       <Link href="/kidsnote" className="block bg-gradient-to-r from-[#FFF8F0] to-[#F0FAF4] rounded-xl border border-[#f0f0f0] p-4">
         <div className="flex items-center justify-between">
@@ -458,7 +483,7 @@ function KidsnoteCard() {
             <span className="text-2xl">🏫</span>
             <div>
               <p className="text-[13px] font-bold text-[#1A1918]">키즈노트 연동</p>
-              <p className="text-[11px] text-[#868B94]">{connected ? '알림장 · 앨범을 가져와보세요' : '어린이집 알림장을 도담으로'}</p>
+              <p className="text-[11px] text-[#868B94]">어린이집 알림장을 도담에서 확인해요</p>
             </div>
           </div>
           <ChevronRightIcon className="w-4 h-4 text-[#AEB1B9]" />
@@ -467,29 +492,43 @@ function KidsnoteCard() {
     )
   }
 
-  // 연결 후: 최신 데이터 미리보기
+  // 연결됨: 최신 알림장 + 사진
   return (
-    <Link href="/kidsnote" className="block bg-white rounded-xl border border-[#f0f0f0] p-3">
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-white rounded-xl border border-[#f0f0f0] p-3">
+      <Link href="/kidsnote" className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <span className="text-sm">🏫</span>
-          <span className="text-[13px] font-bold text-[#1A1918]">키즈노트</span>
-          <span className="text-[9px] text-[#3D8A5A] bg-[#E8F5E9] px-1.5 py-0.5 rounded-full">연동됨</span>
+          <span className="text-[13px] font-bold text-[#1A1918]">오늘의 키즈노트</span>
         </div>
-        <ChevronRightIcon className="w-4 h-4 text-[#AEB1B9]" />
-      </div>
-      {items.slice(0, 2).map((item: any, i: number) => (
-        <div key={i} className="flex items-center gap-2 py-1.5">
-          {item.images?.[0] && (
-            <img src={item.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] text-[#3D8A5A] bg-[#E8F5E9] px-1.5 py-0.5 rounded-full">연동됨</span>
+          <ChevronRightIcon className="w-4 h-4 text-[#AEB1B9]" />
+        </div>
+      </Link>
+
+      {loading && <p className="text-[11px] text-[#AEB1B9] py-2 text-center">알림장 확인 중...</p>}
+
+      {!loading && reports.length === 0 && (
+        <p className="text-[11px] text-[#AEB1B9] py-2 text-center">새 알림장이 없어요</p>
+      )}
+
+      {reports.map((r: any) => (
+        <div key={r.id} className="py-2 border-t border-[#f5f5f5] first:border-t-0">
+          {/* 사진 가로 스크롤 */}
+          {r.images && r.images.length > 0 && (
+            <div className="flex gap-1.5 mb-2 overflow-x-auto hide-scrollbar">
+              {r.images.slice(0, 5).map((img: any, j: number) => (
+                <img key={j} src={img.thumbnail} alt="" className="w-16 h-16 rounded-lg object-cover shrink-0" />
+              ))}
+            </div>
           )}
-          <div className="min-w-0 flex-1">
-            {item.title && <p className="text-[11px] font-semibold text-[#1A1918] truncate">{item.title}</p>}
-            {item.content && <p className="text-[10px] text-[#868B94] truncate">{item.content}</p>}
+          <p className="text-[11px] text-[#1A1918] line-clamp-2">{r.content}</p>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[9px] text-[#AEB1B9]">{r.author}</span>
+            <span className="text-[9px] text-[#AEB1B9]">{r.created ? new Date(r.created).toLocaleDateString('ko-KR') : ''}</span>
           </div>
-          <span className="text-[9px] text-[#AEB1B9] shrink-0">{item.date ? new Date(item.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }) : ''}</span>
         </div>
       ))}
-    </Link>
+    </div>
   )
 }
