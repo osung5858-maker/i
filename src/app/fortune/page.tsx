@@ -52,7 +52,7 @@ export default function FortunePage() {
     return '♑ 염소자리'
   }
 
-  // AI 운세
+  // AI 운세 (Gemini 직접 호출)
   const fetchFortune = async () => {
     if (!birthDate) return
     setLoading(true)
@@ -63,39 +63,29 @@ export default function FortunePage() {
       const day = birth.getDate()
       const animal = getZodiacAnimal(year)
       const constellation = getConstellation(month, day)
+      const mode = localStorage.getItem('dodam_mode') || 'parenting'
+      const context = mode === 'preparing' ? '임신 준비 중' : mode === 'pregnant' ? '임신 중' : '육아 중'
+
+      const cacheKey = `dodam_fortune_${new Date().toISOString().split('T')[0]}_${birthDate}`
+      const cached = localStorage.getItem(cacheKey)
+      if (cached) { try { setFortuneResult(JSON.parse(cached)); setLoading(false); return } catch { /* */ } }
 
       const res = await fetch('/api/ai-pregnant', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'diary',
-          week: 0, mood: '',
-          text: `사주/운세를 재미로 봐주세요.
-생년월일: ${year}년 ${month}월 ${day}일
-띠: ${animal}
-별자리: ${constellation}
-${dueDate ? `출산 예정일: ${dueDate}` : ''}
-
-JSON으로 출력:
-{
-  "todayLuck": "오늘의 운세 2문장 (임신/육아 관련, 긍정적으로)",
-  "luckyColor": "행운의 색",
-  "luckyFood": "행운의 음식",
-  "luckyNumber": "행운의 숫자",
-  "babyMessage": "아이가 엄마에게 하는 한마디 (감성적, 1문장)",
-  "weekAdvice": "이번 주 조언 1문장"
-}
-JSON만 출력.`
+          type: 'fortune',
+          birthYear: year, birthMonth: month, birthDay: day,
+          animal, constellation, context, dueDate,
         }),
       })
       const data = await res.json()
-      if (data.comment) {
-        try {
-          const match = data.comment.match(/\{[\s\S]*\}/)
-          if (match) setFortuneResult(JSON.parse(match[0]))
-          else setFortuneResult({ todayLuck: data.comment })
-        } catch { setFortuneResult({ todayLuck: data.comment }) }
+      if (!data.error && data.todayLuck) {
+        setFortuneResult(data)
+        localStorage.setItem(cacheKey, JSON.stringify(data))
+      } else if (data.error) {
+        setFortuneResult({ todayLuck: '운세 조회에 실패했어요. 다시 시도해주세요.' })
       }
-    } catch { /* */ }
+    } catch { setFortuneResult({ todayLuck: '연결 오류. 다시 시도해주세요.' }) }
     setLoading(false)
   }
 
@@ -178,49 +168,94 @@ JSON만 출력.`
 
         {/* 오늘의 운세 */}
         {tab === 'fortune' && (
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-3">🎴 오늘의 운세</p>
+          <div className="space-y-3">
             {fortuneResult ? (
-              <div className="space-y-3">
-                <p className="text-[13px] text-[#1A1918] leading-relaxed">{fortuneResult.todayLuck}</p>
+              <>
+                {/* 전체 운세 */}
+                <div className="bg-gradient-to-br from-[#FFF8F3] to-[#F0F9F4] rounded-xl border border-[#FFDDC8]/50 p-4">
+                  <p className="text-[14px] font-bold text-[#1A1918] mb-2">🎴 오늘의 운세</p>
+                  <p className="text-[13px] text-[#1A1918] leading-relaxed">{fortuneResult.todayLuck}</p>
+                </div>
+
+                {/* 아이 메시지 */}
                 {fortuneResult.babyMessage && (
-                  <div className="bg-[#FFF8F3] rounded-lg p-2.5">
-                    <p className="text-[11px] text-[#1A1918] italic">💌 아이: "{fortuneResult.babyMessage}"</p>
+                  <div className="bg-[#FFF8F3] rounded-xl border border-[#FFDDC8]/30 p-4 text-center">
+                    <p className="text-[20px] mb-1">💌</p>
+                    <p className="text-[13px] text-[#1A1918] italic leading-relaxed">"{fortuneResult.babyMessage}"</p>
+                    <p className="text-[10px] text-[#868B94] mt-1">아이가 전하는 말</p>
                   </div>
                 )}
-                <div className="grid grid-cols-3 gap-2">
-                  {fortuneResult.luckyColor && (
-                    <div className="bg-[#F5F4F1] rounded-lg p-2 text-center">
-                      <p className="text-[9px] text-[#868B94]">행운의 색</p>
-                      <p className="text-[12px] font-semibold text-[#1A1918]">🎨 {fortuneResult.luckyColor}</p>
+
+                {/* 띠/별자리 운세 */}
+                {(fortuneResult.animalFortune || fortuneResult.starFortune) && (
+                  <div className="bg-white rounded-xl border border-[#f0f0f0] p-4 space-y-2">
+                    {fortuneResult.animalFortune && (
+                      <div>
+                        <p className="text-[12px] font-semibold text-[#1A1918] mb-0.5">{getZodiacAnimal(new Date(birthDate).getFullYear())} 띠 운세</p>
+                        <p className="text-[11px] text-[#868B94] leading-relaxed">{fortuneResult.animalFortune}</p>
+                      </div>
+                    )}
+                    {fortuneResult.starFortune && (
+                      <div className="pt-2 border-t border-[#f0f0f0]">
+                        <p className="text-[12px] font-semibold text-[#1A1918] mb-0.5">{getConstellation(new Date(birthDate).getMonth() + 1, new Date(birthDate).getDate())} 운세</p>
+                        <p className="text-[11px] text-[#868B94] leading-relaxed">{fortuneResult.starFortune}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 세부 운세 */}
+                <div className="bg-white rounded-xl border border-[#f0f0f0] p-4 space-y-2.5">
+                  {fortuneResult.loveLuck && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm shrink-0">💕</span>
+                      <div><p className="text-[11px] font-semibold text-[#1A1918]">사랑/가족운</p><p className="text-[11px] text-[#868B94]">{fortuneResult.loveLuck}</p></div>
                     </div>
                   )}
-                  {fortuneResult.luckyFood && (
-                    <div className="bg-[#F5F4F1] rounded-lg p-2 text-center">
-                      <p className="text-[9px] text-[#868B94]">행운의 음식</p>
-                      <p className="text-[12px] font-semibold text-[#1A1918]">🍽️ {fortuneResult.luckyFood}</p>
+                  {fortuneResult.healthLuck && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm shrink-0">💚</span>
+                      <div><p className="text-[11px] font-semibold text-[#1A1918]">건강운</p><p className="text-[11px] text-[#868B94]">{fortuneResult.healthLuck}</p></div>
                     </div>
                   )}
-                  {fortuneResult.luckyNumber && (
-                    <div className="bg-[#F5F4F1] rounded-lg p-2 text-center">
-                      <p className="text-[9px] text-[#868B94]">행운의 숫자</p>
-                      <p className="text-[12px] font-semibold text-[#1A1918]">🔢 {fortuneResult.luckyNumber}</p>
+                  {fortuneResult.moneyLuck && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm shrink-0">💰</span>
+                      <div><p className="text-[11px] font-semibold text-[#1A1918]">재물운</p><p className="text-[11px] text-[#868B94]">{fortuneResult.moneyLuck}</p></div>
                     </div>
                   )}
                 </div>
-                {fortuneResult.weekAdvice && <p className="text-[11px] text-[#3D8A5A]">💡 {fortuneResult.weekAdvice}</p>}
-                <button onClick={fetchFortune} className="text-[10px] text-[#AEB1B9]">다시 보기</button>
-              </div>
+
+                {/* 행운 아이템 */}
+                <div className="grid grid-cols-2 gap-2">
+                  {fortuneResult.luckyColor && <div className="bg-white rounded-xl border border-[#f0f0f0] p-3 text-center"><p className="text-[9px] text-[#868B94]">행운의 색</p><p className="text-[13px] font-bold text-[#1A1918]">🎨 {fortuneResult.luckyColor}</p></div>}
+                  {fortuneResult.luckyFood && <div className="bg-white rounded-xl border border-[#f0f0f0] p-3 text-center"><p className="text-[9px] text-[#868B94]">행운의 음식</p><p className="text-[13px] font-bold text-[#1A1918]">🍽️ {fortuneResult.luckyFood}</p></div>}
+                  {fortuneResult.luckyNumber && <div className="bg-white rounded-xl border border-[#f0f0f0] p-3 text-center"><p className="text-[9px] text-[#868B94]">행운의 숫자</p><p className="text-[13px] font-bold text-[#1A1918]">🔢 {fortuneResult.luckyNumber}</p></div>}
+                  {fortuneResult.luckyTime && <div className="bg-white rounded-xl border border-[#f0f0f0] p-3 text-center"><p className="text-[9px] text-[#868B94]">행운의 시간</p><p className="text-[13px] font-bold text-[#1A1918]">⏰ {fortuneResult.luckyTime}</p></div>}
+                </div>
+
+                {/* 주간 조언 + 피할 것 */}
+                <div className="bg-white rounded-xl border border-[#f0f0f0] p-4 space-y-2">
+                  {fortuneResult.weekAdvice && <p className="text-[11px] text-[#3D8A5A]">💡 이번 주: {fortuneResult.weekAdvice}</p>}
+                  {fortuneResult.avoidToday && <p className="text-[11px] text-[#D08068]">⚠️ 오늘 피할 것: {fortuneResult.avoidToday}</p>}
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <p className="text-[9px] text-[#AEB1B9]">재미로만 봐주세요 😊</p>
+                  <button onClick={() => { localStorage.removeItem(`dodam_fortune_${new Date().toISOString().split('T')[0]}_${birthDate}`); setFortuneResult(null); fetchFortune() }} className="text-[10px] text-[#3D8A5A]">다시 보기 🔄</button>
+                </div>
+              </>
             ) : (
-              <div className="text-center py-4">
-                <p className="text-[12px] text-[#868B94] mb-3">생년월일 기반 오늘의 운세를 AI가 봐드려요</p>
+              <div className="bg-white rounded-xl border border-[#f0f0f0] p-5 text-center">
+                <p className="text-3xl mb-2">🎴</p>
+                <p className="text-[14px] font-bold text-[#1A1918] mb-1">오늘의 운세</p>
+                <p className="text-[12px] text-[#868B94] mb-4">띠·별자리·사주 기반 AI 운세를 봐드려요</p>
                 <button onClick={fetchFortune} disabled={loading || !birthDate}
                   className="px-6 py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
-                  {loading ? '운세 보는 중...' : '🎴 오늘의 운세 보기'}
+                  {loading ? '운세 보는 중...' : '오늘의 운세 보기 🎴'}
                 </button>
               </div>
             )}
-            <p className="text-[9px] text-[#AEB1B9] mt-2 text-center">재미로만 봐주세요 😊</p>
           </div>
         )}
 

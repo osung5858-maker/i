@@ -121,6 +121,48 @@ JSON으로 출력:
       }
     }
 
+    // === 운세 ===
+    if (type === 'fortune') {
+      const { birthYear, birthMonth, birthDay, animal, constellation, context, dueDate: dd } = body
+      const prompt = `재미있는 운세를 봐주세요. 따뜻하고 긍정적으로.
+
+[정보]
+- 생년월일: ${birthYear}년 ${birthMonth}월 ${birthDay}일
+- 띠: ${animal}
+- 별자리: ${constellation}
+- 현재 상황: ${context}
+${dd ? `- 출산 예정일: ${dd}` : ''}
+- 오늘 날짜: ${new Date().toLocaleDateString('ko-KR')}
+
+JSON 형식으로 풍부하게 출력:
+{
+  "todayLuck": "오늘의 전체 운세 (3-4문장, 구체적 상황 묘사)",
+  "loveLuck": "사랑/가족운 (2문장)",
+  "healthLuck": "건강운 (2문장, ${context} 맞춤)",
+  "moneyLuck": "재물운 (1문장)",
+  "luckyColor": "행운의 색",
+  "luckyFood": "행운의 음식 (한식)",
+  "luckyNumber": "행운의 숫자",
+  "luckyTime": "행운의 시간대",
+  "animalFortune": "${animal} 띠 오늘의 운세 (2문장)",
+  "starFortune": "${constellation} 오늘의 운세 (2문장)",
+  "babyMessage": "아이가 엄마/아빠에게 하는 한마디 (감성적, 1문장)",
+  "weekAdvice": "이번 주 조언 (2문장)",
+  "avoidToday": "오늘 피할 것 1가지"
+}
+재미로 보는 것이므로 부담 없이, 하지만 풍부하고 구체적으로. JSON만 출력.`
+
+      const { text, error } = await callGemini(prompt, 900)
+      if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })
+      try {
+        const match = text.match(/\{[\s\S]*\}/)
+        if (!match) return NextResponse.json({ error: 'parse error' }, { status: 500 })
+        return NextResponse.json(JSON.parse(match[0]))
+      } catch {
+        return NextResponse.json({ error: 'parse error' }, { status: 500 })
+      }
+    }
+
     // === 임신 중 식단 추천 ===
     if (type === 'meal') {
       const { week } = body

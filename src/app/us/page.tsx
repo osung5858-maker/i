@@ -11,6 +11,7 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
       label: '나',
       items: [
         { href: '/mental-check', icon: '🧘', title: '마음 체크', desc: '스트레스 자가검사 (EPDS)' },
+        { href: '/fortune', icon: '🔮', title: '운세 · 바이오리듬', desc: '띠 · 별자리 · 오늘의 운세' },
       ],
     },
     {
@@ -45,6 +46,7 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
       label: '마음',
       items: [
         { href: '/mental-check', icon: '💚', title: '마음 체크', desc: '산후우울증 자가검사 (EPDS)' },
+        { href: '/fortune', icon: '🔮', title: '운세 · 바이오리듬', desc: '띠 · 별자리 · 오늘의 운세' },
       ],
     },
     {
@@ -86,6 +88,7 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
       label: '마음',
       items: [
         { href: '/mental-check', icon: '💚', title: '마음 체크', desc: '산후우울증 자가검사 (EPDS)' },
+        { href: '/fortune', icon: '🔮', title: '운세 · 바이오리듬', desc: '띠 · 별자리 · 오늘의 운세' },
       ],
     },
     {

@@ -674,42 +674,52 @@ export default function PregnantPage() {
           </div>
           <button onClick={saveHealth} className="w-full py-2 bg-[#3D8A5A] text-white text-[12px] font-semibold rounded-lg active:opacity-80">기록 저장</button>
 
-          {/* 태교 일기 — AI 유도 + 초음파 */}
+          {/* 태교 일기 — 항상 인풋 노출 + 프리셋 */}
           <div className="mt-3 pt-3 border-t border-[#f0f0f0]">
-            {diaryOpen ? (
-              <div>
-                {/* AI 유도 프롬프트 */}
-                <p className="text-[11px] text-[#3D8A5A] mb-2 italic">
-                  {[
-                    `${currentWeek}주차, 오늘 아이에게 하고 싶은 말이 있나요?`,
-                    '오늘 태동을 느꼈다면 어떤 느낌이었나요?',
-                    '아이에게 들려주고 싶은 노래가 있나요?',
-                    '오늘 먹은 음식 중 아이도 좋아할 것 같은 건?',
-                    '아이의 태명을 부르며 어떤 이야기를 했나요?',
-                  ][Math.floor(Date.now() / 86400000) % 5]}
-                </p>
-                <textarea value={diaryText} onChange={e => setDiaryText(e.target.value.slice(0, 500))}
-                  placeholder="자유롭게 적어보세요..."
-                  className="w-full h-20 text-[13px] p-3 bg-[#F5F4F1] rounded-xl resize-none focus:outline-none" autoFocus />
-                <div className="flex justify-between items-center mt-2">
-                  <button onClick={() => setDiaryOpen(false)} className="text-[12px] text-[#868B94]">취소</button>
-                  <button onClick={saveDiary} disabled={!diaryText.trim() || diarySaving}
-                    className={`text-[12px] font-semibold px-3 py-1 rounded-lg ${diaryText.trim() && !diarySaving ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#AEB1B9]'}`}>
-                    {diarySaving ? 'AI 코멘트 중...' : '저장'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <button onClick={() => setDiaryOpen(true)} className="w-full py-2.5 text-[12px] font-semibold text-[#3D8A5A] bg-[#F0F9F4] rounded-lg active:opacity-80">
-                  ✍️ 오늘의 태교일기
+            <p className="text-[13px] font-bold text-[#1A1918] mb-2">✍️ 오늘의 태교일기</p>
+
+            {/* 프리셋 프롬프트 */}
+            <div className="flex gap-1.5 overflow-x-auto hide-scrollbar mb-2">
+              {[
+                { emoji: '💬', text: '아이에게 한마디' },
+                { emoji: '🫶', text: '태동 느낌' },
+                { emoji: '🎵', text: '들려준 음악' },
+                { emoji: '🍽️', text: '맛있는 음식' },
+                { emoji: '🌿', text: '산책/외출' },
+                { emoji: '😊', text: '오늘 기분' },
+                { emoji: '🛍️', text: '준비한 것' },
+              ].map(p => (
+                <button key={p.text} onClick={() => setDiaryText(prev => prev ? prev : p.text + ' ')}
+                  className="shrink-0 px-2.5 py-1.5 rounded-full bg-[#F5F4F1] text-[11px] text-[#868B94] active:bg-[#E8F5E9] active:text-[#3D8A5A]">
+                  {p.emoji} {p.text}
                 </button>
-                {diaries.length > 0 && (
-                  <div className="p-2.5 bg-[#F5F4F1] rounded-lg">
-                    <p className="text-[11px] text-[#1A1918] line-clamp-2">{diaries[0].text}</p>
-                    <p className="text-[10px] text-[#3D8A5A] mt-1">{diaries[0].comment}</p>
-                  </div>
-                )}
+              ))}
+            </div>
+
+            {/* 인풋박스 (항상 노출) */}
+            <textarea value={diaryText} onChange={e => setDiaryText(e.target.value.slice(0, 500))}
+              placeholder={[
+                `${currentWeek}주차, 오늘 아이에게 하고 싶은 말이 있나요?`,
+                '오늘 태동을 느꼈다면 어떤 느낌이었나요?',
+                '아이에게 들려주고 싶은 노래가 있나요?',
+                '오늘 먹은 음식 중 아이도 좋아할 것 같은 건?',
+                '아이의 태명을 부르며 어떤 이야기를 했나요?',
+              ][Math.floor(Date.now() / 86400000) % 5]}
+              className="w-full h-20 text-[13px] p-3 bg-[#F9F9F7] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[#3D8A5A]" />
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-[10px] text-[#AEB1B9]">{diaryText.length}/500</span>
+              <button onClick={saveDiary} disabled={!diaryText.trim() || diarySaving}
+                className={`text-[12px] font-semibold px-4 py-1.5 rounded-lg ${diaryText.trim() && !diarySaving ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#AEB1B9]'}`}>
+                {diarySaving ? 'AI 코멘트 중...' : '저장하기'}
+              </button>
+            </div>
+
+            {/* 최근 일기 */}
+            {diaries.length > 0 && (
+              <div className="mt-3 p-2.5 bg-[#F5F4F1] rounded-lg">
+                <p className="text-[11px] text-[#1A1918] line-clamp-2">{diaries[0].text}</p>
+                {diaries[0].comment && <p className="text-[10px] text-[#3D8A5A] mt-1 italic">{diaries[0].comment}</p>}
+                <p className="text-[9px] text-[#AEB1B9] mt-1">{diaries[0].date}</p>
               </div>
             )}
           </div>
