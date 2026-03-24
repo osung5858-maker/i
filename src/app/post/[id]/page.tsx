@@ -45,7 +45,7 @@ export default function PublicPostPage() {
     <div className="min-h-[100dvh] bg-[#F5F4F1]">
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
-        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto">
+        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-[#3D8A5A] flex items-center justify-center">
               <span className="text-[10px] font-bold text-white">도</span>
@@ -56,7 +56,7 @@ export default function PublicPostPage() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
         {/* 게시글 */}
         <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
           <p className="text-[14px] text-[#1A1918] leading-relaxed whitespace-pre-line">{post.content}</p>

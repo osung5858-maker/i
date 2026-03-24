@@ -242,7 +242,7 @@ export default function KidsnotePage() {
       <PageHeader title="키즈노트" showBack
         rightAction={session ? <button onClick={logout} className="text-[10px] text-[#868B94]">로그아웃</button> : undefined} />
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28 w-full space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 w-full space-y-3">
 
         {/* 동의 화면 */}
         {step === 'login' && !agreed && (

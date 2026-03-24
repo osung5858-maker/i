@@ -235,7 +235,7 @@ export default function HomePage() {
     <div className="flex flex-col h-[100dvh] bg-white">
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white">
-        <div className="px-5 pt-3 pb-2 max-w-lg mx-auto">
+        <div className="px-5 pt-3 pb-2 max-w-lg mx-auto w-full">
           {/* 상단: 인사 + 알림 */}
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -278,7 +278,7 @@ export default function HomePage() {
 
       {/* 콘텐츠 */}
       <div className="flex-1 overflow-y-auto bg-[#F5F4F1]">
-        <div className="max-w-lg mx-auto pt-4 pb-44 px-5 space-y-3">
+        <div className="max-w-lg mx-auto w-full pt-4 pb-44 px-5 space-y-3">
 
           {/* ━━━ 1. AI 히어로 ━━━ */}
           <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-4">

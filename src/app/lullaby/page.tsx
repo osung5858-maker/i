@@ -110,14 +110,14 @@ export default function LullabyPage() {
   return (
     <div className="min-h-[100dvh] bg-[#1A1918] text-white pb-[env(safe-area-inset-bottom)]">
       <header className="sticky top-0 z-40 bg-[#1A1918]/90 backdrop-blur-xl">
-        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto">
+        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <Link href="/" className="text-white/60 text-sm">←</Link>
           <h1 className="text-[15px] font-bold">수면 도우미</h1>
           <div className="w-6" />
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto pb-40">
+      <div className="max-w-lg mx-auto w-full pb-40">
         {/* YouTube player */}
         {currentTrack && getYouTubeEmbedUrl(currentTrack) && (
           <div className="mx-5 mt-2 rounded-xl overflow-hidden bg-black aspect-video">
@@ -206,7 +206,7 @@ export default function LullabyPage() {
       {/* Bottom control bar */}
       {currentTrack && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#2a2a2a] border-t border-[#3a3a3a] pb-[env(safe-area-inset-bottom)]">
-          <div className="max-w-lg mx-auto">
+          <div className="max-w-lg mx-auto w-full">
             <div className="flex items-center gap-3 px-5 py-3">
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-medium text-white truncate">{currentTrack.title}</p>

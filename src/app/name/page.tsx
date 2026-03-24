@@ -122,7 +122,7 @@ export default function NamePage() {
     <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
       <PageHeader title="이름 짓기" showBack />
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28">
         {/* 탭 */}
         <div className="flex gap-1.5 mb-4 overflow-x-auto hide-scrollbar -mx-5 px-5">
           {[

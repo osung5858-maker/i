@@ -101,7 +101,7 @@ export default function MentalCheckPage() {
     <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
       <PageHeader title="마음 체크" showBack rightAction={<span className="text-[11px] text-[#868B94]">{answers.filter(a => a !== null).length}/10</span>} />
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28">
         {/* 프로그레스 */}
         <div className="flex gap-1 mb-6">
           {QUESTIONS.map((_, i) => (

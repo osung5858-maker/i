@@ -91,7 +91,7 @@ export default function WriteReviewPage() {
   return (
     <div className="min-h-[100dvh] bg-white dark:bg-[#0A0B0D] flex flex-col">
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl">
-        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
+        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">취소</button>
           <h1 className="text-[15px] font-bold text-[#0A0B0D] dark:text-white">리뷰 쓰기</h1>
           <button

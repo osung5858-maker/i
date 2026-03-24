@@ -83,7 +83,7 @@ function MapPageInner() {
     <div className="min-h-[100dvh] bg-[#f5f5f5] dark:bg-[#0A0B0D] flex flex-col">
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl border-b border-[#f0f0f0] dark:border-[#2a2a2a]">
-        <div className="flex items-center justify-center h-14 px-4 max-w-lg mx-auto">
+        <div className="flex items-center justify-center h-14 px-4 max-w-lg mx-auto w-full">
           <h1 className="text-[15px] font-bold text-[#0A0B0D] dark:text-white">동네 육아 지도</h1>
         </div>
       </header>
@@ -107,7 +107,7 @@ function MapPageInner() {
 
       {/* 카테고리 필터 */}
       <div className="sticky top-14 z-30 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl border-b border-[#f0f0f0] dark:border-[#2a2a2a]">
-        <div className="max-w-lg mx-auto px-5 py-2.5 flex gap-2 overflow-x-auto hide-scrollbar">
+        <div className="max-w-lg mx-auto w-full px-5 py-2.5 flex gap-2 overflow-x-auto hide-scrollbar">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.keyword}

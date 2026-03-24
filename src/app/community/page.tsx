@@ -346,7 +346,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
     <div className={hideHeader ? '' : 'min-h-[100dvh] bg-[#F5F4F1]'}>
       {!hideHeader && (
       <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
-        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto">
+        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <h1 className="text-[17px] font-bold text-[#1A1918]">소통</h1>
           <button
             onClick={() => tab === 'feed' ? setWriteOpen(true) : setMarketOpen(true)}
@@ -356,7 +356,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
           </button>
         </div>
 
-        <div className="flex px-5 pb-2 max-w-lg mx-auto gap-2">
+        <div className="flex px-5 pb-2 max-w-lg mx-auto w-full gap-2">
           {[
             { key: 'feed' as MainTab, label: '이야기' },
             { key: 'market' as MainTab, label: '도담장터' },
@@ -375,7 +375,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
       </header>
       )}
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28">
         {/* ===== 이야기 탭 ===== */}
         {tab === 'feed' && (
           <>

@@ -106,7 +106,7 @@ JSON만 출력.`
     <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
       <PageHeader title="운세 · 바이오리듬" showBack />
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3 w-full">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3 w-full">
         {/* 탭 */}
         <div className="flex gap-1.5">
           {[

@@ -6,12 +6,12 @@ export default function CarePage() {
   return (
     <div className="min-h-[100dvh] bg-[#F5F4F1]">
       <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
-        <div className="flex items-center h-14 px-5 max-w-lg mx-auto">
+        <div className="flex items-center h-14 px-5 max-w-lg mx-auto w-full">
           <h1 className="text-[17px] font-bold text-[#1A1918]">케어</h1>
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
         {/* 수면 도우미 */}
         <p className="text-[13px] font-semibold text-[#868B94] mb-1">수면 도우미</p>
         <div className="bg-white rounded-xl border border-[#f0f0f0] overflow-hidden">

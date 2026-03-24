@@ -436,7 +436,7 @@ export default function PreparingPage() {
   return (
     <div className="min-h-[100dvh] bg-[#F5F4F1]">
       <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
-        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto">
+        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <div>
             <p className="text-[12px] text-[#868B94]">임신 준비 · {phaseLabel[getCyclePhase()]}</p>
             <p className="text-[16px] font-bold text-[#1A1918]">{cycle ? `주기 ${cycle.cycleDay}일차` : '주기 설정'}</p>
@@ -445,7 +445,7 @@ export default function PreparingPage() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
 
         {/* ━━━ 1. AI 히어로 — CTA 형태 ━━━ */}
         {cycle && (

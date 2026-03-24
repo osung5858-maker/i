@@ -94,14 +94,14 @@ export default function InvitePage() {
   return (
     <div className="min-h-[100dvh] bg-white dark:bg-[#0A0B0D] flex flex-col">
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl">
-        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
+        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">닫기</button>
           <h1 className="text-[15px] font-bold text-[#0A0B0D] dark:text-white">가족 초대</h1>
           <div className="w-8" />
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 max-w-lg mx-auto">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 max-w-lg mx-auto w-full">
         <div className="w-20 h-20 rounded-3xl bg-green-50 dark:bg-green-950 flex items-center justify-center mb-6">
           <span className="text-4xl">💌</span>
         </div>

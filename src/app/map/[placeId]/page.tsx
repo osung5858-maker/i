@@ -88,14 +88,14 @@ export default function PlaceDetailPage() {
     <div className="min-h-[100dvh] bg-[#F7F8FA]">
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white border-b border-[#ECECEC]">
-        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
+        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-[13px] text-[#868B94]">뒤로</button>
           <h1 className="text-[15px] font-bold text-[#212124] truncate max-w-[220px]">{place.name}</h1>
           <div className="w-8" />
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto pb-24">
+      <div className="max-w-lg mx-auto w-full pb-24">
         {/* 기본 정보 */}
         <div className="m-4 p-5 rounded-2xl bg-white border border-[#ECECEC]">
           <h2 className="text-[18px] font-bold text-[#212124]">{place.name}</h2>

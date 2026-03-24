@@ -79,7 +79,7 @@ export default function VaccinationPage() {
     <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
       <PageHeader title="예방접종" showBack rightAction={<span className="text-[11px] text-[#3D8A5A] font-semibold">{doneCount}/{SCHEDULE.length}</span>} />
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
         {/* 프로그레스 */}
         <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
           <div className="flex items-center justify-between mb-2">

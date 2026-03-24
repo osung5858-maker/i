@@ -52,7 +52,7 @@ export default function TownPage() {
   return (
     <div className="min-h-[100dvh] bg-[#F5F4F1]">
       <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-lg mx-auto w-full">
           <div className="flex items-center h-12 px-5">
             <h1 className="text-[17px] font-bold text-[#1A1918]">동네</h1>
           </div>
@@ -71,7 +71,7 @@ export default function TownPage() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-lg mx-auto w-full">
         {subTab === 'town' && <MapTab categories={categories} />}
         {subTab === 'story' && <Suspense><CommunityPageInner initialTab="feed" hideHeader /></Suspense>}
         {subTab === 'market' && <Suspense><CommunityPageInner initialTab="market" hideHeader /></Suspense>}

@@ -149,12 +149,12 @@ export default function MemoryPage() {
   return (
     <div className="min-h-[100dvh] bg-[#F5F4F1]">
       <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
-        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto">
+        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <h1 className="text-[17px] font-bold text-[#1A1918]">추억</h1>
           <Link href="/growth/add" className="text-[12px] font-semibold text-[#3D8A5A]">+ 성장 기록</Link>
         </div>
 
-        <div className="flex px-5 pb-2 max-w-lg mx-auto gap-1.5">
+        <div className="flex px-5 pb-2 max-w-lg mx-auto w-full gap-1.5">
           {([
             { key: 'journey' as MemoryTab, label: '여정' },
             { key: 'diary' as MemoryTab, label: '일기' },
@@ -173,7 +173,7 @@ export default function MemoryPage() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto pb-28">
+      <div className="max-w-lg mx-auto w-full pb-28">
         {/* 여정 탭 — 기다림→임신→육아 통합 타임라인 */}
         {tab === 'journey' && (
           <JourneyTimeline childName={child?.name || '도담이'} />

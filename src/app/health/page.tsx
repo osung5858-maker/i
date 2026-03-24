@@ -202,7 +202,7 @@ export default function HealthPage() {
     <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
       <PageHeader title="내 건강" showBack rightAction={gfitBadge} />
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
 
         {/* 디버그: 연동 오류 표시 */}
         {gfitError && (

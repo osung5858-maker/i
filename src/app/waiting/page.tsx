@@ -200,12 +200,12 @@ export default function WaitingPage() {
   return (
     <div className="min-h-[100dvh] bg-[#F5F4F1]">
       <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
-        <div className="flex items-center h-14 px-5 max-w-lg mx-auto">
+        <div className="flex items-center h-14 px-5 max-w-lg mx-auto w-full">
           <h1 className="text-[17px] font-bold text-[#1A1918]">기다림</h1>
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
 
         {/* ━━━ 히어로: 기다림의 감성 ━━━ */}
         {cycle && (() => {
@@ -439,12 +439,12 @@ function PregnantWaitingPage() {
   return (
     <div className="min-h-[100dvh] bg-[#F5F4F1]">
       <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
-        <div className="flex items-center h-12 px-5 max-w-lg mx-auto">
+        <div className="flex items-center h-12 px-5 max-w-lg mx-auto w-full">
           <h1 className="text-[17px] font-bold text-[#1A1918]">기다림</h1>
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
         {/* 출산 확인 (D-day 지남) */}
         {daysLeft <= 0 && (
           <Link href="/birth" className="block bg-gradient-to-r from-[#FFF0E6] to-[#FFF8F3] rounded-xl border border-[#FFDDC8] p-5 text-center active:opacity-80">

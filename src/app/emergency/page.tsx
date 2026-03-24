@@ -133,7 +133,7 @@ export default function EmergencyPage() {
     <div className="min-h-[100dvh] bg-[#f5f5f5] dark:bg-[#0A0B0D]">
       {/* 헤더 */}
       <div className="bg-gradient-to-b from-[#E53935] to-[#C62828] px-4 pt-14 pb-6">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-lg mx-auto w-full">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
               <AlertIcon className="w-6 h-6 text-white" />
@@ -146,7 +146,7 @@ export default function EmergencyPage() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto -mt-2 pb-24">
+      <div className="max-w-lg mx-auto w-full -mt-2 pb-24">
         {/* 공동양육자 알림 배너 */}
         {notified && (
           <div className="mx-4 mb-2 p-3 rounded-xl bg-blue-50 border border-blue-200">

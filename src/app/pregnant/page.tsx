@@ -516,7 +516,7 @@ export default function PregnantPage() {
   return (
     <div className="min-h-[100dvh] bg-[#F5F4F1]">
       <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
-        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto">
+        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <div>
             <p className="text-[12px] text-[#868B94]">임신 {currentWeek}주차 · {trimester}</p>
             <p className="text-[16px] font-bold text-[#1A1918]">D-{daysLeft}</p>
@@ -525,7 +525,7 @@ export default function PregnantPage() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
 
         {/* ━━━ 출산 확인 (D-day 지남) ━━━ */}
         {daysLeft <= 0 && (
