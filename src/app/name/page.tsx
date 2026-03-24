@@ -35,6 +35,9 @@ export default function NamePage() {
   const [analyzeName, setAnalyzeName] = useState('')
   const [birthYear, setBirthYear] = useState('')
   const [analyzeResult, setAnalyzeResult] = useState<any>(null)
+  const [hanjaOptions, setHanjaOptions] = useState<any>(null)
+  const [selectedHanja, setSelectedHanja] = useState<Record<number, number>>({}) // charIdx → optionIdx
+  const [hanjaStep, setHanjaStep] = useState<'input' | 'select' | 'result'>('input')
 
   // 이름 비교
   const [compareNames, setCompareNames] = useState<string[]>(['', '', ''])
@@ -79,17 +82,38 @@ export default function NamePage() {
     setLoading(false)
   }
 
-  const fetchAnalyze = async () => {
-    if (!analyzeName) { setError('이름을 입력해주세요'); return }
-    setLoading(true); setError(null)
+  // 1단계: 한자 후보 조회
+  const fetchHanjaOptions = async () => {
+    if (!analyzeName || analyzeName.length < 2) { setError('이름을 입력해주세요 (성+이름)'); return }
+    setLoading(true); setError(null); setHanjaOptions(null); setSelectedHanja({}); setAnalyzeResult(null)
     try {
       const res = await fetch('/api/ai-name', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'analyze', fullName: analyzeName, birthYear }),
+        body: JSON.stringify({ type: 'hanja', fullName: analyzeName }),
       })
       const data = await res.json()
-      if (data.error) setError(data.error); else setAnalyzeResult(data)
-    } catch (e) { setError('일시적 오류가 발생했어요. 잠시 후 다시 시도해주세요.') }
+      if (data.error) { setError(data.error) } else { setHanjaOptions(data); setHanjaStep('select') }
+    } catch { setError('일시적 오류가 발생했어요. 잠시 후 다시 시도해주세요.') }
+    setLoading(false)
+  }
+
+  // 2단계: 선택한 한자로 분석
+  const fetchAnalyze = async () => {
+    setLoading(true); setError(null)
+    // 선택한 한자 조합
+    let hanjaStr = hanjaOptions?.surnameHanja || analyzeName[0]
+    hanjaOptions?.characters?.forEach((c: any, i: number) => {
+      const optIdx = selectedHanja[i] ?? 0
+      hanjaStr += c.options?.[optIdx]?.hanja || c.char
+    })
+    try {
+      const res = await fetch('/api/ai-name', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'analyze', fullName: analyzeName, birthYear, hanja: hanjaStr }),
+      })
+      const data = await res.json()
+      if (data.error) setError(data.error); else { setAnalyzeResult(data); setHanjaStep('result') }
+    } catch { setError('일시적 오류가 발생했어요. 잠시 후 다시 시도해주세요.') }
     setLoading(false)
   }
 
@@ -388,26 +412,98 @@ export default function NamePage() {
         {/* ===== 이름 분석 탭 ===== */}
         {tab === 'analyze' && (
           <div className="space-y-3">
-            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
-              <p className="text-[14px] font-bold text-[#1A1918] mb-3">🔍 이름 분석</p>
-              <p className="text-[11px] text-[#868B94] mb-3">음양오행 · 획수 · 발음 종합 분석</p>
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <div>
-                  <p className="text-[10px] text-[#868B94] mb-1">이름 (성 포함)</p>
-                  <input value={analyzeName} onChange={e => setAnalyzeName(e.target.value)} placeholder="김도담"
-                    className="w-full h-10 rounded-lg border border-[#f0f0f0] px-3 text-[14px]" />
+            {/* 1단계: 이름 입력 */}
+            {hanjaStep === 'input' && (
+              <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+                <p className="text-[14px] font-bold text-[#1A1918] mb-3">🔍 이름 분석</p>
+                <p className="text-[11px] text-[#868B94] mb-3">한자를 선택하고 음양오행 · 획수 · 발음 종합 분석</p>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <div>
+                    <p className="text-[10px] text-[#868B94] mb-1">이름 (성 포함)</p>
+                    <input value={analyzeName} onChange={e => setAnalyzeName(e.target.value)} placeholder="김도담"
+                      className="w-full h-10 rounded-lg border border-[#f0f0f0] px-3 text-[14px]" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-[#868B94] mb-1">출생 연도 (선택)</p>
+                    <input value={birthYear} onChange={e => setBirthYear(e.target.value)} placeholder="2026"
+                      className="w-full h-10 rounded-lg border border-[#f0f0f0] px-3 text-[14px]" />
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] text-[#868B94] mb-1">출생 연도 (선택)</p>
-                  <input value={birthYear} onChange={e => setBirthYear(e.target.value)} placeholder="2026"
-                    className="w-full h-10 rounded-lg border border-[#f0f0f0] px-3 text-[14px]" />
-                </div>
+                <button onClick={fetchHanjaOptions} disabled={loading}
+                  className="w-full py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                  {loading ? '한자 후보 조회 중...' : '한자 선택하기 →'}
+                </button>
               </div>
-              <button onClick={fetchAnalyze} disabled={loading}
-                className="w-full py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
-                {loading ? '분석 중...' : '이름 분석하기 🔍'}
-              </button>
-            </div>
+            )}
+
+            {/* 2단계: 한자 선택 */}
+            {hanjaStep === 'select' && hanjaOptions && (
+              <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[14px] font-bold text-[#1A1918]">한자 선택</p>
+                  <button onClick={() => setHanjaStep('input')} className="text-[11px] text-[#868B94]">← 다시 입력</button>
+                </div>
+                <p className="text-[11px] text-[#868B94] mb-3">각 글자의 한자를 선택해주세요</p>
+
+                {/* 성 */}
+                <div className="mb-4">
+                  <p className="text-[12px] font-semibold text-[#1A1918] mb-1.5">
+                    {hanjaOptions.surname} → {hanjaOptions.surnameHanja || '?'}
+                    <span className="text-[10px] text-[#868B94] ml-1">(성)</span>
+                  </p>
+                </div>
+
+                {/* 이름 글자별 */}
+                {hanjaOptions.characters?.map((c: any, cIdx: number) => (
+                  <div key={cIdx} className="mb-4">
+                    <p className="text-[12px] font-semibold text-[#1A1918] mb-1.5">{c.char}</p>
+                    <div className="space-y-1">
+                      {c.options?.map((opt: any, oIdx: number) => (
+                        <button key={oIdx} onClick={() => setSelectedHanja(prev => ({ ...prev, [cIdx]: oIdx }))}
+                          className={`w-full flex items-center gap-3 p-2.5 rounded-lg text-left transition-colors ${
+                            (selectedHanja[cIdx] ?? 0) === oIdx ? 'bg-[#E8F5E9] border border-[#3D8A5A]' : 'bg-[#F9F9F7] border border-transparent'
+                          }`}>
+                          <span className="text-[20px] font-serif shrink-0">{opt.hanja}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[12px] font-medium text-[#1A1918]">{opt.meaning}</span>
+                              {opt.popular && <span className="text-[9px] bg-[#FFE0E6] text-[#E8537A] px-1 py-0.5 rounded">인기</span>}
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[9px] text-[#868B94]">{opt.strokes}획</span>
+                              <span className="text-[9px] text-[#868B94]">{opt.element}</span>
+                            </div>
+                          </div>
+                          {(selectedHanja[cIdx] ?? 0) === oIdx && <span className="text-[#3D8A5A] text-sm">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {/* 선택 결과 미리보기 */}
+                <div className="bg-[#F5F4F1] rounded-lg p-3 mb-3 text-center">
+                  <span className="text-[20px] font-serif tracking-wider">
+                    {hanjaOptions.surnameHanja}
+                    {hanjaOptions.characters?.map((c: any, i: number) => c.options?.[(selectedHanja[i] ?? 0)]?.hanja || '?').join('')}
+                  </span>
+                  <span className="text-[13px] text-[#868B94] ml-2">({analyzeName})</span>
+                </div>
+
+                <button onClick={fetchAnalyze} disabled={loading}
+                  className="w-full py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                  {loading ? '분석 중...' : '이 한자로 분석하기 🔍'}
+                </button>
+              </div>
+            )}
+
+            {/* 3단계: 분석 결과 */}
+            {hanjaStep === 'result' && analyzeResult && (
+              <div className="flex items-center justify-between">
+                <button onClick={() => setHanjaStep('select')} className="text-[11px] text-[#868B94]">← 한자 다시 선택</button>
+                <button onClick={() => { setHanjaStep('input'); setAnalyzeResult(null); setHanjaOptions(null) }} className="text-[11px] text-[#868B94]">새 이름 분석</button>
+              </div>
+            )}
 
             {analyzeResult && (
               <>

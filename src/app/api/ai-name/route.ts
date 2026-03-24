@@ -113,12 +113,13 @@ JSON만 출력.`
 
     // === 이름 분석 ===
     if (type === 'analyze') {
-      const { fullName, birthYear } = body
+      const { fullName, birthYear, hanja } = body
 
       const prompt = `한국 이름을 음양오행 기반으로 분석해주세요.
 
 [이름]
 - 이름: ${fullName}
+- 한자: ${hanja || '추정해주세요'}
 - 출생 연도: ${birthYear || '미정'}
 
 JSON으로 출력:
@@ -143,6 +144,40 @@ JSON으로 출력:
   "luckyNumber": "행운의 숫자"
 }
 JSON만 출력.`
+
+      const { text, error } = await callGemini(prompt, 800)
+      if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })
+      try {
+        const match = text.match(/\{[\s\S]*\}/)
+        if (!match) return NextResponse.json({ error: 'parse error' }, { status: 500 })
+        return NextResponse.json(JSON.parse(match[0]))
+      } catch {
+        return NextResponse.json({ error: 'parse error' }, { status: 500 })
+      }
+    }
+
+    // === 한자 후보 조회 ===
+    if (type === 'hanja') {
+      const { fullName } = body
+      const chars: string[] = fullName.slice(1).split('')
+
+      const prompt = `한국 이름 "${fullName}"의 각 글자별로 자주 쓰이는 한자 후보를 알려주세요.
+성(${fullName[0]})은 제외하고, 이름 글자만 분석하세요.
+
+각 글자별로 5개 한자 후보를 뜻/음/획수와 함께 JSON으로 출력:
+{
+  "surname": "${fullName[0]}",
+  "surnameHanja": "성의 대표 한자",
+  "characters": [
+    ${chars.map((c: string) => `{
+      "char": "${c}",
+      "options": [
+        {"hanja": "한자", "meaning": "뜻", "reading": "${c}", "strokes": 획수, "element": "목/화/토/금/수 중 하나", "popular": true/false}
+      ]
+    }`).join(',\n    ')}
+  ]
+}
+인명용 한자 위주로, 실제 아기 이름에 많이 쓰이는 한자 우선. JSON만 출력.`
 
       const { text, error } = await callGemini(prompt, 800)
       if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })
