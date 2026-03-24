@@ -83,7 +83,7 @@ export default function BottomNav() {
     setFabOpen(false)
   }, [])
 
-  if (pathname?.startsWith('/onboarding') || pathname?.startsWith('/invite')) {
+  if (pathname?.startsWith('/onboarding') || pathname?.startsWith('/invite') || pathname?.startsWith('/post/') || pathname?.startsWith('/market-item/')) {
     return null
   }
 

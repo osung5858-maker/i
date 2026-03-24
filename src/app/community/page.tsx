@@ -156,6 +156,44 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
     })
   }
 
+  const SITE_URL = 'https://dodam.life'
+
+  const sharePost = (post: any) => {
+    const url = `${SITE_URL}/post/${post.id}`
+    const title = '도담 이야기'
+    const desc = post.content.slice(0, 80) + (post.content.length > 80 ? '...' : '')
+
+    if (window.Kakao?.isInitialized?.()) {
+      window.Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: { title, description: desc, imageUrl: `${SITE_URL}/icon-512x512.png`, link: { mobileWebUrl: url, webUrl: url } },
+        buttons: [{ title: '이야기 보기', link: { mobileWebUrl: url, webUrl: url } }],
+      })
+    } else if (navigator.share) {
+      navigator.share({ title, text: desc, url }).catch(() => {})
+    } else {
+      navigator.clipboard.writeText(url).then(() => alert('링크가 복사되었어요!'))
+    }
+  }
+
+  const shareMarketItem = (item: any) => {
+    const url = `${SITE_URL}/market-item/${item.id}`
+    const title = `도담장터 · ${item.title}`
+    const desc = item.price > 0 ? `${item.price.toLocaleString()}원` : '나눔 🤝'
+
+    if (window.Kakao?.isInitialized?.()) {
+      window.Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: { title, description: `${desc}\n${item.description?.slice(0, 60) || ''}`, imageUrl: item.photos?.[0] || `${SITE_URL}/icon-512x512.png`, link: { mobileWebUrl: url, webUrl: url } },
+        buttons: [{ title: '장터 보기', link: { mobileWebUrl: url, webUrl: url } }],
+      })
+    } else if (navigator.share) {
+      navigator.share({ title, text: `${desc} - ${item.description?.slice(0, 60) || ''}`, url }).catch(() => {})
+    } else {
+      navigator.clipboard.writeText(url).then(() => alert('링크가 복사되었어요!'))
+    }
+  }
+
   const votePoll = (idx: number) => {
     if (pollVote !== null) return
     setPollVote(idx)
@@ -423,6 +461,12 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                     >
                       {bookmarks.has(post.id) ? '🔖' : '🔖'}
                     </button>
+                    <button
+                      onClick={() => sharePost(post)}
+                      className="text-[11px] text-[#868B94]"
+                    >
+                      공유
+                    </button>
                   </div>
 
                   {/* 댓글 섹션 */}
@@ -588,6 +632,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                       )}
                     </>
                   )}
+                  <button onClick={() => shareMarketItem(item)} className="py-2.5 px-3 text-[11px] text-[#868B94] border-l border-[#f0f0f0]">공유</button>
                 </div>
               </div>
             ))}
