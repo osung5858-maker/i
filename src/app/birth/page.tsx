@@ -46,7 +46,7 @@ export default function BirthPage() {
 
           <h1 className="text-[28px] font-bold text-[#1A1918] mb-2">축하해요!</h1>
           <p className="text-[18px] text-[#3D8A5A] font-semibold mb-4">우리 아이가 세상에 왔어요</p>
-          <p className="text-[14px] text-[#868B94] leading-relaxed max-w-[280px] mx-auto">
+          <p className="text-[14px] text-[#6B6966] leading-relaxed max-w-[280px] mx-auto">
             기다리고, 준비하고, 함께했던<br />
             그 모든 시간이 지금 이 순간을 위한 거였어요
           </p>
@@ -57,7 +57,7 @@ export default function BirthPage() {
               준비해준 모든 것, 느끼고 있었어요.<br />
               이제 진짜 시작이에요!"
             </p>
-            <p className="text-[11px] text-[#AEB1B9] mt-2">— 아이가</p>
+            <p className="text-[11px] text-[#9E9A95] mt-2">— 아이가</p>
           </div>
 
           <button onClick={() => setStep(1)}
@@ -72,38 +72,38 @@ export default function BirthPage() {
   // Step 1: 여정 회고
   if (step === 1) {
     return (
-      <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
+      <div className="min-h-[100dvh] bg-[#FFF9F5] flex flex-col">
         <div className="flex-1 flex flex-col items-center justify-center px-6">
-          <p className="text-[13px] text-[#868B94] mb-2">임신 여정</p>
+          <p className="text-[13px] text-[#6B6966] mb-2">임신 여정</p>
           <h2 className="text-[22px] font-bold text-[#1A1918] mb-8">함께 걸어온 길</h2>
 
           <div className="w-full max-w-xs space-y-4">
             <div className="bg-white rounded-2xl p-5 text-center shadow-sm">
               <p className="text-3xl mb-2">🤰</p>
               <p className="text-[24px] font-bold text-[#3D8A5A]">40주</p>
-              <p className="text-[13px] text-[#868B94]">함께한 임신 여정</p>
+              <p className="text-[13px] text-[#6B6966]">함께한 임신 여정</p>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-white rounded-2xl p-3 text-center shadow-sm">
                 <p className="text-xl mb-1">📝</p>
                 <p className="text-[18px] font-bold text-[#1A1918]">{diaryCount}</p>
-                <p className="text-[10px] text-[#868B94]">태교 일기</p>
+                <p className="text-[10px] text-[#6B6966]">태교 일기</p>
               </div>
               <div className="bg-white rounded-2xl p-3 text-center shadow-sm">
                 <p className="text-xl mb-1">🏥</p>
                 <p className="text-[18px] font-bold text-[#1A1918]">{checkupCount}</p>
-                <p className="text-[10px] text-[#868B94]">검진 완료</p>
+                <p className="text-[10px] text-[#6B6966]">검진 완료</p>
               </div>
               <div className="bg-white rounded-2xl p-3 text-center shadow-sm">
                 <p className="text-xl mb-1">✉️</p>
                 <p className="text-[18px] font-bold text-[#1A1918]">{letterCount}</p>
-                <p className="text-[10px] text-[#868B94]">편지</p>
+                <p className="text-[10px] text-[#6B6966]">편지</p>
               </div>
             </div>
 
             <div className="bg-[#FFF8F3] rounded-2xl p-4 text-center">
-              <p className="text-[12px] text-[#868B94] mb-1">모든 기록은 소중히 보관돼요</p>
+              <p className="text-[12px] text-[#6B6966] mb-1">모든 기록은 소중히 보관돼요</p>
               <p className="text-[11px] text-[#3D8A5A] font-semibold">아이가 자라면 함께 읽어보세요 💌</p>
             </div>
           </div>
@@ -125,7 +125,7 @@ export default function BirthPage() {
       </div>
 
       <h2 className="text-[22px] font-bold text-[#1A1918] mb-1">새로운 시작</h2>
-      <p className="text-[14px] text-[#868B94] mb-8 text-center">
+      <p className="text-[14px] text-[#6B6966] mb-8 text-center">
         이제 도담이 육아 여정을 함께할게요
       </p>
 
@@ -150,7 +150,7 @@ export default function BirthPage() {
           className="w-full py-3.5 bg-[#3D8A5A] text-white text-[15px] font-semibold rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98]">
           카톡으로 알리고 시작하기 💛
         </button>
-        <button onClick={handleComplete} className="w-full py-2.5 text-[13px] text-[#868B94]">
+        <button onClick={handleComplete} className="w-full py-2.5 text-[13px] text-[#6B6966]">
           조용히 시작할게요
         </button>
       </div>

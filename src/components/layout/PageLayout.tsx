@@ -13,7 +13,7 @@ interface PageLayoutProps {
 
 export default function PageLayout({ title, showBack, rightAction, subtitle, children, noPadding, headerTransparent }: PageLayoutProps) {
   return (
-    <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
+    <div className="min-h-[100dvh] bg-[#FFF9F5] flex flex-col">
       <PageHeader title={title} showBack={showBack} rightAction={rightAction} subtitle={subtitle} transparent={headerTransparent} />
       <PageBody noPadding={noPadding}>
         {children}

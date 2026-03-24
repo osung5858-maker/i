@@ -14,7 +14,7 @@ export default function CheckupBanner({ birthdate }: Props) {
 
   return (
     <div className="px-4 mb-3">
-      <div className="rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] overflow-hidden">
+      <div className="rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] overflow-hidden">
         <div className="px-3.5 pt-3 pb-1.5 flex items-center gap-2">
           <span className="text-xs">🩺</span>
           <span className="text-xs font-bold text-[#0A0B0D] dark:text-white">검진 · 접종 일정</span>
@@ -22,7 +22,7 @@ export default function CheckupBanner({ birthdate }: Props) {
         {schedule.map((item, i) => (
           <div
             key={i}
-            className="flex items-center gap-3 px-3.5 py-2.5 border-t border-[#f0f0f0] dark:border-[#2a2a2a]"
+            className="flex items-center gap-3 px-3.5 py-2.5 border-t border-[#E8E4DF] dark:border-[#2a2a2a]"
           >
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
               item.status === 'due'

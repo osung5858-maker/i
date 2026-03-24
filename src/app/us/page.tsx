@@ -135,8 +135,8 @@ export default function UsPage() {
       <div className="space-y-3">
         {groups.map((group) => (
           <div key={group.label}>
-            <p className="text-[13px] font-semibold text-[#868B94] mb-2">{group.label}</p>
-            <div className="bg-white rounded-xl border border-[#f0f0f0] overflow-hidden">
+            <p className="text-[13px] font-semibold text-[#6B6966] mb-2">{group.label}</p>
+            <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
               {group.items.map((item, i) => {
                 const isExt = item.external
                 const Comp = isExt ? 'a' : Link
@@ -147,18 +147,18 @@ export default function UsPage() {
                   <Comp
                     key={item.href + item.title}
                     {...(props as any)}
-                    className={`flex items-center gap-3 px-4 py-3 active:bg-[#F5F4F1] transition-colors ${
-                      i > 0 ? 'border-t border-[#f0f0f0]' : ''
+                    className={`flex items-center gap-3 px-4 py-3 active:bg-[#FFF9F5] transition-colors ${
+                      i > 0 ? 'border-t border-[#E8E4DF]' : ''
                     }`}
                   >
-                    <div className="w-9 h-9 rounded-xl bg-[#F5F4F1] flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-[#FFF9F5] flex items-center justify-center shrink-0">
                       <span className="text-base">{item.icon}</span>
                     </div>
                     <div className="flex-1">
                       <p className="text-[13px] font-semibold text-[#1A1918]">{item.title}</p>
-                      <p className="text-[11px] text-[#868B94]">{item.desc}</p>
+                      <p className="text-[11px] text-[#6B6966]">{item.desc}</p>
                     </div>
-                    <span className="text-[#AEB1B9] text-sm">{isExt ? '↗' : '→'}</span>
+                    <span className="text-[#9E9A95] text-sm">{isExt ? '↗' : '→'}</span>
                   </Comp>
                 )
               })}

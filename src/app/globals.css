@@ -1,22 +1,46 @@
 @import "tailwindcss";
 
-/* ===== 도담 디자인 시스템 — 당근 스타일 라이트 모드 ===== */
+/* ===== 도담 디자인 시스템 D안 — 감성 모드별 테마 ===== */
 
 @theme inline {
-  --color-primary: #FF6F0F;
-  --color-primary-light: #FF9A5C;
-  --color-primary-bg: #FFF8F3;
+  /* 공통 */
+  --color-primary: #3D8A5A;
+  --color-primary-light: #5BA878;
+  --color-primary-bg: #F0FAF4;
 
-  --color-bg: #FFFFFF;
+  --color-bg: #FFF9F5;
   --color-surface: #FFFFFF;
-  --color-surface-secondary: #F7F8FA;
-  --color-border: #ECECEC;
+  --color-surface-alt: #F0EDE8;
+  --color-border: #E8E4DF;
+  --color-border-light: #F0EDE8;
 
-  --color-text-primary: #212124;
-  --color-text-secondary: #868B94;
-  --color-text-tertiary: #AEB1B9;
+  --color-text-primary: #1A1918;
+  --color-text-secondary: #6B6966;
+  --color-text-tertiary: #9E9A95;
+  --color-text-muted: #C4C0BB;
+
+  /* 모드별 Accent */
+  --color-preparing: #FFB5A7;
+  --color-preparing-bg: #FFF0EC;
+  --color-pregnant: #FFDBB5;
+  --color-pregnant-bg: #FFF8F0;
+  --color-parenting: #B5EAD7;
+  --color-parenting-bg: #F0FAF4;
+
+  /* Semantic */
+  --color-success: #3D8A5A;
+  --color-warning: #E8937A;
+  --color-danger: #D05050;
+  --color-info: #4A90D9;
 
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
 }
 
 body {
@@ -32,9 +56,52 @@ main {
   padding-bottom: calc(56px + env(safe-area-inset-bottom));
 }
 
-/* 바텀시트 애니메이션 */
+/* ===== 공통 카드 스타일 ===== */
+.dodam-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.dodam-card-accent {
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* ===== 버튼 ===== */
+.dodam-btn {
+  min-height: 44px;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.dodam-btn:active { opacity: 0.8; transform: scale(0.98); }
+
+.dodam-btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+.dodam-btn-secondary {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+
+/* ===== 모드별 히어로 그라데이션 ===== */
+.dodam-hero-preparing {
+  background: linear-gradient(135deg, #FFF0EC 0%, #FFE4DE 50%, #FFDBB5 100%);
+}
+.dodam-hero-pregnant {
+  background: linear-gradient(135deg, #FFF8F0 0%, #FFEFD6 50%, #FFE4C4 100%);
+}
+.dodam-hero-parenting {
+  background: linear-gradient(135deg, #F0FAF4 0%, #E0F5E9 50%, #D0EFE0 100%);
+}
+
+/* ===== 바텀시트 애니메이션 ===== */
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fabItemPop { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: scale(1); } }
 .animate-slideUp { animation: slideUp 0.3s ease-out; }
 .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
 
@@ -42,19 +109,41 @@ main {
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ===== 인풋 ===== */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(61, 138, 90, 0.2);
+  border-color: var(--color-primary);
+}
+
+/* ===== 부드러운 페이지 전환 ===== */
+.page-enter {
+  animation: fadeIn 0.15s ease-out;
+}
+
 /* ===== 다크 모드 ===== */
 html.dark body { background: #121212; color: #E0E0E0; }
 html.dark .bg-white { background: #1E1E1E !important; }
+html.dark .bg-\[\#FFF9F5\] { background: #121212 !important; }
 html.dark .bg-\[\#F5F4F1\] { background: #121212 !important; }
+html.dark .bg-\[\#F0EDE8\] { background: #1A1A1A !important; }
 html.dark .bg-\[\#F7F8FA\] { background: #121212 !important; }
+html.dark .bg-\[\#F9F9F7\] { background: #1A1A1A !important; }
 html.dark .bg-\[\#F0F0F0\] { background: #2A2A2A !important; }
 html.dark .bg-\[\#F0F9F4\] { background: #1A2E1F !important; }
 html.dark .bg-\[\#FFF8F3\] { background: #2E1F1A !important; }
+html.dark .bg-\[\#FFF0EC\] { background: #2E1A1A !important; }
+html.dark .bg-\[\#FFF8F0\] { background: #2E251A !important; }
 html.dark .border-\[\#f0f0f0\] { border-color: #333 !important; }
+html.dark .border-\[\#E8E4DF\] { border-color: #333 !important; }
+html.dark .border-\[\#F0EDE8\] { border-color: #2A2A2A !important; }
 html.dark .border-\[\#C8F0D8\] { border-color: #2A4A32 !important; }
 html.dark .text-\[\#1A1918\] { color: #E0E0E0 !important; }
 html.dark .text-\[\#212124\] { color: #E0E0E0 !important; }
+html.dark .text-\[\#6B6966\] { color: #AAA !important; }
 html.dark .text-\[\#868B94\] { color: #999 !important; }
+html.dark .text-\[\#9E9A95\] { color: #888 !important; }
 html.dark .text-\[\#AEB1B9\] { color: #777 !important; }
 html.dark .bg-gray-100 { background: #0A0A0A !important; }
 html.dark .shadow-xl { box-shadow: none !important; }
+html.dark .dodam-card { background: #1E1E1E; border-color: #333; box-shadow: none; }

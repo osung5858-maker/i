@@ -55,7 +55,7 @@ export default function QuickButtons({ onRecord, sleepActive }: Props) {
               >
                 <Icon className={`w-6 h-6 ${btn.iconColor}`} />
               </div>
-              <span className="text-[11px] font-medium text-[#868B94]">
+              <span className="text-[11px] font-medium text-[#6B6966]">
                 {isSleepActive ? '종료' : btn.label}
               </span>
             </button>

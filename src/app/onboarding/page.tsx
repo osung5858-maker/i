@@ -81,7 +81,7 @@ export default function OnboardingPage() {
             <span className="text-2xl font-bold text-white">도</span>
           </div>
           <h1 className="text-[22px] font-bold text-[#212124] mb-1">환영해요!</h1>
-          <p className="text-[14px] text-[#868B94] mb-8">지금 어떤 상태인가요?</p>
+          <p className="text-[14px] text-[#6B6966] mb-8">지금 어떤 상태인가요?</p>
 
           <div className="w-full max-w-xs space-y-3">
             {[
@@ -98,7 +98,7 @@ export default function OnboardingPage() {
                   <span className="text-3xl">{option.emoji}</span>
                   <div>
                     <p className="text-[15px] font-bold text-[#212124]">{option.title}</p>
-                    <p className="text-[12px] text-[#868B94] mt-0.5">{option.desc}</p>
+                    <p className="text-[12px] text-[#6B6966] mt-0.5">{option.desc}</p>
                   </div>
                 </div>
               </button>
@@ -117,8 +117,8 @@ export default function OnboardingPage() {
           <span className="text-3xl font-bold text-white">도</span>
         </div>
         <h1 className="mt-6 text-[28px] font-bold text-[#212124]">도담</h1>
-        <p className="mt-2 text-[15px] text-[#868B94] text-center">오늘도 도담하게</p>
-        <p className="mt-8 text-[13px] text-[#AEB1B9] text-center leading-relaxed max-w-[260px]">
+        <p className="mt-2 text-[15px] text-[#6B6966] text-center">오늘도 도담하게</p>
+        <p className="mt-8 text-[13px] text-[#9E9A95] text-center leading-relaxed max-w-[260px]">
           임신 준비부터 육아까지<br />
           AI 케어 파트너가 함께할게요
         </p>

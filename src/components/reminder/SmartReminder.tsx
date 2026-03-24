@@ -118,11 +118,11 @@ export default function SmartReminder({ events }: Props) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-semibold text-[#212124]">다음 수유</p>
-                <p className="text-[12px] text-[#868B94]">
+                <p className="text-[12px] text-[#6B6966]">
                   {formatTime(feedPred.predicted_ts)} · {formatTimeRemaining(feedPred.predicted_ts)}
                 </p>
               </div>
-              <span className="text-[11px] text-[#AEB1B9] shrink-0">±{feedPred.ci_minutes}분</span>
+              <span className="text-[11px] text-[#9E9A95] shrink-0">±{feedPred.ci_minutes}분</span>
             </div>
           )}
 
@@ -133,17 +133,17 @@ export default function SmartReminder({ events }: Props) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-semibold text-[#212124]">다음 낮잠</p>
-                <p className="text-[12px] text-[#868B94]">
+                <p className="text-[12px] text-[#6B6966]">
                   {formatTime(sleepPred.predicted_ts)} · {formatTimeRemaining(sleepPred.predicted_ts)}
                 </p>
               </div>
-              <span className="text-[11px] text-[#AEB1B9] shrink-0">±{sleepPred.ci_minutes}분</span>
+              <span className="text-[11px] text-[#9E9A95] shrink-0">±{sleepPred.ci_minutes}분</span>
             </div>
           )}
         </div>
 
         {notifPermission === 'granted' && (
-          <p className="text-[10px] text-[#AEB1B9] mt-3 text-center">예상 시간 30분 전에 알림을 보내드려요</p>
+          <p className="text-[10px] text-[#9E9A95] mt-3 text-center">예상 시간 30분 전에 알림을 보내드려요</p>
         )}
       </div>
     </div>

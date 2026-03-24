@@ -58,9 +58,9 @@ export default function PWAInstallPrompt() {
           </div>
           <div className="flex-1">
             <p className="text-[14px] font-bold text-[#212124]">도담을 홈 화면에 추가하세요</p>
-            <p className="text-[12px] text-[#868B94] mt-0.5">앱처럼 바로 열 수 있어요</p>
+            <p className="text-[12px] text-[#6B6966] mt-0.5">앱처럼 바로 열 수 있어요</p>
           </div>
-          <button onClick={handleDismiss} className="text-[#AEB1B9] text-xs p-1">✕</button>
+          <button onClick={handleDismiss} className="text-[#9E9A95] text-xs p-1">✕</button>
         </div>
         <button
           onClick={handleInstall}

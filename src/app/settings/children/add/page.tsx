@@ -87,7 +87,7 @@ export default function AddChildPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="도담이"
             maxLength={20}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white placeholder-[#9B9B9B] focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white placeholder-[#9B9B9B] focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
           />
         </div>
 
@@ -101,7 +101,7 @@ export default function AddChildPage() {
             value={birthdate}
             onChange={(e) => setBirthdate(e.target.value)}
             max={new Date().toISOString().split('T')[0]}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
           />
         </div>
 
@@ -123,7 +123,7 @@ export default function AddChildPage() {
                 className={`flex-1 h-11 rounded-xl text-sm font-medium transition-all active:scale-95 ${
                   sex === option.value
                     ? 'bg-[#FF6F0F] text-white shadow-[0_4px_12px_rgba(0,82,255,0.2)]'
-                    : 'bg-[#f5f5f5] dark:bg-[#1a1a1a] text-[#6B6B6B] dark:text-[#9B9B9B] border border-[#f0f0f0] dark:border-[#2a2a2a]'
+                    : 'bg-[#f5f5f5] dark:bg-[#1a1a1a] text-[#6B6B6B] dark:text-[#9B9B9B] border border-[#E8E4DF] dark:border-[#2a2a2a]'
                 }`}
               >
                 {option.label}

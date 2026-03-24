@@ -230,7 +230,7 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
   return (
     <div className="space-y-4 px-5 pb-8 pt-4">
       {/* Progress Ring */}
-      <div className="bg-white rounded-2xl border border-[#f0f0f0] p-5 flex items-center gap-5">
+      <div className="bg-white rounded-2xl border border-[#E8E4DF] p-5 flex items-center gap-5">
         <div className="relative shrink-0">
           <svg width="96" height="96" viewBox="0 0 96 96">
             <circle cx="48" cy="48" r={radius} fill="none" stroke="#E8E6E1" strokeWidth="8" />
@@ -248,8 +248,8 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
         </div>
         <div>
           <h3 className="text-[15px] font-bold text-[#212124]">{ageMonths}개월 발달 체크</h3>
-          <p className="text-[12px] text-[#868B94] mt-1">{done}/{total} 항목 달성</p>
-          <p className="text-[11px] text-[#AEB1B9] mt-0.5">아이마다 속도가 달라요</p>
+          <p className="text-[12px] text-[#6B6966] mt-1">{done}/{total} 항목 달성</p>
+          <p className="text-[11px] text-[#9E9A95] mt-0.5">아이마다 속도가 달라요</p>
         </div>
       </div>
 
@@ -257,7 +257,7 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
       {Object.entries(grouped).map(([cat, items]) => {
         const info = CATEGORY_LABELS[cat]
         return (
-          <div key={cat} className="bg-white rounded-2xl border border-[#f0f0f0] p-4">
+          <div key={cat} className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
             <div className="flex items-center gap-1.5 mb-3">
               <span className="text-sm">{info.emoji}</span>
               <h4 className="text-[13px] font-bold text-[#212124]">{info.label}</h4>
@@ -285,7 +285,7 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
                   <span
                     className={`text-[13px] leading-snug ${
                       checked.has(m.id)
-                        ? 'text-[#AEB1B9] line-through'
+                        ? 'text-[#9E9A95] line-through'
                         : 'text-[#212124]'
                     }`}
                     onClick={() => toggle(m.id)}
@@ -300,17 +300,17 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
       })}
 
       {/* AI Insight */}
-      <div className="bg-white rounded-2xl border-l-4 border-l-[#3D8A5A] border border-[#f0f0f0] p-4">
+      <div className="bg-white rounded-2xl border-l-4 border-l-[#3D8A5A] border border-[#E8E4DF] p-4">
         <div className="flex items-center gap-1.5 mb-2">
           <span className="text-sm">🤖</span>
           <h3 className="text-[13px] font-bold text-[#3D8A5A]">AI 발달 인사이트</h3>
         </div>
         <p className="text-[13px] text-[#212124] leading-relaxed">{insight}</p>
-        <p className="text-[10px] text-[#AEB1B9] mt-3">아이마다 발달 시기가 달라요. 참고용이며, 걱정되시면 소아과 상담을 추천드려요.</p>
+        <p className="text-[10px] text-[#9E9A95] mt-3">아이마다 발달 시기가 달라요. 참고용이며, 걱정되시면 소아과 상담을 추천드려요.</p>
       </div>
 
       {/* Recommended Activities */}
-      <div className="bg-white rounded-2xl border border-[#f0f0f0] p-4">
+      <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
         <div className="flex items-center gap-1.5 mb-3">
           <span className="text-sm">🎮</span>
           <h3 className="text-[13px] font-bold text-[#212124]">추천 놀이</h3>
@@ -328,7 +328,7 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
       </div>
 
       {/* Checkup Questions */}
-      <div className="bg-white rounded-2xl border border-[#f0f0f0] p-4">
+      <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
         <button
           onClick={() => setShowQuestions((v) => !v)}
           className="flex items-center justify-between w-full"
@@ -337,7 +337,7 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
             <span className="text-sm">🏥</span>
             <h3 className="text-[13px] font-bold text-[#212124]">검진 시 질문 추천</h3>
           </div>
-          <span className="text-[12px] text-[#AEB1B9]">{showQuestions ? '접기' : '펼치기'}</span>
+          <span className="text-[12px] text-[#9E9A95]">{showQuestions ? '접기' : '펼치기'}</span>
         </button>
         {showQuestions && (
           <div className="mt-3 space-y-2">

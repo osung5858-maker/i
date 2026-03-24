@@ -50,7 +50,7 @@ export default function RewardBanner({ events }: Props) {
         </div>
         {nextBadge && (
           <div className="text-right">
-            <p className="text-[10px] text-[#AEB1B9]">다음 배지까지</p>
+            <p className="text-[10px] text-[#9E9A95]">다음 배지까지</p>
             <p className="text-[13px] font-bold text-[#FF6F0F]">{nextBadge.days - streak}일</p>
           </div>
         )}

@@ -238,22 +238,22 @@ export default function KidsnotePage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
+    <div className="min-h-[100dvh] bg-[#FFF9F5] flex flex-col">
       <PageHeader title="키즈노트" showBack
-        rightAction={session ? <button onClick={logout} className="text-[10px] text-[#868B94]">로그아웃</button> : undefined} />
+        rightAction={session ? <button onClick={logout} className="text-[10px] text-[#6B6966]">로그아웃</button> : undefined} />
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 w-full space-y-3">
 
         {/* 동의 화면 */}
         {step === 'login' && !agreed && (
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-5">
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-5">
             <div className="text-center mb-4">
               <p className="text-2xl mb-2">🏫</p>
               <p className="text-[15px] font-bold text-[#1A1918]">키즈노트 연동</p>
-              <p className="text-[11px] text-[#868B94] mt-1">어린이집 알림장 · 사진을 도담으로 가져와요</p>
+              <p className="text-[11px] text-[#6B6966] mt-1">어린이집 알림장 · 사진을 도담으로 가져와요</p>
             </div>
 
-            <div className="bg-[#F5F4F1] rounded-xl p-4 space-y-3 text-[11px] text-[#555] leading-relaxed">
+            <div className="bg-[#FFF9F5] rounded-xl p-4 space-y-3 text-[11px] text-[#555] leading-relaxed">
               <p className="text-[13px] font-bold text-[#1A1918]">연동 전 확인사항</p>
               <div className="space-y-2">
                 <p>1. 도담은 키즈노트와 제휴된 서비스가 아닙니다. 키즈노트 계정 정보를 사용자의 동의 하에 직접 입력받아 데이터를 가져옵니다.</p>
@@ -270,7 +270,7 @@ export default function KidsnotePage() {
             </button>
 
             <button onClick={() => history.back()}
-              className="w-full mt-2 py-2.5 text-[13px] text-[#868B94] active:opacity-60">
+              className="w-full mt-2 py-2.5 text-[13px] text-[#6B6966] active:opacity-60">
               돌아가기
             </button>
           </div>
@@ -278,30 +278,30 @@ export default function KidsnotePage() {
 
         {/* 로그인 */}
         {step === 'login' && agreed && (
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-5">
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-5">
             <div className="text-center mb-4">
               <p className="text-2xl mb-2">🏫</p>
               <p className="text-[15px] font-bold text-[#1A1918]">키즈노트 로그인</p>
-              <p className="text-[11px] text-[#868B94] mt-1">키즈노트 계정으로 로그인해주세요</p>
+              <p className="text-[11px] text-[#6B6966] mt-1">키즈노트 계정으로 로그인해주세요</p>
             </div>
 
             {error && <div className="bg-[#FFF0E6] rounded-lg p-2 mb-3"><p className="text-[11px] text-[#D08068]">{error}</p></div>}
 
             <div className="space-y-3">
               <div>
-                <p className="text-[11px] text-[#868B94] mb-1">키즈노트 아이디 (이메일/전화번호)</p>
+                <p className="text-[11px] text-[#6B6966] mb-1">키즈노트 아이디 (이메일/전화번호)</p>
                 <input type="text" value={username} onChange={e => setUsername(e.target.value)}
-                  placeholder="kidsnote@example.com" className="w-full h-11 rounded-xl border border-[#f0f0f0] px-3 text-[13px]" />
+                  placeholder="kidsnote@example.com" className="w-full h-11 rounded-xl border border-[#E8E4DF] px-3 text-[13px]" />
               </div>
               <div>
-                <p className="text-[11px] text-[#868B94] mb-1">비밀번호</p>
+                <p className="text-[11px] text-[#6B6966] mb-1">비밀번호</p>
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••" className="w-full h-11 rounded-xl border border-[#f0f0f0] px-3 text-[13px]" />
+                  placeholder="••••••••" className="w-full h-11 rounded-xl border border-[#E8E4DF] px-3 text-[13px]" />
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={saveCredentials} onChange={e => setSaveCredentials(e.target.checked)}
                   className="w-4 h-4 rounded accent-[#3D8A5A]" />
-                <span className="text-[12px] text-[#868B94]">아이디/비밀번호 이 기기에 저장하기</span>
+                <span className="text-[12px] text-[#6B6966]">아이디/비밀번호 이 기기에 저장하기</span>
               </label>
               <button onClick={handleLogin} disabled={loading}
                 className="w-full py-3 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
@@ -309,8 +309,8 @@ export default function KidsnotePage() {
               </button>
             </div>
 
-            <div className="mt-4 bg-[#F5F4F1] rounded-lg p-3">
-              <p className="text-[10px] text-[#868B94] leading-relaxed">
+            <div className="mt-4 bg-[#FFF9F5] rounded-lg p-3">
+              <p className="text-[10px] text-[#6B6966] leading-relaxed">
                 🔒 {saveCredentials ? '계정 정보가 이 기기에만 저장돼요. 서버에는 저장되지 않습니다.' : '비밀번호는 서버에 저장되지 않아요. 로그인 후 즉시 삭제됩니다.'}
               </p>
             </div>
@@ -319,11 +319,11 @@ export default function KidsnotePage() {
 
         {/* 아이 선택 (여러 명일 때) */}
         {step === 'children' && children.length > 1 && (
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
             <p className="text-[14px] font-bold text-[#1A1918] mb-3">아이를 선택해주세요</p>
             {children.map((child: any) => (
               <button key={child.id || child.child_id} onClick={() => selectChild(child.id || child.child_id)}
-                className="w-full p-3 bg-[#F5F4F1] rounded-xl mb-2 text-left active:bg-[#ECECEC]">
+                className="w-full p-3 bg-[#FFF9F5] rounded-xl mb-2 text-left active:bg-[#ECECEC]">
                 <p className="text-[13px] font-semibold text-[#1A1918]">{child.name || child.nickname || '아이'}</p>
               </button>
             ))}
@@ -334,7 +334,7 @@ export default function KidsnotePage() {
         {step === 'data' && (
           <>
             {/* 연결 상태 */}
-            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+            <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-2 h-2 rounded-full bg-[#3D8A5A]" />
                 <span className="text-[13px] font-semibold text-[#1A1918]">키즈노트 연결됨</span>
@@ -343,7 +343,7 @@ export default function KidsnotePage() {
                 <div>
                   <button onClick={() => { if (session && selectedChild) loadAlbums(session, selectedChild) }}
                     disabled={loadingAlbums}
-                    className="w-full py-2.5 bg-[#F5F4F1] rounded-xl text-[13px] font-semibold text-[#1A1918] active:bg-[#ECECEC] disabled:opacity-50">
+                    className="w-full py-2.5 bg-[#FFF9F5] rounded-xl text-[13px] font-semibold text-[#1A1918] active:bg-[#ECECEC] disabled:opacity-50">
                     {loadingAlbums
                       ? `📸 앨범 가져오는 중... (${albums.length}${albumTotal ? `/${albumTotal}` : ''}건)`
                       : albums.length
@@ -359,7 +359,7 @@ export default function KidsnotePage() {
                 <div>
                   <button onClick={() => { if (session && selectedChild) loadReports(session, selectedChild) }}
                     disabled={loadingReports}
-                    className="w-full py-2.5 bg-[#F5F4F1] rounded-xl text-[13px] font-semibold text-[#1A1918] active:bg-[#ECECEC] disabled:opacity-50">
+                    className="w-full py-2.5 bg-[#FFF9F5] rounded-xl text-[13px] font-semibold text-[#1A1918] active:bg-[#ECECEC] disabled:opacity-50">
                     {loadingReports
                       ? `📋 알림장 가져오는 중... (${reports.length}${reportTotal ? `/${reportTotal}` : ''}건)`
                       : reports.length
@@ -379,11 +379,11 @@ export default function KidsnotePage() {
             {(albums.length > 0 || reports.length > 0) && (
               <div className="flex gap-1.5">
                 <button onClick={() => setTab('albums')}
-                  className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === 'albums' ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#868B94]'}`}>
+                  className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === 'albums' ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#6B6966]'}`}>
                   📸 앨범 {albums.length > 0 && `(${albums.length})`}
                 </button>
                 <button onClick={() => setTab('reports')}
-                  className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === 'reports' ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#868B94]'}`}>
+                  className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === 'reports' ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#6B6966]'}`}>
                   📋 알림장 {reports.length > 0 && `(${reports.length})`}
                 </button>
               </div>
@@ -393,7 +393,7 @@ export default function KidsnotePage() {
             {tab === 'albums' && albums.length > 0 && (
               <div className="space-y-2">
                 {albums.map((album: any) => (
-                  <div key={album.id} className="bg-white rounded-xl border border-[#f0f0f0] p-3">
+                  <div key={album.id} className="bg-white rounded-xl border border-[#E8E4DF] p-3">
                     {/* 사진 */}
                     {album.images && album.images.length > 0 && (
                       <div className="flex gap-1.5 mb-2 overflow-x-auto hide-scrollbar">
@@ -404,15 +404,15 @@ export default function KidsnotePage() {
                         ))}
                         {album.images.length > 4 && (
                           <button onClick={() => { setViewerImages(album.images); setViewerStart(4) }}
-                            className="w-20 h-20 rounded-lg bg-[#F5F4F1] flex items-center justify-center shrink-0">
-                            <span className="text-[11px] text-[#868B94]">+{album.images.length - 4}</span>
+                            className="w-20 h-20 rounded-lg bg-[#FFF9F5] flex items-center justify-center shrink-0">
+                            <span className="text-[11px] text-[#6B6966]">+{album.images.length - 4}</span>
                           </button>
                         )}
                       </div>
                     )}
                     {album.content && <p className="text-[12px] text-[#1A1918] line-clamp-3">{album.content}</p>}
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-[9px] text-[#AEB1B9]">{album.created ? new Date(album.created).toLocaleDateString('ko-KR') : ''}</span>
+                      <span className="text-[9px] text-[#9E9A95]">{album.created ? new Date(album.created).toLocaleDateString('ko-KR') : ''}</span>
                       <button onClick={() => downloadImages(album)} className="text-[10px] text-[#3D8A5A] font-semibold active:opacity-60">사진 다운로드 📥</button>
                     </div>
                   </div>
@@ -424,9 +424,9 @@ export default function KidsnotePage() {
             {tab === 'reports' && reports.length > 0 && (
               <div className="space-y-2">
                 {reports.map((report: any) => (
-                  <div key={report.id} className="bg-white rounded-xl border border-[#f0f0f0] p-3">
+                  <div key={report.id} className="bg-white rounded-xl border border-[#E8E4DF] p-3">
                     {report.title && <p className="text-[13px] font-semibold text-[#1A1918] mb-1">{report.title}</p>}
-                    {report.content && <p className="text-[12px] text-[#868B94] line-clamp-4 whitespace-pre-line">{report.content}</p>}
+                    {report.content && <p className="text-[12px] text-[#6B6966] line-clamp-4 whitespace-pre-line">{report.content}</p>}
                     {report.images && report.images.length > 0 && (
                       <div className="flex gap-1.5 mt-2">
                         {report.images.slice(0, 4).map((img: any, j: number) => (
@@ -436,14 +436,14 @@ export default function KidsnotePage() {
                         ))}
                         {report.images.length > 4 && (
                           <button onClick={() => { setViewerImages(report.images); setViewerStart(4) }}
-                            className="w-16 h-16 rounded-lg bg-[#F5F4F1] flex items-center justify-center">
-                            <span className="text-[10px] text-[#868B94]">+{report.images.length - 4}</span>
+                            className="w-16 h-16 rounded-lg bg-[#FFF9F5] flex items-center justify-center">
+                            <span className="text-[10px] text-[#6B6966]">+{report.images.length - 4}</span>
                           </button>
                         )}
                       </div>
                     )}
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-[9px] text-[#AEB1B9]">{report.created ? new Date(report.created).toLocaleDateString('ko-KR') : ''}</span>
+                      <span className="text-[9px] text-[#9E9A95]">{report.created ? new Date(report.created).toLocaleDateString('ko-KR') : ''}</span>
                       <button onClick={() => downloadImages(report)} className="text-[10px] text-[#3D8A5A] font-semibold active:opacity-60">사진 다운로드 📥</button>
                     </div>
                   </div>

@@ -97,7 +97,7 @@ export default function AddGrowthPage() {
             value={measuredAt}
             onChange={(e) => setMeasuredAt(e.target.value)}
             max={new Date().toISOString().split('T')[0]}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
           />
         </div>
 
@@ -112,7 +112,7 @@ export default function AddGrowthPage() {
             value={weightKg}
             onChange={(e) => setWeightKg(e.target.value)}
             placeholder="예: 9.8"
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white placeholder-[#c0c0c0] focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white placeholder-[#c0c0c0] focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
           />
         </div>
 
@@ -127,7 +127,7 @@ export default function AddGrowthPage() {
             value={heightCm}
             onChange={(e) => setHeightCm(e.target.value)}
             placeholder="예: 76.5"
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white placeholder-[#c0c0c0] focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white placeholder-[#c0c0c0] focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
           />
         </div>
 
@@ -142,7 +142,7 @@ export default function AddGrowthPage() {
             value={headCm}
             onChange={(e) => setHeadCm(e.target.value)}
             placeholder="예: 46.0"
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white placeholder-[#c0c0c0] focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white placeholder-[#c0c0c0] focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
           />
         </div>
 

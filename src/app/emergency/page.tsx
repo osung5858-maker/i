@@ -198,7 +198,7 @@ export default function EmergencyPage() {
                 className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 ${
                   radius === 5
                     ? 'bg-[#FF6F0F] text-white'
-                    : 'bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[#0A0B0D] dark:text-white'
+                    : 'bg-white dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[#0A0B0D] dark:text-white'
                 }`}
               >
                 5km
@@ -208,7 +208,7 @@ export default function EmergencyPage() {
                 className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 ${
                   radius === 10
                     ? 'bg-[#FF6F0F] text-white'
-                    : 'bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[#0A0B0D] dark:text-white'
+                    : 'bg-white dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[#0A0B0D] dark:text-white'
                 }`}
               >
                 10km
@@ -221,7 +221,7 @@ export default function EmergencyPage() {
             {clinics.map((clinic) => (
               <div
                 key={clinic.id}
-                className="p-4 rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a]"
+                className="p-4 rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a]"
               >
                 {/* 상단: 이름 + 거리 */}
                 <div className="flex items-start justify-between mb-2">
@@ -275,7 +275,7 @@ export default function EmergencyPage() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   radius === r
                     ? 'bg-[#E53935] text-white'
-                    : 'bg-white dark:bg-[#1a1a1a] text-[#9B9B9B] border border-[#f0f0f0] dark:border-[#2a2a2a]'
+                    : 'bg-white dark:bg-[#1a1a1a] text-[#9B9B9B] border border-[#E8E4DF] dark:border-[#2a2a2a]'
                 }`}
               >
                 {r}km

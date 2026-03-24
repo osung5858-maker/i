@@ -298,7 +298,7 @@ export default function BottomNav() {
                   {/* 뒤로 */}
                   <div className="absolute" style={{ left: -16, top: -24 }}>
                     <button onClick={() => setSelectedItem(null)} className="w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center active:scale-90">
-                      <span className="text-[12px] text-[#868B94]">←</span>
+                      <span className="text-[12px] text-[#6B6966]">←</span>
                     </button>
                   </div>
                 </div>
@@ -340,7 +340,7 @@ export default function BottomNav() {
                 {/* 뒤로 */}
                 <div className="absolute" style={{ left: -20, top: -30 }}>
                   <button onClick={() => setSelectedCategory(null)} className="w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center active:scale-90">
-                    <span className="text-[14px] text-[#868B94]">←</span>
+                    <span className="text-[14px] text-[#6B6966]">←</span>
                   </button>
                 </div>
               </div>
@@ -350,7 +350,7 @@ export default function BottomNav() {
       })()}
 
       {/* BNB 바 */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[65] bg-white border-t border-[#f0f0f0] pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[65] bg-white/95 backdrop-blur-lg border-t border-[#E8E4DF]/60 pb-[env(safe-area-inset-bottom)]">
         <div className="flex items-center justify-around h-14">
           {mode === 'preparing' || mode === 'pregnant' ? (
             /* preparing/pregnant 모드: FAB 없이 4탭 균등 */
@@ -416,7 +416,7 @@ function RecordGrid({ onRecord }: { onRecord: (type: string, extra?: Record<stri
           const extra: Record<string, unknown> = {}
           if (item.tags) extra.tags = item.tags
           onRecord(recordType, extra)
-        }} className="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-[#F5F4F1] active:bg-[#ECECEC] active:scale-95">
+        }} className="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-[#FFF9F5] active:bg-[#ECECEC] active:scale-95">
           <span className="text-xl">{item.emoji}</span>
           <span className="text-[9px] font-medium text-[#1A1918]">{item.label}</span>
         </button>
@@ -436,8 +436,8 @@ function NavTab({ tab, pathname }: { tab: Tab; pathname: string | null }) {
       href={tab.href}
       className="flex flex-col items-center justify-center gap-0.5 min-w-[48px] py-1"
     >
-      <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-[#212124]' : 'text-[#AEB1B9]'}`} />
-      <span className={`text-[10px] transition-colors ${isActive ? 'text-[#212124] font-semibold' : 'text-[#AEB1B9]'}`}>
+      <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-[#212124]' : 'text-[#9E9A95]'}`} />
+      <span className={`text-[10px] transition-colors ${isActive ? 'text-[#212124] font-semibold' : 'text-[#9E9A95]'}`}>
         {tab.label}
       </span>
     </Link>

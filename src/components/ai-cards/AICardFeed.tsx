@@ -127,7 +127,7 @@ export default function AICardFeed({ events }: Props) {
       {visibleCards.map((card) => (
         <div
           key={card.id}
-          className="flex rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] overflow-hidden"
+          className="flex rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] overflow-hidden"
         >
           {/* 좌측 컬러 바 */}
           <div className={`w-1 ${card.colorBar} shrink-0`} />

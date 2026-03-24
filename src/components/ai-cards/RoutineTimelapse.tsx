@@ -47,7 +47,7 @@ export default function RoutineTimelapse({ events }: Props) {
                 )
               }).slice(0, 1)
             ) : (
-              <div className="w-full h-1 rounded-sm bg-[#F7F8FA]" />
+              <div className="w-full h-1 rounded-sm bg-[#F0EDE8]" />
             )}
           </div>
         ))}
@@ -55,11 +55,11 @@ export default function RoutineTimelapse({ events }: Props) {
 
       {/* 시간 라벨 */}
       <div className="flex justify-between mt-1">
-        <span className="text-[9px] text-[#AEB1B9]">0시</span>
-        <span className="text-[9px] text-[#AEB1B9]">6시</span>
-        <span className="text-[9px] text-[#AEB1B9]">12시</span>
-        <span className="text-[9px] text-[#AEB1B9]">18시</span>
-        <span className="text-[9px] text-[#AEB1B9]">24시</span>
+        <span className="text-[9px] text-[#9E9A95]">0시</span>
+        <span className="text-[9px] text-[#9E9A95]">6시</span>
+        <span className="text-[9px] text-[#9E9A95]">12시</span>
+        <span className="text-[9px] text-[#9E9A95]">18시</span>
+        <span className="text-[9px] text-[#9E9A95]">24시</span>
       </div>
 
       {/* 범례 */}
@@ -67,7 +67,7 @@ export default function RoutineTimelapse({ events }: Props) {
         {Object.entries(TYPE_CONFIG).map(([key, config]) => (
           <div key={key} className="flex items-center gap-1">
             <div className={`w-2 h-2 rounded-full ${config.color}`} />
-            <span className="text-[10px] text-[#868B94]">{config.label}</span>
+            <span className="text-[10px] text-[#6B6966]">{config.label}</span>
           </div>
         ))}
       </div>

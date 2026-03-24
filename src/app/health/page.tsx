@@ -199,7 +199,7 @@ export default function HealthPage() {
   ) : null
 
   return (
-    <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
+    <div className="min-h-[100dvh] bg-[#FFF9F5] flex flex-col">
       <PageHeader title="내 건강" showBack rightAction={gfitBadge} />
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
@@ -230,14 +230,14 @@ export default function HealthPage() {
         )}
 
         {gfitLoading && (
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-4 flex items-center justify-center gap-2">
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 flex items-center justify-center gap-2">
             <div className="w-4 h-4 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" />
-            <p className="text-[13px] text-[#868B94]">건강 데이터 가져오는 중...</p>
+            <p className="text-[13px] text-[#6B6966]">건강 데이터 가져오는 중...</p>
           </div>
         )}
 
         {/* AI 조언 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-sm">✨</span>
             <p className="text-[14px] font-bold text-[#1A1918]">AI 건강 케어</p>
@@ -246,18 +246,18 @@ export default function HealthPage() {
             <p key={i} className="text-[13px] text-[#1A1918] leading-relaxed mb-1">{a}</p>
           ))}
           <div className="flex gap-3 mt-2">
-            {avgSleep && <p className="text-[11px] text-[#868B94]">7일 평균 수면: {avgSleep}시간</p>}
-            {avgSteps && <p className="text-[11px] text-[#868B94]">7일 평균 걸음: {avgSteps.toLocaleString()}보</p>}
+            {avgSleep && <p className="text-[11px] text-[#6B6966]">7일 평균 수면: {avgSleep}시간</p>}
+            {avgSteps && <p className="text-[11px] text-[#6B6966]">7일 평균 걸음: {avgSteps.toLocaleString()}보</p>}
           </div>
         </div>
 
         {/* 오늘 요약 (Google Fit 연동 시) */}
         {gfit?.connected && gfit.today && (
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
             <div className="flex items-center justify-between mb-3">
               <p className="text-[14px] font-bold text-[#1A1918]">오늘 요약</p>
               <div className="flex items-center gap-1">
-                {syncTime && <p className="text-[10px] text-[#AEB1B9]">{syncTime} 동기화</p>}
+                {syncTime && <p className="text-[10px] text-[#9E9A95]">{syncTime} 동기화</p>}
                 <button onClick={fetchGoogleFit} className="text-[10px] text-[#3D8A5A] font-semibold ml-1">새로고침</button>
               </div>
             </div>
@@ -268,10 +268,10 @@ export default function HealthPage() {
                 { label: '체중', value: gfit.today.weight > 0 ? gfit.today.weight.toFixed(1) : '-', unit: 'kg', icon: '⚖️' },
                 { label: '심박', value: gfit.today.heartRate > 0 ? Math.round(gfit.today.heartRate) : '-', unit: 'bpm', icon: '💓' },
               ].map((item) => (
-                <div key={item.label} className="bg-[#F5F4F1] rounded-xl p-2.5 text-center">
+                <div key={item.label} className="bg-[#FFF9F5] rounded-xl p-2.5 text-center">
                   <p className="text-sm mb-0.5">{item.icon}</p>
                   <p className="text-[14px] font-bold text-[#1A1918]">{item.value}</p>
-                  <p className="text-[9px] text-[#868B94]">{item.unit}</p>
+                  <p className="text-[9px] text-[#6B6966]">{item.unit}</p>
                 </div>
               ))}
             </div>
@@ -280,18 +280,18 @@ export default function HealthPage() {
 
         {/* 주간 걸음 차트 */}
         {weekData.some(d => d.steps > 0) && (
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
             <p className="text-[14px] font-bold text-[#1A1918] mb-3">🚶 주간 걸음수</p>
             <div className="flex items-end gap-1.5 h-24">
               {weekData.map((d, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full bg-[#F0F0F0] rounded-t-lg relative" style={{ height: '80px' }}>
+                  <div className="w-full bg-[#E8E4DF] rounded-t-lg relative" style={{ height: '80px' }}>
                     <div
                       className="absolute bottom-0 w-full bg-[#3D8A5A] rounded-t-lg transition-all"
                       style={{ height: `${Math.max((d.steps / maxSteps) * 100, d.steps > 0 ? 4 : 0)}%` }}
                     />
                   </div>
-                  <p className="text-[9px] text-[#868B94]">{d.date}</p>
+                  <p className="text-[9px] text-[#6B6966]">{d.date}</p>
                 </div>
               ))}
             </div>
@@ -299,7 +299,7 @@ export default function HealthPage() {
         )}
 
         {/* 수면 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[14px] font-bold text-[#1A1918]">💤 수면</p>
             <div className="flex items-center gap-2">
@@ -314,13 +314,13 @@ export default function HealthPage() {
             onChange={(e) => setSleep(Number(e.target.value))}
             className="w-full accent-[#3D8A5A]"
           />
-          <div className="flex justify-between text-[9px] text-[#AEB1B9] mt-1">
+          <div className="flex justify-between text-[9px] text-[#9E9A95] mt-1">
             <span>0h</span><span>4h</span><span>8h</span><span>12h</span>
           </div>
         </div>
 
         {/* 스트레스 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <p className="text-[14px] font-bold text-[#1A1918] mb-3">🧘 스트레스</p>
           <div className="flex gap-2">
             {STRESS_LABELS.map((label, i) => (
@@ -328,18 +328,18 @@ export default function HealthPage() {
                 key={i}
                 onClick={() => setStress(i)}
                 className={`flex-1 py-2.5 rounded-xl text-center ${
-                  stress === i ? 'bg-[#3D8A5A]' : 'bg-[#F5F4F1]'
+                  stress === i ? 'bg-[#3D8A5A]' : 'bg-[#FFF9F5]'
                 }`}
               >
                 <p className="text-lg">{STRESS_EMOJI[i]}</p>
-                <p className={`text-[9px] mt-0.5 ${stress === i ? 'text-white font-semibold' : 'text-[#868B94]'}`}>{label}</p>
+                <p className={`text-[9px] mt-0.5 ${stress === i ? 'text-white font-semibold' : 'text-[#6B6966]'}`}>{label}</p>
               </button>
             ))}
           </div>
         </div>
 
         {/* 걸음수 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[14px] font-bold text-[#1A1918]">🚶 걸음수</p>
             {gfit?.connected && gfit.today?.steps ? (
@@ -351,19 +351,19 @@ export default function HealthPage() {
             value={steps || ''}
             onChange={(e) => setSteps(Number(e.target.value))}
             placeholder="오늘 걸음수"
-            className="w-full h-10 px-3 rounded-xl border border-[#f0f0f0] text-[14px] focus:outline-none"
+            className="w-full h-10 px-3 rounded-xl border border-[#E8E4DF] text-[14px] focus:outline-none"
           />
           {steps > 0 && (
-            <div className="mt-2 h-1.5 bg-[#F0F0F0] rounded-full">
+            <div className="mt-2 h-1.5 bg-[#E8E4DF] rounded-full">
               <div className="h-full bg-[#3D8A5A] rounded-full" style={{ width: `${Math.min((steps / 10000) * 100, 100)}%` }} />
             </div>
           )}
-          <p className="text-[10px] text-[#AEB1B9] mt-1">목표: 10,000보</p>
+          <p className="text-[10px] text-[#9E9A95] mt-1">목표: 10,000보</p>
         </div>
 
         {/* 심박수 (Google Fit 연동 시) */}
         {heartRate > 0 && (
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
             <div className="flex items-center justify-between">
               <p className="text-[14px] font-bold text-[#1A1918]">💓 심박수</p>
               <div className="flex items-center gap-2">
@@ -371,14 +371,14 @@ export default function HealthPage() {
                 <p className="text-[13px] font-bold text-[#3D8A5A]">{heartRate} bpm</p>
               </div>
             </div>
-            <p className="text-[11px] text-[#868B94] mt-1">
+            <p className="text-[11px] text-[#6B6966] mt-1">
               {heartRate < 60 ? '안정 상태예요' : heartRate < 100 ? '정상 범위예요' : '조금 높아요. 휴식이 필요해요'}
             </p>
           </div>
         )}
 
         {/* 체중 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[14px] font-bold text-[#1A1918]">⚖️ 체중</p>
             {gfit?.connected && gfit.today?.weight ? (
@@ -391,9 +391,9 @@ export default function HealthPage() {
               value={weight || ''}
               onChange={(e) => setWeight(Number(e.target.value))}
               placeholder="kg"
-              className="flex-1 h-10 px-3 rounded-xl border border-[#f0f0f0] text-[14px] focus:outline-none"
+              className="flex-1 h-10 px-3 rounded-xl border border-[#E8E4DF] text-[14px] focus:outline-none"
             />
-            <span className="text-[13px] text-[#868B94]">kg</span>
+            <span className="text-[13px] text-[#6B6966]">kg</span>
           </div>
         </div>
 

@@ -48,9 +48,9 @@ export default function WeatherCard() {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-[14px] font-bold text-[#212124]">{weather.temp}°C</span>
-          <span className="text-[12px] text-[#868B94]">{weather.condition}</span>
+          <span className="text-[12px] text-[#6B6966]">{weather.condition}</span>
         </div>
-        <p className="text-[12px] text-[#868B94] mt-0.5">{weather.suggestion}</p>
+        <p className="text-[12px] text-[#6B6966] mt-0.5">{weather.suggestion}</p>
       </div>
     </div>
   )

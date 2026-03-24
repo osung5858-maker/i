@@ -39,7 +39,7 @@ export default function CommunityTeaser() {
   if (recentCount === 0 && !latestPost) return null
 
   return (
-    <Link href="/town" className="block bg-white rounded-xl border border-[#f0f0f0] p-3 active:bg-[#F5F4F1]">
+    <Link href="/town" className="block bg-white rounded-xl border border-[#E8E4DF] p-3 active:bg-[#FFF9F5]">
       <div className="flex items-center gap-2.5">
         <div className="w-9 h-9 rounded-xl bg-[#F0F9F4] flex items-center justify-center shrink-0">
           <span className="text-base">💬</span>
@@ -49,10 +49,10 @@ export default function CommunityTeaser() {
             {recentCount > 0 ? `오늘 ${recentCount}개의 수다가 올라왔어요` : '동네 수다방'}
           </p>
           {latestPost && (
-            <p className="text-[10px] text-[#868B94] truncate">"{latestPost}"</p>
+            <p className="text-[10px] text-[#6B6966] truncate">"{latestPost}"</p>
           )}
         </div>
-        <span className="text-[#AEB1B9] text-sm shrink-0">→</span>
+        <span className="text-[#9E9A95] text-sm shrink-0">→</span>
       </div>
     </Link>
   )

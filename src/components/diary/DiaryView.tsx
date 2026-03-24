@@ -163,13 +163,13 @@ export default function DiaryView({ events, childName }: Props) {
     <div className="space-y-4 px-5 pb-8">
       {/* 날짜 네비게이션 */}
       <div className="flex items-center justify-between pt-3">
-        <button onClick={() => navigateDay(-1)} className="p-2 text-[#868B94] active:opacity-50">
+        <button onClick={() => navigateDay(-1)} className="p-2 text-[#6B6966] active:opacity-50">
           ←
         </button>
         <p className="text-[14px] font-semibold text-[#212124]">{formatDate(selectedDate)}</p>
         <button
           onClick={() => navigateDay(1)}
-          className={`p-2 active:opacity-50 ${dateStr >= new Date().toISOString().split('T')[0] ? 'text-[#ECECEC]' : 'text-[#868B94]'}`}
+          className={`p-2 active:opacity-50 ${dateStr >= new Date().toISOString().split('T')[0] ? 'text-[#ECECEC]' : 'text-[#6B6966]'}`}
           disabled={dateStr >= new Date().toISOString().split('T')[0]}
         >
           →
@@ -187,9 +187,9 @@ export default function DiaryView({ events, childName }: Props) {
           </div>
         ))}
         {photos.length < 10 && (
-          <button onClick={handleAddPhoto} className="shrink-0 w-24 h-24 rounded-xl border-2 border-dashed border-[#ECECEC] flex flex-col items-center justify-center gap-1 active:bg-[#F7F8FA]">
-            <span className="text-xl text-[#AEB1B9]">📷</span>
-            <span className="text-[10px] text-[#AEB1B9]">사진 추가</span>
+          <button onClick={handleAddPhoto} className="shrink-0 w-24 h-24 rounded-xl border-2 border-dashed border-[#ECECEC] flex flex-col items-center justify-center gap-1 active:bg-[#F0EDE8]">
+            <span className="text-xl text-[#9E9A95]">📷</span>
+            <span className="text-[10px] text-[#9E9A95]">사진 추가</span>
           </button>
         )}
       </div>
@@ -206,7 +206,7 @@ export default function DiaryView({ events, childName }: Props) {
       )}
 
       {/* 일기 쓰기 */}
-      <div className="bg-white rounded-2xl border border-[#f0f0f0] p-4">
+      <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-[13px] font-semibold text-[#1A1918]">✍️ 오늘의 일기</h3>
           <button onClick={() => {
@@ -221,14 +221,14 @@ export default function DiaryView({ events, childName }: Props) {
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
             placeholder="오늘 하루를 기록해보세요..."
-            className="w-full h-20 text-[13px] text-[#212124] bg-[#F7F8FA] rounded-xl p-3 resize-none focus:outline-none focus:ring-1 focus:ring-[#3D8A5A]"
+            className="w-full h-20 text-[13px] text-[#212124] bg-[#F0EDE8] rounded-xl p-3 resize-none focus:outline-none focus:ring-1 focus:ring-[#3D8A5A]"
             maxLength={500}
           />
         ) : memo ? (
           <p className="text-[13px] text-[#212124] leading-relaxed whitespace-pre-line">{memo}</p>
         ) : (
           <button onClick={() => setEditingMemo(true)} className="w-full py-4 text-center active:opacity-60">
-            <p className="text-[13px] text-[#AEB1B9]">오늘 하루는 어땠나요?</p>
+            <p className="text-[13px] text-[#9E9A95]">오늘 하루는 어땠나요?</p>
             <p className="text-[11px] text-[#3D8A5A] mt-1">탭해서 일기를 남겨보세요 ✏️</p>
           </button>
         )}
@@ -236,7 +236,7 @@ export default function DiaryView({ events, childName }: Props) {
 
       {/* AI 자동일기 */}
       {aiDiary && (
-        <div className="bg-white rounded-2xl border-l-4 border-l-[#3D8A5A] border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-2xl border-l-4 border-l-[#3D8A5A] border border-[#E8E4DF] p-4">
           <div className="flex items-center gap-1.5 mb-2">
             <span className="text-sm">🤖</span>
             <span className="text-[11px] font-bold text-[#3D8A5A]">AI 오늘의 요약</span>
@@ -247,29 +247,29 @@ export default function DiaryView({ events, childName }: Props) {
 
       {/* 오늘 기록 요약 */}
       {dayEvents.length > 0 ? (
-        <div className="bg-white rounded-2xl border border-[#f0f0f0] p-4">
-          <h3 className="text-[13px] font-semibold text-[#868B94] mb-3">오늘의 기록 ({dayEvents.length}건)</h3>
+        <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
+          <h3 className="text-[13px] font-semibold text-[#6B6966] mb-3">오늘의 기록 ({dayEvents.length}건)</h3>
           <div className="space-y-2">
             {dayEvents.slice(0, 5).map((e) => {
               const time = new Date(e.start_ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
               const labels: Record<string, string> = { feed: '🍼 수유', sleep: '💤 수면', poop: '💩 대변', pee: '💧 소변', temp: '🌡️ 체온', memo: '📝 메모' }
               return (
                 <div key={e.id} className="flex items-center gap-2 text-[12px]">
-                  <span className="text-[#AEB1B9] w-10 shrink-0">{time}</span>
+                  <span className="text-[#9E9A95] w-10 shrink-0">{time}</span>
                   <span className="text-[#212124]">{labels[e.type] || e.type}</span>
-                  {e.amount_ml && <span className="text-[#868B94]">{e.amount_ml}ml</span>}
+                  {e.amount_ml && <span className="text-[#6B6966]">{e.amount_ml}ml</span>}
                 </div>
               )
             })}
             {dayEvents.length > 5 && (
-              <p className="text-[11px] text-[#AEB1B9] text-center">+ {dayEvents.length - 5}건 더</p>
+              <p className="text-[11px] text-[#9E9A95] text-center">+ {dayEvents.length - 5}건 더</p>
             )}
           </div>
         </div>
       ) : (
         <div className="text-center py-8">
           <p className="text-[28px] mb-2">📝</p>
-          <p className="text-[13px] text-[#AEB1B9]">이 날은 기록이 없어요</p>
+          <p className="text-[13px] text-[#9E9A95]">이 날은 기록이 없어요</p>
         </div>
       )}
     </div>

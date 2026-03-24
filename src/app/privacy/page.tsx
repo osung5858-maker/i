@@ -9,14 +9,14 @@ export default function PrivacyPage() {
     <div className="min-h-[100dvh] bg-white">
       <header className="sticky top-0 z-40 bg-white border-b border-[#ECECEC]">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-[13px] text-[#868B94]">닫기</button>
+          <button onClick={() => router.back()} className="text-[13px] text-[#6B6966]">닫기</button>
           <h1 className="text-[15px] font-bold text-[#212124]">개인정보처리방침</h1>
           <div className="w-8" />
         </div>
       </header>
       <div className="max-w-lg mx-auto w-full px-5 py-6 text-[13px] text-[#212124] leading-relaxed">
         <h2 className="text-[15px] font-bold mb-4">도담 개인정보처리방침</h2>
-        <p className="text-[12px] text-[#868B94] mb-6">시행일: 2026년 3월 20일</p>
+        <p className="text-[12px] text-[#6B6966] mb-6">시행일: 2026년 3월 20일</p>
 
         <Section title="제1조 (수집하는 개인정보)">
           <b>1. 부모(회원) 정보</b>{'\n'}
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
           · 문의: 설정 &gt; 의견 보내기
         </Section>
 
-        <p className="text-[11px] text-[#AEB1B9] mt-8">본 방침은 2026년 3월 20일부터 시행됩니다.</p>
+        <p className="text-[11px] text-[#9E9A95] mt-8">본 방침은 2026년 3월 20일부터 시행됩니다.</p>
       </div>
     </div>
   )

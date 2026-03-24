@@ -35,16 +35,16 @@ export default function PublicPostPage() {
   if (!post) {
     return (
       <div className="flex flex-col items-center justify-center h-[100dvh] bg-white px-6">
-        <p className="text-[15px] text-[#868B94] mb-4">게시글을 찾을 수 없어요</p>
+        <p className="text-[15px] text-[#6B6966] mb-4">게시글을 찾을 수 없어요</p>
         <Link href="/onboarding" className="text-[13px] text-[#3D8A5A] font-semibold">도담 시작하기 →</Link>
       </div>
     )
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F5F4F1]">
+    <div className="min-h-[100dvh] bg-[#FFF9F5]">
       {/* 헤더 */}
-      <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-[#3D8A5A] flex items-center justify-center">
@@ -58,23 +58,23 @@ export default function PublicPostPage() {
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
         {/* 게시글 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <p className="text-[14px] text-[#1A1918] leading-relaxed whitespace-pre-line">{post.content}</p>
-          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-[#f0f0f0]">
-            <span className="text-[11px] text-[#868B94]">❤️ {post.like_count || 0}</span>
-            <span className="text-[11px] text-[#868B94]">💬 {comments.length}</span>
-            <span className="text-[11px] text-[#AEB1B9] ml-auto">{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
+          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-[#E8E4DF]">
+            <span className="text-[11px] text-[#6B6966]">❤️ {post.like_count || 0}</span>
+            <span className="text-[11px] text-[#6B6966]">💬 {comments.length}</span>
+            <span className="text-[11px] text-[#9E9A95] ml-auto">{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
           </div>
         </div>
 
         {/* 댓글 */}
         {comments.length > 0 && (
           <div className="space-y-2">
-            <p className="text-[12px] font-semibold text-[#868B94]">댓글 {comments.length}개</p>
+            <p className="text-[12px] font-semibold text-[#6B6966]">댓글 {comments.length}개</p>
             {comments.map(c => (
-              <div key={c.id} className="bg-white rounded-xl border border-[#f0f0f0] p-3">
+              <div key={c.id} className="bg-white rounded-xl border border-[#E8E4DF] p-3">
                 <p className="text-[13px] text-[#1A1918]">{c.content}</p>
-                <p className="text-[9px] text-[#AEB1B9] mt-1">{new Date(c.created_at).toLocaleDateString('ko-KR')}</p>
+                <p className="text-[9px] text-[#9E9A95] mt-1">{new Date(c.created_at).toLocaleDateString('ko-KR')}</p>
               </div>
             ))}
           </div>
@@ -83,7 +83,7 @@ export default function PublicPostPage() {
         {/* CTA */}
         <div className="bg-[#F0F9F4] rounded-xl p-4 text-center">
           <p className="text-[13px] font-semibold text-[#3D8A5A] mb-1">도담에서 더 많은 이야기를 나눠보세요</p>
-          <p className="text-[11px] text-[#868B94] mb-3">임신 준비부터 육아까지, AI 케어 파트너</p>
+          <p className="text-[11px] text-[#6B6966] mb-3">임신 준비부터 육아까지, AI 케어 파트너</p>
           <Link href="/onboarding" className="inline-block px-6 py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl">도담 시작하기</Link>
         </div>
       </div>

@@ -177,7 +177,7 @@ export default function TimelapsePage() {
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white border-b border-[#ECECEC]">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-[13px] text-[#868B94]">뒤로</button>
+          <button onClick={() => router.back()} className="text-[13px] text-[#6B6966]">뒤로</button>
           <h1 className="text-[15px] font-bold text-[#212124]">{child?.name}의 타임랩스</h1>
           <div className="w-8" />
         </div>
@@ -194,7 +194,7 @@ export default function TimelapsePage() {
             key={t.key}
             onClick={() => setTab(t.key)}
             className={`flex-1 py-3 text-[13px] font-semibold text-center border-b-2 transition-colors ${
-              tab === t.key ? 'border-[#FF6F0F] text-[#FF6F0F]' : 'border-transparent text-[#AEB1B9]'
+              tab === t.key ? 'border-[#FF6F0F] text-[#FF6F0F]' : 'border-transparent text-[#9E9A95]'
             }`}
           >
             {t.label} {t.count > 0 && <span className="text-[10px]">({t.count})</span>}
@@ -211,7 +211,7 @@ export default function TimelapsePage() {
             <>
               {photos.length >= 2 ? (
                 <div className="mb-4">
-                  <div className="aspect-[3/4] rounded-2xl bg-[#F7F8FA] overflow-hidden relative">
+                  <div className="aspect-[3/4] rounded-2xl bg-[#F0EDE8] overflow-hidden relative">
                     <img
                       src={photos[playingPhoto ? photoIndex : photos.length - 1]?.url}
                       alt=""
@@ -241,7 +241,7 @@ export default function TimelapsePage() {
                     </button>
                     <button
                       onClick={() => fileRef.current?.click()}
-                      className="w-12 h-12 rounded-2xl border border-[#ECECEC] flex items-center justify-center active:bg-[#F7F8FA]"
+                      className="w-12 h-12 rounded-2xl border border-[#ECECEC] flex items-center justify-center active:bg-[#F0EDE8]"
                     >
                       <span className="text-lg">+</span>
                     </button>
@@ -253,7 +253,7 @@ export default function TimelapsePage() {
                     <span className="text-4xl">📸</span>
                   </div>
                   <p className="text-[16px] font-bold text-[#212124]">사진 타임랩스</p>
-                  <p className="text-[13px] text-[#868B94] mt-2 leading-relaxed">
+                  <p className="text-[13px] text-[#6B6966] mt-2 leading-relaxed">
                     매월 같은 포즈로 사진을 찍으면<br />
                     아이의 성장을 한눈에 볼 수 있어요
                   </p>
@@ -263,7 +263,7 @@ export default function TimelapsePage() {
                   >
                     첫 사진 추가하기
                   </button>
-                  <p className="text-[11px] text-[#AEB1B9] mt-4">2장 이상이면 타임랩스를 볼 수 있어요</p>
+                  <p className="text-[11px] text-[#9E9A95] mt-4">2장 이상이면 타임랩스를 볼 수 있어요</p>
                 </div>
               )}
 
@@ -296,7 +296,7 @@ export default function TimelapsePage() {
                   {/* 현재 보이는 데이터 */}
                   <div className="p-5 rounded-2xl bg-[#FFF8F3] border border-[#FFE4CC] mb-4">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-[12px] text-[#868B94]">
+                      <p className="text-[12px] text-[#6B6966]">
                         {growthRecords[playingGrowth ? growthIndex : growthRecords.length - 1]?.measured_at}
                       </p>
                       {child && (
@@ -312,20 +312,20 @@ export default function TimelapsePage() {
                           <>
                             {r?.weight_kg && (
                               <div>
-                                <p className="text-[11px] text-[#868B94]">몸무게</p>
+                                <p className="text-[11px] text-[#6B6966]">몸무게</p>
                                 <p className="text-[28px] font-bold text-[#FF6F0F]">{Number(r.weight_kg).toFixed(1)}<span className="text-[14px]">kg</span></p>
                               </div>
                             )}
                             {r?.height_cm && (
                               <div>
-                                <p className="text-[11px] text-[#868B94]">키</p>
+                                <p className="text-[11px] text-[#6B6966]">키</p>
                                 <p className="text-[28px] font-bold text-[#5B6DFF]">{Number(r.height_cm).toFixed(1)}<span className="text-[14px]">cm</span></p>
                               </div>
                             )}
                             {r?.head_cm && (
                               <div>
-                                <p className="text-[11px] text-[#868B94]">머리</p>
-                                <p className="text-[28px] font-bold text-[#868B94]">{Number(r.head_cm).toFixed(1)}<span className="text-[14px]">cm</span></p>
+                                <p className="text-[11px] text-[#6B6966]">머리</p>
+                                <p className="text-[28px] font-bold text-[#6B6966]">{Number(r.head_cm).toFixed(1)}<span className="text-[14px]">cm</span></p>
                               </div>
                             )}
                           </>
@@ -353,12 +353,12 @@ export default function TimelapsePage() {
                   {/* 기록 리스트 */}
                   <div className="mt-6 space-y-2">
                     {[...growthRecords].reverse().map((r) => (
-                      <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl bg-[#F7F8FA]">
-                        <p className="text-[12px] text-[#868B94] w-20 shrink-0">{r.measured_at}</p>
+                      <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl bg-[#F0EDE8]">
+                        <p className="text-[12px] text-[#6B6966] w-20 shrink-0">{r.measured_at}</p>
                         <div className="flex gap-3 text-[13px]">
                           {r.weight_kg && <span className="font-medium text-[#FF6F0F]">{Number(r.weight_kg).toFixed(1)}kg</span>}
                           {r.height_cm && <span className="font-medium text-[#5B6DFF]">{Number(r.height_cm).toFixed(1)}cm</span>}
-                          {r.head_cm && <span className="font-medium text-[#868B94]">{Number(r.head_cm).toFixed(1)}cm</span>}
+                          {r.head_cm && <span className="font-medium text-[#6B6966]">{Number(r.head_cm).toFixed(1)}cm</span>}
                         </div>
                       </div>
                     ))}
@@ -370,7 +370,7 @@ export default function TimelapsePage() {
                     <span className="text-4xl">📊</span>
                   </div>
                   <p className="text-[16px] font-bold text-[#212124]">성장 타임랩스</p>
-                  <p className="text-[13px] text-[#868B94] mt-2">성장 기록이 2건 이상이면 볼 수 있어요</p>
+                  <p className="text-[13px] text-[#6B6966] mt-2">성장 기록이 2건 이상이면 볼 수 있어요</p>
                   <button
                     onClick={() => router.push('/growth/add')}
                     className="mt-6 px-8 py-3 rounded-2xl bg-[#FF6F0F] text-white text-[14px] font-semibold active:scale-95"
@@ -387,15 +387,15 @@ export default function TimelapsePage() {
             <>
               {routineData.some((d) => d.events.length > 0) ? (
                 <div>
-                  <p className="text-[13px] text-[#868B94] mb-3">최근 7일간 루틴 패턴 변화</p>
+                  <p className="text-[13px] text-[#6B6966] mb-3">최근 7일간 루틴 패턴 변화</p>
 
                   {/* 현재 날짜의 24시간 그리드 */}
-                  <div className="p-4 rounded-2xl bg-[#F7F8FA] border border-[#ECECEC] mb-4">
+                  <div className="p-4 rounded-2xl bg-[#F0EDE8] border border-[#ECECEC] mb-4">
                     <div className="flex justify-between items-center mb-3">
                       <p className="text-[14px] font-bold text-[#212124]">
                         {routineData[playingRoutine ? routineIndex : routineData.length - 1]?.date}
                       </p>
-                      <p className="text-[12px] text-[#868B94]">
+                      <p className="text-[12px] text-[#6B6966]">
                         {routineData[playingRoutine ? routineIndex : routineData.length - 1]?.events.length}건
                       </p>
                     </div>
@@ -418,11 +418,11 @@ export default function TimelapsePage() {
                       })}
                     </div>
                     <div className="flex justify-between mt-1">
-                      <span className="text-[9px] text-[#AEB1B9]">0시</span>
-                      <span className="text-[9px] text-[#AEB1B9]">6시</span>
-                      <span className="text-[9px] text-[#AEB1B9]">12시</span>
-                      <span className="text-[9px] text-[#AEB1B9]">18시</span>
-                      <span className="text-[9px] text-[#AEB1B9]">24시</span>
+                      <span className="text-[9px] text-[#9E9A95]">0시</span>
+                      <span className="text-[9px] text-[#9E9A95]">6시</span>
+                      <span className="text-[9px] text-[#9E9A95]">12시</span>
+                      <span className="text-[9px] text-[#9E9A95]">18시</span>
+                      <span className="text-[9px] text-[#9E9A95]">24시</span>
                     </div>
 
                     {playingRoutine && (
@@ -440,7 +440,7 @@ export default function TimelapsePage() {
                     {Object.entries(TYPE_COLORS).map(([type, color]) => (
                       <div key={type} className="flex items-center gap-1">
                         <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: color }} />
-                        <span className="text-[11px] text-[#868B94]">
+                        <span className="text-[11px] text-[#6B6966]">
                           {type === 'feed' ? '수유' : type === 'sleep' ? '수면' : type === 'poop' ? '대변' : type === 'pee' ? '소변' : '체온'}
                         </span>
                       </div>
@@ -461,8 +461,8 @@ export default function TimelapsePage() {
                       <div key={day.date} className={`flex items-center gap-2 p-2 rounded-lg ${
                         (playingRoutine && i === routineIndex) ? 'bg-[#FFF8F3] border border-[#FFE4CC]' : ''
                       }`}>
-                        <span className="text-[11px] text-[#868B94] w-20 shrink-0">{day.date.slice(5)}</span>
-                        <div className="flex-1 h-4 bg-[#F7F8FA] rounded flex overflow-hidden">
+                        <span className="text-[11px] text-[#6B6966] w-20 shrink-0">{day.date.slice(5)}</span>
+                        <div className="flex-1 h-4 bg-[#F0EDE8] rounded flex overflow-hidden">
                           {Array.from({ length: 24 }, (_, h) => {
                             const ev = day.events.find((e) => new Date(e.start_ts).getHours() === h)
                             return (
@@ -474,7 +474,7 @@ export default function TimelapsePage() {
                             )
                           })}
                         </div>
-                        <span className="text-[11px] text-[#AEB1B9] w-8 text-right">{day.events.length}건</span>
+                        <span className="text-[11px] text-[#9E9A95] w-8 text-right">{day.events.length}건</span>
                       </div>
                     ))}
                   </div>
@@ -485,7 +485,7 @@ export default function TimelapsePage() {
                     <span className="text-4xl">🕐</span>
                   </div>
                   <p className="text-[16px] font-bold text-[#212124]">루틴 타임랩스</p>
-                  <p className="text-[13px] text-[#868B94] mt-2">기록이 쌓이면 루틴 변화를 볼 수 있어요</p>
+                  <p className="text-[13px] text-[#6B6966] mt-2">기록이 쌓이면 루틴 변화를 볼 수 있어요</p>
                 </div>
               )}
             </>

@@ -35,8 +35,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="h-full antialiased">
-      <body className="min-h-full bg-gray-100 flex justify-center">
-        <div className="w-full max-w-[430px] min-h-full bg-white flex flex-col relative shadow-xl">
+      <body className="min-h-full bg-[#E8E4DF] flex justify-center">
+        <div className="w-full max-w-[430px] min-h-full bg-[#FFF9F5] flex flex-col relative shadow-[0_0_40px_rgba(0,0,0,0.08)]">
           <Script
             src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false&libraries=services`}
             strategy="beforeInteractive"

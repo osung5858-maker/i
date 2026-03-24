@@ -81,7 +81,7 @@ export default function CelebrationPage() {
           <p className="text-[18px] text-[#3D8A5A] font-semibold mb-4">
             새 생명이 찾아왔어요
           </p>
-          <p className="text-[14px] text-[#868B94] leading-relaxed max-w-[280px] mx-auto">
+          <p className="text-[14px] text-[#6B6966] leading-relaxed max-w-[280px] mx-auto">
             기다리고, 준비하고, 소망했던<br />
             그 작은 생명이 엄마 아빠에게<br />
             드디어 인사를 건넸어요
@@ -93,7 +93,7 @@ export default function CelebrationPage() {
               그동안 보내준 사랑, 다 느끼고 있었어요.<br />
               이제부터 함께예요."
             </p>
-            <p className="text-[11px] text-[#AEB1B9] mt-2">— 아이가</p>
+            <p className="text-[11px] text-[#9E9A95] mt-2">— 아이가</p>
           </div>
 
           <button
@@ -110,9 +110,9 @@ export default function CelebrationPage() {
   // Step 1: 여정 회고
   if (step === 1) {
     return (
-      <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
+      <div className="min-h-[100dvh] bg-[#FFF9F5] flex flex-col">
         <div className="flex-1 flex flex-col items-center justify-center px-6">
-          <p className="text-[13px] text-[#868B94] mb-2">임신 준비 여정</p>
+          <p className="text-[13px] text-[#6B6966] mb-2">임신 준비 여정</p>
           <h2 className="text-[22px] font-bold text-[#1A1918] mb-8">함께 걸어온 길</h2>
 
           <div className="w-full max-w-xs space-y-4">
@@ -120,7 +120,7 @@ export default function CelebrationPage() {
             <div className="bg-white rounded-2xl p-5 text-center shadow-sm">
               <p className="text-3xl mb-2">📅</p>
               <p className="text-[24px] font-bold text-[#3D8A5A]">{journey.days}일</p>
-              <p className="text-[13px] text-[#868B94]">함께 준비한 날들</p>
+              <p className="text-[13px] text-[#6B6966]">함께 준비한 날들</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -128,21 +128,21 @@ export default function CelebrationPage() {
               <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
                 <p className="text-2xl mb-1">✉️</p>
                 <p className="text-[20px] font-bold text-[#1A1918]">{journey.letters}</p>
-                <p className="text-[11px] text-[#868B94]">아이에게 보낸 편지</p>
+                <p className="text-[11px] text-[#6B6966]">아이에게 보낸 편지</p>
               </div>
 
               {/* 검사 완료 */}
               <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
                 <p className="text-2xl mb-1">🏥</p>
                 <p className="text-[20px] font-bold text-[#1A1918]">{journey.supplements}</p>
-                <p className="text-[11px] text-[#868B94]">완료한 검사</p>
+                <p className="text-[11px] text-[#6B6966]">완료한 검사</p>
               </div>
 
               {/* 체크리스트 */}
               <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
                 <p className="text-2xl mb-1">✅</p>
                 <p className="text-[20px] font-bold text-[#1A1918]">{journey.checks}/8</p>
-                <p className="text-[11px] text-[#868B94]">준비 체크리스트</p>
+                <p className="text-[11px] text-[#6B6966]">준비 체크리스트</p>
               </div>
 
               {/* 성장 시각화 */}
@@ -151,13 +151,13 @@ export default function CelebrationPage() {
                 <p className="text-[13px] font-semibold text-[#3D8A5A]">
                   {journey.letters >= 30 ? '큰 나무' : journey.letters >= 10 ? '푸른 잎' : '작은 새싹'}
                 </p>
-                <p className="text-[11px] text-[#868B94]">사랑으로 자란 나무</p>
+                <p className="text-[11px] text-[#6B6966]">사랑으로 자란 나무</p>
               </div>
             </div>
 
             {journey.letters > 0 && (
               <div className="bg-[#FFF8F3] rounded-2xl p-4 text-center">
-                <p className="text-[12px] text-[#868B94] mb-1">보낸 편지들은 소중히 보관돼요</p>
+                <p className="text-[12px] text-[#6B6966] mb-1">보낸 편지들은 소중히 보관돼요</p>
                 <p className="text-[11px] text-[#3D8A5A] font-semibold">아이가 태어나면 함께 읽어보세요 💌</p>
               </div>
             )}
@@ -182,20 +182,20 @@ export default function CelebrationPage() {
       </div>
 
       <h2 className="text-[22px] font-bold text-[#1A1918] mb-1">새로운 시작</h2>
-      <p className="text-[14px] text-[#868B94] mb-8 text-center">
+      <p className="text-[14px] text-[#6B6966] mb-8 text-center">
         이제 도담이 임신 여정을 함께할게요
       </p>
 
       <div className="w-full max-w-xs space-y-5">
         <div>
-          <p className="text-[12px] font-semibold text-[#868B94] mb-2">출산 예정일</p>
+          <p className="text-[12px] font-semibold text-[#6B6966] mb-2">출산 예정일</p>
           <input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full h-12 rounded-xl border border-[#f0f0f0] px-4 text-[14px] focus:outline-none focus:border-[#3D8A5A]"
+            className="w-full h-12 rounded-xl border border-[#E8E4DF] px-4 text-[14px] focus:outline-none focus:border-[#3D8A5A]"
           />
-          <p className="text-[10px] text-[#AEB1B9] mt-1">모르면 나중에 설정할 수 있어요</p>
+          <p className="text-[10px] text-[#9E9A95] mt-1">모르면 나중에 설정할 수 있어요</p>
         </div>
 
         <div className="bg-[#F0F9F4] rounded-xl p-4">

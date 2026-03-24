@@ -73,7 +73,7 @@ export default function StreakCard({ mode }: { mode: string }) {
   if (streak === 0 && totalDays === 0) return null
 
   return (
-    <div className="bg-white rounded-xl border border-[#f0f0f0] p-3">
+    <div className="bg-white rounded-xl border border-[#E8E4DF] p-3">
       <div className="flex items-center justify-between">
         {/* 스트릭 */}
         <div className="flex items-center gap-2">
@@ -82,7 +82,7 @@ export default function StreakCard({ mode }: { mode: string }) {
             <p className="text-[13px] font-bold text-[#1A1918]">
               {streak > 0 ? `${streak}일 연속 기록 중!` : '오늘 첫 기록을 남겨보세요'}
             </p>
-            <p className="text-[10px] text-[#868B94]">총 {totalDays}일 기록</p>
+            <p className="text-[10px] text-[#6B6966]">총 {totalDays}일 기록</p>
           </div>
         </div>
 
@@ -98,14 +98,14 @@ export default function StreakCard({ mode }: { mode: string }) {
 
       {/* AI 인사이트 잠금 해제 프로그레스 */}
       {nextUnlock && (
-        <div className="mt-2 pt-2 border-t border-[#f0f0f0]">
+        <div className="mt-2 pt-2 border-t border-[#E8E4DF]">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-[10px] text-[#868B94]">
+            <p className="text-[10px] text-[#6B6966]">
               {aiUnlocked ? '🔓' : '🔒'} {nextUnlock.label}
             </p>
             <p className="text-[10px] text-[#3D8A5A] font-semibold">{nextUnlock.days}일 남음</p>
           </div>
-          <div className="w-full h-1.5 bg-[#F0F0F0] rounded-full">
+          <div className="w-full h-1.5 bg-[#E8E4DF] rounded-full">
             <div className="h-full bg-[#3D8A5A] rounded-full transition-all" style={{ width: `${(nextUnlock.current / nextUnlock.target) * 100}%` }} />
           </div>
         </div>

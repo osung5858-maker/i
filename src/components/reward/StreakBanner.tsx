@@ -92,7 +92,7 @@ export default function StreakBanner({ events }: Props) {
   return (
     <div className="space-y-3 px-5 pb-2">
       {/* 스트릭 배너 */}
-      <div className="flex items-center justify-between bg-white rounded-2xl p-3.5 border border-[#f0f0f0]">
+      <div className="flex items-center justify-between bg-white rounded-2xl p-3.5 border border-[#E8E4DF]">
         <div className="flex items-center gap-3">
           <div className="text-2xl">
             {current >= 3 ? '🔥' : '✨'}
@@ -100,7 +100,7 @@ export default function StreakBanner({ events }: Props) {
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-[16px] font-bold text-[#212124]">{current}일</span>
-              <span className="text-[12px] text-[#868B94]">연속 기록 중</span>
+              <span className="text-[12px] text-[#6B6966]">연속 기록 중</span>
             </div>
             {currentBadge && (
               <span className="text-[11px] font-medium" style={{ color: '#3D8A5A' }}>
@@ -112,7 +112,7 @@ export default function StreakBanner({ events }: Props) {
 
         {nextBadge && (
           <div className="text-right">
-            <p className="text-[10px] text-[#AEB1B9]">다음 배지</p>
+            <p className="text-[10px] text-[#9E9A95]">다음 배지</p>
             <p className="text-[12px] font-semibold text-[#3D8A5A]">
               {nextBadge.emoji} {nextBadge.days - current}일 남음
             </p>

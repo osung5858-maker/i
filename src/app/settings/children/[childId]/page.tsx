@@ -104,7 +104,7 @@ export default function EditChildPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={20}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
           />
         </div>
 
@@ -116,7 +116,7 @@ export default function EditChildPage() {
             value={birthdate}
             onChange={(e) => setBirthdate(e.target.value)}
             max={new Date().toISOString().split('T')[0]}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
           />
         </div>
 
@@ -136,7 +136,7 @@ export default function EditChildPage() {
                 className={`flex-1 h-11 rounded-xl text-sm font-medium transition-all active:scale-95 ${
                   sex === option.value
                     ? 'bg-[#FF6F0F] text-white'
-                    : 'bg-[#f5f5f5] dark:bg-[#1a1a1a] text-[#6B6B6B] dark:text-[#9B9B9B] border border-[#f0f0f0] dark:border-[#2a2a2a]'
+                    : 'bg-[#f5f5f5] dark:bg-[#1a1a1a] text-[#6B6B6B] dark:text-[#9B9B9B] border border-[#E8E4DF] dark:border-[#2a2a2a]'
                 }`}
               >
                 {option.label}

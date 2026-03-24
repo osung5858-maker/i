@@ -65,25 +65,25 @@ function JourneyTimeline({ childName }: { childName: string }) {
         </p>
         {hasJourney && (
           <div className="flex justify-center gap-4 mt-3">
-            {letters.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{letters.length}</p><p className="text-[9px] text-[#868B94]">편지</p></div>}
-            {diaries.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{diaries.length}</p><p className="text-[9px] text-[#868B94]">태교일기</p></div>}
-            {checkups.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{checkups.length}</p><p className="text-[9px] text-[#868B94]">검진</p></div>}
+            {letters.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{letters.length}</p><p className="text-[9px] text-[#6B6966]">편지</p></div>}
+            {diaries.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{diaries.length}</p><p className="text-[9px] text-[#6B6966]">태교일기</p></div>}
+            {checkups.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{checkups.length}</p><p className="text-[9px] text-[#6B6966]">검진</p></div>}
           </div>
         )}
-        {!hasJourney && <p className="text-[12px] text-[#868B94] mt-2">편지, 태교일기, 검진 기록이 여기에 모여요</p>}
+        {!hasJourney && <p className="text-[12px] text-[#6B6966] mt-2">편지, 태교일기, 검진 기록이 여기에 모여요</p>}
       </div>
 
       {/* 추억 남기기 */}
       {!showForm ? (
-        <button onClick={() => setShowForm(true)} className="w-full py-2.5 bg-white rounded-xl border border-[#f0f0f0] text-[13px] text-[#3D8A5A] font-semibold active:bg-[#F9F9F7]">
+        <button onClick={() => setShowForm(true)} className="w-full py-2.5 bg-white rounded-xl border border-[#E8E4DF] text-[13px] text-[#3D8A5A] font-semibold active:bg-[#F5F1EC]">
           💭 추억 남기기
         </button>
       ) : (
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <textarea value={newText} onChange={e => setNewText(e.target.value)} placeholder="이 순간을 기록해보세요..."
-            className="w-full h-20 text-[13px] bg-[#F9F9F7] rounded-lg p-3 resize-none focus:outline-none focus:ring-1 focus:ring-[#3D8A5A]" maxLength={200} />
+            className="w-full h-20 text-[13px] bg-[#F5F1EC] rounded-lg p-3 resize-none focus:outline-none focus:ring-1 focus:ring-[#3D8A5A]" maxLength={200} />
           <div className="flex justify-end gap-2 mt-2">
-            <button onClick={() => { setShowForm(false); setNewText('') }} className="px-3 py-1.5 text-[12px] text-[#868B94]">취소</button>
+            <button onClick={() => { setShowForm(false); setNewText('') }} className="px-3 py-1.5 text-[12px] text-[#6B6966]">취소</button>
             <button onClick={addJourneyEntry} disabled={!newText.trim()} className="px-4 py-1.5 bg-[#3D8A5A] text-white text-[12px] rounded-lg font-semibold disabled:opacity-40">저장</button>
           </div>
         </div>
@@ -104,12 +104,12 @@ function JourneyTimeline({ childName }: { childName: string }) {
                 <span className="text-[12px]">{item.emoji}</span>
               </div>
               {/* 카드 */}
-              <div className="flex-1 bg-white rounded-xl border border-[#f0f0f0] p-3">
+              <div className="flex-1 bg-white rounded-xl border border-[#E8E4DF] p-3">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-[12px] font-semibold text-[#1A1918]">{item.title}</p>
-                  <span className="text-[9px] text-[#AEB1B9]">{new Date(item.date).toLocaleDateString('ko-KR')}</span>
+                  <span className="text-[9px] text-[#9E9A95]">{new Date(item.date).toLocaleDateString('ko-KR')}</span>
                 </div>
-                {item.content && <p className="text-[11px] text-[#868B94] line-clamp-2">{item.content}</p>}
+                {item.content && <p className="text-[11px] text-[#6B6966] line-clamp-2">{item.content}</p>}
                 {item.sub && <p className="text-[10px] text-[#3D8A5A] mt-0.5 italic">{item.sub}</p>}
                 {item.type === 'positive' && <p className="text-[11px] text-[#3D8A5A] font-semibold mt-1">🎉 이 순간부터 모든 게 시작되었어요</p>}
               </div>
@@ -118,8 +118,8 @@ function JourneyTimeline({ childName }: { childName: string }) {
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-[13px] text-[#AEB1B9]">아직 기록이 없어요</p>
-          <p className="text-[11px] text-[#868B94] mt-1">편지를 쓰거나, 태교일기를 남기면 여기에 모여요</p>
+          <p className="text-[13px] text-[#9E9A95]">아직 기록이 없어요</p>
+          <p className="text-[11px] text-[#6B6966] mt-1">편지를 쓰거나, 태교일기를 남기면 여기에 모여요</p>
         </div>
       )}
     </div>
@@ -181,8 +181,8 @@ export default function MemoryPage() {
   const latestRecord = records.length > 0 ? records[records.length - 1] : null
 
   return (
-    <div className="min-h-[100dvh] bg-[#F5F4F1]">
-      <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
+    <div className="min-h-[100dvh] bg-[#FFF9F5]">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <h1 className="text-[17px] font-bold text-[#1A1918]">추억</h1>
           <Link href="/growth/add" className="text-[12px] font-semibold text-[#3D8A5A]">+ 성장 기록</Link>
@@ -198,7 +198,7 @@ export default function MemoryPage() {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`flex-1 py-2 text-[13px] font-semibold text-center rounded-xl transition-colors ${
-                tab === t.key ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#AEB1B9]'
+                tab === t.key ? 'bg-[#3D8A5A] text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'
               }`}
             >
               {t.label}
@@ -218,32 +218,32 @@ export default function MemoryPage() {
         {tab === 'growth' && (
           <div className="space-y-3 px-5 pt-4">
             {latestRecord ? (
-              <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+              <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-[14px] font-bold text-[#1A1918]">{child?.name}</p>
-                    <p className="text-[11px] text-[#868B94]">{ageMonths}개월</p>
+                    <p className="text-[11px] text-[#6B6966]">{ageMonths}개월</p>
                   </div>
                   <Link href="/growth/add" className="text-[11px] font-semibold text-[#3D8A5A]">+ 측정</Link>
                 </div>
                 <div className="flex gap-3">
                   {latestRecord.weight_kg && (
-                    <div className="flex-1 p-3 rounded-xl bg-[#F5F4F1]">
-                      <p className="text-[10px] text-[#868B94]">몸무게</p>
-                      <p className="text-lg font-bold text-[#1A1918]">{Number(latestRecord.weight_kg).toFixed(1)}<span className="text-[11px] font-normal text-[#868B94] ml-0.5">kg</span></p>
+                    <div className="flex-1 p-3 rounded-xl bg-[#FFF9F5]">
+                      <p className="text-[10px] text-[#6B6966]">몸무게</p>
+                      <p className="text-lg font-bold text-[#1A1918]">{Number(latestRecord.weight_kg).toFixed(1)}<span className="text-[11px] font-normal text-[#6B6966] ml-0.5">kg</span></p>
                     </div>
                   )}
                   {latestRecord.height_cm && (
-                    <div className="flex-1 p-3 rounded-xl bg-[#F5F4F1]">
-                      <p className="text-[10px] text-[#868B94]">키</p>
-                      <p className="text-lg font-bold text-[#1A1918]">{Number(latestRecord.height_cm).toFixed(1)}<span className="text-[11px] font-normal text-[#868B94] ml-0.5">cm</span></p>
+                    <div className="flex-1 p-3 rounded-xl bg-[#FFF9F5]">
+                      <p className="text-[10px] text-[#6B6966]">키</p>
+                      <p className="text-lg font-bold text-[#1A1918]">{Number(latestRecord.height_cm).toFixed(1)}<span className="text-[11px] font-normal text-[#6B6966] ml-0.5">cm</span></p>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-xl border border-[#f0f0f0] p-6 text-center">
-                <p className="text-[13px] text-[#868B94] mb-3">아직 성장 기록이 없어요</p>
+              <div className="bg-white rounded-xl border border-[#E8E4DF] p-6 text-center">
+                <p className="text-[13px] text-[#6B6966] mb-3">아직 성장 기록이 없어요</p>
                 <Link href="/growth/add" className="inline-block px-5 py-2 rounded-xl bg-[#3D8A5A] text-white text-[13px] font-semibold">기록 추가</Link>
               </div>
             )}

@@ -55,8 +55,8 @@ const EVENT_CONFIG: Record<string, {
   },
   memo: {
     icon: BottleIcon,
-    bg: 'bg-[#F7F8FA]',
-    iconColor: 'text-[#868B94]',
+    bg: 'bg-[#F0EDE8]',
+    iconColor: 'text-[#6B6966]',
     label: (e) => {
       const msg = e.tags?.message as string | undefined
       if (e.tags?.emergency) return '🚨 응급 모드 실행'
@@ -83,14 +83,14 @@ export default function Timeline({ events, recorderNames = {}, onEventTap }: Pro
   if (events.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <div className="w-16 h-16 rounded-full bg-[#F7F8FA] flex items-center justify-center">
-          <svg className="w-8 h-8 text-[#AEB1B9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <div className="w-16 h-16 rounded-full bg-[#F0EDE8] flex items-center justify-center">
+          <svg className="w-8 h-8 text-[#9E9A95]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <path d="M12 8v4l3 3" strokeLinecap="round" />
             <circle cx="12" cy="12" r="10" />
           </svg>
         </div>
         <p className="text-[15px] font-semibold text-[#212124]">아직 기록이 없어요</p>
-        <p className="text-[13px] text-[#868B94]">아래 버튼으로 첫 기록을 남겨보세요</p>
+        <p className="text-[13px] text-[#6B6966]">아래 버튼으로 첫 기록을 남겨보세요</p>
       </div>
     )
   }
@@ -106,7 +106,7 @@ export default function Timeline({ events, recorderNames = {}, onEventTap }: Pro
           <button
             key={event.id}
             onClick={() => onEventTap?.(event)}
-            className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-[#ECECEC] hover:bg-[#F7F8FA] transition-colors text-left w-full active:scale-[0.99]"
+            className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-[#ECECEC] hover:bg-[#F0EDE8] transition-colors text-left w-full active:scale-[0.99]"
           >
             <div className={`w-10 h-10 rounded-full ${config.bg} flex items-center justify-center shrink-0`}>
               <Icon className={`w-5 h-5 ${config.iconColor}`} />
@@ -116,7 +116,7 @@ export default function Timeline({ events, recorderNames = {}, onEventTap }: Pro
               <p className="text-[14px] font-semibold text-[#212124] truncate">
                 {config.label(event)}
               </p>
-              <p className="text-[12px] text-[#868B94]">
+              <p className="text-[12px] text-[#6B6966]">
                 {formatTime(event.start_ts)}
                 {recorderName && ` · ${recorderName}`}
                 {event.synced === false && ' · 동기화 대기'}

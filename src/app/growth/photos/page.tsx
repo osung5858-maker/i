@@ -80,7 +80,7 @@ export default function PhotoTimelapsePage() {
     <div className="min-h-[100dvh] bg-white">
       <header className="sticky top-0 z-40 bg-white border-b border-[#ECECEC]">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-[13px] text-[#868B94]">뒤로</button>
+          <button onClick={() => router.back()} className="text-[13px] text-[#6B6966]">뒤로</button>
           <h1 className="text-[15px] font-bold text-[#212124]">사진 타임랩스</h1>
           <button
             onClick={() => fileRef.current?.click()}
@@ -97,7 +97,7 @@ export default function PhotoTimelapsePage() {
         {/* 재생 영역 */}
         {photos.length >= 2 && (
           <div className="mb-4">
-            <div className="aspect-square rounded-2xl bg-[#F7F8FA] overflow-hidden relative">
+            <div className="aspect-square rounded-2xl bg-[#F0EDE8] overflow-hidden relative">
               {playing || currentIndex > 0 ? (
                 <img
                   src={photos[currentIndex]?.url}
@@ -130,11 +130,11 @@ export default function PhotoTimelapsePage() {
         {/* 사진 그리드 */}
         {photos.length === 0 ? (
           <div className="py-16 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-[#F7F8FA] flex items-center justify-center mx-auto mb-3">
+            <div className="w-16 h-16 rounded-2xl bg-[#F0EDE8] flex items-center justify-center mx-auto mb-3">
               <span className="text-3xl">📸</span>
             </div>
             <p className="text-[14px] font-semibold text-[#212124]">아직 사진이 없어요</p>
-            <p className="text-[12px] text-[#868B94] mt-1">매월 같은 포즈로 사진을 찍어보세요</p>
+            <p className="text-[12px] text-[#6B6966] mt-1">매월 같은 포즈로 사진을 찍어보세요</p>
             <button
               onClick={() => fileRef.current?.click()}
               className="mt-4 px-6 py-2.5 rounded-xl bg-[#FF6F0F] text-white text-[13px] font-semibold active:scale-95 transition-transform"
@@ -147,7 +147,7 @@ export default function PhotoTimelapsePage() {
             <p className="text-[13px] font-bold text-[#212124] mb-2">사진 {photos.length}장</p>
             <div className="grid grid-cols-3 gap-2">
               {photos.map((photo) => (
-                <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden bg-[#F7F8FA]">
+                <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden bg-[#F0EDE8]">
                   <img src={photo.url} alt="" className="w-full h-full object-cover" />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 px-2 py-1">
                     <p className="text-[10px] text-white">{photo.date}</p>
@@ -164,7 +164,7 @@ export default function PhotoTimelapsePage() {
           </>
         )}
 
-        <p className="text-[11px] text-[#AEB1B9] text-center mt-6">
+        <p className="text-[11px] text-[#9E9A95] text-center mt-6">
           💡 매월 같은 장소, 같은 포즈로 사진을 찍으면<br />타임랩스가 더 멋져요!
         </p>
       </div>

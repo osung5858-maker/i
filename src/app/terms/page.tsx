@@ -9,14 +9,14 @@ export default function TermsPage() {
     <div className="min-h-[100dvh] bg-white">
       <header className="sticky top-0 z-40 bg-white border-b border-[#ECECEC]">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-[13px] text-[#868B94]">닫기</button>
+          <button onClick={() => router.back()} className="text-[13px] text-[#6B6966]">닫기</button>
           <h1 className="text-[15px] font-bold text-[#212124]">서비스 이용약관</h1>
           <div className="w-8" />
         </div>
       </header>
       <div className="max-w-lg mx-auto w-full px-5 py-6 text-[13px] text-[#212124] leading-relaxed">
         <h2 className="text-[15px] font-bold mb-4">도담 서비스 이용약관</h2>
-        <p className="text-[12px] text-[#868B94] mb-6">시행일: 2026년 3월 20일</p>
+        <p className="text-[12px] text-[#6B6966] mb-6">시행일: 2026년 3월 20일</p>
 
         <Section title="제1조 (목적)">
           이 약관은 도담(이하 &quot;서비스&quot;)이 제공하는 육아 기록 및 정보 서비스의 이용 조건과 절차, 회사와 이용자 간의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.
@@ -64,7 +64,7 @@ export default function TermsPage() {
           ③ 서비스는 무료로 제공되며, 유료 전환 시 사전 안내합니다.
         </Section>
 
-        <p className="text-[11px] text-[#AEB1B9] mt-8">본 약관은 2026년 3월 20일부터 시행됩니다.</p>
+        <p className="text-[11px] text-[#9E9A95] mt-8">본 약관은 2026년 3월 20일부터 시행됩니다.</p>
       </div>
     </div>
   )

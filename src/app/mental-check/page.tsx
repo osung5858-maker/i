@@ -58,10 +58,10 @@ export default function MentalCheckPage() {
         <div className="w-24 h-24 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${result.color}20` }}>
           <span className="text-4xl">{result.emoji}</span>
         </div>
-        <p className="text-[13px] text-[#868B94] mb-1">에든버러 산후우울증 척도</p>
+        <p className="text-[13px] text-[#6B6966] mb-1">에든버러 산후우울증 척도</p>
         <p className="text-[28px] font-bold" style={{ color: result.color }}>{score}점</p>
         <p className="text-[16px] font-semibold text-[#1A1918] mt-1 mb-2">{result.title}</p>
-        <p className="text-[13px] text-[#868B94] text-center leading-relaxed max-w-[300px] mb-6">{result.desc}</p>
+        <p className="text-[13px] text-[#6B6966] text-center leading-relaxed max-w-[300px] mb-6">{result.desc}</p>
 
         {score >= 13 && (
           <div className="w-full max-w-xs bg-[#FDE8E8] rounded-xl p-4 mb-4">
@@ -81,14 +81,14 @@ export default function MentalCheckPage() {
         {/* 이력 */}
         {history.length > 1 && (
           <div className="w-full max-w-xs mb-4">
-            <p className="text-[11px] text-[#868B94] mb-2">이전 기록</p>
+            <p className="text-[11px] text-[#6B6966] mb-2">이전 기록</p>
             <div className="flex gap-1">
               {history.slice(0, 7).map((h: any, i: number) => (
                 <div key={i} className="flex-1 text-center">
-                  <div className="w-full h-12 bg-[#F0F0F0] rounded relative">
+                  <div className="w-full h-12 bg-[#E8E4DF] rounded relative">
                     <div className="absolute bottom-0 w-full rounded" style={{ height: `${(h.score / 30) * 100}%`, backgroundColor: getResult(h.score).color }} />
                   </div>
-                  <p className="text-[9px] text-[#AEB1B9] mt-0.5">{h.date.slice(5)}</p>
+                  <p className="text-[9px] text-[#9E9A95] mt-0.5">{h.date.slice(5)}</p>
                 </div>
               ))}
             </div>
@@ -96,36 +96,36 @@ export default function MentalCheckPage() {
         )}
 
         <button onClick={() => { setShowResult(false); setCurrentQ(0); setAnswers(Array(10).fill(null)) }}
-          className="text-[13px] text-[#868B94]">다시 검사하기</button>
+          className="text-[13px] text-[#6B6966]">다시 검사하기</button>
       </div>
     )
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
-      <PageHeader title="마음 체크" showBack rightAction={<span className="text-[11px] text-[#868B94]">{answers.filter(a => a !== null).length}/10</span>} />
+    <div className="min-h-[100dvh] bg-[#FFF9F5] flex flex-col">
+      <PageHeader title="마음 체크" showBack rightAction={<span className="text-[11px] text-[#6B6966]">{answers.filter(a => a !== null).length}/10</span>} />
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28">
         {/* 프로그레스 */}
         <div className="flex gap-1 mb-6">
           {QUESTIONS.map((_, i) => (
-            <div key={i} className={`flex-1 h-1 rounded-full ${answers[i] !== null ? 'bg-[#3D8A5A]' : i === currentQ ? 'bg-[#3D8A5A]/40' : 'bg-[#F0F0F0]'}`} />
+            <div key={i} className={`flex-1 h-1 rounded-full ${answers[i] !== null ? 'bg-[#3D8A5A]' : i === currentQ ? 'bg-[#3D8A5A]/40' : 'bg-[#E8E4DF]'}`} />
           ))}
         </div>
 
-        <p className="text-[12px] text-[#868B94] mb-2 text-center">지난 7일간의 기분을 떠올려주세요</p>
+        <p className="text-[12px] text-[#6B6966] mb-2 text-center">지난 7일간의 기분을 떠올려주세요</p>
 
         {/* 현재 문항만 표시 */}
         {(() => {
           const q = QUESTIONS[currentQ]
           return (
-            <div className="bg-white rounded-2xl border border-[#f0f0f0] p-5">
+            <div className="bg-white rounded-2xl border border-[#E8E4DF] p-5">
               <p className="text-[11px] text-[#3D8A5A] font-semibold mb-2">{currentQ + 1} / 10</p>
               <p className="text-[16px] font-bold text-[#1A1918] mb-5 leading-relaxed">{q.q}</p>
               <div className="space-y-2">
                 {q.options.map((opt, oi) => (
                   <button key={oi} onClick={() => handleAnswer(currentQ, oi)}
-                    className={`w-full text-left px-4 py-3 rounded-xl text-[14px] transition-all ${answers[currentQ] === oi ? 'bg-[#3D8A5A] text-white font-semibold' : 'bg-[#F5F4F1] text-[#1A1918] active:bg-[#ECECEC]'}`}>
+                    className={`w-full text-left px-4 py-3 rounded-xl text-[14px] transition-all ${answers[currentQ] === oi ? 'bg-[#3D8A5A] text-white font-semibold' : 'bg-[#FFF9F5] text-[#1A1918] active:bg-[#ECECEC]'}`}>
                     {opt}
                   </button>
                 ))}
@@ -137,7 +137,7 @@ export default function MentalCheckPage() {
         {/* 이전/다음 네비게이션 */}
         <div className="flex items-center justify-between mt-4">
           <button onClick={() => setCurrentQ(Math.max(0, currentQ - 1))} disabled={currentQ === 0}
-            className={`text-[13px] ${currentQ === 0 ? 'text-[#F0F0F0]' : 'text-[#868B94]'}`}>← 이전</button>
+            className={`text-[13px] ${currentQ === 0 ? 'text-[#F0F0F0]' : 'text-[#6B6966]'}`}>← 이전</button>
 
           {allAnswered ? (
             <button onClick={() => { saveResult(); setShowResult(true) }}

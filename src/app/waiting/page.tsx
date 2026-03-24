@@ -210,8 +210,8 @@ export default function WaitingPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F5F4F1]">
-      <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
+    <div className="min-h-[100dvh] bg-[#FFF9F5]">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
         <div className="flex items-center h-14 px-5 max-w-lg mx-auto w-full">
           <h1 className="text-[17px] font-bold text-[#1A1918]">기다림</h1>
         </div>
@@ -235,10 +235,10 @@ export default function WaitingPage() {
                   <p className="text-3xl mb-2">🤞</p>
                   <p className="text-[18px] font-bold text-[#1A1918]">착상을 기다리는 중</p>
                   <p className="text-[24px] font-bold text-[#3D8A5A] mt-1">D+{dpo}</p>
-                  <div className="w-full h-2 bg-[#F0F0F0] rounded-full mt-3 mb-2">
+                  <div className="w-full h-2 bg-[#E8E4DF] rounded-full mt-3 mb-2">
                     <div className="h-full bg-[#3D8A5A] rounded-full transition-all" style={{ width: `${Math.min((dpo / 14) * 100, 100)}%` }} />
                   </div>
-                  <p className="text-[12px] text-[#868B94]">
+                  <p className="text-[12px] text-[#6B6966]">
                     {dpo <= 3 ? '아직 이른 시기예요. 평소처럼 지내세요' :
                      dpo <= 7 ? '착상이 진행 중일 수 있어요. 무리하지 마세요' :
                      dpo <= 10 ? '조급해하지 않아도 돼요. 자신을 돌보세요' :
@@ -249,14 +249,14 @@ export default function WaitingPage() {
                 <>
                   <p className="text-3xl mb-2">💫</p>
                   <p className="text-[18px] font-bold text-[#3D8A5A]">지금 가임기예요</p>
-                  <p className="text-[12px] text-[#868B94] mt-2">가장 좋은 시기. 도담하게 준비하고 있어요</p>
+                  <p className="text-[12px] text-[#6B6966] mt-2">가장 좋은 시기. 도담하게 준비하고 있어요</p>
                 </>
               ) : (
                 <>
                   <p className="text-3xl mb-2">🌙</p>
                   <p className="text-[18px] font-bold text-[#1A1918]">다음 기회까지</p>
                   <p className="text-[24px] font-bold text-[#3D8A5A] mt-1">{daysToNext}일</p>
-                  <p className="text-[12px] text-[#868B94] mt-2">지금은 몸과 마음을 돌보는 시간이에요</p>
+                  <p className="text-[12px] text-[#6B6966] mt-2">지금은 몸과 마음을 돌보는 시간이에요</p>
                 </>
               )}
             </div>
@@ -264,18 +264,18 @@ export default function WaitingPage() {
         })()}
 
         {/* ━━━ 임신 테스트 (항상 접근 가능) ━━━ */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <p className="text-[13px] font-bold text-[#1A1918] mb-2">🤰 임신 테스트</p>
           <div className="flex gap-2 mb-2">
             <button onClick={() => addPregTest('양성')} className="flex-1 py-2.5 rounded-xl bg-[#F0F9F4] text-[13px] font-semibold text-[#3D8A5A] active:opacity-80">양성 ✚</button>
-            <button onClick={() => addPregTest('음성')} className="flex-1 py-2.5 rounded-xl bg-[#F5F4F1] text-[13px] font-semibold text-[#868B94] active:opacity-80">음성 −</button>
+            <button onClick={() => addPregTest('음성')} className="flex-1 py-2.5 rounded-xl bg-[#FFF9F5] text-[13px] font-semibold text-[#6B6966] active:opacity-80">음성 −</button>
           </div>
           {pregTests.length > 0 && (
             <div className="space-y-1">
               {pregTests.slice(0, 3).map((t, i) => (
                 <div key={i} className="flex justify-between py-1">
-                  <span className="text-[11px] text-[#868B94]">{t.date} {t.dpo > 0 && `(D+${t.dpo})`}</span>
-                  <span className={`text-[11px] font-semibold ${t.result === '양성' ? 'text-[#3D8A5A]' : 'text-[#868B94]'}`}>{t.result}</span>
+                  <span className="text-[11px] text-[#6B6966]">{t.date} {t.dpo > 0 && `(D+${t.dpo})`}</span>
+                  <span className={`text-[11px] font-semibold ${t.result === '양성' ? 'text-[#3D8A5A]' : 'text-[#6B6966]'}`}>{t.result}</span>
                 </div>
               ))}
             </div>
@@ -283,24 +283,24 @@ export default function WaitingPage() {
         </div>
 
         {/* ━━━ 편지 ━━━ */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[13px] font-bold text-[#1A1918]">✉️ 아이에게</p>
             <div className="flex items-center gap-2">
               <span className="text-lg">{letters.length >= 30 ? '🌳' : letters.length >= 10 ? '🌿' : '🌱'}</span>
-              <span className="text-[10px] text-[#868B94]">{letters.length}통</span>
+              <span className="text-[10px] text-[#6B6966]">{letters.length}통</span>
             </div>
           </div>
           {letters.slice(0, 2).map((l, i) => (
             <div key={i} className="mb-2">
               <div className="p-3 bg-[#F0F9F4] rounded-xl rounded-bl-sm">
                 <p className="text-[12px] text-[#1A1918] line-clamp-3">{l.text}</p>
-                <p className="text-[9px] text-[#AEB1B9] mt-1 text-right">{l.from} · {new Date(l.date).toLocaleDateString('ko-KR')}</p>
+                <p className="text-[9px] text-[#9E9A95] mt-1 text-right">{l.from} · {new Date(l.date).toLocaleDateString('ko-KR')}</p>
               </div>
               <div className="p-3 bg-[#FFF8F3] rounded-xl rounded-tr-sm mt-1 ml-6">
                 <p className="text-[12px] text-[#1A1918]">💌 {l.reply}</p>
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-[9px] text-[#AEB1B9]">아이의 답장</p>
+                  <p className="text-[9px] text-[#9E9A95]">아이의 답장</p>
                   <button onClick={() => shareLetter(l.text, l.reply, letters.length - i)} className="text-[9px] text-[#3D8A5A] font-medium">카톡 공유</button>
                 </div>
               </div>
@@ -308,10 +308,10 @@ export default function WaitingPage() {
           ))}
           {letterOpen ? (
             <div>
-              <textarea value={letterText} onChange={(e) => setLetterText(e.target.value.slice(0, 500))} placeholder="아이에게 하고 싶은 말..." className="w-full h-20 text-[13px] p-3 bg-[#F5F4F1] rounded-xl resize-none focus:outline-none" autoFocus />
+              <textarea value={letterText} onChange={(e) => setLetterText(e.target.value.slice(0, 500))} placeholder="아이에게 하고 싶은 말..." className="w-full h-20 text-[13px] p-3 bg-[#FFF9F5] rounded-xl resize-none focus:outline-none" autoFocus />
               <div className="flex justify-between mt-2">
-                <button onClick={() => setLetterOpen(false)} className="text-[12px] text-[#868B94]">취소</button>
-                <button onClick={saveLetter} disabled={!letterText.trim() || letterSaving} className={`text-[12px] font-semibold px-3 py-1 rounded-lg ${letterText.trim() && !letterSaving ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#AEB1B9]'}`}>
+                <button onClick={() => setLetterOpen(false)} className="text-[12px] text-[#6B6966]">취소</button>
+                <button onClick={saveLetter} disabled={!letterText.trim() || letterSaving} className={`text-[12px] font-semibold px-3 py-1 rounded-lg ${letterText.trim() && !letterSaving ? 'bg-[#3D8A5A] text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}>
                   {letterSaving ? 'AI가 답장 쓰는 중...' : '보내기'}
                 </button>
               </div>
@@ -322,14 +322,14 @@ export default function WaitingPage() {
         </div>
 
         {/* 주기 캘린더 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex items-center justify-between mb-3">
-            <button type="button" onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1) } else setCalMonth(calMonth - 1) }} className="text-[#868B94] px-3 py-1">←</button>
+            <button type="button" onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1) } else setCalMonth(calMonth - 1) }} className="text-[#6B6966] px-3 py-1">←</button>
             <p className="text-[14px] font-bold text-[#1A1918]">{calYear}년 {calMonth + 1}월</p>
-            <button type="button" onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1) } else setCalMonth(calMonth + 1) }} className="text-[#868B94] px-3 py-1">→</button>
+            <button type="button" onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1) } else setCalMonth(calMonth + 1) }} className="text-[#6B6966] px-3 py-1">→</button>
           </div>
           <div className="grid grid-cols-7 gap-1 mb-1">
-            {WEEKDAYS.map((d) => <div key={d} className="text-center text-[9px] text-[#AEB1B9]">{d}</div>)}
+            {WEEKDAYS.map((d) => <div key={d} className="text-center text-[9px] text-[#9E9A95]">{d}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-1">
             {Array.from({ length: firstDayOfWeek }, (_, i) => <div key={`e-${i}`} className="aspect-square" />)}
@@ -341,7 +341,7 @@ export default function WaitingPage() {
                 <button key={ds}
                   onClick={() => toggleIntimacy(ds)}
                   className={`aspect-square rounded-lg flex flex-col items-center justify-center text-[10px] font-medium relative active:scale-95 transition-transform ${
-                    isToday ? 'ring-2 ring-[#3D8A5A]' : status === 'period' ? 'bg-[#FDE8E8] text-[#D08068]' : status === 'ovulation' ? 'bg-[#3D8A5A] text-white' : status === 'fertile' ? 'bg-[#C8F0D8] text-[#3D8A5A]' : 'bg-[#F7F8FA] text-[#1A1918]'
+                    isToday ? 'ring-2 ring-[#3D8A5A]' : status === 'period' ? 'bg-[#FDE8E8] text-[#D08068]' : status === 'ovulation' ? 'bg-[#3D8A5A] text-white' : status === 'fertile' ? 'bg-[#C8F0D8] text-[#3D8A5A]' : 'bg-[#F0EDE8] text-[#1A1918]'
                   }`}>
                   {intimacyDates[ds] ? <span className="text-[11px]">❤️</span> : date.getDate()}
                 </button>
@@ -349,33 +349,33 @@ export default function WaitingPage() {
             })}
           </div>
           <div className="flex items-center justify-center gap-3 mt-3">
-            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#FDE8E8]" /><span className="text-[9px] text-[#868B94]">생리</span></div>
-            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#C8F0D8]" /><span className="text-[9px] text-[#868B94]">가임기</span></div>
-            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#3D8A5A]" /><span className="text-[9px] text-[#868B94]">배란일</span></div>
-            <div className="flex items-center gap-1"><span className="text-[9px]">❤️</span><span className="text-[9px] text-[#868B94]">함께한 날</span></div>
+            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#FDE8E8]" /><span className="text-[9px] text-[#6B6966]">생리</span></div>
+            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#C8F0D8]" /><span className="text-[9px] text-[#6B6966]">가임기</span></div>
+            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#3D8A5A]" /><span className="text-[9px] text-[#6B6966]">배란일</span></div>
+            <div className="flex items-center gap-1"><span className="text-[9px]">❤️</span><span className="text-[9px] text-[#6B6966]">함께한 날</span></div>
           </div>
-          <p className="text-[9px] text-[#AEB1B9] text-center mt-2">날짜 탭 = ❤️ 토글 · 아래에서 체온/배란 기록</p>
+          <p className="text-[9px] text-[#9E9A95] text-center mt-2">날짜 탭 = ❤️ 토글 · 아래에서 체온/배란 기록</p>
           {/* 날짜 선택 (체온/배란용) */}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#f0f0f0]">
-            <span className="text-[12px] text-[#868B94]">기록할 날짜</span>
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#E8E4DF]">
+            <span className="text-[12px] text-[#6B6966]">기록할 날짜</span>
             <input type="date" value={selectedDate || ''} onChange={e => setSelectedDate(e.target.value || null)}
-              className="h-8 rounded-lg border border-[#f0f0f0] px-2 text-[12px] text-[#1A1918]" />
+              className="h-8 rounded-lg border border-[#E8E4DF] px-2 text-[12px] text-[#1A1918]" />
           </div>
         </div>
 
         {selectedDate && (
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
             <p className="text-[13px] font-semibold text-[#1A1918] mb-3">{selectedDate}</p>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[12px] text-[#868B94]">기초체온</span>
-                <input type="number" step="0.01" min="35" max="38" value={bbtRecords[selectedDate] || ''} onChange={(e) => recordBBT(selectedDate, Number(e.target.value))} placeholder="36.50" className="w-20 h-8 rounded-lg border border-[#f0f0f0] px-2 text-[12px] text-right" />
+                <span className="text-[12px] text-[#6B6966]">기초체온</span>
+                <input type="number" step="0.01" min="35" max="38" value={bbtRecords[selectedDate] || ''} onChange={(e) => recordBBT(selectedDate, Number(e.target.value))} placeholder="36.50" className="w-20 h-8 rounded-lg border border-[#E8E4DF] px-2 text-[12px] text-right" />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[12px] text-[#868B94]">배란 테스트</span>
+                <span className="text-[12px] text-[#6B6966]">배란 테스트</span>
                 <div className="flex gap-1.5">
-                  <button onClick={() => recordOvulationTest(selectedDate, true)} className={`px-3 py-1 rounded-lg text-[11px] ${ovulationTests[selectedDate] === true ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#868B94]'}`}>양성</button>
-                  <button onClick={() => recordOvulationTest(selectedDate, false)} className={`px-3 py-1 rounded-lg text-[11px] ${ovulationTests[selectedDate] === false ? 'bg-[#D08068] text-white' : 'bg-[#F0F0F0] text-[#868B94]'}`}>음성</button>
+                  <button onClick={() => recordOvulationTest(selectedDate, true)} className={`px-3 py-1 rounded-lg text-[11px] ${ovulationTests[selectedDate] === true ? 'bg-[#3D8A5A] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>양성</button>
+                  <button onClick={() => recordOvulationTest(selectedDate, false)} className={`px-3 py-1 rounded-lg text-[11px] ${ovulationTests[selectedDate] === false ? 'bg-[#D08068] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>음성</button>
                 </div>
               </div>
             </div>
@@ -388,7 +388,7 @@ export default function WaitingPage() {
             <div className="bg-white rounded-2xl p-6 mx-6 max-w-sm w-full text-center shadow-xl">
               <span className="text-4xl">🥹</span>
               <h3 className="text-[18px] font-bold text-[#1A1918] mt-3 mb-1">정말이에요?</h3>
-              <p className="text-[13px] text-[#868B94] mb-5 leading-relaxed">
+              <p className="text-[13px] text-[#6B6966] mb-5 leading-relaxed">
                 양성이 확인되었어요!<br />
                 임신 모드로 전환할까요?
               </p>
@@ -407,7 +407,7 @@ export default function WaitingPage() {
                 </button>
                 <button
                   onClick={() => setShowPregConfirm(false)}
-                  className="w-full py-2 text-[12px] text-[#868B94]"
+                  className="w-full py-2 text-[12px] text-[#6B6966]"
                 >
                   아직 확인이 더 필요해요
                 </button>
@@ -417,28 +417,28 @@ export default function WaitingPage() {
         )}
 
         {/* 체크리스트 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex justify-between mb-3">
             <p className="text-[14px] font-bold text-[#1A1918]">준비 체크리스트</p>
-            <p className="text-[11px] text-[#868B94]">{CHECKLIST.filter((c) => checked[c.id]).length}/{CHECKLIST.length}</p>
+            <p className="text-[11px] text-[#6B6966]">{CHECKLIST.filter((c) => checked[c.id]).length}/{CHECKLIST.length}</p>
           </div>
           {CHECKLIST.map((item) => (
-            <button key={item.id} onClick={() => toggleCheck(item.id)} className="w-full flex items-center gap-3 py-2 rounded-lg active:bg-[#F5F4F1]">
+            <button key={item.id} onClick={() => toggleCheck(item.id)} className="w-full flex items-center gap-3 py-2 rounded-lg active:bg-[#FFF9F5]">
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${checked[item.id] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : 'border-[#AEB1B9]'}`}>
                 {checked[item.id] && <span className="text-white text-[10px]">✓</span>}
               </div>
-              <span className={`text-[13px] ${checked[item.id] ? 'text-[#AEB1B9] line-through' : 'text-[#1A1918]'}`}>{item.icon} {item.title}</span>
+              <span className={`text-[13px] ${checked[item.id] ? 'text-[#9E9A95] line-through' : 'text-[#1A1918]'}`}>{item.icon} {item.title}</span>
             </button>
           ))}
         </div>
 
         {/* 정부 지원 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <p className="text-[14px] font-bold text-[#1A1918] mb-3">정부 지원</p>
           {GOV_SUPPORTS.map((item) => (
-            <div key={item.title} className="p-3 bg-[#F5F4F1] rounded-xl mb-2 last:mb-0">
+            <div key={item.title} className="p-3 bg-[#FFF9F5] rounded-xl mb-2 last:mb-0">
               <p className="text-[13px] font-semibold text-[#1A1918]">{item.title}</p>
-              <p className="text-[11px] text-[#868B94]">{item.desc}</p>
+              <p className="text-[11px] text-[#6B6966]">{item.desc}</p>
               <a href={item.link} target="_blank" className="text-[10px] text-[#3D8A5A] mt-1 inline-block">자세히 보기 →</a>
             </div>
           ))}
@@ -460,8 +460,8 @@ function PregnantWaitingPage() {
   const trimester = currentWeek <= 13 ? '초기' : currentWeek <= 27 ? '중기' : '후기'
 
   return (
-    <div className="min-h-[100dvh] bg-[#F5F4F1]">
-      <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
+    <div className="min-h-[100dvh] bg-[#FFF9F5]">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
         <div className="flex items-center h-12 px-5 max-w-lg mx-auto w-full">
           <h1 className="text-[17px] font-bold text-[#1A1918]">기다림</h1>
         </div>
@@ -482,38 +482,38 @@ function PregnantWaitingPage() {
           <p className="text-3xl mb-2">{daysLeft <= 7 ? '💛' : '👶'}</p>
           <p className="text-[18px] font-bold text-[#1A1918]">{daysLeft <= 0 ? '만날 날이 지났어요!' : daysLeft <= 7 ? '이번 주에 만나요!' : '아이를 만나는 날'}</p>
           <p className="text-[28px] font-bold text-[#3D8A5A] mt-1">{daysLeft <= 0 ? `D+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</p>
-          <div className="w-full h-2 bg-[#F0F0F0] rounded-full mt-3">
+          <div className="w-full h-2 bg-[#E8E4DF] rounded-full mt-3">
             <div className="h-full bg-[#3D8A5A] rounded-full" style={{ width: `${(currentWeek / 40) * 100}%` }} />
           </div>
-          <p className="text-[10px] text-[#868B94] mt-2">{currentWeek}주차 · {trimester} · {Math.round((currentWeek / 40) * 100)}%</p>
+          <p className="text-[10px] text-[#6B6966] mt-2">{currentWeek}주차 · {trimester} · {Math.round((currentWeek / 40) * 100)}%</p>
         </div>
 
         {/* 태교 일기 바로가기 */}
-        <Link href="/pregnant" className="block bg-white rounded-xl border border-[#f0f0f0] p-4 active:bg-[#F5F4F1]">
+        <Link href="/pregnant" className="block bg-white rounded-xl border border-[#E8E4DF] p-4 active:bg-[#FFF9F5]">
           <div className="flex items-center gap-3">
             <span className="text-2xl">✍️</span>
             <div className="flex-1">
               <p className="text-[13px] font-semibold text-[#1A1918]">오늘의 태교일기</p>
-              <p className="text-[10px] text-[#868B94]">아이에게 한마디 남겨보세요</p>
+              <p className="text-[10px] text-[#6B6966]">아이에게 한마디 남겨보세요</p>
             </div>
-            <span className="text-[#AEB1B9]">→</span>
+            <span className="text-[#9E9A95]">→</span>
           </div>
         </Link>
 
         {/* 이름 짓기 */}
-        <Link href="/name" className="block bg-white rounded-xl border border-[#f0f0f0] p-4 active:bg-[#F5F4F1]">
+        <Link href="/name" className="block bg-white rounded-xl border border-[#E8E4DF] p-4 active:bg-[#FFF9F5]">
           <div className="flex items-center gap-3">
             <span className="text-2xl">✨</span>
             <div className="flex-1">
               <p className="text-[13px] font-semibold text-[#1A1918]">이름 짓기</p>
-              <p className="text-[10px] text-[#868B94]">AI 추천 · 한자 · 음양오행</p>
+              <p className="text-[10px] text-[#6B6966]">AI 추천 · 한자 · 음양오행</p>
             </div>
-            <span className="text-[#AEB1B9]">→</span>
+            <span className="text-[#9E9A95]">→</span>
           </div>
         </Link>
 
         {/* 주차별 정보 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <p className="text-[13px] font-bold text-[#1A1918] mb-3">📋 {currentWeek}주차 체크</p>
           {currentWeek <= 12 && (
             <div className="space-y-2">
@@ -541,28 +541,28 @@ function PregnantWaitingPage() {
         </div>
 
         {/* 혜택 · 축하박스 바로가기 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <p className="text-[13px] font-bold text-[#1A1918] mb-2">🎁 혜택 챙기기</p>
           <div className="space-y-1.5">
-            <a href="https://www.gov.kr/portal/onestopSvc/fertility" target="_blank" rel="noopener noreferrer" className="block p-2 bg-[#F5F4F1] rounded-lg text-[11px] text-[#1A1918] active:opacity-80">💳 국민행복카드 신청</a>
-            <a href="https://bebeform.co.kr/giftbox/" target="_blank" rel="noopener noreferrer" className="block p-2 bg-[#F5F4F1] rounded-lg text-[11px] text-[#1A1918] active:opacity-80">🎁 베베폼 축하박스</a>
-            <a href="https://www.momq.co.kr/" target="_blank" rel="noopener noreferrer" className="block p-2 bg-[#F5F4F1] rounded-lg text-[11px] text-[#1A1918] active:opacity-80">🧷 맘큐 하기스 허그박스</a>
+            <a href="https://www.gov.kr/portal/onestopSvc/fertility" target="_blank" rel="noopener noreferrer" className="block p-2 bg-[#FFF9F5] rounded-lg text-[11px] text-[#1A1918] active:opacity-80">💳 국민행복카드 신청</a>
+            <a href="https://bebeform.co.kr/giftbox/" target="_blank" rel="noopener noreferrer" className="block p-2 bg-[#FFF9F5] rounded-lg text-[11px] text-[#1A1918] active:opacity-80">🎁 베베폼 축하박스</a>
+            <a href="https://www.momq.co.kr/" target="_blank" rel="noopener noreferrer" className="block p-2 bg-[#FFF9F5] rounded-lg text-[11px] text-[#1A1918] active:opacity-80">🧷 맘큐 하기스 허그박스</a>
           </div>
         </div>
 
         {/* 재미 콘텐츠 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <p className="text-[13px] font-bold text-[#1A1918] mb-2">🎭 재미</p>
           <div className="grid grid-cols-3 gap-2">
-            <Link href="/fortune" className="block bg-[#F5F4F1] rounded-lg p-3 text-center active:opacity-80">
+            <Link href="/fortune" className="block bg-[#FFF9F5] rounded-lg p-3 text-center active:opacity-80">
               <p className="text-xl mb-1">🔮</p>
               <p className="text-[10px] font-semibold text-[#1A1918]">바이오리듬</p>
             </Link>
-            <Link href="/fortune?tab=zodiac" className="block bg-[#F5F4F1] rounded-lg p-3 text-center active:opacity-80">
+            <Link href="/fortune?tab=zodiac" className="block bg-[#FFF9F5] rounded-lg p-3 text-center active:opacity-80">
               <p className="text-xl mb-1">🐉</p>
               <p className="text-[10px] font-semibold text-[#1A1918]">띠 · 별자리</p>
             </Link>
-            <Link href="/fortune?tab=fortune" className="block bg-[#F5F4F1] rounded-lg p-3 text-center active:opacity-80">
+            <Link href="/fortune?tab=fortune" className="block bg-[#FFF9F5] rounded-lg p-3 text-center active:opacity-80">
               <p className="text-xl mb-1">🎴</p>
               <p className="text-[10px] font-semibold text-[#1A1918]">오늘의 운세</p>
             </Link>

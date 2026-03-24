@@ -81,22 +81,22 @@ export default function VaccinationPage() {
   }, [])
 
   return (
-    <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
+    <div className="min-h-[100dvh] bg-[#FFF9F5] flex flex-col">
       <PageHeader title="예방접종" showBack rightAction={<span className="text-[11px] text-[#3D8A5A] font-semibold">{doneCount}/{SCHEDULE.length}</span>} />
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
         {/* 프로그레스 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[14px] font-bold text-[#1A1918]">💉 접종 현황</p>
             <p className="text-[12px] text-[#3D8A5A] font-semibold">{Math.round((doneCount / SCHEDULE.length) * 100)}%</p>
           </div>
-          <div className="w-full h-2 bg-[#F0F0F0] rounded-full">
+          <div className="w-full h-2 bg-[#E8E4DF] rounded-full">
             <div className="h-full bg-[#3D8A5A] rounded-full transition-all" style={{ width: `${(doneCount / SCHEDULE.length) * 100}%` }} />
           </div>
           <div className="flex justify-between mt-2">
-            <p className="text-[10px] text-[#868B94]">필수 {SCHEDULE.filter(v => v.required && done[v.id]).length}/{totalRequired}</p>
-            <p className="text-[10px] text-[#868B94]">선택 {SCHEDULE.filter(v => !v.required && done[v.id]).length}/{SCHEDULE.filter(v => !v.required).length}</p>
+            <p className="text-[10px] text-[#6B6966]">필수 {SCHEDULE.filter(v => v.required && done[v.id]).length}/{totalRequired}</p>
+            <p className="text-[10px] text-[#6B6966]">선택 {SCHEDULE.filter(v => !v.required && done[v.id]).length}/{SCHEDULE.filter(v => !v.required).length}</p>
           </div>
         </div>
 
@@ -108,26 +108,26 @@ export default function VaccinationPage() {
           const hasUndone = vaccines.some(v => !done[v.id] && v.required)
 
           return (
-            <div key={label} className={`bg-white rounded-xl border p-4 ${isCurrent && hasUndone ? 'border-[#C8F0D8]' : 'border-[#f0f0f0]'}`}>
+            <div key={label} className={`bg-white rounded-xl border p-4 ${isCurrent && hasUndone ? 'border-[#C8F0D8]' : 'border-[#E8E4DF]'}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <p className="text-[13px] font-bold text-[#1A1918]">{label}</p>
                   {isCurrent && hasUndone && <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#FDE8E8] text-[#D08068] font-semibold">접종 시기</span>}
                   {isPast && !hasUndone && <span className="text-[9px] text-[#3D8A5A]">✓</span>}
                 </div>
-                <p className="text-[10px] text-[#AEB1B9]">{vaccines.filter(v => done[v.id]).length}/{vaccines.length}</p>
+                <p className="text-[10px] text-[#9E9A95]">{vaccines.filter(v => done[v.id]).length}/{vaccines.length}</p>
               </div>
               {vaccines.map(v => (
-                <button key={v.id} onClick={() => toggleDone(v.id)} className="w-full flex items-center gap-2.5 py-2 active:bg-[#F5F4F1] rounded-lg">
+                <button key={v.id} onClick={() => toggleDone(v.id)} className="w-full flex items-center gap-2.5 py-2 active:bg-[#FFF9F5] rounded-lg">
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${done[v.id] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : isPast && v.required ? 'border-[#D08068]' : 'border-[#AEB1B9]'}`}>
                     {done[v.id] && <span className="text-white text-[10px]">✓</span>}
                   </div>
                   <div className="flex-1 text-left">
                     <div className="flex items-center gap-1.5">
-                      <span className={`text-[12px] font-medium ${done[v.id] ? 'text-[#AEB1B9] line-through' : 'text-[#1A1918]'}`}>{v.name}</span>
-                      {!v.required && <span className="text-[9px] px-1 rounded bg-[#F5F4F1] text-[#868B94]">선택</span>}
+                      <span className={`text-[12px] font-medium ${done[v.id] ? 'text-[#9E9A95] line-through' : 'text-[#1A1918]'}`}>{v.name}</span>
+                      {!v.required && <span className="text-[9px] px-1 rounded bg-[#FFF9F5] text-[#6B6966]">선택</span>}
                     </div>
-                    <p className="text-[10px] text-[#868B94]">{v.desc}</p>
+                    <p className="text-[10px] text-[#6B6966]">{v.desc}</p>
                   </div>
                   {done[v.id] && <span className="text-[9px] text-[#3D8A5A]">{done[v.id]}</span>}
                 </button>
@@ -138,7 +138,7 @@ export default function VaccinationPage() {
 
         <div className="bg-[#F0F9F4] rounded-xl p-3 text-center">
           <p className="text-[11px] text-[#3D8A5A]">예방접종 도우미 ☎ 1544-4774</p>
-          <a href="https://nip.kdca.go.kr" target="_blank" rel="noopener noreferrer" className="text-[10px] text-[#868B94]">질병관리청 예방접종 도우미 →</a>
+          <a href="https://nip.kdca.go.kr" target="_blank" rel="noopener noreferrer" className="text-[10px] text-[#6B6966]">질병관리청 예방접종 도우미 →</a>
         </div>
       </div>
     </div>

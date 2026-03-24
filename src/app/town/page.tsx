@@ -50,8 +50,8 @@ export default function TownPage() {
   const categories = MAP_CATEGORIES[mode] || MAP_CATEGORIES.parenting
 
   return (
-    <div className="min-h-[100dvh] bg-[#F5F4F1]">
-      <header className="sticky top-0 z-40 bg-white border-b border-[#f0f0f0]">
+    <div className="min-h-[100dvh] bg-[#FFF9F5]">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
         <div className="max-w-lg mx-auto w-full">
           <div className="flex items-center h-12 px-5">
             <h1 className="text-[17px] font-bold text-[#1A1918]">동네</h1>
@@ -63,7 +63,7 @@ export default function TownPage() {
               { key: 'market' as SubTab, label: '도담장터' },
             ].map(t => (
               <button key={t.key} onClick={() => setSubTab(t.key)}
-                className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${subTab === t.key ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#868B94]'}`}>
+                className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${subTab === t.key ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                 {t.label}
               </button>
             ))}
@@ -195,7 +195,7 @@ function MapTab({ categories }: { categories: { icon: string; label: string; que
       <div className="flex gap-1.5 overflow-x-auto hide-scrollbar px-4 py-3">
         {categories.map((cat, i) => (
           <button key={cat.query} onClick={() => { setActiveIdx(i); searchPlaces(cat.query) }}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1 ${activeIdx === i ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#868B94] border border-[#f0f0f0]'}`}>
+            className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] font-semibold flex items-center gap-1 ${activeIdx === i ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
             <span className="text-sm">{cat.icon}</span> {cat.label}
           </button>
         ))}
@@ -204,7 +204,7 @@ function MapTab({ categories }: { categories: { icon: string; label: string; que
         {loading ? (
           <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" /></div>
         ) : places.length === 0 ? (
-          <p className="text-[13px] text-[#AEB1B9] text-center py-8">주변에 검색 결과가 없어요</p>
+          <p className="text-[13px] text-[#9E9A95] text-center py-8">주변에 검색 결과가 없어요</p>
         ) : (
           places.map(p => <PlaceCard key={p.id} place={p} stats={reviewStats[p.id]} />)
         )}
@@ -231,7 +231,7 @@ function PlaceCard({ place: p, stats }: { place: Place; stats?: { avg: string; c
   }
 
   return (
-    <div className="bg-white rounded-xl border border-[#f0f0f0] p-3">
+    <div className="bg-white rounded-xl border border-[#E8E4DF] p-3">
       {/* 상단: 이름 + 별점 + 거리 */}
       <div className="flex items-center gap-2">
         <div className="flex-1 min-w-0">
@@ -239,23 +239,23 @@ function PlaceCard({ place: p, stats }: { place: Place; stats?: { avg: string; c
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           {avgRating ? (
-            <span className="text-[11px] text-[#C4A35A] font-bold">★ {avgRating}<span className="text-[9px] text-[#AEB1B9] font-normal"> ({reviewCount})</span></span>
+            <span className="text-[11px] text-[#C4A35A] font-bold">★ {avgRating}<span className="text-[9px] text-[#9E9A95] font-normal"> ({reviewCount})</span></span>
           ) : (
-            <span className="text-[9px] text-[#AEB1B9]">새 장소</span>
+            <span className="text-[9px] text-[#9E9A95]">새 장소</span>
           )}
-          {p.distance && <span className="text-[10px] text-[#AEB1B9]">{p.distance}</span>}
+          {p.distance && <span className="text-[10px] text-[#9E9A95]">{p.distance}</span>}
         </div>
       </div>
-      <p className="text-[10px] text-[#868B94] mt-0.5 truncate">{p.address}</p>
+      <p className="text-[10px] text-[#6B6966] mt-0.5 truncate">{p.address}</p>
 
       {/* 액션: 한 줄 컴팩트 */}
       <div className="flex items-center gap-1.5 mt-2">
         {p.phone && (
-          <a href={`tel:${p.phone}`} className="px-2.5 py-1 rounded-full bg-[#F5F4F1] text-[10px] text-[#868B94] active:opacity-60">📞 전화</a>
+          <a href={`tel:${p.phone}`} className="px-2.5 py-1 rounded-full bg-[#FFF9F5] text-[10px] text-[#6B6966] active:opacity-60">📞 전화</a>
         )}
         <a href={`https://map.kakao.com/link/to/${encodeURIComponent(p.name)},${p.lat},${p.lng}`} target="_blank" rel="noopener noreferrer"
-          className="px-2.5 py-1 rounded-full bg-[#F5F4F1] text-[10px] text-[#868B94] active:opacity-60">🧭 길찾기</a>
-        <button onClick={loadReviews} className="px-2.5 py-1 rounded-full bg-[#F5F4F1] text-[10px] text-[#868B94] active:opacity-60">
+          className="px-2.5 py-1 rounded-full bg-[#FFF9F5] text-[10px] text-[#6B6966] active:opacity-60">🧭 길찾기</a>
+        <button onClick={loadReviews} className="px-2.5 py-1 rounded-full bg-[#FFF9F5] text-[10px] text-[#6B6966] active:opacity-60">
           💬 리뷰{reviewCount > 0 ? ` ${reviewCount}` : ''}
         </button>
         <Link href={`/map/${p.id}/review`} className="px-2.5 py-1 rounded-full bg-[#3D8A5A] text-[10px] text-white font-semibold active:opacity-80 ml-auto">✏️ 리뷰 쓰기</Link>
@@ -270,7 +270,7 @@ function PlaceCard({ place: p, stats }: { place: Place; stats?: { avg: string; c
             <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
 
             {/* 헤더 */}
-            <div className="px-5 pb-3 border-b border-[#f0f0f0]">
+            <div className="px-5 pb-3 border-b border-[#E8E4DF]">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[15px] font-bold text-[#1A1918]">{p.name}</p>
@@ -278,7 +278,7 @@ function PlaceCard({ place: p, stats }: { place: Place; stats?: { avg: string; c
                     <div className="flex items-center gap-1.5 mt-1">
                       <div className="flex">{[1,2,3,4,5].map(s => <span key={s} className={`text-[14px] ${s <= Math.round(Number(avgRating)) ? 'text-amber-400' : 'text-[#E0E0E0]'}`}>★</span>)}</div>
                       <span className="text-[13px] font-bold">{avgRating}</span>
-                      <span className="text-[11px] text-[#868B94]">{reviews.length}개</span>
+                      <span className="text-[11px] text-[#6B6966]">{reviews.length}개</span>
                     </div>
                   )}
                 </div>
@@ -306,20 +306,20 @@ function PlaceCard({ place: p, stats }: { place: Place; stats?: { avg: string; c
             <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2.5">
               {reviews.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-[13px] text-[#AEB1B9]">아직 리뷰가 없어요</p>
+                  <p className="text-[13px] text-[#9E9A95]">아직 리뷰가 없어요</p>
                   <Link href={`/map/${p.id}/review`} className="text-[12px] text-[#3D8A5A] font-semibold mt-2 inline-block">첫 리뷰 작성하기 →</Link>
                 </div>
               ) : reviews.map(r => (
-                <div key={r.id} className="bg-[#F5F4F1] rounded-xl p-3">
+                <div key={r.id} className="bg-[#FFF9F5] rounded-xl p-3">
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <div className="flex">{[1,2,3,4,5].map(s => <span key={s} className={`text-[11px] ${s <= r.rating ? 'text-amber-400' : 'text-[#E0E0E0]'}`}>★</span>)}</div>
-                    {r.child_age_months !== null && <span className="text-[9px] text-[#868B94]">· 아이 {r.child_age_months}개월</span>}
-                    <span className="text-[9px] text-[#AEB1B9] ml-auto">{new Date(r.created_at).toLocaleDateString('ko-KR')}</span>
+                    {r.child_age_months !== null && <span className="text-[9px] text-[#6B6966]">· 아이 {r.child_age_months}개월</span>}
+                    <span className="text-[9px] text-[#9E9A95] ml-auto">{new Date(r.created_at).toLocaleDateString('ko-KR')}</span>
                   </div>
                   <p className="text-[12px] text-[#1A1918] leading-relaxed">{r.content}</p>
                   {r.tags && r.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1.5">
-                      {r.tags.map(t => <span key={t} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white text-[#868B94]">{t}</span>)}
+                      {r.tags.map(t => <span key={t} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white text-[#6B6966]">{t}</span>)}
                     </div>
                   )}
                 </div>

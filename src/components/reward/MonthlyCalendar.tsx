@@ -39,7 +39,7 @@ export default function MonthlyCalendar({ events }: Props) {
   const monthName = `${month + 1}월`
 
   return (
-    <div className="bg-white rounded-2xl p-4 border border-[#f0f0f0]">
+    <div className="bg-white rounded-2xl p-4 border border-[#E8E4DF]">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[14px] font-bold text-[#212124]">📅 {monthName} 도담 스토리</h3>
         <div className="flex items-center gap-1.5">
@@ -53,7 +53,7 @@ export default function MonthlyCalendar({ events }: Props) {
       {/* 요일 헤더 */}
       <div className="grid grid-cols-7 gap-1 mb-1">
         {WEEKDAYS.map((d) => (
-          <div key={d} className="text-center text-[9px] text-[#AEB1B9] font-medium">{d}</div>
+          <div key={d} className="text-center text-[9px] text-[#9E9A95] font-medium">{d}</div>
         ))}
       </div>
 
@@ -81,7 +81,7 @@ export default function MonthlyCalendar({ events }: Props) {
                     ? 'bg-[#C8F0D8] text-[#3D8A5A]'
                     : isPast
                       ? 'bg-[#FFF0E6] text-[#D89575]'
-                      : 'bg-[#F7F8FA] text-[#AEB1B9]'
+                      : 'bg-[#F0EDE8] text-[#9E9A95]'
               }`}
             >
               {day}
@@ -94,20 +94,20 @@ export default function MonthlyCalendar({ events }: Props) {
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1">
           <div className="w-2.5 h-2.5 rounded-sm bg-[#C8F0D8]" />
-          <span className="text-[9px] text-[#868B94]">기록 있음</span>
+          <span className="text-[9px] text-[#6B6966]">기록 있음</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-2.5 h-2.5 rounded-sm bg-[#FFF0E6]" />
-          <span className="text-[9px] text-[#868B94]">빈 날</span>
+          <span className="text-[9px] text-[#6B6966]">빈 날</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-sm bg-[#F7F8FA]" />
-          <span className="text-[9px] text-[#868B94]">미래</span>
+          <div className="w-2.5 h-2.5 rounded-sm bg-[#F0EDE8]" />
+          <span className="text-[9px] text-[#6B6966]">미래</span>
         </div>
       </div>
 
       {rate < 100 && pastDates.length > 0 && (
-        <p className="text-center text-[11px] text-[#868B94] mt-2">
+        <p className="text-center text-[11px] text-[#6B6966] mt-2">
           {rate >= 90
             ? `완벽한 ${monthName}까지 ${pastDates.length - recordedCount}일만 채우면 돼요!`
             : `${monthName}에 ${recordedCount}일 기록했어요 👏`

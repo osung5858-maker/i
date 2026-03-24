@@ -82,7 +82,7 @@ export default function InviteAcceptPage() {
       {status === 'loading' && (
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-3 border-[#FF6F0F]/20 border-t-[#FF6F0F] rounded-full animate-spin" />
-          <p className="text-[13px] text-[#868B94]">초대를 확인하는 중이에요...</p>
+          <p className="text-[13px] text-[#6B6966]">초대를 확인하는 중이에요...</p>
         </div>
       )}
 
@@ -94,7 +94,7 @@ export default function InviteAcceptPage() {
           <h1 className="text-[22px] font-bold text-[#212124] mb-2">
             {childName}의 가족이 되어주세요
           </h1>
-          <p className="text-[14px] text-[#868B94] leading-relaxed mb-8">
+          <p className="text-[14px] text-[#6B6966] leading-relaxed mb-8">
             함께 기록하면 더 도담해요.<br />
             아이의 기록을 함께 볼 수 있어요.
           </p>
@@ -105,7 +105,7 @@ export default function InviteAcceptPage() {
           >
             {processing ? '연결하는 중...' : '수락하기'}
           </button>
-          <p className="text-[11px] text-[#AEB1B9] mt-4">
+          <p className="text-[11px] text-[#9E9A95] mt-4">
             카카오 로그인이 필요할 수 있어요
           </p>
         </div>
@@ -113,11 +113,11 @@ export default function InviteAcceptPage() {
 
       {status === 'expired' && (
         <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-[#F7F8FA] flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-full bg-[#F0EDE8] flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl">⏰</span>
           </div>
           <h1 className="text-[18px] font-bold text-[#212124] mb-1">초대가 만료되었어요</h1>
-          <p className="text-[13px] text-[#868B94]">다시 초대해달라고 해주세요</p>
+          <p className="text-[13px] text-[#6B6966]">다시 초대해달라고 해주세요</p>
         </div>
       )}
 
@@ -136,7 +136,7 @@ export default function InviteAcceptPage() {
       {status === 'error' && (
         <div className="text-center">
           <h1 className="text-[18px] font-bold text-[#212124] mb-1">오류가 발생했어요</h1>
-          <p className="text-[13px] text-[#868B94]">다시 시도해주세요</p>
+          <p className="text-[13px] text-[#6B6966]">다시 시도해주세요</p>
         </div>
       )}
     </div>

@@ -117,7 +117,7 @@ export default function InvitePage() {
         {inviteLink ? (
           <div className="w-full mt-8 space-y-3">
             {/* 링크 표시 */}
-            <div className="p-3 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a]">
+            <div className="p-3 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a]">
               <p className="text-xs text-[#9B9B9B] truncate font-mono">{inviteLink}</p>
             </div>
 
@@ -133,7 +133,7 @@ export default function InvitePage() {
             {/* 링크 복사 */}
             <button
               onClick={handleCopy}
-              className="w-full h-[48px] rounded-xl font-medium text-[15px] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[#0A0B0D] dark:text-white active:scale-[0.98] transition-transform"
+              className="w-full h-[48px] rounded-xl font-medium text-[15px] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[#0A0B0D] dark:text-white active:scale-[0.98] transition-transform"
             >
               {copied ? '✅ 복사 완료!' : '📋 링크 복사'}
             </button>

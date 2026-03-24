@@ -80,7 +80,7 @@ export default function RecordDetailPage() {
   return (
     <div className="min-h-[100dvh] bg-[#f5f5f5] dark:bg-[#0A0B0D]">
       {/* 헤더 */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl border-b border-[#f0f0f0] dark:border-[#2a2a2a]">
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl border-b border-[#E8E4DF] dark:border-[#2a2a2a]">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">뒤로</button>
           <h1 className="text-[15px] font-bold text-[#0A0B0D] dark:text-white">기록 상세</h1>
@@ -93,7 +93,7 @@ export default function RecordDetailPage() {
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={() => router.push(`/records/${prevDate}`)}
-            className="w-9 h-9 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] flex items-center justify-center active:scale-95 transition-transform"
+            className="w-9 h-9 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] flex items-center justify-center active:scale-95 transition-transform"
           >
             <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B] rotate-180" />
           </button>
@@ -104,7 +104,7 @@ export default function RecordDetailPage() {
           <button
             onClick={() => canGoNext && router.push(`/records/${nextDate}`)}
             disabled={!canGoNext}
-            className="w-9 h-9 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] flex items-center justify-center active:scale-95 transition-transform disabled:opacity-30"
+            className="w-9 h-9 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] flex items-center justify-center active:scale-95 transition-transform disabled:opacity-30"
           >
             <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
           </button>
@@ -143,7 +143,7 @@ export default function RecordDetailPage() {
         )}
 
         {/* 기록 목록 */}
-        <div className="mx-4 rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] overflow-hidden">
+        <div className="mx-4 rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <div className="w-8 h-8 border-3 border-[#FF6F0F]/20 border-t-[#FF6F0F] rounded-full animate-spin" />

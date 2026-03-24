@@ -143,7 +143,7 @@ export default function NamePage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F5F4F1] flex flex-col">
+    <div className="min-h-[100dvh] bg-[#FFF9F5] flex flex-col">
       <PageHeader title="이름 짓기" showBack />
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28">
@@ -156,7 +156,7 @@ export default function NamePage() {
             { key: 'analyze' as Tab, label: '이름 분석' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setError(null) }}
-              className={`shrink-0 px-4 py-2 rounded-xl text-[13px] font-semibold ${tab === t.key ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#868B94] border border-[#f0f0f0]'}`}>
+              className={`shrink-0 px-4 py-2 rounded-xl text-[13px] font-semibold ${tab === t.key ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
               {t.label}
             </button>
           ))}
@@ -171,13 +171,13 @@ export default function NamePage() {
         {/* ===== 태명 탭 ===== */}
         {tab === 'nickname' && (
           <div className="space-y-3">
-            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+            <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
               <p className="text-[14px] font-bold text-[#1A1918] mb-3">🌟 태명 추천받기</p>
-              <p className="text-[12px] text-[#868B94] mb-1">어떤 아이로 자라길 바라나요?</p>
+              <p className="text-[12px] text-[#6B6966] mb-1">어떤 아이로 자라길 바라나요?</p>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {THEMES.map(t => (
                   <button key={t} onClick={() => setNickTheme(t)}
-                    className={`px-3 py-1.5 rounded-full text-[11px] ${nickTheme === t ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#868B94]'}`}>
+                    className={`px-3 py-1.5 rounded-full text-[11px] ${nickTheme === t ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {t}
                   </button>
                 ))}
@@ -185,7 +185,7 @@ export default function NamePage() {
               <div className="flex gap-1.5 mb-3">
                 {['모름', '남아', '여아'].map(g => (
                   <button key={g} onClick={() => setNickGender(g)}
-                    className={`flex-1 py-1.5 rounded-lg text-[12px] ${nickGender === g ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#868B94]'}`}>
+                    className={`flex-1 py-1.5 rounded-lg text-[12px] ${nickGender === g ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {g}
                   </button>
                 ))}
@@ -197,28 +197,28 @@ export default function NamePage() {
             </div>
 
             {nickResult?.names?.map((n: any, i: number) => (
-              <div key={i} className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+              <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-[18px] font-bold text-[#1A1918]">{n.name}</p>
-                  <button onClick={() => saveName(n.name)} className={`text-[11px] px-2 py-0.5 rounded-full ${saved.includes(n.name) ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#868B94]'}`}>
+                  <button onClick={() => saveName(n.name)} className={`text-[11px] px-2 py-0.5 rounded-full ${saved.includes(n.name) ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {saved.includes(n.name) ? '♥ 저장됨' : '♡ 저장'}
                   </button>
                 </div>
                 <p className="text-[12px] text-[#1A1918] mb-1">{n.meaning}</p>
                 <div className="flex gap-2">
-                  <span className="text-[10px] text-[#868B94] bg-[#F5F4F1] px-2 py-0.5 rounded">{n.origin}</span>
-                  <span className="text-[10px] text-[#868B94] bg-[#F5F4F1] px-2 py-0.5 rounded">{n.vibe}</span>
+                  <span className="text-[10px] text-[#6B6966] bg-[#FFF9F5] px-2 py-0.5 rounded">{n.origin}</span>
+                  <span className="text-[10px] text-[#6B6966] bg-[#FFF9F5] px-2 py-0.5 rounded">{n.vibe}</span>
                 </div>
               </div>
             ))}
-            {nickResult?.tip && <p className="text-[11px] text-[#868B94] text-center">{nickResult.tip}</p>}
+            {nickResult?.tip && <p className="text-[11px] text-[#6B6966] text-center">{nickResult.tip}</p>}
           </div>
         )}
 
         {/* ===== 이름 추천 탭 ===== */}
         {tab === 'suggest' && (
           <div className="space-y-3">
-            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+            <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
               <p className="text-[14px] font-bold text-[#1A1918] mb-1">✨ AI 이름 추천</p>
               <div className="flex gap-2 mb-3">
                 <a href="https://baby-name.kr/" target="_blank" rel="noopener noreferrer" className="text-[9px] text-[#3D8A5A] px-2 py-0.5 bg-[#F0F9F4] rounded-full">📊 인기 이름 순위</a>
@@ -226,16 +226,16 @@ export default function NamePage() {
               </div>
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div>
-                  <p className="text-[10px] text-[#868B94] mb-1">성</p>
+                  <p className="text-[10px] text-[#6B6966] mb-1">성</p>
                   <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="김"
-                    className="w-full h-10 rounded-lg border border-[#f0f0f0] px-3 text-[14px]" />
+                    className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-[14px]" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-[#868B94] mb-1">글자 수</p>
+                  <p className="text-[10px] text-[#6B6966] mb-1">글자 수</p>
                   <div className="flex gap-1.5">
                     {[2, 3].map(n => (
                       <button key={n} onClick={() => setSyllables(n)}
-                        className={`flex-1 h-10 rounded-lg text-[13px] ${syllables === n ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#868B94]'}`}>
+                        className={`flex-1 h-10 rounded-lg text-[13px] ${syllables === n ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                         {n}글자
                       </button>
                     ))}
@@ -245,16 +245,16 @@ export default function NamePage() {
               <div className="flex gap-1.5 mb-3">
                 {['모름', '남아', '여아'].map(g => (
                   <button key={g} onClick={() => setSuggestGender(g)}
-                    className={`flex-1 py-1.5 rounded-lg text-[12px] ${suggestGender === g ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#868B94]'}`}>
+                    className={`flex-1 py-1.5 rounded-lg text-[12px] ${suggestGender === g ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {g}
                   </button>
                 ))}
               </div>
-              <p className="text-[10px] text-[#868B94] mb-1">희망 의미</p>
+              <p className="text-[10px] text-[#6B6966] mb-1">희망 의미</p>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {THEMES.map(t => (
                   <button key={t} onClick={() => setSuggestTheme(t)}
-                    className={`px-3 py-1.5 rounded-full text-[11px] ${suggestTheme === t ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#868B94]'}`}>
+                    className={`px-3 py-1.5 rounded-full text-[11px] ${suggestTheme === t ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {t}
                   </button>
                 ))}
@@ -266,7 +266,7 @@ export default function NamePage() {
             </div>
 
             {suggestResult?.names?.map((n: any, i: number) => (
-              <div key={i} className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+              <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <p className="text-[18px] font-bold text-[#1A1918]">{lastName}{n.name}</p>
@@ -275,7 +275,7 @@ export default function NamePage() {
                     <div className="w-10 h-10 rounded-full bg-[#F0F9F4] flex items-center justify-center">
                       <span className="text-[14px] font-bold text-[#3D8A5A]">{n.score}</span>
                     </div>
-                    <button onClick={() => saveName(`${lastName}${n.name}`)} className={`text-[11px] px-2 py-0.5 rounded-full ${saved.includes(`${lastName}${n.name}`) ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#868B94]'}`}>
+                    <button onClick={() => saveName(`${lastName}${n.name}`)} className={`text-[11px] px-2 py-0.5 rounded-full ${saved.includes(`${lastName}${n.name}`) ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                       {saved.includes(`${lastName}${n.name}`) ? '♥' : '♡'}
                     </button>
                   </div>
@@ -285,24 +285,24 @@ export default function NamePage() {
                 {n.hanjaOptions && n.hanjaOptions.length > 0 ? (
                   <div className="mb-2 space-y-1">
                     {n.hanjaOptions.map((h: any, j: number) => (
-                      <div key={j} className="flex items-center gap-2 p-2 bg-[#F5F4F1] rounded-lg">
+                      <div key={j} className="flex items-center gap-2 p-2 bg-[#FFF9F5] rounded-lg">
                         <span className="text-[14px] font-semibold text-[#1A1918]">{h.hanja}</span>
-                        <p className="text-[10px] text-[#868B94] flex-1">{h.meaning}</p>
+                        <p className="text-[10px] text-[#6B6966] flex-1">{h.meaning}</p>
                       </div>
                     ))}
                   </div>
                 ) : n.hanja ? (
-                  <p className="text-[11px] text-[#868B94] mb-2">{n.hanja}</p>
+                  <p className="text-[11px] text-[#6B6966] mb-2">{n.hanja}</p>
                 ) : null}
 
                 <p className="text-[12px] text-[#1A1918] mb-2">{n.meaning}</p>
                 <div className="flex flex-wrap gap-1.5">
                   <span className="text-[10px] px-2 py-0.5 rounded bg-[#F0F9F4] text-[#3D8A5A]">{n.fiveElements}</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-[#F5F4F1] text-[#868B94]">{n.pronunciation}</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-[#F5F4F1] text-[#868B94]">{n.uniqueness}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-[#FFF9F5] text-[#6B6966]">{n.pronunciation}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-[#FFF9F5] text-[#6B6966]">{n.uniqueness}</span>
                   {n.popularity && <span className="text-[10px] px-2 py-0.5 rounded bg-[#FFF8F3] text-[#C4A35A]">📊 {n.popularity}</span>}
                 </div>
-                {n.scoreDetail && <p className="text-[10px] text-[#AEB1B9] mt-1">{n.scoreDetail}</p>}
+                {n.scoreDetail && <p className="text-[10px] text-[#9E9A95] mt-1">{n.scoreDetail}</p>}
               </div>
             ))}
           </div>
@@ -311,18 +311,18 @@ export default function NamePage() {
         {/* ===== 후보 비교 탭 ===== */}
         {tab === 'compare' && (
           <div className="space-y-3">
-            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+            <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
               <p className="text-[14px] font-bold text-[#1A1918] mb-1">🏆 이름 후보 비교</p>
-              <p className="text-[11px] text-[#868B94] mb-3">원하는 이름을 입력하면 AI가 비교 분석해드려요</p>
+              <p className="text-[11px] text-[#6B6966] mb-3">원하는 이름을 입력하면 AI가 비교 분석해드려요</p>
 
               <div className="space-y-2 mb-3">
                 {compareNames.map((name, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <span className="text-[12px] text-[#AEB1B9] w-5">{i + 1}.</span>
+                    <span className="text-[12px] text-[#9E9A95] w-5">{i + 1}.</span>
                     <input value={name} onChange={e => updateCompareName(i, e.target.value)} placeholder={`후보 ${i + 1}`}
-                      className="flex-1 h-10 rounded-lg border border-[#f0f0f0] px-3 text-[14px]" />
+                      className="flex-1 h-10 rounded-lg border border-[#E8E4DF] px-3 text-[14px]" />
                     {compareNames.length > 2 && (
-                      <button onClick={() => setCompareNames(compareNames.filter((_, j) => j !== i))} className="text-[#AEB1B9] text-lg">×</button>
+                      <button onClick={() => setCompareNames(compareNames.filter((_, j) => j !== i))} className="text-[#9E9A95] text-lg">×</button>
                     )}
                   </div>
                 ))}
@@ -330,18 +330,18 @@ export default function NamePage() {
 
               <div className="flex gap-2 mb-3">
                 {compareNames.length < 6 && (
-                  <button onClick={addCompareSlot} className="flex-1 py-2 rounded-lg border border-dashed border-[#AEB1B9] text-[12px] text-[#868B94]">+ 후보 추가</button>
+                  <button onClick={addCompareSlot} className="flex-1 py-2 rounded-lg border border-dashed border-[#AEB1B9] text-[12px] text-[#6B6966]">+ 후보 추가</button>
                 )}
                 <div className="flex-1">
                   <input value={compareBirthYear} onChange={e => setCompareBirthYear(e.target.value)} placeholder="출생 연도 (선택)"
-                    className="w-full h-9 rounded-lg border border-[#f0f0f0] px-3 text-[12px]" />
+                    className="w-full h-9 rounded-lg border border-[#E8E4DF] px-3 text-[12px]" />
                 </div>
               </div>
 
               {/* 저장된 이름에서 추가 */}
               {saved.length > 0 && (
                 <div className="mb-3">
-                  <p className="text-[10px] text-[#868B94] mb-1">저장된 이름에서 추가</p>
+                  <p className="text-[10px] text-[#6B6966] mb-1">저장된 이름에서 추가</p>
                   <div className="flex flex-wrap gap-1">
                     {saved.filter(n => !compareNames.includes(n)).map(name => (
                       <button key={name} onClick={() => {
@@ -366,22 +366,22 @@ export default function NamePage() {
               <>
                 {/* 순위 결과 */}
                 {compareResult.results?.map((r: any, i: number) => (
-                  <div key={i} className={`bg-white rounded-xl border ${r.rank === 1 ? 'border-[#C8F0D8] bg-gradient-to-br from-white to-[#F0F9F4]' : 'border-[#f0f0f0]'} p-4`}>
+                  <div key={i} className={`bg-white rounded-xl border ${r.rank === 1 ? 'border-[#C8F0D8] bg-gradient-to-br from-white to-[#F0F9F4]' : 'border-[#E8E4DF]'} p-4`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold ${
-                          r.rank === 1 ? 'bg-[#3D8A5A] text-white' : r.rank === 2 ? 'bg-[#C4A35A] text-white' : 'bg-[#F0F0F0] text-[#868B94]'
+                          r.rank === 1 ? 'bg-[#3D8A5A] text-white' : r.rank === 2 ? 'bg-[#C4A35A] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'
                         }`}>{r.rank}</div>
                         <div>
                           <p className="text-[16px] font-bold text-[#1A1918]">{r.name}</p>
-                          {r.hanja && <p className="text-[10px] text-[#AEB1B9]">{r.hanja}</p>}
+                          {r.hanja && <p className="text-[10px] text-[#9E9A95]">{r.hanja}</p>}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${r.rank === 1 ? 'bg-[#3D8A5A]' : 'bg-[#F5F4F1]'}`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${r.rank === 1 ? 'bg-[#3D8A5A]' : 'bg-[#FFF9F5]'}`}>
                           <span className={`text-[14px] font-bold ${r.rank === 1 ? 'text-white' : 'text-[#1A1918]'}`}>{r.score}</span>
                         </div>
-                        <button onClick={() => saveName(r.name)} className={`text-[11px] px-2 py-0.5 rounded-full ${saved.includes(r.name) ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#868B94]'}`}>
+                        <button onClick={() => saveName(r.name)} className={`text-[11px] px-2 py-0.5 rounded-full ${saved.includes(r.name) ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                           {saved.includes(r.name) ? '♥' : '♡'}
                         </button>
                       </div>
@@ -389,8 +389,8 @@ export default function NamePage() {
                     <p className="text-[12px] text-[#1A1918] mb-1">{r.meaning}</p>
                     <div className="flex flex-wrap gap-1.5 mb-1">
                       <span className="text-[10px] px-2 py-0.5 rounded bg-[#F0F9F4] text-[#3D8A5A]">{r.fiveElements}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#F5F4F1] text-[#868B94]">{r.pronunciation}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#F5F4F1] text-[#868B94]">{r.strokes}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#FFF9F5] text-[#6B6966]">{r.pronunciation}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#FFF9F5] text-[#6B6966]">{r.strokes}</span>
                     </div>
                     {r.highlight && <p className="text-[11px] text-[#3D8A5A]">✨ {r.highlight}</p>}
                   </div>
@@ -401,7 +401,7 @@ export default function NamePage() {
                   <div className="bg-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-4">
                     <p className="text-[13px] font-bold text-[#3D8A5A] mb-1">🏆 AI 추천</p>
                     <p className="text-[12px] text-[#1A1918] leading-relaxed">{compareResult.recommendation}</p>
-                    {compareResult.tip && <p className="text-[10px] text-[#868B94] mt-2">{compareResult.tip}</p>}
+                    {compareResult.tip && <p className="text-[10px] text-[#6B6966] mt-2">{compareResult.tip}</p>}
                   </div>
                 )}
               </>
@@ -414,19 +414,19 @@ export default function NamePage() {
           <div className="space-y-3">
             {/* 1단계: 이름 입력 */}
             {hanjaStep === 'input' && (
-              <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+              <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                 <p className="text-[14px] font-bold text-[#1A1918] mb-3">🔍 이름 분석</p>
-                <p className="text-[11px] text-[#868B94] mb-3">한자를 선택하고 음양오행 · 획수 · 발음 종합 분석</p>
+                <p className="text-[11px] text-[#6B6966] mb-3">한자를 선택하고 음양오행 · 획수 · 발음 종합 분석</p>
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div>
-                    <p className="text-[10px] text-[#868B94] mb-1">이름 (성 포함)</p>
+                    <p className="text-[10px] text-[#6B6966] mb-1">이름 (성 포함)</p>
                     <input value={analyzeName} onChange={e => setAnalyzeName(e.target.value)} placeholder="김도담"
-                      className="w-full h-10 rounded-lg border border-[#f0f0f0] px-3 text-[14px]" />
+                      className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-[14px]" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-[#868B94] mb-1">출생 연도 (선택)</p>
+                    <p className="text-[10px] text-[#6B6966] mb-1">출생 연도 (선택)</p>
                     <input value={birthYear} onChange={e => setBirthYear(e.target.value)} placeholder="2026"
-                      className="w-full h-10 rounded-lg border border-[#f0f0f0] px-3 text-[14px]" />
+                      className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-[14px]" />
                   </div>
                 </div>
                 <button onClick={fetchHanjaOptions} disabled={loading}
@@ -438,18 +438,18 @@ export default function NamePage() {
 
             {/* 2단계: 한자 선택 */}
             {hanjaStep === 'select' && hanjaOptions && (
-              <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+              <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-[14px] font-bold text-[#1A1918]">한자 선택</p>
-                  <button onClick={() => setHanjaStep('input')} className="text-[11px] text-[#868B94]">← 다시 입력</button>
+                  <button onClick={() => setHanjaStep('input')} className="text-[11px] text-[#6B6966]">← 다시 입력</button>
                 </div>
-                <p className="text-[11px] text-[#868B94] mb-3">각 글자의 한자를 선택해주세요</p>
+                <p className="text-[11px] text-[#6B6966] mb-3">각 글자의 한자를 선택해주세요</p>
 
                 {/* 성 */}
                 <div className="mb-4">
                   <p className="text-[12px] font-semibold text-[#1A1918] mb-1.5">
                     {hanjaOptions.surname} → {hanjaOptions.surnameHanja || '?'}
-                    <span className="text-[10px] text-[#868B94] ml-1">(성)</span>
+                    <span className="text-[10px] text-[#6B6966] ml-1">(성)</span>
                   </p>
                 </div>
 
@@ -461,7 +461,7 @@ export default function NamePage() {
                       {c.options?.map((opt: any, oIdx: number) => (
                         <button key={oIdx} onClick={() => setSelectedHanja(prev => ({ ...prev, [cIdx]: oIdx }))}
                           className={`w-full flex items-center gap-3 p-2.5 rounded-lg text-left transition-colors ${
-                            (selectedHanja[cIdx] ?? 0) === oIdx ? 'bg-[#E8F5E9] border border-[#3D8A5A]' : 'bg-[#F9F9F7] border border-transparent'
+                            (selectedHanja[cIdx] ?? 0) === oIdx ? 'bg-[#E8F5E9] border border-[#3D8A5A]' : 'bg-[#F5F1EC] border border-transparent'
                           }`}>
                           <span className="text-[20px] font-serif shrink-0">{opt.hanja}</span>
                           <div className="flex-1 min-w-0">
@@ -470,8 +470,8 @@ export default function NamePage() {
                               {opt.popular && <span className="text-[9px] bg-[#FFE0E6] text-[#E8537A] px-1 py-0.5 rounded">인기</span>}
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[9px] text-[#868B94]">{opt.strokes}획</span>
-                              <span className="text-[9px] text-[#868B94]">{opt.element}</span>
+                              <span className="text-[9px] text-[#6B6966]">{opt.strokes}획</span>
+                              <span className="text-[9px] text-[#6B6966]">{opt.element}</span>
                             </div>
                           </div>
                           {(selectedHanja[cIdx] ?? 0) === oIdx && <span className="text-[#3D8A5A] text-sm">✓</span>}
@@ -482,12 +482,12 @@ export default function NamePage() {
                 ))}
 
                 {/* 선택 결과 미리보기 */}
-                <div className="bg-[#F5F4F1] rounded-lg p-3 mb-3 text-center">
+                <div className="bg-[#FFF9F5] rounded-lg p-3 mb-3 text-center">
                   <span className="text-[20px] font-serif tracking-wider">
                     {hanjaOptions.surnameHanja}
                     {hanjaOptions.characters?.map((c: any, i: number) => c.options?.[(selectedHanja[i] ?? 0)]?.hanja || '?').join('')}
                   </span>
-                  <span className="text-[13px] text-[#868B94] ml-2">({analyzeName})</span>
+                  <span className="text-[13px] text-[#6B6966] ml-2">({analyzeName})</span>
                 </div>
 
                 <button onClick={fetchAnalyze} disabled={loading}
@@ -500,8 +500,8 @@ export default function NamePage() {
             {/* 3단계: 분석 결과 */}
             {hanjaStep === 'result' && analyzeResult && (
               <div className="flex items-center justify-between">
-                <button onClick={() => setHanjaStep('select')} className="text-[11px] text-[#868B94]">← 한자 다시 선택</button>
-                <button onClick={() => { setHanjaStep('input'); setAnalyzeResult(null); setHanjaOptions(null) }} className="text-[11px] text-[#868B94]">새 이름 분석</button>
+                <button onClick={() => setHanjaStep('select')} className="text-[11px] text-[#6B6966]">← 한자 다시 선택</button>
+                <button onClick={() => { setHanjaStep('input'); setAnalyzeResult(null); setHanjaOptions(null) }} className="text-[11px] text-[#6B6966]">새 이름 분석</button>
               </div>
             )}
 
@@ -509,20 +509,20 @@ export default function NamePage() {
               <>
                 {/* 총점 */}
                 <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-5 text-center">
-                  <p className="text-[13px] text-[#868B94]">{analyzeResult.name}</p>
-                  {analyzeResult.hanja && <p className="text-[11px] text-[#AEB1B9]">{analyzeResult.hanja}</p>}
+                  <p className="text-[13px] text-[#6B6966]">{analyzeResult.name}</p>
+                  {analyzeResult.hanja && <p className="text-[11px] text-[#9E9A95]">{analyzeResult.hanja}</p>}
                   <div className="w-20 h-20 mx-auto rounded-full bg-[#3D8A5A] flex items-center justify-center my-3 shadow-[0_4px_20px_rgba(61,138,90,0.3)]">
                     <span className="text-[28px] font-bold text-white">{analyzeResult.totalScore}</span>
                   </div>
-                  <p className="text-[10px] text-[#868B94]">종합 점수 (100점 만점)</p>
-                  <button onClick={() => saveName(analyzeResult.name)} className={`mt-2 text-[11px] px-3 py-1 rounded-full ${saved.includes(analyzeResult.name) ? 'bg-[#3D8A5A] text-white' : 'bg-[#F5F4F1] text-[#868B94]'}`}>
+                  <p className="text-[10px] text-[#6B6966]">종합 점수 (100점 만점)</p>
+                  <button onClick={() => saveName(analyzeResult.name)} className={`mt-2 text-[11px] px-3 py-1 rounded-full ${saved.includes(analyzeResult.name) ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {saved.includes(analyzeResult.name) ? '♥ 저장됨' : '♡ 저장하기'}
                   </button>
                 </div>
 
                 {/* 음양오행 레이더 차트 */}
                 {analyzeResult.fiveElements && (
-                  <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+                  <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                     <p className="text-[13px] font-bold text-[#1A1918] mb-3">☯️ 음양오행</p>
                     <div className="flex justify-center mb-3">
                       <svg viewBox="0 0 200 200" width="200" height="200">
@@ -582,15 +582,15 @@ export default function NamePage() {
                 )}
 
                 {/* 상세 분석 */}
-                <div className="bg-white rounded-xl border border-[#f0f0f0] p-4 space-y-2">
+                <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 space-y-2">
                   <p className="text-[13px] font-bold text-[#1A1918] mb-2">📋 상세 분석</p>
                   {analyzeResult.yinYang && <div className="flex gap-2"><span className="text-sm">☯️</span><p className="text-[12px] text-[#1A1918]">{analyzeResult.yinYang}</p></div>}
                   {analyzeResult.pronunciation && <div className="flex gap-2"><span className="text-sm">🗣️</span><p className="text-[12px] text-[#1A1918]">{analyzeResult.pronunciation}</p></div>}
                   {analyzeResult.strokes && <div className="flex gap-2"><span className="text-sm">✏️</span><p className="text-[12px] text-[#1A1918]">{analyzeResult.strokes}</p></div>}
                   {analyzeResult.overall && <div className="bg-[#F0F9F4] rounded-lg p-3 mt-2"><p className="text-[12px] text-[#1A1918] leading-relaxed">{analyzeResult.overall}</p></div>}
                   <div className="flex gap-3 pt-2">
-                    {analyzeResult.luckyColor && <p className="text-[10px] text-[#868B94]">🎨 행운의 색: <span className="font-semibold">{analyzeResult.luckyColor}</span></p>}
-                    {analyzeResult.luckyNumber && <p className="text-[10px] text-[#868B94]">🔢 행운의 수: <span className="font-semibold">{analyzeResult.luckyNumber}</span></p>}
+                    {analyzeResult.luckyColor && <p className="text-[10px] text-[#6B6966]">🎨 행운의 색: <span className="font-semibold">{analyzeResult.luckyColor}</span></p>}
+                    {analyzeResult.luckyNumber && <p className="text-[10px] text-[#6B6966]">🔢 행운의 수: <span className="font-semibold">{analyzeResult.luckyNumber}</span></p>}
                   </div>
                 </div>
               </>
@@ -600,7 +600,7 @@ export default function NamePage() {
 
         {/* 저장된 이름 */}
         {saved.length > 0 && (
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-4 mt-4">
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 mt-4">
             <p className="text-[13px] font-bold text-[#1A1918] mb-2">♥ 저장된 이름 ({saved.length})</p>
             <div className="flex flex-wrap gap-1.5">
               {saved.map(name => (

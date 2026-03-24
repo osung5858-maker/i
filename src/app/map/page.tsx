@@ -82,7 +82,7 @@ function MapPageInner() {
   return (
     <div className="min-h-[100dvh] bg-[#f5f5f5] dark:bg-[#0A0B0D] flex flex-col">
       {/* 헤더 */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl border-b border-[#f0f0f0] dark:border-[#2a2a2a]">
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl border-b border-[#E8E4DF] dark:border-[#2a2a2a]">
         <div className="flex items-center justify-center h-14 px-5 max-w-lg mx-auto w-full">
           <h1 className="text-[15px] font-bold text-[#0A0B0D] dark:text-white">동네 육아 지도</h1>
         </div>
@@ -106,7 +106,7 @@ function MapPageInner() {
       </div>
 
       {/* 카테고리 필터 */}
-      <div className="sticky top-14 z-30 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl border-b border-[#f0f0f0] dark:border-[#2a2a2a]">
+      <div className="sticky top-14 z-30 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl border-b border-[#E8E4DF] dark:border-[#2a2a2a]">
         <div className="max-w-lg mx-auto w-full px-5 py-2.5 flex gap-2 overflow-x-auto hide-scrollbar">
           {CATEGORIES.map((cat) => (
             <button
@@ -115,7 +115,7 @@ function MapPageInner() {
               className={`shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
                 selectedCategory.keyword === cat.keyword
                   ? 'bg-[#FF6F0F] text-white shadow-[0_2px_8px_rgba(0,82,255,0.2)]'
-                  : 'bg-white dark:bg-[#1a1a1a] text-[#6B6B6B] dark:text-[#9B9B9B] border border-[#f0f0f0] dark:border-[#2a2a2a]'
+                  : 'bg-white dark:bg-[#1a1a1a] text-[#6B6B6B] dark:text-[#9B9B9B] border border-[#E8E4DF] dark:border-[#2a2a2a]'
               }`}
             >
               {cat.emoji} {cat.label}
@@ -160,11 +160,11 @@ function MapPageInner() {
                       </span>
                     )}
                   </div>
-                  <p className="text-[12px] text-[#868B94] mb-0.5">{place.address}</p>
+                  <p className="text-[12px] text-[#6B6966] mb-0.5">{place.address}</p>
                   {place.phone && (
                     <p className="text-[12px] text-[#6B6B6B]">{place.phone}</p>
                   )}
-                  <p className="text-[10px] text-[#AEB1B9] mt-1">{place.category}</p>
+                  <p className="text-[10px] text-[#9E9A95] mt-1">{place.category}</p>
                 </button>
 
                 {/* 액션 버튼 */}
@@ -185,7 +185,7 @@ function MapPageInner() {
                   </button>
                   <button
                     onClick={() => handlePlaceTap(place)}
-                    className="h-10 px-3 rounded-xl text-[12px] font-semibold border border-[#ECECEC] text-[#868B94] active:scale-95 transition-transform flex items-center justify-center"
+                    className="h-10 px-3 rounded-xl text-[12px] font-semibold border border-[#ECECEC] text-[#6B6966] active:scale-95 transition-transform flex items-center justify-center"
                   >
                     리뷰
                   </button>

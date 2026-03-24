@@ -90,7 +90,7 @@ export default function FeedTimerPage() {
       <div className="space-y-4 pt-2">
 
         {/* 타이머 메인 */}
-        <div className="bg-white rounded-2xl border border-[#f0f0f0] p-6 text-center">
+        <div className="bg-white rounded-2xl border border-[#E8E4DF] p-6 text-center">
           {/* 시간 표시 */}
           <p className={`text-[48px] font-bold tracking-wider ${active ? 'text-[#3D8A5A]' : 'text-[#1A1918]'}`}>
             {formatTime(elapsed)}
@@ -99,15 +99,15 @@ export default function FeedTimerPage() {
           {/* 좌/우 표시 */}
           {active && (
             <div className="flex items-center justify-center gap-2 mt-2 mb-4">
-              <div className={`w-3 h-3 rounded-full ${side === 'left' ? 'bg-[#4A90D9]' : 'bg-[#F0F0F0]'}`} />
+              <div className={`w-3 h-3 rounded-full ${side === 'left' ? 'bg-[#4A90D9]' : 'bg-[#E8E4DF]'}`} />
               <p className="text-[14px] font-semibold text-[#1A1918]">{side === 'left' ? '왼쪽' : '오른쪽'}</p>
-              <div className={`w-3 h-3 rounded-full ${side === 'right' ? 'bg-[#D089A5]' : 'bg-[#F0F0F0]'}`} />
+              <div className={`w-3 h-3 rounded-full ${side === 'right' ? 'bg-[#D089A5]' : 'bg-[#E8E4DF]'}`} />
             </div>
           )}
 
           {/* 다음 수유 추천 */}
           {!active && lastSide && (
-            <p className="text-[12px] text-[#868B94] mt-2 mb-4">
+            <p className="text-[12px] text-[#6B6966] mt-2 mb-4">
               지난번 <span className="font-semibold">{lastSide === 'left' ? '왼쪽' : '오른쪽'}</span>이었으니 →{' '}
               <span className="text-[#3D8A5A] font-semibold">{lastSide === 'left' ? '오른쪽' : '왼쪽'}</span> 추천
             </p>
@@ -142,20 +142,20 @@ export default function FeedTimerPage() {
         </div>
 
         {/* 오늘 통계 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <p className="text-[14px] font-bold text-[#1A1918] mb-3">오늘 수유</p>
           <div className="grid grid-cols-3 gap-2 mb-3">
             <div className="text-center">
               <p className="text-[20px] font-bold text-[#1A1918]">{todaySessions.length}</p>
-              <p className="text-[10px] text-[#868B94]">총 횟수</p>
+              <p className="text-[10px] text-[#6B6966]">총 횟수</p>
             </div>
             <div className="text-center">
               <p className="text-[20px] font-bold text-[#4A90D9]">{formatTime(todayLeft)}</p>
-              <p className="text-[10px] text-[#868B94]">왼쪽</p>
+              <p className="text-[10px] text-[#6B6966]">왼쪽</p>
             </div>
             <div className="text-center">
               <p className="text-[20px] font-bold text-[#D089A5]">{formatTime(todayRight)}</p>
-              <p className="text-[10px] text-[#868B94]">오른쪽</p>
+              <p className="text-[10px] text-[#6B6966]">오른쪽</p>
             </div>
           </div>
           {/* 균형 바 */}
@@ -169,16 +169,16 @@ export default function FeedTimerPage() {
 
         {/* 최근 기록 */}
         {todaySessions.length > 0 && (
-          <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
             <p className="text-[13px] font-bold text-[#1A1918] mb-2">최근 기록</p>
             {todaySessions.slice(0, 6).map((s, i) => (
-              <div key={i} className="flex items-center justify-between py-1.5 border-b border-[#f0f0f0] last:border-0">
+              <div key={i} className="flex items-center justify-between py-1.5 border-b border-[#E8E4DF] last:border-0">
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${s.side === 'left' ? 'bg-[#4A90D9]' : 'bg-[#D089A5]'}`} />
                   <span className="text-[12px] text-[#1A1918]">{s.side === 'left' ? '왼쪽' : '오른쪽'}</span>
                 </div>
-                <span className="text-[12px] text-[#868B94]">{formatTime(s.duration)}</span>
-                <span className="text-[10px] text-[#AEB1B9]">{new Date(s.startTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span>
+                <span className="text-[12px] text-[#6B6966]">{formatTime(s.duration)}</span>
+                <span className="text-[10px] text-[#9E9A95]">{new Date(s.startTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
             ))}
           </div>

@@ -109,7 +109,7 @@ export default function AnalyzeCheckupPage() {
     <div className="min-h-[100dvh] bg-white flex flex-col">
       <header className="sticky top-0 z-40 bg-white border-b border-[#ECECEC]">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-[13px] text-[#868B94]">뒤로</button>
+          <button onClick={() => router.back()} className="text-[13px] text-[#6B6966]">뒤로</button>
           <h1 className="text-[15px] font-bold text-[#212124]">검진결과 AI 분석</h1>
           <div className="w-8" />
         </div>
@@ -130,7 +130,7 @@ export default function AnalyzeCheckupPage() {
             </div>
             <div className="text-center">
               <p className="text-[14px] font-semibold text-[#212124]">검진결과표를 올려주세요</p>
-              <p className="text-[12px] text-[#868B94] mt-1">사진 또는 PDF (최대 10MB)</p>
+              <p className="text-[12px] text-[#6B6966] mt-1">사진 또는 PDF (최대 10MB)</p>
             </div>
           </button>
         ) : (
@@ -188,20 +188,20 @@ export default function AnalyzeCheckupPage() {
                 <div className="flex gap-3">
                   {result.extracted.weight_kg && (
                     <div className="flex-1 bg-white rounded-xl p-3 text-center">
-                      <p className="text-[11px] text-[#868B94]">몸무게</p>
-                      <p className="text-[18px] font-bold text-[#212124]">{result.extracted.weight_kg}<span className="text-[11px] text-[#AEB1B9]">kg</span></p>
+                      <p className="text-[11px] text-[#6B6966]">몸무게</p>
+                      <p className="text-[18px] font-bold text-[#212124]">{result.extracted.weight_kg}<span className="text-[11px] text-[#9E9A95]">kg</span></p>
                     </div>
                   )}
                   {result.extracted.height_cm && (
                     <div className="flex-1 bg-white rounded-xl p-3 text-center">
-                      <p className="text-[11px] text-[#868B94]">키</p>
-                      <p className="text-[18px] font-bold text-[#212124]">{result.extracted.height_cm}<span className="text-[11px] text-[#AEB1B9]">cm</span></p>
+                      <p className="text-[11px] text-[#6B6966]">키</p>
+                      <p className="text-[18px] font-bold text-[#212124]">{result.extracted.height_cm}<span className="text-[11px] text-[#9E9A95]">cm</span></p>
                     </div>
                   )}
                   {result.extracted.head_cm && (
                     <div className="flex-1 bg-white rounded-xl p-3 text-center">
-                      <p className="text-[11px] text-[#868B94]">머리둘레</p>
-                      <p className="text-[18px] font-bold text-[#212124]">{result.extracted.head_cm}<span className="text-[11px] text-[#AEB1B9]">cm</span></p>
+                      <p className="text-[11px] text-[#6B6966]">머리둘레</p>
+                      <p className="text-[18px] font-bold text-[#212124]">{result.extracted.head_cm}<span className="text-[11px] text-[#9E9A95]">cm</span></p>
                     </div>
                   )}
                 </div>
@@ -259,7 +259,7 @@ export default function AnalyzeCheckupPage() {
             )}
 
             {/* 면책 */}
-            <p className="text-[11px] text-[#AEB1B9] text-center px-4">
+            <p className="text-[11px] text-[#9E9A95] text-center px-4">
               ⚠️ 참고용 정보예요. 정확한 진단은 소아과 전문의와 상담하세요.
             </p>
           </div>

@@ -131,7 +131,7 @@ export default function WriteReviewPage() {
             placeholder="육아하면서 느낀 솔직한 후기를 남겨주세요 (10자 이상)"
             maxLength={500}
             rows={5}
-            className="w-full p-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white placeholder-[#c0c0c0] resize-none focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
+            className="w-full p-4 rounded-xl bg-[#f5f5f5] dark:bg-[#1a1a1a] border border-[#E8E4DF] dark:border-[#2a2a2a] text-[15px] text-[#0A0B0D] dark:text-white placeholder-[#c0c0c0] resize-none focus:outline-none focus:border-[#FF6F0F] focus:ring-1 focus:ring-[#FF6F0F] transition-colors"
           />
           <div className="flex justify-between mt-1.5">
             <span className={`text-xs ${content.length < 10 && content.length > 0 ? 'text-red-500' : 'text-[#c0c0c0]'}`}>
@@ -154,7 +154,7 @@ export default function WriteReviewPage() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 ${
                   selectedTags.includes(tag)
                     ? 'bg-[#FF6F0F] text-white'
-                    : 'bg-[#f5f5f5] dark:bg-[#1a1a1a] text-[#6B6B6B] dark:text-[#9B9B9B] border border-[#f0f0f0] dark:border-[#2a2a2a]'
+                    : 'bg-[#f5f5f5] dark:bg-[#1a1a1a] text-[#6B6B6B] dark:text-[#9B9B9B] border border-[#E8E4DF] dark:border-[#2a2a2a]'
                 }`}
               >
                 {tag}

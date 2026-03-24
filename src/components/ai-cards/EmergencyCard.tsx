@@ -37,7 +37,7 @@ export default function EmergencyCard({ events }: Props) {
           <p className={`text-[14px] font-bold ${isCritical ? 'text-red-600' : 'text-orange-600'}`}>
             체온 {celsius}°C {isCritical ? '— 고열이에요!' : '— 미열이에요'}
           </p>
-          <p className="text-[12px] text-[#868B94] mt-1">
+          <p className="text-[12px] text-[#6B6966] mt-1">
             {isCritical
               ? '가까운 소아과를 확인해보세요.'
               : '경과를 살펴보세요. 38.5°C 이상이면 소아과 방문을 권해요.'}
@@ -50,11 +50,11 @@ export default function EmergencyCard({ events }: Props) {
           >
             가까운 소아과 보기 →
           </Link>
-          <p className="text-[10px] text-[#AEB1B9] mt-2">
+          <p className="text-[10px] text-[#9E9A95] mt-2">
             ⚠️ 참고용 정보예요. 걱정되시면 소아과 상담을 추천드려요.
           </p>
         </div>
-        <button onClick={() => setDismissed(true)} className="text-[#AEB1B9] text-xs p-1">✕</button>
+        <button onClick={() => setDismissed(true)} className="text-[#9E9A95] text-xs p-1">✕</button>
       </div>
     </div>
   )
