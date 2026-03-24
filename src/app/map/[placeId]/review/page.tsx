@@ -83,7 +83,9 @@ export default function WriteReviewPage() {
       return
     }
 
-    window.location.href = `/map/${placeId}`
+    // 등록 성공 → 뒤로가기
+    alert('리뷰가 등록되었어요! ⭐')
+    router.back()
   }
 
   const isValid = rating > 0 && content.length >= 10
