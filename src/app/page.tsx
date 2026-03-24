@@ -271,6 +271,7 @@ export default function HomePage() {
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="text-[18px] font-bold text-[#212124]">{child?.name || '도담이'}</span>
                 <span className="text-[13px] text-[#AEB1B9]">{ageMonths}개월</span>
+                {events.length > 0 && <span className="text-[10px] text-[#3D8A5A] bg-[#E8F5E9] px-1.5 py-0.5 rounded-full">오늘 {events.length}건</span>}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -322,7 +323,7 @@ export default function HomePage() {
           {/* ━━━ 2. 최근 기록 (스크롤) ━━━ */}
           <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[14px] font-bold text-[#1A1918]">최근 기록</p>
+              <p className="text-[14px] font-bold text-[#1A1918]">최근 기록 {events.length > 0 && <span className="text-[11px] text-[#AEB1B9] font-normal ml-1">{events.length}건</span>}</p>
               {events.length > 0 && (
                 <Link href={`/records/${new Date().toISOString().split('T')[0]}`} className="text-[11px] text-[#3D8A5A] font-medium">전체보기 →</Link>
               )}
@@ -369,44 +370,40 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* ━━━ 3. 상태 카드 3열 ━━━ */}
-          <div className="grid grid-cols-3 gap-2">
+          {/* ━━━ 3. 상태 카드 2열 ━━━ */}
+          <div className="grid grid-cols-2 gap-2">
             {/* 예방접종 */}
-            <Link href="/us" className="bg-white rounded-xl border border-[#f0f0f0] p-2.5 text-center">
-              <p className="text-[10px] text-[#868B94]">💉 예방접종</p>
-              <p className="text-[12px] font-bold text-[#1A1918] mt-0.5">
-                {(() => {
-                  const VACCINES: Record<number, string> = { 0: 'BCG', 1: 'B형간염 2차', 2: 'DTaP 1차', 4: 'DTaP 2차', 6: 'DTaP 3차', 12: 'MMR', 15: '수두', 24: '일본뇌염' }
-                  const next = Object.entries(VACCINES).find(([m]) => Number(m) >= ageMonths)
-                  return next ? next[1] : '완료!'
-                })()}
-              </p>
-              <p className="text-[9px] text-[#AEB1B9] mt-0.5">다음 접종</p>
-            </Link>
-
-            {/* 이유식 (6개월+) */}
-            {ageMonths >= 5 ? (
-              <div className="bg-white rounded-xl border border-[#f0f0f0] p-2.5 text-center">
-                <p className="text-[10px] text-[#868B94]">🥣 이유식</p>
-                <p className="text-[12px] font-bold text-[#1A1918] mt-0.5">
-                  {ageMonths < 6 ? '초기' : ageMonths < 8 ? '중기' : ageMonths < 10 ? '후기' : '완료기'}
+            <Link href="/vaccination" className="bg-white rounded-xl border border-[#f0f0f0] p-3 flex items-center gap-2.5 active:bg-[#F9F9F7]">
+              <span className="text-lg">💉</span>
+              <div>
+                <p className="text-[12px] font-semibold text-[#1A1918]">
+                  {(() => {
+                    const VACCINES: Record<number, string> = { 0: 'BCG', 1: 'B형간염 2차', 2: 'DTaP 1차', 4: 'DTaP 2차', 6: 'DTaP 3차', 12: 'MMR', 15: '수두', 24: '일본뇌염' }
+                    const next = Object.entries(VACCINES).find(([m]) => Number(m) >= ageMonths)
+                    return next ? next[1] : '완료!'
+                  })()}
                 </p>
-                <p className="text-[9px] text-[#AEB1B9] mt-0.5">{ageMonths}개월 단계</p>
+                <p className="text-[9px] text-[#AEB1B9]">다음 접종</p>
+              </div>
+            </Link>
+            {/* 이유식 or 성장 */}
+            {ageMonths >= 5 ? (
+              <div className="bg-white rounded-xl border border-[#f0f0f0] p-3 flex items-center gap-2.5">
+                <span className="text-lg">🥣</span>
+                <div>
+                  <p className="text-[12px] font-semibold text-[#1A1918]">{ageMonths < 6 ? '초기' : ageMonths < 8 ? '중기' : ageMonths < 10 ? '후기' : '완료기'} 이유식</p>
+                  <p className="text-[9px] text-[#AEB1B9]">{ageMonths}개월 단계</p>
+                </div>
               </div>
             ) : (
-              <div className="bg-white rounded-xl border border-[#f0f0f0] p-2.5 text-center">
-                <p className="text-[10px] text-[#868B94]">📊 오늘</p>
-                <p className="text-[20px] font-bold text-[#1A1918] mt-0.5">{events.length}</p>
-                <p className="text-[9px] text-[#AEB1B9]">기록</p>
-              </div>
+              <Link href="/memory" className="bg-white rounded-xl border border-[#f0f0f0] p-3 flex items-center gap-2.5 active:bg-[#F9F9F7]">
+                <span className="text-lg">📈</span>
+                <div>
+                  <p className="text-[12px] font-semibold text-[#1A1918]">{ageMonths}개월</p>
+                  <p className="text-[9px] text-[#AEB1B9]">성장 기록</p>
+                </div>
+              </Link>
             )}
-
-            {/* 성장 */}
-            <Link href="/memory" className="bg-white rounded-xl border border-[#f0f0f0] p-2.5 text-center">
-              <p className="text-[10px] text-[#868B94]">📈 성장</p>
-              <p className="text-[20px] font-bold text-[#3D8A5A] mt-0.5">{ageMonths}</p>
-              <p className="text-[9px] text-[#AEB1B9]">개월</p>
-            </Link>
           </div>
 
           {/* ━━━ 키즈노트 알림 ━━━ */}
