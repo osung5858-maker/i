@@ -673,21 +673,8 @@ export default function PreparingPage() {
           )}
         </div>
 
-        {/* 준비 현황 공유 */}
-        <button
-          onClick={() => {
-            const letters = (() => { try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]').length } catch { return 0 } })()
-            const days = cycle ? cycle.cycleDay : 0
-            shareProgress({ letters, appointments: apptCount, totalAppointments: 8, supplements: supplCount, partnerChecks: partnerCount, days })
-          }}
-          className="w-full bg-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-3 text-center text-[13px] font-semibold text-[#3D8A5A] active:opacity-80"
-        >
-          📋 준비 현황 카톡으로 공유하기
-        </button>
-
-        {/* ━━━ 스트릭 + 커뮤니티 ━━━ */}
+        {/* ━━━ 스트릭 (콤팩트) ━━━ */}
         <StreakCard mode="preparing" />
-        <CommunityTeaser />
 
         {/* ━━━ 5. 더보기 (접이식) ━━━ */}
         <button
@@ -703,7 +690,21 @@ export default function PreparingPage() {
 
         {moreOpen && (
           <div className="space-y-3">
-            {/* 파트너 건강 상세 */}
+            {/* 동네 소식 */}
+            <CommunityTeaser />
+
+            {/* 카톡 공유 */}
+            <button
+              onClick={() => {
+                const ltrs = (() => { try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]').length } catch { return 0 } })()
+                shareProgress({ letters: ltrs, appointments: apptCount, totalAppointments: 8, supplements: supplCount, partnerChecks: partnerCount, days: cycle?.cycleDay || 0 })
+              }}
+              className="w-full bg-white rounded-xl border border-[#f0f0f0] p-3 text-center text-[12px] text-[#3D8A5A] font-semibold active:opacity-80"
+            >
+              📋 준비 현황 카톡으로 공유
+            </button>
+
+            {/* 배우자 건강 상세 */}
             <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-[13px] font-bold text-[#1A1918]">💑 배우자 건강 체크</p>
