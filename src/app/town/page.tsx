@@ -246,25 +246,28 @@ function PlaceCard({ place: p }: { place: Place }) {
         <Link href={`/map/${p.id}/review`} className="px-2.5 py-1 rounded-full bg-[#3D8A5A] text-[10px] text-white font-semibold active:opacity-80 ml-auto">✏️ 리뷰 쓰기</Link>
       </div>
 
-      {/* 리뷰 목록 (펼침) */}
+      {/* 리뷰 바텀시트 */}
       {showReviews && (
-        <div className="mt-2 pt-2 border-t border-[#f0f0f0]">
-          {reviews.length === 0 ? (
-            <div className="text-center py-3">
-              <p className="text-[11px] text-[#AEB1B9]">아직 리뷰가 없어요</p>
-              <Link href={`/map/${p.id}/review`} className="text-[11px] text-[#3D8A5A] font-semibold mt-1 inline-block">첫 리뷰 작성하기 →</Link>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {/* 평균 평점 */}
-              <div className="flex items-center gap-2 mb-1">
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map(s => (
-                    <span key={s} className={`text-[14px] ${s <= Math.round(Number(avgRating)) ? 'text-amber-400' : 'text-[#E0E0E0]'}`}>★</span>
-                  ))}
+        <div className="fixed inset-0 z-[80] bg-black/40" onClick={() => setShowReviews(false)}>
+          <div className="absolute bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white rounded-t-2xl max-h-[70vh] flex flex-col animate-slideUp"
+            onClick={e => e.stopPropagation()}>
+            {/* 핸들 */}
+            <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
+
+            {/* 헤더 */}
+            <div className="px-5 pb-3 border-b border-[#f0f0f0]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[15px] font-bold text-[#1A1918]">{p.name}</p>
+                  {avgRating && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <div className="flex">{[1,2,3,4,5].map(s => <span key={s} className={`text-[14px] ${s <= Math.round(Number(avgRating)) ? 'text-amber-400' : 'text-[#E0E0E0]'}`}>★</span>)}</div>
+                      <span className="text-[13px] font-bold">{avgRating}</span>
+                      <span className="text-[11px] text-[#868B94]">{reviews.length}개</span>
+                    </div>
+                  )}
                 </div>
-                <span className="text-[13px] font-bold text-[#1A1918]">{avgRating}</span>
-                <span className="text-[10px] text-[#868B94]">{reviews.length}개 리뷰</span>
+                <Link href={`/map/${p.id}/review`} className="px-3 py-1.5 bg-[#3D8A5A] text-white text-[11px] font-semibold rounded-lg">리뷰 쓰기</Link>
               </div>
 
               {/* 태그 요약 */}
@@ -275,36 +278,39 @@ function PlaceCard({ place: p }: { place: Place }) {
                 const sorted = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 5)
                 if (sorted.length === 0) return null
                 return (
-                  <div className="flex flex-wrap gap-1 mb-2">
+                  <div className="flex flex-wrap gap-1 mt-2">
                     {sorted.map(([tag, count]) => (
                       <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full bg-[#F0F9F4] text-[#3D8A5A]">{tag} ({count})</span>
                     ))}
                   </div>
                 )
               })()}
+            </div>
 
-              {/* 리뷰 목록 */}
-              {reviews.map(r => (
-                <div key={r.id} className="bg-[#F5F4F1] rounded-lg p-2.5">
-                  <div className="flex items-center gap-1 mb-1">
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map(s => (
-                        <span key={s} className={`text-[10px] ${s <= r.rating ? 'text-amber-400' : 'text-[#E0E0E0]'}`}>★</span>
-                      ))}
-                    </div>
-                    {r.child_age_months !== null && <span className="text-[9px] text-[#868B94]">· 방문 시 {r.child_age_months}개월</span>}
+            {/* 리뷰 스크롤 */}
+            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2.5">
+              {reviews.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-[13px] text-[#AEB1B9]">아직 리뷰가 없어요</p>
+                  <Link href={`/map/${p.id}/review`} className="text-[12px] text-[#3D8A5A] font-semibold mt-2 inline-block">첫 리뷰 작성하기 →</Link>
+                </div>
+              ) : reviews.map(r => (
+                <div key={r.id} className="bg-[#F5F4F1] rounded-xl p-3">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <div className="flex">{[1,2,3,4,5].map(s => <span key={s} className={`text-[11px] ${s <= r.rating ? 'text-amber-400' : 'text-[#E0E0E0]'}`}>★</span>)}</div>
+                    {r.child_age_months !== null && <span className="text-[9px] text-[#868B94]">· 아이 {r.child_age_months}개월</span>}
+                    <span className="text-[9px] text-[#AEB1B9] ml-auto">{new Date(r.created_at).toLocaleDateString('ko-KR')}</span>
                   </div>
                   <p className="text-[12px] text-[#1A1918] leading-relaxed">{r.content}</p>
                   {r.tags && r.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {r.tags.map(t => <span key={t} className="text-[8px] px-1.5 py-0.5 rounded bg-white text-[#868B94]">{t}</span>)}
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {r.tags.map(t => <span key={t} className="text-[8px] px-1.5 py-0.5 rounded-full bg-white text-[#868B94]">{t}</span>)}
                     </div>
                   )}
-                  <p className="text-[9px] text-[#AEB1B9] mt-1">{new Date(r.created_at).toLocaleDateString('ko-KR')}</p>
                 </div>
               ))}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

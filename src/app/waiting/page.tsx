@@ -203,14 +203,14 @@ export default function WaitingPage() {
         {cycle && (() => {
           const today = new Date()
           const dpo = Math.floor((today.getTime() - cycle.ovulationDay.getTime()) / 86400000)
-          const isTWW = dpo >= 0 && dpo <= 14
+          const isWaiting = dpo >= 0 && dpo <= 14
           const todayStr = formatDate(today)
           const isFertile = cycle.cycles.some(c => todayStr >= c.fertileStart && todayStr <= c.fertileEnd)
           const daysToNext = Math.ceil((cycle.nextPeriod.getTime() - today.getTime()) / 86400000)
 
           return (
             <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-5 text-center">
-              {isTWW ? (
+              {isWaiting ? (
                 <>
                   <p className="text-3xl mb-2">🤞</p>
                   <p className="text-[18px] font-bold text-[#1A1918]">착상을 기다리는 중</p>

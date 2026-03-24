@@ -213,7 +213,7 @@ export default function PreparingPage() {
     return 'follicular'
   }, [cycle])
 
-  const phaseLabel: Record<string, string> = { fertile: '가임기', ovulation: '배란일', tww: '착상 대기', period: '생리 중', follicular: '난포기', unknown: '-' }
+  const phaseLabel: Record<string, string> = { fertile: '가임기', ovulation: '배란일', tww: '착상 기다리는 중', period: '생리 중', follicular: '준비기', unknown: '-' }
 
   // AI 브리핑 (하루 1회 캐시)
   const [aiError, setAiError] = useState<string | null>(null)
@@ -486,11 +486,11 @@ export default function PreparingPage() {
               </div>
             )}
 
-            {/* 투윅웨이트 인라인 */}
+            {/* 착상 기다리는 중 인라인 */}
             {showTWW && (
               <div className="mt-3 pt-3 border-t border-[#C8F0D8]/50">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-[11px] font-semibold text-[#1A1918]">🤞 투윅웨이트 D+{dpo}</p>
+                  <p className="text-[11px] font-semibold text-[#1A1918]">🤞 착상 기다리는 중 D+{dpo}</p>
                   <p className="text-[10px] text-[#3D8A5A]">{Math.round((dpo / 14) * 100)}%</p>
                 </div>
                 <div className="w-full h-1.5 bg-white/50 rounded-full">
@@ -615,7 +615,7 @@ export default function PreparingPage() {
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-[14px] font-bold text-[#1A1918]">🍽️ {new Date().getHours() < 10 ? '아침' : new Date().getHours() < 14 ? '점심' : new Date().getHours() < 18 ? '간식' : '저녁'} 뭐 먹지?</p>
-              <p className="text-[10px] text-[#868B94]">{getCyclePhase() === 'fertile' ? '가임기' : getCyclePhase() === 'tww' ? '착상기' : '난포기'} 맞춤</p>
+              <p className="text-[10px] text-[#868B94]">{getCyclePhase() === 'fertile' ? '가임기' : getCyclePhase() === 'tww' ? '기다림' : '준비기'} 맞춤</p>
             </div>
             {aiMeal && <button onClick={() => fetchAIMeal(true)} className="text-[10px] text-[#3D8A5A]">다른 추천</button>}
           </div>

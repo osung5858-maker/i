@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 
 [사용자 상태]
 - 생리 주기: ${cycleLength}일 / 현재 ${cycleDay}일차
-- 주기 단계: ${phase} (follicular=난포기, fertile=가임기, ovulation=배란일, luteal=황체기, tww=투윅웨이트)
+- 주기 단계: ${phase} (follicular=준비기, fertile=가임기, ovulation=배란일, luteal=황체기, tww=착상 기다리는 중)
 - 엄마 나이: ${motherAge || '미입력'}세
 - 아빠 나이: ${fatherAge || '미입력'}세
 - 오늘 기분: ${mood || '미기록'}
