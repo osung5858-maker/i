@@ -22,7 +22,7 @@ function getCycleInfo(lastPeriodStart: string, cycleLength: number) {
 
 // ===== AI 브리핑 타입 =====
 interface AIBriefing {
-  greeting: string; mainAdvice: string; cycleInsight: string
+  summary?: string; greeting?: string; mainAdvice: string; cycleInsight: string
   nutritionTip: string; emotionalCare: string; partnerTip: string; todayScore: number
 }
 
@@ -68,13 +68,8 @@ function AITypingDisplay({ briefing, onRefresh, onShare }: { briefing: any; onRe
           <span className="text-[9px] text-white font-bold">AI</span>
         </div>
         <div className="flex-1">
-          {/* 요약 (항상 보임) */}
-          <p className="text-[13px] font-semibold text-[#1A1918]">{briefing.greeting}</p>
-
-          {/* 펼치기 전: 메인 조언 1줄만 */}
-          {!expanded && (
-            <p className="text-[11px] text-[#868B94] mt-1 line-clamp-2">{briefing.mainAdvice}</p>
-          )}
+          {/* 요약 (항상 보임) — 핵심 2-3줄 */}
+          <p className="text-[12px] text-[#1A1918] leading-relaxed whitespace-pre-line">{briefing.summary || briefing.greeting}</p>
 
           {/* 펼친 후: 전체 */}
           {expanded && (
@@ -194,7 +189,7 @@ export default function PreparingPage() {
       if (cached) {
         try {
           const { date, data } = JSON.parse(cached)
-          if (date === today && data.greeting) { setAiBriefing(data); return }
+          if (date === today && (data.summary || data.greeting)) { setAiBriefing(data); return }
         } catch { /* */ }
       }
     }
@@ -415,7 +410,7 @@ export default function PreparingPage() {
                 </div>
               </div>
             ) : aiBriefing ? (
-              <AITypingDisplay briefing={aiBriefing} onRefresh={() => fetchAIBriefing(true)} onShare={() => shareAIAdvice(aiBriefing.greeting, aiBriefing.mainAdvice, getCyclePhase())} />
+              <AITypingDisplay briefing={aiBriefing} onRefresh={() => fetchAIBriefing(true)} onShare={() => shareAIAdvice(aiBriefing.summary || aiBriefing.greeting || '', aiBriefing.mainAdvice, getCyclePhase())} />
             ) : (
               <div className="text-center py-3">
                 <p className="text-[13px] text-[#1A1918] mb-2">오늘의 맞춤 조언을 받아보세요</p>

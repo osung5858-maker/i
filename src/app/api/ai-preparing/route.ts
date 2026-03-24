@@ -65,10 +65,12 @@ export async function POST(request: Request) {
 - 스트레스: ${stress === undefined ? '미기록' : ['좋음', '보통', '높음', '매우높음'][stress]}
 
 [요청]
-위 데이터를 종합해 오늘의 맞춤 조언을 JSON 형식으로 작성하세요:
+위 데이터를 종합해 오늘의 맞춤 조언을 JSON 형식으로 작성하세요.
+인사말("안녕하세요" 등) 절대 넣지 마세요. 핵심 정보와 행동 제안만.
+
 {
-  "greeting": "오늘의 인사 (주기 단계 반영, 1문장)",
-  "mainAdvice": "가장 중요한 조언 (2-3문장, 구체적 행동 제안)",
+  "summary": "오늘 가장 중요한 핵심 2-3줄 (주기 상태 + 해야 할 것 + 주의사항. 구체적으로)",
+  "mainAdvice": "상세 조언 (3-4문장, 구체적 행동 제안)",
   "cycleInsight": "주기 단계별 특화 조언 (1-2문장)",
   "nutritionTip": "오늘 추천 음식/영양소 (1문장)",
   "emotionalCare": "감정 상태 기반 마음 케어 (1-2문장)",
@@ -83,11 +85,11 @@ JSON만 출력하세요.`
 
       try {
         const jsonMatch = text.match(/\{[\s\S]*\}/)
-        if (!jsonMatch) return NextResponse.json({ greeting: text.slice(0, 200), mainAdvice: '', cycleInsight: '', nutritionTip: '', emotionalCare: '', partnerTip: '', todayScore: 70 })
+        if (!jsonMatch) return NextResponse.json({ summary: text.slice(0, 200), mainAdvice: '', cycleInsight: '', nutritionTip: '', emotionalCare: '', partnerTip: '', todayScore: 70 })
         const parsed = JSON.parse(jsonMatch[0])
         return NextResponse.json(parsed)
       } catch {
-        return NextResponse.json({ greeting: text.slice(0, 200), mainAdvice: '', cycleInsight: '', nutritionTip: '', emotionalCare: '', partnerTip: '', todayScore: 70 })
+        return NextResponse.json({ summary: text.slice(0, 200), mainAdvice: '', cycleInsight: '', nutritionTip: '', emotionalCare: '', partnerTip: '', todayScore: 70 })
       }
     }
 
