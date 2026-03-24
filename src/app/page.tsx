@@ -281,77 +281,15 @@ export default function HomePage() {
         <div className="max-w-lg mx-auto w-full pt-4 pb-44 px-5 space-y-3">
 
           {/* ━━━ 1. AI 히어로 ━━━ */}
-          <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">✨</span>
-                <p className="text-[14px] font-bold text-[#1A1918]">AI 데일리 케어</p>
-              </div>
-              <button onClick={() => shareTodayRecord(child?.name || '아이', ageMonths, todayFeedCount, todaySleepCount, todayPoopCount)} className="text-[10px] text-[#3D8A5A]">카톡 공유</button>
-            </div>
-
-            {/* 오늘 요약 */}
-            <div className="flex gap-2 mb-3">
-              {[
-                { emoji: '🍼', count: todayFeedCount, label: '수유' },
-                { emoji: '💤', count: todaySleepCount, label: '수면' },
-                { emoji: '🩲', count: todayPoopCount, label: '배변' },
-              ].map((s) => (
-                <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center">
-                  <p className="text-[14px] font-bold text-[#1A1918]">{s.emoji} {s.count}</p>
-                  <p className="text-[9px] text-[#AEB1B9]">{s.label}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* AI 인사이트 */}
-            <div className="space-y-1.5">
-              {events.length === 0 ? (
-                <p className="text-[12px] text-[#868B94]">{child?.name || '아이'}의 오늘 첫 기록을 남겨보세요</p>
-              ) : (
-                <>
-                  <p className="text-[12px] text-[#1A1918] leading-relaxed">
-                    {`수유 ${todayFeedCount}회${todaySleepCount > 0 ? ` · 수면 ${todaySleepCount}회` : ''}${todayPoopCount > 0 ? ` · 배변 ${todayPoopCount}회` : ''}`}
-                  </p>
-                  {/* 마지막 수유로부터 경과 시간 */}
-                  {(() => {
-                    const lastFeed = events.find(e => e.type === 'feed')
-                    const lastSleep = events.find(e => e.type === 'sleep')
-                    if (!lastFeed && !lastSleep) return null
-                    const insights: string[] = []
-                    if (lastFeed) {
-                      const min = Math.round((Date.now() - new Date(lastFeed.start_ts).getTime()) / 60000)
-                      if (min < 60) insights.push(`🍼 마지막 수유 ${min}분 전`)
-                      else insights.push(`🍼 마지막 수유 ${Math.floor(min / 60)}시간 ${min % 60}분 전`)
-                    }
-                    if (lastSleep) {
-                      if (lastSleep.end_ts) {
-                        const dur = Math.round((new Date(lastSleep.end_ts).getTime() - new Date(lastSleep.start_ts).getTime()) / 60000)
-                        insights.push(`💤 최근 수면 ${dur}분`)
-                      } else {
-                        const min = Math.round((Date.now() - new Date(lastSleep.start_ts).getTime()) / 60000)
-                        insights.push(`💤 수면 중 (${min}분째)`)
-                      }
-                    }
-                    if (todayFeedCount >= 3) {
-                      const feedTimes = events.filter(e => e.type === 'feed').map(e => new Date(e.start_ts).getTime())
-                      if (feedTimes.length >= 2) {
-                        const avgGap = Math.round((feedTimes[0] - feedTimes[feedTimes.length - 1]) / (feedTimes.length - 1) / 60000)
-                        insights.push(`📊 평균 수유 간격 ${Math.floor(avgGap / 60)}시간 ${avgGap % 60}분`)
-                      }
-                    }
-                    return (
-                      <div className="flex flex-wrap gap-1.5">
-                        {insights.map((t, i) => (
-                          <span key={i} className="text-[10px] text-[#3D8A5A] bg-[#E8F5E9] px-2 py-0.5 rounded-full">{t}</span>
-                        ))}
-                      </div>
-                    )
-                  })()}
-                </>
-              )}
-            </div>
-          </div>
+          <AiCareCard
+            childName={child?.name || '아이'}
+            ageMonths={ageMonths}
+            events={events}
+            todayFeedCount={todayFeedCount}
+            todaySleepCount={todaySleepCount}
+            todayPoopCount={todayPoopCount}
+            onShare={() => shareTodayRecord(child?.name || '아이', ageMonths, todayFeedCount, todaySleepCount, todayPoopCount)}
+          />
 
           {/* ━━━ 2. 최근 기록 (스크롤) ━━━ */}
           <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
@@ -656,6 +594,135 @@ function KidsnoteCard() {
 
       {/* 사진 뷰어 */}
       {viewerImages && <KnImageViewer images={viewerImages} startIndex={viewerStart} onClose={() => setViewerImages(null)} />}
+    </div>
+  )
+}
+
+// === AI 데일리 케어 카드 (Gemini) ===
+function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCount, todayPoopCount, onShare }: {
+  childName: string; ageMonths: number; events: CareEvent[]; todayFeedCount: number; todaySleepCount: number; todayPoopCount: number; onShare: () => void
+}) {
+  const [ai, setAi] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    // 캐시 확인 (하루 1회)
+    const cacheKey = `dodam_ai_care_${new Date().toISOString().split('T')[0]}_${events.length}`
+    const cached = localStorage.getItem(cacheKey)
+    if (cached) { try { setAi(JSON.parse(cached)); return } catch { /* */ } }
+
+    // 기록 3건 이상일 때만 AI 호출
+    if (events.length < 3) return
+    fetchAi(cacheKey)
+  }, [events.length])
+
+  const fetchAi = async (cacheKey: string) => {
+    setLoading(true)
+    try {
+      const lastFeed = events.find(e => e.type === 'feed')
+      const lastSleep = events.find(e => e.type === 'sleep')
+      const feedAmounts = events.filter(e => e.type === 'feed' && e.amount_ml).map(e => `${e.amount_ml}ml`).join(', ')
+      const feedTimes = events.filter(e => e.type === 'feed').map(e => new Date(e.start_ts).getTime())
+      const avgFeedGap = feedTimes.length >= 2 ? Math.round((feedTimes[0] - feedTimes[feedTimes.length - 1]) / (feedTimes.length - 1) / 60000) : null
+      const sleepTotal = events.filter(e => e.type === 'sleep' && e.end_ts).reduce((sum, e) => sum + Math.round((new Date(e.end_ts!).getTime() - new Date(e.start_ts).getTime()) / 60000), 0)
+      const feedTotal = events.filter(e => e.type === 'feed').reduce((sum, e) => sum + (e.amount_ml || 0), 0)
+
+      const res = await fetch('/api/ai-parenting', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'daily', childName, ageMonths,
+          feedCount: todayFeedCount, sleepCount: todaySleepCount, poopCount: todayPoopCount,
+          feedTotal: feedTotal || null, sleepTotal: sleepTotal || null,
+          lastFeedMinAgo: lastFeed ? Math.round((Date.now() - new Date(lastFeed.start_ts).getTime()) / 60000) : null,
+          lastSleepMinAgo: lastSleep ? Math.round((Date.now() - new Date(lastSleep.start_ts).getTime()) / 60000) : null,
+          avgFeedGap, sleepingNow: !!events.find(e => e.type === 'sleep' && !e.end_ts),
+          feedAmounts,
+        }),
+      })
+      const data = await res.json()
+      if (data.mainInsight || data.greeting) {
+        setAi(data)
+        localStorage.setItem(cacheKey, JSON.stringify(data))
+      }
+    } catch { /* */ }
+    setLoading(false)
+  }
+
+  const statusColors: Record<string, string> = { '좋음': 'bg-[#E8F5E9] text-[#2E7D32]', '보통': 'bg-[#FFF8E1] text-[#F57F17]', '주의': 'bg-[#FFF0E6] text-[#D08068]' }
+
+  return (
+    <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm">✨</span>
+          <p className="text-[14px] font-bold text-[#1A1918]">AI 데일리 케어</p>
+          {ai?.status && (
+            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${statusColors[ai.status] || 'bg-[#F0F0F0] text-[#868B94]'}`}>
+              {ai.statusEmoji} {ai.status}
+            </span>
+          )}
+        </div>
+        <button onClick={onShare} className="text-[10px] text-[#3D8A5A]">카톡 공유</button>
+      </div>
+
+      {/* 오늘 요약 */}
+      <div className="flex gap-2 mb-3">
+        {[
+          { emoji: '🍼', count: todayFeedCount, label: '수유' },
+          { emoji: '💤', count: todaySleepCount, label: '수면' },
+          { emoji: '🩲', count: todayPoopCount, label: '배변' },
+        ].map((s) => (
+          <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center">
+            <p className="text-[14px] font-bold text-[#1A1918]">{s.emoji} {s.count}</p>
+            <p className="text-[9px] text-[#AEB1B9]">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* AI 분석 결과 */}
+      {loading && <p className="text-[11px] text-[#AEB1B9] text-center py-2">AI가 기록을 분석하고 있어요...</p>}
+
+      {events.length < 3 && !ai && !loading && (
+        <p className="text-[11px] text-[#868B94]">기록이 3건 이상 쌓이면 AI가 분석을 시작해요</p>
+      )}
+
+      {ai && (
+        <div className="space-y-2">
+          {/* 핵심 인사이트 */}
+          {ai.mainInsight && (
+            <p className="text-[12px] text-[#1A1918] leading-relaxed">{ai.mainInsight}</p>
+          )}
+
+          {/* 다음 행동 제안 */}
+          {ai.nextAction && (
+            <div className="bg-[#E8F5E9] rounded-lg px-3 py-2">
+              <p className="text-[11px] text-[#2E7D32] font-medium">👉 {ai.nextAction}</p>
+            </div>
+          )}
+
+          {/* 경고 */}
+          {ai.warning && (
+            <div className="bg-[#FFF0E6] rounded-lg px-3 py-2">
+              <p className="text-[11px] text-[#D08068]">⚠️ {ai.warning}</p>
+            </div>
+          )}
+
+          {/* 상세 (펼치기) */}
+          {!expanded && (ai.feedAnalysis || ai.sleepAnalysis || ai.parentTip) && (
+            <button onClick={() => setExpanded(true)} className="text-[10px] text-[#3D8A5A] font-medium">자세히 보기 ▼</button>
+          )}
+
+          {expanded && (
+            <div className="space-y-1.5 pt-1 border-t border-[#C8F0D8]/50">
+              {ai.feedAnalysis && <p className="text-[11px] text-[#868B94]">🍼 {ai.feedAnalysis}</p>}
+              {ai.sleepAnalysis && <p className="text-[11px] text-[#868B94]">💤 {ai.sleepAnalysis}</p>}
+              {ai.parentTip && <p className="text-[11px] text-[#3D8A5A]">💚 {ai.parentTip}</p>}
+              <button onClick={() => setExpanded(false)} className="text-[10px] text-[#AEB1B9]">접기 ▲</button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
