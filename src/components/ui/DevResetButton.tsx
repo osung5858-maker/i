@@ -57,6 +57,19 @@ export default function DevResetButton() {
             ))}
           </div>
 
+          <p className="text-[9px] text-[#868B94] mb-1">FAB 스타일</p>
+          <div className="flex gap-1 mb-2">
+            {[
+              { style: 'A', label: 'A: TOP5' },
+              { style: 'B', label: 'B: 변신' },
+            ].map(s => (
+              <button key={s.style} onClick={() => { localStorage.setItem('dodam_fab_style', s.style); window.location.reload() }}
+                className={`flex-1 py-1 rounded text-[9px] font-medium ${localStorage.getItem('dodam_fab_style') === s.style ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#868B94]'}`}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+
           <button onClick={resetLocalData}
             className="w-full py-2 rounded-lg bg-red-500 text-white text-[11px] font-semibold active:opacity-80 mb-1">
             🗑️ 로컬 데이터 리셋
