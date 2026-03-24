@@ -152,7 +152,12 @@ function MapTab({ categories }: { categories: { icon: string; label: string; que
       navigator.geolocation.getCurrentPosition((pos) => {
         posRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude }
         doSearch(pos.coords.latitude, pos.coords.longitude)
-      }, () => setLoading(false), { enableHighAccuracy: true })
+      }, () => {
+        // 위치 권한 거부 시 서울 강남역 기준으로 검색
+        const defaultLat = 37.4979, defaultLng = 127.0276
+        posRef.current = { lat: defaultLat, lng: defaultLng }
+        doSearch(defaultLat, defaultLng)
+      }, { enableHighAccuracy: true, timeout: 5000 })
     }
   }, [])
 
