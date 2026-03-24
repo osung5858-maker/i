@@ -338,12 +338,12 @@ export default function WaitingPage() {
               const isToday = formatDate(date) === formatDate(now)
               const ds = formatDate(date)
               return (
-                <button key={ds} onClick={() => setSelectedDate(ds === selectedDate ? null : ds)}
-                  className={`aspect-square rounded-lg flex flex-col items-center justify-center text-[10px] font-medium relative ${
+                <button key={ds}
+                  onClick={() => toggleIntimacy(ds)}
+                  className={`aspect-square rounded-lg flex flex-col items-center justify-center text-[10px] font-medium relative active:scale-95 transition-transform ${
                     isToday ? 'ring-2 ring-[#3D8A5A]' : status === 'period' ? 'bg-[#FDE8E8] text-[#D08068]' : status === 'ovulation' ? 'bg-[#3D8A5A] text-white' : status === 'fertile' ? 'bg-[#C8F0D8] text-[#3D8A5A]' : 'bg-[#F7F8FA] text-[#1A1918]'
                   }`}>
-                  {date.getDate()}
-                  {intimacyDates[ds] && <span className="absolute -top-0.5 -right-0.5 text-[8px]">❤️</span>}
+                  {intimacyDates[ds] ? <span className="text-[11px]">❤️</span> : date.getDate()}
                 </button>
               )
             })}
@@ -353,6 +353,13 @@ export default function WaitingPage() {
             <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#C8F0D8]" /><span className="text-[9px] text-[#868B94]">가임기</span></div>
             <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#3D8A5A]" /><span className="text-[9px] text-[#868B94]">배란일</span></div>
             <div className="flex items-center gap-1"><span className="text-[9px]">❤️</span><span className="text-[9px] text-[#868B94]">함께한 날</span></div>
+          </div>
+          <p className="text-[9px] text-[#AEB1B9] text-center mt-2">날짜 탭 = ❤️ 토글 · 아래에서 체온/배란 기록</p>
+          {/* 날짜 선택 (체온/배란용) */}
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#f0f0f0]">
+            <span className="text-[12px] text-[#868B94]">기록할 날짜</span>
+            <input type="date" value={selectedDate || ''} onChange={e => setSelectedDate(e.target.value || null)}
+              className="h-8 rounded-lg border border-[#f0f0f0] px-2 text-[12px] text-[#1A1918]" />
           </div>
         </div>
 
@@ -370,13 +377,6 @@ export default function WaitingPage() {
                   <button onClick={() => recordOvulationTest(selectedDate, true)} className={`px-3 py-1 rounded-lg text-[11px] ${ovulationTests[selectedDate] === true ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#868B94]'}`}>양성</button>
                   <button onClick={() => recordOvulationTest(selectedDate, false)} className={`px-3 py-1 rounded-lg text-[11px] ${ovulationTests[selectedDate] === false ? 'bg-[#D08068] text-white' : 'bg-[#F0F0F0] text-[#868B94]'}`}>음성</button>
                 </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] text-[#868B94]">함께한 날</span>
-                <button onClick={() => toggleIntimacy(selectedDate)}
-                  className={`px-4 py-1.5 rounded-lg text-[11px] font-medium ${intimacyDates[selectedDate] ? 'bg-[#FFE0E6] text-[#E8537A]' : 'bg-[#F0F0F0] text-[#868B94]'}`}>
-                  {intimacyDates[selectedDate] ? '❤️ 기록됨' : '🤍 기록하기'}
-                </button>
               </div>
             </div>
           </div>
