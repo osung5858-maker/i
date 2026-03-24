@@ -607,15 +607,17 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
   const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
-    // 캐시 확인 (하루 1회)
+    // 캐시만 복원 (자동 호출 안 함)
     const cacheKey = `dodam_ai_care_${new Date().toISOString().split('T')[0]}_${events.length}`
     const cached = localStorage.getItem(cacheKey)
-    if (cached) { try { setAi(JSON.parse(cached)); return } catch { /* */ } }
-
-    // 기록 3건 이상일 때만 AI 호출
-    if (events.length < 3) return
-    fetchAi(cacheKey)
+    if (cached) { try { setAi(JSON.parse(cached)) } catch { /* */ } }
   }, [events.length])
+
+  const handleAiCare = () => {
+    if (events.length < 3) return
+    const cacheKey = `dodam_ai_care_${new Date().toISOString().split('T')[0]}_${events.length}`
+    fetchAi(cacheKey)
+  }
 
   const fetchAi = async (cacheKey: string) => {
     setLoading(true)
@@ -683,8 +685,11 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
       {/* AI 분석 결과 */}
       {loading && <p className="text-[11px] text-[#AEB1B9] text-center py-2">AI가 기록을 분석하고 있어요...</p>}
 
-      {events.length < 3 && !ai && !loading && (
-        <p className="text-[11px] text-[#868B94]">기록이 3건 이상 쌓이면 AI가 분석을 시작해요</p>
+      {!ai && !loading && (
+        <button onClick={handleAiCare} disabled={events.length < 3}
+          className="w-full py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-40">
+          {events.length < 3 ? `기록 ${3 - events.length}건 더 남기면 AI 케어 가능` : '✨ AI 케어받기'}
+        </button>
       )}
 
       {ai && (
