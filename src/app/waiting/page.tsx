@@ -445,11 +445,20 @@ function PregnantWaitingPage() {
       </header>
 
       <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
+        {/* 출산 확인 (D-day 지남) */}
+        {daysLeft <= 0 && (
+          <Link href="/birth" className="block bg-gradient-to-r from-[#FFF0E6] to-[#FFF8F3] rounded-xl border border-[#FFDDC8] p-5 text-center active:opacity-80">
+            <p className="text-3xl mb-2">👶</p>
+            <p className="text-[16px] font-bold text-[#1A1918]">우리 아이, 만났나요?</p>
+            <p className="text-[13px] font-semibold text-[#3D8A5A] mt-2">🎉 네, 만났어요! →</p>
+          </Link>
+        )}
+
         {/* 히어로 — 아이를 만나는 날 */}
         <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-5 text-center">
-          <p className="text-3xl mb-2">👶</p>
-          <p className="text-[18px] font-bold text-[#1A1918]">아이를 만나는 날</p>
-          <p className="text-[28px] font-bold text-[#3D8A5A] mt-1">D-{daysLeft}</p>
+          <p className="text-3xl mb-2">{daysLeft <= 7 ? '💛' : '👶'}</p>
+          <p className="text-[18px] font-bold text-[#1A1918]">{daysLeft <= 0 ? '만날 날이 지났어요!' : daysLeft <= 7 ? '이번 주에 만나요!' : '아이를 만나는 날'}</p>
+          <p className="text-[28px] font-bold text-[#3D8A5A] mt-1">{daysLeft <= 0 ? `D+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</p>
           <div className="w-full h-2 bg-[#F0F0F0] rounded-full mt-3">
             <div className="h-full bg-[#3D8A5A] rounded-full" style={{ width: `${(currentWeek / 40) * 100}%` }} />
           </div>

@@ -527,6 +527,30 @@ export default function PregnantPage() {
 
       <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
 
+        {/* ━━━ 출산 확인 (D-day 지남) ━━━ */}
+        {daysLeft <= 0 && (
+          <Link href="/birth" className="block bg-gradient-to-r from-[#FFF0E6] to-[#FFF8F3] rounded-xl border border-[#FFDDC8] p-5 text-center active:opacity-80 animate-[fadeIn_0.5s]">
+            <p className="text-3xl mb-2">👶</p>
+            <p className="text-[16px] font-bold text-[#1A1918]">우리 아이, 만났나요?</p>
+            <p className="text-[12px] text-[#868B94] mt-1">출산 예정일이 지났어요!</p>
+            <p className="text-[13px] font-semibold text-[#3D8A5A] mt-3">🎉 네, 만났어요! →</p>
+          </Link>
+        )}
+
+        {/* ━━━ 출산 임박 (D-14 이내) ━━━ */}
+        {daysLeft > 0 && daysLeft <= 14 && (
+          <div className="bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">💛</span>
+              <div className="flex-1">
+                <p className="text-[13px] font-bold text-[#1A1918]">곧 만나요! D-{daysLeft}</p>
+                <p className="text-[11px] text-[#868B94]">출산 가방은 준비됐나요? 진통 타이머도 확인해보세요</p>
+              </div>
+              <Link href="/birth" className="text-[10px] text-[#3D8A5A] font-semibold shrink-0">출산했어요 →</Link>
+            </div>
+          </div>
+        )}
+
         {/* ━━━ 태명 유도 (미설정 시) ━━━ */}
         {!localStorage.getItem('dodam_baby_nickname') && (
           <Link href="/name" className="block bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-xl border border-[#FFDDC8]/50 p-4 active:opacity-80">
