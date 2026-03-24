@@ -71,6 +71,8 @@ export default function HomePage() {
 
       const currentChild = children[0] as Child
       setChild(currentChild)
+      // FAB 월령별 구성을 위해 localStorage에 저장
+      localStorage.setItem('dodam_child_birthdate', currentChild.birthdate)
 
       const { start, end } = getTodayRange()
       const { data: todayEvents } = await supabase
