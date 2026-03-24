@@ -347,21 +347,10 @@ export default function PreparingPage() {
             </div>
           </div>
 
-          {/* 내 생년월일 */}
+          {/* 내 출생연도 */}
           <div className="mb-5">
             <p className="text-[12px] font-semibold text-[#868B94] mb-1">내 출생연도 {myAge > 0 && <span className="text-[#3D8A5A] font-bold">{myAge}세</span>}</p>
             <select value={myBirth} onChange={(e) => setMyBirth(e.target.value)} className="w-full h-12 rounded-xl border border-[#f0f0f0] px-3 text-[14px] bg-white">
-              <option value="">선택</option>
-              {Array.from({ length: 40 }, (_, i) => new Date().getFullYear() - 20 - i).map(y => (
-                <option key={y} value={`${y}-06-15`}>{y}년생</option>
-              ))}
-            </select>
-          </div>
-
-          {/* 파트너 생년월일 */}
-          <div className="mb-5">
-            <p className="text-[12px] font-semibold text-[#868B94] mb-1">파트너 출생연도 {partnerAge > 0 && <span className="text-[#3D8A5A] font-bold">{partnerAge}세</span>}</p>
-            <select value={partnerBirth} onChange={(e) => setPartnerBirth(e.target.value)} className="w-full h-12 rounded-xl border border-[#f0f0f0] px-3 text-[14px] bg-white">
               <option value="">선택</option>
               {Array.from({ length: 40 }, (_, i) => new Date().getFullYear() - 20 - i).map(y => (
                 <option key={y} value={`${y}-06-15`}>{y}년생</option>
