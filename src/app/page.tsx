@@ -440,21 +440,41 @@ export default function HomePage() {
 
 function KidsnoteCard() {
   const [items, setItems] = useState<any[]>([])
+  const [connected, setConnected] = useState(false)
   useEffect(() => {
     const saved = localStorage.getItem('dodam_kidsnote_saved')
     if (saved) {
       try { setItems(JSON.parse(saved).slice(0, 3)) } catch { /* */ }
     }
+    setConnected(!!localStorage.getItem('kn_credentials') || !!sessionStorage.getItem('kn_session'))
   }, [])
 
-  if (items.length === 0) return null
+  // 연결 전: 유도 카드
+  if (items.length === 0) {
+    return (
+      <Link href="/kidsnote" className="block bg-gradient-to-r from-[#FFF8F0] to-[#F0FAF4] rounded-xl border border-[#f0f0f0] p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🏫</span>
+            <div>
+              <p className="text-[13px] font-bold text-[#1A1918]">키즈노트 연동</p>
+              <p className="text-[11px] text-[#868B94]">{connected ? '알림장 · 앨범을 가져와보세요' : '어린이집 알림장을 도담으로'}</p>
+            </div>
+          </div>
+          <ChevronRightIcon className="w-4 h-4 text-[#AEB1B9]" />
+        </div>
+      </Link>
+    )
+  }
 
+  // 연결 후: 최신 데이터 미리보기
   return (
     <Link href="/kidsnote" className="block bg-white rounded-xl border border-[#f0f0f0] p-3">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <span className="text-sm">🏫</span>
           <span className="text-[13px] font-bold text-[#1A1918]">키즈노트</span>
+          <span className="text-[9px] text-[#3D8A5A] bg-[#E8F5E9] px-1.5 py-0.5 rounded-full">연동됨</span>
         </div>
         <ChevronRightIcon className="w-4 h-4 text-[#AEB1B9]" />
       </div>
