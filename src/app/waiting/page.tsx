@@ -199,17 +199,77 @@ export default function WaitingPage() {
 
       <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
 
-        {/* 편지 */}
+        {/* ━━━ 히어로: 기다림의 감성 ━━━ */}
+        {cycle && (() => {
+          const today = new Date()
+          const dpo = Math.floor((today.getTime() - cycle.ovulationDay.getTime()) / 86400000)
+          const isTWW = dpo >= 0 && dpo <= 14
+          const todayStr = formatDate(today)
+          const isFertile = cycle.cycles.some(c => todayStr >= c.fertileStart && todayStr <= c.fertileEnd)
+          const daysToNext = Math.ceil((cycle.nextPeriod.getTime() - today.getTime()) / 86400000)
+
+          return (
+            <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-5 text-center">
+              {isTWW ? (
+                <>
+                  <p className="text-3xl mb-2">🤞</p>
+                  <p className="text-[18px] font-bold text-[#1A1918]">착상을 기다리는 중</p>
+                  <p className="text-[24px] font-bold text-[#3D8A5A] mt-1">D+{dpo}</p>
+                  <div className="w-full h-2 bg-[#F0F0F0] rounded-full mt-3 mb-2">
+                    <div className="h-full bg-[#3D8A5A] rounded-full transition-all" style={{ width: `${Math.min((dpo / 14) * 100, 100)}%` }} />
+                  </div>
+                  <p className="text-[12px] text-[#868B94]">
+                    {dpo <= 3 ? '아직 이른 시기예요. 평소처럼 지내세요' :
+                     dpo <= 7 ? '착상이 진행 중일 수 있어요. 무리하지 마세요' :
+                     dpo <= 10 ? '조급해하지 않아도 돼요. 자신을 돌보세요' :
+                     '빠르면 테스트 가능. 서두르지 않아도 괜찮아요'}
+                  </p>
+                </>
+              ) : isFertile ? (
+                <>
+                  <p className="text-3xl mb-2">💫</p>
+                  <p className="text-[18px] font-bold text-[#3D8A5A]">지금 가임기예요</p>
+                  <p className="text-[12px] text-[#868B94] mt-2">가장 좋은 시기. 도담하게 준비하고 있어요</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-3xl mb-2">🌙</p>
+                  <p className="text-[18px] font-bold text-[#1A1918]">다음 기회까지</p>
+                  <p className="text-[24px] font-bold text-[#3D8A5A] mt-1">{daysToNext}일</p>
+                  <p className="text-[12px] text-[#868B94] mt-2">지금은 몸과 마음을 돌보는 시간이에요</p>
+                </>
+              )}
+            </div>
+          )
+        })()}
+
+        {/* ━━━ 임신 테스트 (항상 접근 가능) ━━━ */}
         <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[14px] font-bold text-[#1A1918]">✉️ 아이에게 보내는 편지</p>
-            <p className="text-[11px] text-[#868B94]">{letters.length}통</p>
+          <p className="text-[13px] font-bold text-[#1A1918] mb-2">🤰 임신 테스트</p>
+          <div className="flex gap-2 mb-2">
+            <button onClick={() => addPregTest('양성')} className="flex-1 py-2.5 rounded-xl bg-[#F0F9F4] text-[13px] font-semibold text-[#3D8A5A] active:opacity-80">양성 ✚</button>
+            <button onClick={() => addPregTest('음성')} className="flex-1 py-2.5 rounded-xl bg-[#F5F4F1] text-[13px] font-semibold text-[#868B94] active:opacity-80">음성 −</button>
           </div>
-          <div className="text-center py-3 mb-3 bg-[#F5F4F1] rounded-xl">
-            <div className="text-3xl mb-1">{letters.length >= 30 ? '🌳' : letters.length >= 10 ? '🌿' : '🌱'}</div>
-            <p className="text-[12px] text-[#3D8A5A] font-medium">
-              {letters.length === 0 ? '첫 편지를 보내보세요' : `${letters.length}통의 사랑을 받고 자라고 있어요`}
-            </p>
+          {pregTests.length > 0 && (
+            <div className="space-y-1">
+              {pregTests.slice(0, 3).map((t, i) => (
+                <div key={i} className="flex justify-between py-1">
+                  <span className="text-[11px] text-[#868B94]">{t.date} {t.dpo > 0 && `(D+${t.dpo})`}</span>
+                  <span className={`text-[11px] font-semibold ${t.result === '양성' ? 'text-[#3D8A5A]' : 'text-[#868B94]'}`}>{t.result}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ━━━ 편지 ━━━ */}
+        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[13px] font-bold text-[#1A1918]">✉️ 아이에게</p>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{letters.length >= 30 ? '🌳' : letters.length >= 10 ? '🌿' : '🌱'}</span>
+              <span className="text-[10px] text-[#868B94]">{letters.length}통</span>
+            </div>
           </div>
           {letters.slice(0, 2).map((l, i) => (
             <div key={i} className="mb-2">
@@ -290,21 +350,6 @@ export default function WaitingPage() {
             </div>
           </div>
         )}
-
-        {/* 임신 테스트 */}
-        <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
-          <p className="text-[14px] font-bold text-[#1A1918] mb-3">임신 테스트</p>
-          <div className="flex gap-2 mb-3">
-            <button onClick={() => addPregTest('양성')} className="flex-1 py-2 rounded-xl bg-[#F0F9F4] text-[12px] font-semibold text-[#3D8A5A]">양성 ✚</button>
-            <button onClick={() => addPregTest('음성')} className="flex-1 py-2 rounded-xl bg-[#F5F4F1] text-[12px] font-semibold text-[#868B94]">음성 −</button>
-          </div>
-          {pregTests.slice(0, 3).map((t, i) => (
-            <div key={i} className="flex justify-between py-1.5">
-              <span className="text-[12px]">{t.date}</span>
-              <span className={`text-[12px] font-semibold ${t.result === '양성' ? 'text-[#3D8A5A]' : 'text-[#868B94]'}`}>{t.result}</span>
-            </div>
-          ))}
-        </div>
 
         {/* 양성 확인 모달 */}
         {showPregConfirm && (
