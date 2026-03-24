@@ -56,13 +56,22 @@ const ARC_POSITIONS = [
 export default function BottomNav() {
   const pathname = usePathname()
   const [fabOpen, setFabOpen] = useState(false)
-  const [mode, setMode] = useState('parenting')
+  const [mode, setMode] = useState(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('dodam_mode') || 'parenting'
+    return 'parenting'
+  })
 
-  // localStorage에서 모드 읽기
+  // pathname 기반 모드 자동 감지 (localStorage보다 우선)
   useEffect(() => {
-    const saved = localStorage.getItem('dodam_mode')
-    if (saved) setMode(saved)
-  }, [])
+    if (pathname?.startsWith('/preparing') || pathname?.startsWith('/waiting')) {
+      setMode('preparing')
+    } else if (pathname?.startsWith('/pregnant')) {
+      setMode('pregnant')
+    } else {
+      const saved = localStorage.getItem('dodam_mode')
+      if (saved) setMode(saved)
+    }
+  }, [pathname])
 
   const tabs = TABS_BY_MODE[mode] || TABS_BY_MODE.parenting
 
