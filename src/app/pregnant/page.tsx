@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 import { shareFetalSize, shareDday } from '@/lib/kakao/share-pregnant'
 import StreakCard from '@/components/engagement/StreakCard'
 import CommunityTeaser from '@/components/engagement/CommunityTeaser'
@@ -345,6 +346,20 @@ export default function PregnantPage() {
 
       <div className="max-w-lg mx-auto px-5 pt-4 pb-28 space-y-3">
 
+        {/* ━━━ 태명 유도 (미설정 시) ━━━ */}
+        {!localStorage.getItem('dodam_baby_nickname') && (
+          <Link href="/name" className="block bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-xl border border-[#FFDDC8]/50 p-4 active:opacity-80">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🌟</span>
+              <div className="flex-1">
+                <p className="text-[13px] font-bold text-[#1A1918]">우리 아이 태명을 지어볼까요?</p>
+                <p className="text-[11px] text-[#868B94]">AI가 예쁜 태명을 추천해드려요</p>
+              </div>
+              <span className="text-[#AEB1B9]">→</span>
+            </div>
+          </Link>
+        )}
+
         {/* ━━━ 1. AI 히어로 + 태아 ━━━ */}
         <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-4">
           {/* 태아 비주얼 */}
@@ -378,15 +393,20 @@ export default function PregnantPage() {
             </div>
           )}
 
-          {/* 프로그레스 */}
+          {/* 프로그레스 + 감성 */}
           <div className="mt-3 pt-3 border-t border-[#C8F0D8]/50">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-[10px] text-[#868B94]">임신 여정</p>
-              <p className="text-[10px] text-[#3D8A5A]">{currentWeek}/40주</p>
+              <p className="text-[10px] text-[#868B94]">
+                {daysLeft <= 14 ? '💛 곧 만나요!' : daysLeft <= 60 ? '🌈 조금만 더!' : '🌱 함께 자라는 중'}
+              </p>
+              <p className="text-[10px] text-[#3D8A5A]">{currentWeek}주 · D-{daysLeft}</p>
             </div>
-            <div className="w-full h-1.5 bg-white/50 rounded-full">
-              <div className="h-full bg-[#3D8A5A] rounded-full" style={{ width: `${(currentWeek / 40) * 100}%` }} />
+            <div className="w-full h-2 bg-white/50 rounded-full">
+              <div className="h-full bg-[#3D8A5A] rounded-full transition-all" style={{ width: `${(currentWeek / 40) * 100}%` }} />
             </div>
+            <p className="text-[9px] text-[#AEB1B9] mt-1 text-center">
+              {Math.round((currentWeek / 40) * 100)}% 완료 · 아이를 만나는 날까지 {daysLeft}일
+            </p>
           </div>
         </div>
 
@@ -435,28 +455,40 @@ export default function PregnantPage() {
           </div>
           <button onClick={saveHealth} className="w-full py-2 bg-[#3D8A5A] text-white text-[12px] font-semibold rounded-lg active:opacity-80">기록 저장</button>
 
-          {/* 태교 일기 */}
+          {/* 태교 일기 — AI 유도 + 초음파 */}
           <div className="mt-3 pt-3 border-t border-[#f0f0f0]">
             {diaryOpen ? (
               <div>
-                <textarea value={diaryText} onChange={e => setDiaryText(e.target.value.slice(0, 500))} placeholder="오늘 아이에게 하고 싶은 말..."
-                  className="w-full h-16 text-[13px] p-3 bg-[#F5F4F1] rounded-xl resize-none focus:outline-none" autoFocus />
-                <div className="flex justify-between mt-2">
+                {/* AI 유도 프롬프트 */}
+                <p className="text-[11px] text-[#3D8A5A] mb-2 italic">
+                  {[
+                    `${currentWeek}주차, 오늘 아이에게 하고 싶은 말이 있나요?`,
+                    '오늘 태동을 느꼈다면 어떤 느낌이었나요?',
+                    '아이에게 들려주고 싶은 노래가 있나요?',
+                    '오늘 먹은 음식 중 아이도 좋아할 것 같은 건?',
+                    '아이의 태명을 부르며 어떤 이야기를 했나요?',
+                  ][Math.floor(Date.now() / 86400000) % 5]}
+                </p>
+                <textarea value={diaryText} onChange={e => setDiaryText(e.target.value.slice(0, 500))}
+                  placeholder="자유롭게 적어보세요..."
+                  className="w-full h-20 text-[13px] p-3 bg-[#F5F4F1] rounded-xl resize-none focus:outline-none" autoFocus />
+                <div className="flex justify-between items-center mt-2">
                   <button onClick={() => setDiaryOpen(false)} className="text-[12px] text-[#868B94]">취소</button>
                   <button onClick={saveDiary} disabled={!diaryText.trim() || diarySaving}
                     className={`text-[12px] font-semibold px-3 py-1 rounded-lg ${diaryText.trim() && !diarySaving ? 'bg-[#3D8A5A] text-white' : 'bg-[#F0F0F0] text-[#AEB1B9]'}`}>
-                    {diarySaving ? 'AI 코멘트 작성 중...' : '저장'}
+                    {diarySaving ? 'AI 코멘트 중...' : '저장'}
                   </button>
                 </div>
               </div>
             ) : (
-              <div>
-                <button onClick={() => setDiaryOpen(true)} className="w-full py-2 text-[12px] font-semibold text-[#3D8A5A] bg-[#F0F9F4] rounded-lg">태교 일기 쓰기 📝</button>
+              <div className="space-y-2">
+                <button onClick={() => setDiaryOpen(true)} className="w-full py-2.5 text-[12px] font-semibold text-[#3D8A5A] bg-[#F0F9F4] rounded-lg active:opacity-80">
+                  ✍️ 오늘의 태교일기
+                </button>
                 {diaries.length > 0 && (
-                  <div className="mt-2 p-2.5 bg-[#F5F4F1] rounded-lg">
+                  <div className="p-2.5 bg-[#F5F4F1] rounded-lg">
                     <p className="text-[11px] text-[#1A1918] line-clamp-2">{diaries[0].text}</p>
                     <p className="text-[10px] text-[#3D8A5A] mt-1">{diaries[0].comment}</p>
-                    <p className="text-[9px] text-[#AEB1B9] mt-0.5">{new Date(diaries[0].date).toLocaleDateString('ko-KR')} · {diaries.length}편</p>
                   </div>
                 )}
               </div>
@@ -581,6 +613,51 @@ export default function PregnantPage() {
 
         {moreOpen && (
           <div className="space-y-3">
+            {/* 주차별 맞춤 제안 */}
+            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
+              <p className="text-[13px] font-bold text-[#1A1918] mb-3">💡 {currentWeek}주차에 필요한 것</p>
+              <div className="space-y-2">
+                {/* 주차별 동적 제안 */}
+                {currentWeek <= 12 && (
+                  <>
+                    <Link href="/town" className="flex items-center gap-2 p-2 bg-[#F5F4F1] rounded-lg active:opacity-80">
+                      <span className="text-sm">🏥</span><p className="text-[11px] text-[#1A1918]">근처 산부인과 찾기</p><span className="text-[#AEB1B9] ml-auto text-xs">→</span>
+                    </Link>
+                    <div className="flex items-center gap-2 p-2 bg-[#F5F4F1] rounded-lg">
+                      <span className="text-sm">🤢</span><p className="text-[11px] text-[#1A1918]">입덧 완화법: 소량 자주 식사, 생강차, 레몬향</p>
+                    </div>
+                  </>
+                )}
+                {currentWeek >= 13 && currentWeek <= 27 && (
+                  <>
+                    <Link href="/name" className="flex items-center gap-2 p-2 bg-[#F5F4F1] rounded-lg active:opacity-80">
+                      <span className="text-sm">✨</span><p className="text-[11px] text-[#1A1918]">이름 짓기 시작하기</p><span className="text-[#AEB1B9] ml-auto text-xs">→</span>
+                    </Link>
+                    <div className="flex items-center gap-2 p-2 bg-[#F5F4F1] rounded-lg">
+                      <span className="text-sm">✈️</span><p className="text-[11px] text-[#1A1918]">태교여행 적기! 안정기(16~28주) 국내 여행 추천</p>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-[#F5F4F1] rounded-lg">
+                      <span className="text-sm">☕</span><p className="text-[11px] text-[#1A1918]">카페인 대체: 디카페인, 루이보스, 보리차</p>
+                    </div>
+                  </>
+                )}
+                {currentWeek >= 28 && (
+                  <>
+                    <Link href="/town" className="flex items-center gap-2 p-2 bg-[#F0F9F4] rounded-lg active:opacity-80">
+                      <span className="text-sm">🤱</span><p className="text-[11px] text-[#3D8A5A] font-semibold">산후조리원 투어 예약</p><span className="text-[#3D8A5A] ml-auto text-xs">→</span>
+                    </Link>
+                    <div className="flex items-center gap-2 p-2 bg-[#F5F4F1] rounded-lg">
+                      <span className="text-sm">📸</span><p className="text-[11px] text-[#1A1918]">만삭 사진 찍기 — 소중한 추억!</p>
+                    </div>
+                  </>
+                )}
+                {/* 공통 */}
+                <div className="flex items-center gap-2 p-2 bg-[#F5F4F1] rounded-lg">
+                  <span className="text-sm">🚫</span><p className="text-[11px] text-[#1A1918]">피해야 할 음식: 날생선, 생고기, 알코올, 고카페인</p>
+                </div>
+              </div>
+            </div>
+
             {/* 동네 소식 */}
             <CommunityTeaser />
 

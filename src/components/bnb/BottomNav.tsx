@@ -24,7 +24,7 @@ const TABS_BY_MODE: Record<string, Tab[]> = {
   ],
   pregnant: [
     { href: '/pregnant', icon: SunIcon, label: '오늘' },
-    { href: '/memory', icon: HeartIcon, label: '일기' },
+    { href: '/waiting', icon: HeartIcon, label: '기다림' },
     { href: '/town', icon: ShieldIcon, label: '동네' },
     { href: '/us', icon: UsersIcon, label: '우리' },
   ],
@@ -143,8 +143,8 @@ export default function BottomNav() {
       {/* BNB 바 */}
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[65] bg-white border-t border-[#f0f0f0] pb-[env(safe-area-inset-bottom)]">
         <div className="flex items-center justify-around h-14">
-          {mode === 'preparing' ? (
-            /* preparing 모드: FAB 없이 4탭 균등 */
+          {mode === 'preparing' || mode === 'pregnant' ? (
+            /* preparing/pregnant 모드: FAB 없이 4탭 균등 */
             tabs.map((tab) => (
               <NavTab key={tab.href} tab={tab} pathname={pathname} />
             ))
