@@ -103,6 +103,50 @@ const MOODS = [
   { emoji: '😴', key: 'tired', label: '피곤' },
 ]
 
+// ===== AI 디스플레이 — 요약 + 펼치기 =====
+function PregnantAIDisplay({ briefing, onRefresh, week, daysLeft, fruit }: { briefing: any; onRefresh: () => void; week: number; daysLeft: number; fruit: string }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div>
+      <div className="flex items-start gap-2">
+        <div className="w-6 h-6 rounded-full bg-[#3D8A5A] flex items-center justify-center shrink-0 mt-0.5">
+          <span className="text-[9px] text-white font-bold">AI</span>
+        </div>
+        <div className="flex-1">
+          {/* 요약 (항상) */}
+          <p className="text-[12px] text-[#1A1918] leading-relaxed">{briefing.greeting || briefing.mainAdvice?.slice(0, 80)}</p>
+
+          {/* 아기 메시지 (항상) */}
+          {briefing.babyMessage && (
+            <div className="bg-[#FFF8F3] rounded-lg p-2 mt-1.5">
+              <p className="text-[11px] text-[#1A1918]">💌 {briefing.babyMessage}</p>
+            </div>
+          )}
+
+          {/* 펼침 */}
+          {expanded && (
+            <div className="mt-2 space-y-1.5 bg-white/60 rounded-lg p-2.5">
+              {briefing.mainAdvice && <p className="text-[11px] text-[#1A1918] leading-relaxed">{briefing.mainAdvice}</p>}
+              {briefing.weekHighlight && <p className="text-[10px] text-[#868B94]">🧒 {briefing.weekHighlight}</p>}
+              {briefing.bodyTip && <p className="text-[10px] text-[#868B94]">🏃‍♀️ {briefing.bodyTip}</p>}
+              {briefing.emotionalCare && <p className="text-[10px] text-[#868B94]">💚 {briefing.emotionalCare}</p>}
+            </div>
+          )}
+
+          <div className="flex items-center gap-3 mt-2">
+            <button onClick={() => setExpanded(!expanded)} className="text-[10px] text-[#3D8A5A] font-semibold">
+              {expanded ? '접기 ▲' : '자세히 ▼'}
+            </button>
+            <button onClick={onRefresh} className="text-[10px] text-[#AEB1B9]">다시 받기</button>
+            <button onClick={() => shareDday(week, daysLeft, fruit)} className="text-[10px] text-[#3D8A5A]">공유</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function PregnantPage() {
   const [dueDate, setDueDate] = useState<string>(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('dodam_due_date') || ''
@@ -318,30 +362,20 @@ export default function PregnantPage() {
             <button onClick={() => shareFetalSize(currentWeek, currentFetal.fruit, currentFetal.name, currentFetal.length, currentFetal.weight, daysLeft)} className="ml-auto text-[9px] text-[#3D8A5A]">공유</button>
           </div>
 
-          {/* AI 브리핑 */}
+          {/* AI 브리핑 — 요약 + 펼치기 */}
           {aiLoading ? (
-            <div className="flex items-center justify-center py-3 gap-2">
-              <div className="w-4 h-4 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" />
-              <p className="text-[12px] text-[#868B94]">AI 케어 준비 중...</p>
-            </div>
-          ) : aiBriefing ? (
-            <div className="space-y-2">
-              <p className="text-[13px] font-semibold text-[#1A1918]">{aiBriefing.greeting}</p>
-              {aiBriefing.babyMessage && (
-                <div className="bg-[#FFF8F3] rounded-lg p-2">
-                  <p className="text-[11px] text-[#1A1918]">💌 {aiBriefing.babyMessage}</p>
-                </div>
-              )}
-              <p className="text-[12px] text-[#1A1918] leading-relaxed">{aiBriefing.mainAdvice}</p>
-              {aiBriefing.weekHighlight && <p className="text-[11px] text-[#868B94]">🧒 {aiBriefing.weekHighlight}</p>}
-              {aiBriefing.bodyTip && <p className="text-[11px] text-[#868B94]">🏃‍♀️ {aiBriefing.bodyTip}</p>}
-              <div className="flex gap-3">
-                <button onClick={() => fetchAI(true)} className="text-[10px] text-[#AEB1B9]">새로고침</button>
-                <button onClick={() => shareDday(currentWeek, daysLeft, currentFetal.fruit)} className="text-[10px] text-[#3D8A5A]">D-day 공유</button>
+            <div className="py-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-[#3D8A5A] flex items-center justify-center"><span className="text-[9px] text-white">AI</span></div>
+                <div className="flex gap-1"><span className="w-1.5 h-1.5 bg-[#3D8A5A] rounded-full animate-bounce" /><span className="w-1.5 h-1.5 bg-[#3D8A5A] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }} /><span className="w-1.5 h-1.5 bg-[#3D8A5A] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} /></div>
               </div>
             </div>
+          ) : aiBriefing ? (
+            <PregnantAIDisplay briefing={aiBriefing} onRefresh={() => fetchAI(true)} week={currentWeek} daysLeft={daysLeft} fruit={currentFetal.fruit} />
           ) : (
-            <button onClick={() => fetchAI()} className="w-full py-2 text-[12px] text-[#3D8A5A] font-semibold">AI 조언 받기 ✨</button>
+            <div className="text-center py-2">
+              <button onClick={() => fetchAI()} className="px-6 py-2 bg-[#3D8A5A] text-white text-[12px] font-semibold rounded-xl active:opacity-80">✨ AI 조언 받기</button>
+            </div>
           )}
 
           {/* 프로그레스 */}
@@ -533,18 +567,23 @@ export default function PregnantPage() {
           )
         })()}
 
-        {/* ━━━ 스트릭 + 커뮤니티 ━━━ */}
+        {/* ━━━ 스트릭 ━━━ */}
         <StreakCard mode="pregnant" />
-        <CommunityTeaser />
 
-        {/* ━━━ 5. 더보기 ━━━ */}
+        {/* ━━━ 더보기 ━━━ */}
         <button onClick={() => setMoreOpen(!moreOpen)} className="w-full bg-white rounded-xl border border-[#f0f0f0] p-3 flex items-center justify-between">
-          <p className="text-[13px] font-semibold text-[#1A1918]">검진 · 출산 가방 · 발달 정보</p>
+          <div>
+            <p className="text-[13px] font-semibold text-[#1A1918]">더 알아보기</p>
+            <p className="text-[10px] text-[#868B94]">검진 · 혜택 · 축하박스 · 출산 가방 · 발달</p>
+          </div>
           <span className={`text-[#AEB1B9] text-sm transition-transform ${moreOpen ? 'rotate-180' : ''}`}>▼</span>
         </button>
 
         {moreOpen && (
           <div className="space-y-3">
+            {/* 동네 소식 */}
+            <CommunityTeaser />
+
             {/* 검진 리마인더 */}
             <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
               <p className="text-[13px] font-bold text-[#1A1918] mb-2">🏥 검진 리마인더</p>
