@@ -81,7 +81,7 @@ export default function RecordDetailPage() {
     <div className="min-h-[100dvh] bg-[#f5f5f5] dark:bg-[#0A0B0D]">
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl border-b border-[#f0f0f0] dark:border-[#2a2a2a]">
-        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto w-full">
+        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">뒤로</button>
           <h1 className="text-[15px] font-bold text-[#0A0B0D] dark:text-white">기록 상세</h1>
           <div className="w-8" />

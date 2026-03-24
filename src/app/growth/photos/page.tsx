@@ -79,7 +79,7 @@ export default function PhotoTimelapsePage() {
   return (
     <div className="min-h-[100dvh] bg-white">
       <header className="sticky top-0 z-40 bg-white border-b border-[#ECECEC]">
-        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto w-full">
+        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-[13px] text-[#868B94]">뒤로</button>
           <h1 className="text-[15px] font-bold text-[#212124]">사진 타임랩스</h1>
           <button

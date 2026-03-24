@@ -470,7 +470,7 @@ function KnImageViewer({ images, startIndex, onClose }: { images: { original: st
   const touchX = { current: 0 }
   return (
     <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col" onClick={onClose}>
-      <div className="flex items-center justify-between px-4 pt-3 pb-2">
+      <div className="flex items-center justify-between px-5 pt-3 pb-2">
         <span className="text-[13px] text-white/70">{idx + 1} / {images.length}</span>
         <button onClick={onClose} className="text-white text-xl">✕</button>
       </div>

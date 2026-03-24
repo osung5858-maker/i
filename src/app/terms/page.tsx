@@ -8,7 +8,7 @@ export default function TermsPage() {
   return (
     <div className="min-h-[100dvh] bg-white">
       <header className="sticky top-0 z-40 bg-white border-b border-[#ECECEC]">
-        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto w-full">
+        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-[13px] text-[#868B94]">닫기</button>
           <h1 className="text-[15px] font-bold text-[#212124]">서비스 이용약관</h1>
           <div className="w-8" />

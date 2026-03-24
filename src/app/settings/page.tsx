@@ -50,7 +50,7 @@ export default function SettingsPage() {
     <div className="min-h-[100dvh] bg-[#f5f5f5] dark:bg-[#0A0B0D]">
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A0B0D]/80 backdrop-blur-xl border-b border-[#f0f0f0] dark:border-[#2a2a2a]">
-        <div className="flex items-center justify-center h-14 px-4 max-w-lg mx-auto w-full">
+        <div className="flex items-center justify-center h-14 px-5 max-w-lg mx-auto w-full">
           <h1 className="text-[15px] font-bold text-[#0A0B0D] dark:text-white">설정</h1>
         </div>
       </header>
@@ -76,7 +76,7 @@ export default function SettingsPage() {
 
         {/* 아이 관리 */}
         <div className="mx-4 rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] overflow-hidden">
-          <div className="px-4 pt-3 pb-2">
+          <div className="px-5 pt-3 pb-2">
             <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">아이 관리</p>
           </div>
           {children.map((child) => (
@@ -108,7 +108,7 @@ export default function SettingsPage() {
 
         {/* 공동양육자 */}
         <div className="mx-4 mt-3 rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] overflow-hidden">
-          <div className="px-4 pt-3 pb-2">
+          <div className="px-5 pt-3 pb-2">
             <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">가족</p>
           </div>
           <Link
@@ -126,7 +126,7 @@ export default function SettingsPage() {
 
         {/* 서비스 */}
         <div className="mx-4 mt-3 rounded-2xl bg-white dark:bg-[#1a1a1a] border border-[#f0f0f0] dark:border-[#2a2a2a] overflow-hidden">
-          <div className="px-4 pt-3 pb-2">
+          <div className="px-5 pt-3 pb-2">
             <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">서비스</p>
           </div>
           {[

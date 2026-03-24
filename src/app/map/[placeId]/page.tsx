@@ -88,7 +88,7 @@ export default function PlaceDetailPage() {
     <div className="min-h-[100dvh] bg-[#F7F8FA]">
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white border-b border-[#ECECEC]">
-        <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto w-full">
+        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-[13px] text-[#868B94]">뒤로</button>
           <h1 className="text-[15px] font-bold text-[#212124] truncate max-w-[220px]">{place.name}</h1>
           <div className="w-8" />
@@ -165,7 +165,7 @@ export default function PlaceDetailPage() {
 
         {/* 리뷰 섹션 */}
         <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#ECECEC] overflow-hidden">
-          <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <div className="flex items-center justify-between px-5 pt-4 pb-2">
             <p className="text-[13px] font-bold text-[#212124]">리뷰 {reviews.length}개</p>
             <Link
               href={`/map/${placeId}/review`}

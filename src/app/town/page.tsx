@@ -195,7 +195,7 @@ function MapTab({ categories }: { categories: { icon: string; label: string; que
           </button>
         ))}
       </div>
-      <div className="px-4 space-y-2">
+      <div className="px-5 space-y-2">
         {loading ? (
           <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" /></div>
         ) : places.length === 0 ? (

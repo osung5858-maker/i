@@ -563,14 +563,14 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
 
                 {/* 설명 (있으면) */}
                 {item.description && (
-                  <div className="px-4 pb-3">
+                  <div className="px-5 pb-3">
                     <p className="text-[12px] text-[#868B94] line-clamp-2">{item.description}</p>
                   </div>
                 )}
 
                 {/* 사진 여러장 (있으면) */}
                 {item.photos && item.photos.length > 1 && (
-                  <div className="flex gap-1 px-4 pb-3 overflow-x-auto">
+                  <div className="flex gap-1 px-5 pb-3 overflow-x-auto">
                     {item.photos.map((url: string, i: number) => (
                       <div key={i} className="w-14 h-14 rounded-lg bg-[#F5F4F1] shrink-0 overflow-hidden">
                         <img src={url} alt="" className="w-full h-full object-cover" />
