@@ -18,7 +18,10 @@ async function callGemini(prompt: string, maxTokens = 800): Promise<{ text: stri
   }
   const data = await res.json()
   const parts = data.candidates?.[0]?.content?.parts || []
-  return { text: parts.map((p: any) => p.text || '').join('').trim() || null, error: null }
+  const raw = parts.map((p: any) => p.text || '').join('').trim()
+  // 코드블록 마커 제거
+  const text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
+  return { text, error: null }
 }
 
 export async function POST(request: Request) {

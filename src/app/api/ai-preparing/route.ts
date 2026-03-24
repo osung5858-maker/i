@@ -18,7 +18,8 @@ async function callGemini(prompt: string, maxTokens = 500, temperature = 0.7, re
       const data = await res.json()
       // gemini-2.5-flash는 parts가 여러 개일 수 있음 (thinking + response)
       const parts = data.candidates?.[0]?.content?.parts || []
-      const text = parts.map((p: any) => p.text || '').join('').trim() || null
+      const raw = parts.map((p: any) => p.text || '').join('').trim()
+      const text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
       return { text, error: null }
     }
 
@@ -84,7 +85,8 @@ JSON만 출력하세요.`
       if (!text) return NextResponse.json({ error: geminiErr || 'AI failed' }, { status: 500 })
 
       try {
-        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        const cleanedText = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+        const jsonMatch = cleanedText.match(/\{[\s\S]*\}/)
         if (!jsonMatch) return NextResponse.json({ summary: text.slice(0, 200), mainAdvice: '', cycleInsight: '', nutritionTip: '', emotionalCare: '', partnerTip: '', todayScore: 70 })
         const parsed = JSON.parse(jsonMatch[0])
         return NextResponse.json(parsed)
@@ -139,9 +141,10 @@ JSON 형식으로 출력:
       if (!mealText) return NextResponse.json({ error: mealErr || 'AI failed' }, { status: 500 })
 
       try {
-        // 마크다운 코드블록, 앞뒤 텍스트 제거 후 JSON만 추출
-        const jsonMatch = mealText.match(/\{[\s\S]*\}/)
-        if (!jsonMatch) return NextResponse.json({ error: `JSON 없음: ${mealText.slice(0, 100)}` }, { status: 500 })
+        // 코드블록 제거 후 JSON 추출
+        const cleaned = mealText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+        const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+        if (!jsonMatch) return NextResponse.json({ error: `JSON 없음: ${cleaned.slice(0, 100)}` }, { status: 500 })
         return NextResponse.json(JSON.parse(jsonMatch[0]))
       } catch (e) {
         return NextResponse.json({ error: `파싱 실패: ${mealText.slice(0, 100)}` }, { status: 500 })
