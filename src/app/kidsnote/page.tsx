@@ -54,7 +54,7 @@ export default function KidsnotePage() {
   const [reports, setReports] = useState<any[]>([])
   const [tab, setTab] = useState<'albums' | 'reports'>('albums')
 
-  // 세션 + 저장된 계정 복원
+  // 세션 + 저장된 계정 + 캐시 복원
   useEffect(() => {
     const savedCreds = localStorage.getItem('kn_credentials')
     if (savedCreds) {
@@ -63,6 +63,12 @@ export default function KidsnotePage() {
         setUsername(u); setPassword(p); setSaveCredentials(true)
       } catch { /* */ }
     }
+    // 캐시된 데이터 복원
+    const cachedAlbums = localStorage.getItem('kn_cache_albums')
+    const cachedReports = localStorage.getItem('kn_cache_reports')
+    if (cachedAlbums) try { setAlbums(JSON.parse(cachedAlbums)) } catch { /* */ }
+    if (cachedReports) try { setReports(JSON.parse(cachedReports)) } catch { /* */ }
+
     const saved = sessionStorage.getItem('kn_session')
     if (saved) {
       setSession(saved)
@@ -119,7 +125,7 @@ export default function KidsnotePage() {
       if (kids.length === 1) {
         setSelectedChild(kids[0].id || kids[0].child_id)
         setStep('data')
-        // 자동 로드 안 함 — 사용자가 직접 가져오기 버튼 클릭
+        // 캐시 있으면 바로 보여주고, 가져오기는 새로고침용
       } else if (kids.length > 1) {
         setStep('children')
       } else {
@@ -147,6 +153,8 @@ export default function KidsnotePage() {
         hasMore = !!nextCursor && items.length > 0
       }
       setAlbumProgress(100)
+      // 캐시 저장
+      localStorage.setItem('kn_cache_albums', JSON.stringify(all))
     } catch { /* */ }
     setLoadingAlbums(false)
   }
@@ -170,6 +178,8 @@ export default function KidsnotePage() {
         hasMore = !!nextCursor && items.length > 0
       }
       setReportProgress(100)
+      // 캐시 저장
+      localStorage.setItem('kn_cache_reports', JSON.stringify(all))
     } catch { /* */ }
     setLoadingReports(false)
   }
@@ -315,7 +325,11 @@ export default function KidsnotePage() {
                   <button onClick={() => { if (session && selectedChild) loadAlbums(session, selectedChild) }}
                     disabled={loadingAlbums}
                     className="w-full py-2.5 bg-[#F5F4F1] rounded-xl text-[13px] font-semibold text-[#1A1918] active:bg-[#ECECEC] disabled:opacity-50">
-                    {loadingAlbums ? `📸 앨범 가져오는 중... (${albums.length}${albumTotal ? `/${albumTotal}` : ''}건)` : `📸 앨범 가져오기${albums.length ? ` (${albums.length}건 완료)` : ''}`}
+                    {loadingAlbums
+                      ? `📸 앨범 가져오는 중... (${albums.length}${albumTotal ? `/${albumTotal}` : ''}건)`
+                      : albums.length
+                        ? `📸 앨범 (${albums.length}건) — 새로고침 🔄`
+                        : '📸 앨범 가져오기'}
                   </button>
                   {loadingAlbums && (
                     <div className="mt-1.5 h-1.5 bg-[#E8E8E8] rounded-full overflow-hidden">
@@ -327,7 +341,11 @@ export default function KidsnotePage() {
                   <button onClick={() => { if (session && selectedChild) loadReports(session, selectedChild) }}
                     disabled={loadingReports}
                     className="w-full py-2.5 bg-[#F5F4F1] rounded-xl text-[13px] font-semibold text-[#1A1918] active:bg-[#ECECEC] disabled:opacity-50">
-                    {loadingReports ? `📋 알림장 가져오는 중... (${reports.length}${reportTotal ? `/${reportTotal}` : ''}건)` : `📋 알림장 가져오기${reports.length ? ` (${reports.length}건 완료)` : ''}`}
+                    {loadingReports
+                      ? `📋 알림장 가져오는 중... (${reports.length}${reportTotal ? `/${reportTotal}` : ''}건)`
+                      : reports.length
+                        ? `📋 알림장 (${reports.length}건) — 새로고침 🔄`
+                        : '📋 알림장 가져오기'}
                   </button>
                   {loadingReports && (
                     <div className="mt-1.5 h-1.5 bg-[#E8E8E8] rounded-full overflow-hidden">
