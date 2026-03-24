@@ -147,22 +147,51 @@ export default function FortunePage() {
         {/* 띠 · 별자리 */}
         {tab === 'zodiac' && birthDate && (
           <div className="space-y-3">
-            <div className="bg-white rounded-xl border border-[#f0f0f0] p-4 text-center">
+            {/* 엄마 */}
+            <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-4 text-center">
               <p className="text-[13px] font-bold text-[#1A1918] mb-2">엄마의 띠 · 별자리</p>
-              <p className="text-2xl mb-1">{getZodiacAnimal(birthParts[0])}</p>
-              <p className="text-[13px] text-[#1A1918]">{getConstellation(birthParts[1], birthParts[2])}</p>
+              <p className="text-3xl mb-1">{getZodiacAnimal(birthParts[0]).split(' ')[0]}</p>
+              <p className="text-[14px] font-semibold text-[#1A1918]">{getZodiacAnimal(birthParts[0])}</p>
+              <p className="text-[13px] text-[#868B94] mt-1">{getConstellation(birthParts[1], birthParts[2])}</p>
             </div>
+
+            {/* 아이 */}
             {dueDate && (() => {
               const due = new Date(dueDate)
               return (
-                <div className="bg-white rounded-xl border border-[#f0f0f0] p-4 text-center">
+                <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8]/50 p-4 text-center">
                   <p className="text-[13px] font-bold text-[#1A1918] mb-2">아이 예상 띠 · 별자리</p>
-                  <p className="text-2xl mb-1">{getZodiacAnimal(due.getFullYear())}</p>
-                  <p className="text-[13px] text-[#1A1918]">{getConstellation(due.getMonth() + 1, due.getDate())}</p>
-                  <p className="text-[10px] text-[#868B94] mt-2">출산 예정일 기준 (변경될 수 있어요)</p>
+                  <p className="text-3xl mb-1">{getZodiacAnimal(due.getFullYear()).split(' ')[0]}</p>
+                  <p className="text-[14px] font-semibold text-[#1A1918]">{getZodiacAnimal(due.getFullYear())}</p>
+                  <p className="text-[13px] text-[#868B94] mt-1">{getConstellation(due.getMonth() + 1, due.getDate())}</p>
+                  <p className="text-[10px] text-[#AEB1B9] mt-2">출산 예정일 기준</p>
                 </div>
               )
             })()}
+
+            {/* 띠/별자리 운세 */}
+            {fortuneResult?.animalFortune || fortuneResult?.starFortune ? (
+              <div className="bg-white rounded-xl border border-[#f0f0f0] p-4 space-y-3">
+                {fortuneResult.animalFortune && (
+                  <div>
+                    <p className="text-[12px] font-bold text-[#1A1918] mb-1">{getZodiacAnimal(birthParts[0])} 오늘의 운세</p>
+                    <p className="text-[12px] text-[#868B94] leading-relaxed">{fortuneResult.animalFortune}</p>
+                  </div>
+                )}
+                {fortuneResult.starFortune && (
+                  <div className="pt-2 border-t border-[#f0f0f0]">
+                    <p className="text-[12px] font-bold text-[#1A1918] mb-1">{getConstellation(birthParts[1], birthParts[2])} 오늘의 운세</p>
+                    <p className="text-[12px] text-[#868B94] leading-relaxed">{fortuneResult.starFortune}</p>
+                  </div>
+                )}
+                <p className="text-[9px] text-[#AEB1B9] text-center">재미로만 봐주세요 😊</p>
+              </div>
+            ) : (
+              <button onClick={fetchFortune} disabled={loading}
+                className="w-full py-3 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                {loading ? '운세 보는 중...' : '🔮 띠 · 별자리 운세 보기'}
+              </button>
+            )}
           </div>
         )}
 
