@@ -36,21 +36,48 @@ const TABS_BY_MODE: Record<string, Tab[]> = {
   ],
 }
 
-const QUICK_BUTTONS = [
-  { type: 'feed', icon: BottleIcon, label: '수유', bg: '#C8F0D8', iconClass: 'text-[#3D8A5A]' },
-  { type: 'sleep', icon: MoonIcon, label: '수면', bg: '#E8E0F8', iconClass: 'text-[#6366F1]' },
-  { type: 'poop', icon: DropletIcon, label: '기저귀', bg: '#FEF0E8', iconClass: 'text-[#D89575]' },
-  { type: 'temp', icon: ThermometerIcon, label: '체온', bg: '#FDE8E8', iconClass: 'text-[#D08068]' },
-  { type: 'memo', icon: PillIcon, label: '투약', bg: '#E0F0F8', iconClass: 'text-[#4A90D9]' },
-]
-
-// 반원형 배치 좌표 (중앙 FAB 기준, px)
-const ARC_POSITIONS = [
-  { x: -120, y: -50 },   // 수유 (좌측 하단)
-  { x: -76, y: -115 },   // 수면 (좌측 상단)
-  { x: 0, y: -140 },     // 기저귀 (정중앙 상단)
-  { x: 76, y: -115 },    // 체온 (우측 상단)
-  { x: 120, y: -50 },    // 투약 (우측 하단)
+// 2단계 기록 카테고리
+const RECORD_CATEGORIES = [
+  { key: 'eat', emoji: '🍼', label: '먹기', color: '#3D8A5A',
+    items: [
+      { type: 'breast_left', label: '모유(왼)', emoji: '🤱' },
+      { type: 'breast_right', label: '모유(오)', emoji: '🤱' },
+      { type: 'breast_both', label: '모유(양쪽)', emoji: '🤱' },
+      { type: 'feed', label: '분유', emoji: '🍼', hasInput: 'ml' },
+      { type: 'babyfood', label: '이유식', emoji: '🥣' },
+      { type: 'snack', label: '간식', emoji: '🍪' },
+      { type: 'water', label: '물', emoji: '💧' },
+      { type: 'pump', label: '유축', emoji: '🫙', hasInput: 'ml' },
+    ]
+  },
+  { key: 'sleep', emoji: '💤', label: '잠', color: '#6366F1',
+    items: [
+      { type: 'sleep', label: '수면 시작/종료', emoji: '💤' },
+    ]
+  },
+  { key: 'diaper', emoji: '🩲', label: '기저귀', color: '#D89575',
+    items: [
+      { type: 'pee', label: '소변', emoji: '💧' },
+      { type: 'poop_normal', label: '대변 (정상)', emoji: '💩' },
+      { type: 'poop_soft', label: '대변 (묽음)', emoji: '💩' },
+      { type: 'poop_hard', label: '대변 (단단)', emoji: '💩' },
+      { type: 'pee_poop', label: '소변+대변', emoji: '🩲' },
+    ]
+  },
+  { key: 'health', emoji: '🏥', label: '건강', color: '#D08068',
+    items: [
+      { type: 'temp', label: '체온', emoji: '🌡️', hasInput: '°C' },
+      { type: 'memo', label: '투약', emoji: '💊' },
+      { type: 'hospital', label: '병원 방문', emoji: '🏥' },
+    ]
+  },
+  { key: 'activity', emoji: '📝', label: '활동', color: '#4A90D9',
+    items: [
+      { type: 'bath', label: '목욕', emoji: '🛁' },
+      { type: 'walk', label: '산책', emoji: '🚶' },
+      { type: 'note', label: '메모', emoji: '📝' },
+    ]
+  },
 ]
 
 export default function BottomNav() {
@@ -86,10 +113,15 @@ export default function BottomNav() {
     return () => window.removeEventListener('keydown', handler)
   }, [fabOpen])
 
-  const handleQuickRecord = useCallback((type: string) => {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [inputValue, setInputValue] = useState('')
+
+  const handleQuickRecord = useCallback((type: string, extra?: Record<string, unknown>) => {
     if (navigator.vibrate) navigator.vibrate(30)
-    window.dispatchEvent(new CustomEvent('dodam-record', { detail: { type } }))
+    window.dispatchEvent(new CustomEvent('dodam-record', { detail: { type, ...extra } }))
     setFabOpen(false)
+    setSelectedCategory(null)
+    setInputValue('')
   }, [])
 
   if (pathname?.startsWith('/onboarding') || pathname?.startsWith('/invite') || pathname?.startsWith('/post/') || pathname?.startsWith('/market-item/')) {
@@ -98,44 +130,70 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* 딤 오버레이 */}
+      {/* 기록 바텀시트 */}
       {fabOpen && (
-        <div
-          className="fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300"
-          onClick={() => setFabOpen(false)}
-        />
-      )}
+        <div className="fixed inset-0 z-[60] bg-black/40" onClick={() => { setFabOpen(false); setSelectedCategory(null) }}>
+          <div className="absolute bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white rounded-t-2xl animate-slideUp"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
 
-      {/* 반원형 퀵버튼 */}
-      {fabOpen && (
-        <div className="fixed z-[70] bottom-[60px] left-1/2" style={{ maxWidth: 430 }}>
-          <div className="relative" style={{ width: 0, height: 0 }}>
-            {QUICK_BUTTONS.map((btn, i) => {
-              const pos = ARC_POSITIONS[i]
-              const Icon = btn.icon
-              return (
-                <div
-                  key={btn.type}
-                  className="absolute flex flex-col items-center gap-1.5"
-                  style={{
-                    left: pos.x - 28,
-                    top: pos.y - 28,
-                    animation: `fabItemPop 0.25s ${i * 0.04}s both cubic-bezier(0.34, 1.56, 0.64, 1)`,
-                  }}
-                >
-                  <button
-                    onClick={() => handleQuickRecord(btn.type)}
-                    className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"
-                    style={{ backgroundColor: btn.bg }}
-                  >
-                    <Icon className={`w-6 h-6 ${btn.iconClass}`} />
-                  </button>
-                  <span className="text-[11px] font-semibold text-white whitespace-nowrap drop-shadow-sm">
-                    {btn.label}
-                  </span>
+            {!selectedCategory ? (
+              /* 1단계: 카테고리 선택 */
+              <div className="px-5 pb-6">
+                <p className="text-[14px] font-bold text-[#1A1918] mb-3 text-center">기록하기</p>
+                <div className="flex justify-around">
+                  {RECORD_CATEGORIES.map(cat => (
+                    <button key={cat.key} onClick={() => setSelectedCategory(cat.key)}
+                      className="flex flex-col items-center gap-1 active:scale-95 transition-transform">
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: cat.color + '15' }}>
+                        <span className="text-2xl">{cat.emoji}</span>
+                      </div>
+                      <span className="text-[10px] font-semibold" style={{ color: cat.color }}>{cat.label}</span>
+                    </button>
+                  ))}
                 </div>
-              )
-            })}
+              </div>
+            ) : (
+              /* 2단계: 세부 항목 */
+              <div className="px-5 pb-6">
+                <div className="flex items-center mb-3">
+                  <button onClick={() => setSelectedCategory(null)} className="text-[#868B94] text-sm mr-2">←</button>
+                  <p className="text-[14px] font-bold text-[#1A1918]">
+                    {RECORD_CATEGORIES.find(c => c.key === selectedCategory)?.label}
+                  </p>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {RECORD_CATEGORIES.find(c => c.key === selectedCategory)?.items.map(item => (
+                    <button key={item.type}
+                      onClick={() => {
+                        if (item.hasInput) {
+                          // 입력이 필요한 항목은 프롬프트
+                          const val = prompt(`${item.label} ${item.hasInput === 'ml' ? '(ml)' : '(°C)'}`)
+                          if (val) {
+                            const extra = item.hasInput === 'ml' ? { amount_ml: Number(val) } : { tags: { celsius: Number(val) } }
+                            handleQuickRecord(item.type === 'pump' ? 'feed' : item.type, extra)
+                          }
+                        } else {
+                          // 즉시 기록
+                          const extra: Record<string, unknown> = {}
+                          if (item.type.startsWith('poop_')) extra.tags = { status: item.type.replace('poop_', '') }
+                          if (item.type === 'pee_poop') extra.tags = { status: 'normal' }
+                          if (item.type.startsWith('breast_')) extra.tags = { side: item.type.replace('breast_', '') }
+                          const baseType = item.type.startsWith('poop_') || item.type === 'pee_poop' ? 'poop'
+                            : item.type.startsWith('breast_') ? 'feed'
+                            : item.type
+                          handleQuickRecord(baseType, extra)
+                        }
+                      }}
+                      className="flex flex-col items-center gap-1 py-3 rounded-xl bg-[#F5F4F1] active:bg-[#ECECEC] active:scale-95 transition-all"
+                    >
+                      <span className="text-xl">{item.emoji}</span>
+                      <span className="text-[10px] font-medium text-[#1A1918]">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
