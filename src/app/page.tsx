@@ -355,7 +355,12 @@ export default function HomePage() {
 
           {/* ━━━ 2. 최근 기록 (스크롤) ━━━ */}
           <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-2">최근 기록</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[14px] font-bold text-[#1A1918]">최근 기록</p>
+              {events.length > 0 && (
+                <Link href={`/records/${new Date().toISOString().split('T')[0]}`} className="text-[11px] text-[#3D8A5A] font-medium">전체보기 →</Link>
+              )}
+            </div>
             {events.length === 0 ? (
               <p className="text-[12px] text-[#AEB1B9] text-center py-3">아직 기록이 없어요. FAB(+)으로 첫 기록을 남겨보세요!</p>
             ) : (
@@ -522,10 +527,40 @@ export default function HomePage() {
   )
 }
 
+function KnImageViewer({ images, startIndex, onClose }: { images: { original: string; thumbnail: string }[]; startIndex: number; onClose: () => void }) {
+  const [idx, setIdx] = useState(startIndex)
+  const touchX = { current: 0 }
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col" onClick={onClose}>
+      <div className="flex items-center justify-between px-4 pt-3 pb-2">
+        <span className="text-[13px] text-white/70">{idx + 1} / {images.length}</span>
+        <button onClick={onClose} className="text-white text-xl">✕</button>
+      </div>
+      <div className="flex-1 flex items-center justify-center px-2"
+        onClick={e => e.stopPropagation()}
+        onTouchStart={e => { touchX.current = e.touches[0].clientX }}
+        onTouchEnd={e => {
+          const d = e.changedTouches[0].clientX - touchX.current
+          if (d < -50 && idx < images.length - 1) setIdx(p => p + 1)
+          if (d > 50 && idx > 0) setIdx(p => p - 1)
+        }}>
+        <img src={images[idx].original} alt="" className="max-w-full max-h-[80vh] object-contain rounded-lg select-none" draggable={false} />
+      </div>
+      {images.length > 1 && (
+        <div className="flex justify-center gap-1 py-3">
+          {images.map((_, i) => <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === idx ? 'bg-white' : 'bg-white/30'}`} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function KidsnoteCard() {
   const [connected, setConnected] = useState(false)
   const [reports, setReports] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [viewerImages, setViewerImages] = useState<{ original: string; thumbnail: string }[] | null>(null)
+  const [viewerStart, setViewerStart] = useState(0)
 
   useEffect(() => {
     const hasCreds = !!localStorage.getItem('kn_credentials')
@@ -596,27 +631,31 @@ function KidsnoteCard() {
         <p className="text-[11px] text-[#AEB1B9] py-2 text-center">새 알림장이 없어요</p>
       )}
 
-      {/* 최근 사진 그리드 */}
-      <Link href="/kidsnote" className="block active:opacity-70">
-        {(() => {
-          const allImages = reports.flatMap((r: any) => (r.images || []).map((img: any) => ({ ...img, date: r.created })))
-          if (allImages.length === 0) return null
-          const recent = allImages.slice(0, 6)
-          return (
+      {/* 최근 사진 그리드 — 탭하면 확대 */}
+      {(() => {
+        const allImages = reports.flatMap((r: any) => (r.images || []).map((img: any) => ({ original: img.original, thumbnail: img.thumbnail })))
+        if (allImages.length === 0) return null
+        const recent = allImages.slice(0, 6)
+        return (
+          <>
             <div className="grid grid-cols-3 gap-1 rounded-lg overflow-hidden">
               {recent.map((img: any, i: number) => (
-                <div key={i} className="relative aspect-square">
+                <div key={i} className="relative aspect-square cursor-pointer active:opacity-80"
+                  onClick={() => { setViewerImages(allImages); setViewerStart(i) }}>
                   <img src={img.thumbnail} alt="" className="w-full h-full object-cover" />
                   {i === 0 && <span className="absolute top-1 left-1 text-[8px] bg-black/50 text-white px-1 rounded">NEW</span>}
                 </div>
               ))}
             </div>
-          )
-        })()}
-        <p className="text-[10px] text-[#AEB1B9] text-center mt-1.5">
-          {reports[0]?.created ? new Date(reports[0].created).toLocaleDateString('ko-KR') : ''} · {reports[0]?.author || ''}
-        </p>
-      </Link>
+            <p className="text-[10px] text-[#AEB1B9] text-center mt-1.5">
+              {reports[0]?.created ? new Date(reports[0].created).toLocaleDateString('ko-KR') : ''} · {reports[0]?.author || ''}
+            </p>
+          </>
+        )
+      })()}
+
+      {/* 사진 뷰어 */}
+      {viewerImages && <KnImageViewer images={viewerImages} startIndex={viewerStart} onClose={() => setViewerImages(null)} />}
     </div>
   )
 }
