@@ -63,7 +63,7 @@ export default function WriteReviewPage() {
     if (!user) { router.push('/onboarding'); return }
 
     const { error: insertError } = await supabase.from('reviews').insert({
-      kakao_place_id: placeId,
+      place_id: placeId,
       user_id: user.id,
       rating,
       content,

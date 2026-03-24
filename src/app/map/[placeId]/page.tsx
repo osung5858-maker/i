@@ -51,7 +51,7 @@ export default function PlaceDetailPage() {
       const { data } = await supabase
         .from('reviews')
         .select('*')
-        .eq('kakao_place_id', placeId)
+        .eq('place_id', placeId)
         .order('created_at', { ascending: false })
       if (data) setReviews(data as DBReview[])
       setReviewsLoading(false)
