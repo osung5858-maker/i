@@ -228,7 +228,7 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
   }, [milestones])
 
   return (
-    <div className="space-y-4 px-4 pb-8 pt-4">
+    <div className="space-y-4 px-5 pb-8 pt-4">
       {/* Progress Ring */}
       <div className="bg-white rounded-2xl border border-[#f0f0f0] p-5 flex items-center gap-5">
         <div className="relative shrink-0">

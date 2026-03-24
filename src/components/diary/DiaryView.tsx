@@ -160,7 +160,7 @@ export default function DiaryView({ events, childName }: Props) {
   }, [dayEvents])
 
   return (
-    <div className="space-y-4 px-4 pb-8">
+    <div className="space-y-4 px-5 pb-8">
       {/* 날짜 네비게이션 */}
       <div className="flex items-center justify-between pt-3">
         <button onClick={() => navigateDay(-1)} className="p-2 text-[#868B94] active:opacity-50">

@@ -190,7 +190,7 @@ export default function StatsReport({ events, ageMonths }: Props) {
   const maxPoop = Math.max(...poopData.map((d) => d.value), 1)
 
   return (
-    <div className="space-y-4 px-4 pb-8">
+    <div className="space-y-4 px-5 pb-8">
       {/* 기간 탭 */}
       <div className="flex gap-2 justify-center pt-2">
         {([
