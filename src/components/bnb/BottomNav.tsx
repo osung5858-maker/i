@@ -36,15 +36,31 @@ const TABS_BY_MODE: Record<string, Tab[]> = {
   ],
 }
 
-// 2단계 기록 카테고리 (사용 빈도 높은 것만)
-const RECORD_CATEGORIES = [
+// 2단계 기록 카테고리
+interface RecordItem {
+  type: string; label: string; emoji: string
+  hasInput?: string // legacy
+  step3?: { label: string; value: number | string; unit?: string }[]
+  tags?: Record<string, string>
+  baseType?: string
+}
+interface RecordCategory {
+  key: string; emoji: string; label: string; color: string; items: RecordItem[]
+}
+
+const RECORD_CATEGORIES: RecordCategory[] = [
   { key: 'eat', emoji: '🍼', label: '먹기', color: '#3D8A5A',
     items: [
-      { type: 'breast_left', label: '모유(왼)', emoji: '🤱' },
-      { type: 'breast_right', label: '모유(오)', emoji: '🤱' },
-      { type: 'feed', label: '분유', emoji: '🍼', hasInput: 'ml' },
-      { type: 'babyfood', label: '이유식', emoji: '🥣' },
-      { type: 'pump', label: '유축', emoji: '🫙', hasInput: 'ml' },
+      { type: 'breast_left', label: '모유(왼)', emoji: '🤱', baseType: 'feed', tags: { side: 'left' },
+        step3: [{ label: '5분', value: 5, unit: '분' }, { label: '10분', value: 10, unit: '분' }, { label: '15분', value: 15, unit: '분' }, { label: '20분', value: 20, unit: '분' }, { label: '30분', value: 30, unit: '분' }] },
+      { type: 'breast_right', label: '모유(오)', emoji: '🤱', baseType: 'feed', tags: { side: 'right' },
+        step3: [{ label: '5분', value: 5, unit: '분' }, { label: '10분', value: 10, unit: '분' }, { label: '15분', value: 15, unit: '분' }, { label: '20분', value: 20, unit: '분' }, { label: '30분', value: 30, unit: '분' }] },
+      { type: 'feed', label: '분유', emoji: '🍼',
+        step3: [{ label: '60', value: 60, unit: 'ml' }, { label: '90', value: 90, unit: 'ml' }, { label: '120', value: 120, unit: 'ml' }, { label: '150', value: 150, unit: 'ml' }, { label: '180', value: 180, unit: 'ml' }] },
+      { type: 'babyfood', label: '이유식', emoji: '🥣',
+        step3: [{ label: '쌀미음', value: 'rice' }, { label: '야채죽', value: 'veggie' }, { label: '고기죽', value: 'meat' }, { label: '과일', value: 'fruit' }, { label: '기타', value: 'etc' }] },
+      { type: 'pump', label: '유축', emoji: '🫙', baseType: 'feed',
+        step3: [{ label: '30', value: 30, unit: 'ml' }, { label: '60', value: 60, unit: 'ml' }, { label: '90', value: 90, unit: 'ml' }, { label: '120', value: 120, unit: 'ml' }, { label: '150', value: 150, unit: 'ml' }] },
     ]
   },
   { key: 'sleep', emoji: '💤', label: '잠', color: '#6366F1',
@@ -55,14 +71,15 @@ const RECORD_CATEGORIES = [
   { key: 'diaper', emoji: '🩲', label: '기저귀', color: '#D89575',
     items: [
       { type: 'pee', label: '소변', emoji: '💧' },
-      { type: 'poop_normal', label: '대변 (정상)', emoji: '💩' },
-      { type: 'poop_soft', label: '대변 (묽음)', emoji: '💩' },
-      { type: 'poop_hard', label: '대변 (단단)', emoji: '💩' },
+      { type: 'poop_normal', label: '정상', emoji: '💩', baseType: 'poop', tags: { status: 'normal' } },
+      { type: 'poop_soft', label: '묽음', emoji: '💩', baseType: 'poop', tags: { status: 'soft' } },
+      { type: 'poop_hard', label: '단단', emoji: '💩', baseType: 'poop', tags: { status: 'hard' } },
     ]
   },
   { key: 'health', emoji: '🏥', label: '건강', color: '#D08068',
     items: [
-      { type: 'temp', label: '체온', emoji: '🌡️', hasInput: '°C' },
+      { type: 'temp', label: '체온', emoji: '🌡️',
+        step3: [{ label: '36.5', value: 36.5, unit: '°C' }, { label: '37.0', value: 37.0, unit: '°C' }, { label: '37.5', value: 37.5, unit: '°C' }, { label: '38.0', value: 38.0, unit: '°C' }, { label: '38.5', value: 38.5, unit: '°C' }] },
       { type: 'memo', label: '투약', emoji: '💊' },
     ]
   },
@@ -216,46 +233,39 @@ export default function BottomNav() {
             </>
           )
         }
-        // 3단계: 용량/체온 선택 (반원형 유지)
+        // 3단계: 프리셋 선택 (반원형 유지)
         if (selectedItem) {
           const item = RECORD_CATEGORIES.flatMap(c => c.items).find(i => i.type === selectedItem)
-          if (!item) return null
-          const isMl = item.hasInput === 'ml'
-          const presets = isMl
-            ? [{ label: '60', value: 60 }, { label: '90', value: 90 }, { label: '120', value: 120 }, { label: '150', value: 150 }, { label: '180', value: 180 }]
-            : [{ label: '36.5', value: 36.5 }, { label: '37.0', value: 37.0 }, { label: '37.5', value: 37.5 }, { label: '38.0', value: 38.0 }, { label: '38.5', value: 38.5 }]
+          if (!item || !item.step3) return null
+          const presets = item.step3
           return (
             <>
               <div className="fixed inset-0 z-[60] bg-black/50" onClick={() => { setFabOpen(false); setSelectedCategory(null); setSelectedItem(null) }} />
               <div className="fixed z-[70] bottom-[60px] left-1/2" style={{ maxWidth: 430 }}>
                 <div className="relative" style={{ width: 0, height: 0 }}>
                   {presets.map((p, i) => {
-                    const pos = ARC[i]
+                    const pos = ARC[i % ARC.length]
                     return (
-                      <div key={p.label} className="absolute flex flex-col items-center gap-1"
+                      <div key={String(p.value)} className="absolute flex flex-col items-center gap-1"
                         style={{ left: pos.x - 24, top: pos.y - 24, animation: `fabItemPop 0.2s ${i * 0.03}s both cubic-bezier(0.34, 1.56, 0.64, 1)` }}>
                         <button onClick={() => {
-                          const extra = isMl ? { amount_ml: p.value } : { tags: { celsius: p.value } }
-                          handleQuickRecord(item.type === 'pump' ? 'feed' : item.type, extra)
+                          const recordType = item.baseType || item.type
+                          const extra: Record<string, unknown> = {}
+                          // 태그 복사
+                          if (item.tags) extra.tags = { ...item.tags }
+                          // 값 설정
+                          if (p.unit === 'ml') extra.amount_ml = p.value
+                          else if (p.unit === '°C') extra.tags = { ...(extra.tags as any || {}), celsius: p.value }
+                          else if (p.unit === '분') extra.tags = { ...(extra.tags as any || {}), duration_min: p.value }
+                          else extra.tags = { ...(extra.tags as any || {}), subtype: p.value }
+                          handleQuickRecord(recordType, extra)
                         }} className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform bg-white">
-                          <span className="text-[13px] font-bold text-[#3D8A5A]">{p.label}</span>
+                          <span className="text-[12px] font-bold text-[#3D8A5A]">{p.label}</span>
                         </button>
-                        <span className="text-[9px] font-semibold text-white drop-shadow-sm">{isMl ? 'ml' : '°C'}</span>
+                        <span className="text-[9px] font-semibold text-white drop-shadow-sm">{p.unit || ''}</span>
                       </div>
                     )
                   })}
-                  {/* 직접 입력 */}
-                  <div className="absolute" style={{ left: -24, top: -185 }}>
-                    <button onClick={() => {
-                      const val = prompt(`${item.label} ${isMl ? '(ml)' : '(°C)'}`)
-                      if (val) {
-                        const extra = isMl ? { amount_ml: Number(val) } : { tags: { celsius: Number(val) } }
-                        handleQuickRecord(item.type === 'pump' ? 'feed' : item.type, extra)
-                      }
-                    }} className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg active:scale-90 bg-[#F5F4F1]">
-                      <span className="text-[11px] text-[#868B94]">직접</span>
-                    </button>
-                  </div>
                   {/* 뒤로 */}
                   <div className="absolute" style={{ left: -16, top: -24 }}>
                     <button onClick={() => setSelectedItem(null)} className="w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center active:scale-90">
@@ -287,13 +297,13 @@ export default function BottomNav() {
                     <div key={item.type} className="absolute flex flex-col items-center gap-1.5"
                       style={{ left: pos.x - 28, top: pos.y - 28, animation: `fabItemPop 0.2s ${i * 0.03}s both cubic-bezier(0.34, 1.56, 0.64, 1)` }}>
                       <button onClick={() => {
-                        if (item.hasInput) {
+                        if (item.step3) {
                           setSelectedItem(item.type) // 3단계로
                         } else {
+                          const recordType = item.baseType || item.type
                           const extra: Record<string, unknown> = {}
-                          if (item.type.startsWith('poop_')) extra.tags = { status: item.type.replace('poop_', '') }
-                          if (item.type.startsWith('breast_')) extra.tags = { side: item.type.replace('breast_', '') }
-                          handleQuickRecord(item.type.startsWith('poop_') ? 'poop' : item.type.startsWith('breast_') ? 'feed' : item.type, extra)
+                          if (item.tags) extra.tags = item.tags
+                          handleQuickRecord(recordType, extra)
                         }
                       }} className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform" style={{ backgroundColor: cat.color + '25' }}>
                         <span className="text-xl">{item.emoji}</span>
@@ -377,15 +387,10 @@ function RecordGrid({ onRecord }: { onRecord: (type: string, extra?: Record<stri
     <div className="grid grid-cols-4 gap-2">
       {ALL_ITEMS.map(item => (
         <button key={item.type} onClick={() => {
-          if (item.hasInput) {
-            const val = prompt(`${item.label} ${item.hasInput === 'ml' ? '(ml)' : '(°C)'}`)
-            if (val) onRecord(item.type === 'pump' ? 'feed' : item.type, item.hasInput === 'ml' ? { amount_ml: Number(val) } : { tags: { celsius: Number(val) } })
-          } else {
-            const extra: Record<string, unknown> = {}
-            if (item.type.startsWith('poop_')) extra.tags = { status: item.type.replace('poop_', '') }
-            if (item.type.startsWith('breast_')) extra.tags = { side: item.type.replace('breast_', '') }
-            onRecord(item.type.startsWith('poop_') ? 'poop' : item.type.startsWith('breast_') ? 'feed' : item.type, extra)
-          }
+          const recordType = item.baseType || item.type
+          const extra: Record<string, unknown> = {}
+          if (item.tags) extra.tags = item.tags
+          onRecord(recordType, extra)
         }} className="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-[#F5F4F1] active:bg-[#ECECEC] active:scale-95">
           <span className="text-xl">{item.emoji}</span>
           <span className="text-[9px] font-medium text-[#1A1918]">{item.label}</span>
