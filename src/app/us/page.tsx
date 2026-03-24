@@ -15,7 +15,7 @@ const MENUS: Record<string, { label: string; items: { href: string; icon: string
     {
       label: '둘이서',
       items: [
-        { href: '/settings/caregivers/invite', icon: '💑', title: '파트너 초대', desc: '카카오톡으로 함께 준비해요' },
+        { href: '/settings/caregivers/invite', icon: '💑', title: '배우자 초대', desc: '카카오톡으로 함께 준비해요' },
         { href: '/mental-check', icon: '💚', title: '마음 체크', desc: '스트레스 자가검사 · 감정 돌봄' },
         { href: 'https://www.youtube.com/results?search_query=커플요가+임신준비', icon: '🧘', title: '커플 요가', desc: '둘이 함께하는 스트레칭', external: true },
         { href: 'https://www.youtube.com/results?search_query=임신준비+부부+소통', icon: '💬', title: '부부 소통 가이드', desc: '임신 준비 대화법', external: true },

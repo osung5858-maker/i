@@ -80,7 +80,7 @@ export function shareProgress(stats: {
     `✉️ 아이에게 보낸 편지: ${stats.letters}통`,
     `🏥 완료한 검사: ${stats.appointments}/${stats.totalAppointments}개`,
     `💊 오늘 영양제: ${stats.supplements}/4`,
-    `💑 파트너 건강: ${stats.partnerChecks}/6`,
+    `💑 배우자 건강: ${stats.partnerChecks}/6`,
   ]
   sendKakao({
     title: '📋 우리의 임신 준비 현황',
@@ -104,7 +104,7 @@ export function shareAIAdvice(greeting: string, mainAdvice: string, phase: strin
   })
 }
 
-// 5. 파트너 건강 체크 넛지
+// 5. 배우자 건강 체크 넛지
 export function sharePartnerNudge(done: number, total: number) {
   const remaining = total - done
   const items: Record<string, string> = {
@@ -115,7 +115,7 @@ export function sharePartnerNudge(done: number, total: number) {
     title: remaining > 0 ? `💑 건강 체크 ${remaining}개 남았어요!` : '💑 건강 체크 완료! 👏',
     description: remaining > 0
       ? `우리 아이를 위해 건강 체크리스트를 완성해주세요!\n현재 ${done}/${total}개 완료\n\n함께 준비하면 더 좋은 결과가 있을 거예요 💪`
-      : `파트너 건강 체크리스트 ${total}개 모두 완료!\n최고예요, 이 조합이면 우리 아이도 건강할 거예요 ✨`,
+      : `배우자 건강 체크리스트 ${total}개 모두 완료!\n최고예요, 이 조합이면 우리 아이도 건강할 거예요 ✨`,
     buttonTitle: '체크하러 가기',
     link: `${SITE_URL}/preparing`,
   })

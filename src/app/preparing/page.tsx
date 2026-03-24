@@ -373,12 +373,12 @@ export default function PreparingPage() {
             </>
           )}
 
-          {/* 예비파파는 파트너 초대 유도 */}
+          {/* 예비파파는 아내 초대 유도 */}
           {myRole === 'dad' && !tempPeriod && (
             <div className="mb-5 bg-[#F0F9F4] rounded-xl p-4 text-center">
-              <p className="text-[13px] font-semibold text-[#3D8A5A] mb-1">파트너를 초대하세요</p>
-              <p className="text-[11px] text-[#868B94] mb-3">파트너가 생리 주기를 입력하면 더 정확한 조언을 받을 수 있어요</p>
-              <a href="/settings/caregivers/invite" className="inline-block px-4 py-2 bg-[#3D8A5A] text-white text-[12px] font-semibold rounded-xl">💌 파트너 초대하기</a>
+              <p className="text-[13px] font-semibold text-[#3D8A5A] mb-1">아내를 초대하세요</p>
+              <p className="text-[11px] text-[#868B94] mb-3">아내가 생리 주기를 입력하면 더 정확한 조언을 받을 수 있어요</p>
+              <a href="/settings/caregivers/invite" className="inline-block px-4 py-2 bg-[#3D8A5A] text-white text-[12px] font-semibold rounded-xl">💌 아내 초대하기</a>
             </div>
           )}
 
@@ -556,7 +556,7 @@ export default function PreparingPage() {
 
           {/* 파트너 건강 */}
           <div className="bg-white rounded-xl border border-[#f0f0f0] p-2.5 text-center">
-            <p className="text-[10px] text-[#868B94]">💑 파트너</p>
+            <p className="text-[10px] text-[#868B94]">💑 배우자</p>
             <p className="text-[20px] font-bold text-[#1A1918] mt-0.5">{partnerCount}<span className="text-[12px] text-[#AEB1B9]">/6</span></p>
             <div className="flex gap-0.5 mt-1">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -663,7 +663,7 @@ export default function PreparingPage() {
         >
           <div>
             <p className="text-[13px] font-semibold text-[#1A1918]">더 알아보기</p>
-            <p className="text-[10px] text-[#868B94]">검사 가이드 · 파트너 건강 · 식단 · 마음 관리</p>
+            <p className="text-[10px] text-[#868B94]">검사 가이드 · 배우자 건강 · 식단 · 마음 관리</p>
           </div>
           <span className={`text-[#AEB1B9] text-sm transition-transform ${moreOpen ? 'rotate-180' : ''}`}>▼</span>
         </button>
@@ -673,7 +673,7 @@ export default function PreparingPage() {
             {/* 파트너 건강 상세 */}
             <div className="bg-white rounded-xl border border-[#f0f0f0] p-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[13px] font-bold text-[#1A1918]">💑 파트너 건강 체크</p>
+                <p className="text-[13px] font-bold text-[#1A1918]">💑 배우자 건강 체크</p>
                 <button onClick={() => sharePartnerNudge(partnerCount, 6)} className="text-[10px] text-[#3D8A5A] font-medium">카톡 넛지 보내기</button>
               </div>
               <div className="grid grid-cols-2 gap-1.5">
