@@ -206,49 +206,58 @@ function MapTab({ categories }: { categories: { icon: string; label: string; que
 
 // ===== 이야기 탭 =====
 function StoryTab() {
-  const supabase = createClient()
   const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [newPost, setNewPost] = useState('')
   const [posting, setPosting] = useState(false)
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({})
   const [comments, setComments] = useState<Record<string, any[]>>({})
   const [commentTexts, setCommentTexts] = useState<Record<string, string>>({})
+  const supabaseRef = useRef(createClient())
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) setUserId(user.id)
-      const { data } = await supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(30)
-      setPosts(data || []); setLoading(false)
+      try {
+        const supabase = supabaseRef.current
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) setUserId(user.id)
+        const { data, error: fetchErr } = await supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(30)
+        if (fetchErr) setError(fetchErr.message)
+        setPosts(data || [])
+      } catch (e) { setError(`${e}`) }
+      setLoading(false)
     }
     load()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   const handlePost = async () => {
     if (!newPost.trim() || posting || !userId) return
     setPosting(true)
-    const { data } = await supabase.from('posts').insert({ user_id: userId, content: newPost.trim() }).select().single()
+    const sb = supabaseRef.current
+    const { data } = await sb.from('posts').insert({ user_id: userId, content: newPost.trim() }).select().single()
     if (data) { setPosts(prev => [data, ...prev]); setNewPost('') }
     setPosting(false)
   }
 
   const toggleLike = async (postId: string) => {
     if (!userId) return
-    const { data: existing } = await supabase.from('post_likes').select('id').eq('post_id', postId).eq('user_id', userId).single()
+    const sb = supabaseRef.current
+    const { data: existing } = await sb.from('post_likes').select('id').eq('post_id', postId).eq('user_id', userId).single()
     if (existing) {
-      await supabase.from('post_likes').delete().eq('id', existing.id)
+      await sb.from('post_likes').delete().eq('id', existing.id)
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, like_count: Math.max(0, p.like_count - 1) } : p))
     } else {
-      await supabase.from('post_likes').insert({ post_id: postId, user_id: userId })
+      await sb.from('post_likes').insert({ post_id: postId, user_id: userId })
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, like_count: (p.like_count || 0) + 1 } : p))
     }
   }
 
   const loadComments = async (postId: string) => {
     if (expandedComments[postId]) { setExpandedComments(prev => ({ ...prev, [postId]: false })); return }
-    const { data } = await supabase.from('comments').select('*').eq('post_id', postId).order('created_at', { ascending: true })
+    const sb = supabaseRef.current
+    const { data } = await sb.from('comments').select('*').eq('post_id', postId).order('created_at', { ascending: true })
     setComments(prev => ({ ...prev, [postId]: data || [] }))
     setExpandedComments(prev => ({ ...prev, [postId]: true }))
   }
@@ -256,7 +265,8 @@ function StoryTab() {
   const addComment = async (postId: string) => {
     const text = commentTexts[postId]?.trim()
     if (!text || !userId) return
-    const { data } = await supabase.from('comments').insert({ post_id: postId, user_id: userId, content: text }).select().single()
+    const sb = supabaseRef.current
+    const { data } = await sb.from('comments').insert({ post_id: postId, user_id: userId, content: text }).select().single()
     if (data) {
       setComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), data] }))
       setCommentTexts(prev => ({ ...prev, [postId]: '' }))
@@ -278,6 +288,8 @@ function StoryTab() {
           </button>
         </div>
       </div>
+
+      {error && <div className="bg-[#FFF0E6] rounded-xl p-3"><p className="text-[11px] text-[#D08068]">{error}</p></div>}
 
       {loading ? (
         <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" /></div>
@@ -317,32 +329,38 @@ function StoryTab() {
 
 // ===== 도담장터 탭 =====
 function MarketTab() {
-  const supabase = createClient()
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
-  // 등록 폼
   const [formOpen, setFormOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [desc, setDesc] = useState('')
   const [price, setPrice] = useState(0)
   const [posting, setPosting] = useState(false)
+  const supabaseRef = useRef(createClient())
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) setUserId(user.id)
-      const { data } = await supabase.from('market_items').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(30)
-      setItems(data || []); setLoading(false)
+      try {
+        const sb = supabaseRef.current
+        const { data: { user } } = await sb.auth.getUser()
+        if (user) setUserId(user.id)
+        const { data, error: fetchErr } = await sb.from('market_items').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(30)
+        if (fetchErr) setError(fetchErr.message)
+        setItems(data || [])
+      } catch (e) { setError(`${e}`) }
+      setLoading(false)
     }
     load()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   const handlePost = async () => {
     if (!title.trim() || posting || !userId) return
     setPosting(true)
+    const sb = supabaseRef.current
     const region = localStorage.getItem('dodam_market_region') || '동네'
-    const { data } = await supabase.from('market_items').insert({
+    const { data } = await sb.from('market_items').insert({
       user_id: userId, title: title.trim(), description: desc.trim(), price, region, status: 'active',
     }).select().single()
     if (data) { setItems(prev => [data, ...prev]); setTitle(''); setDesc(''); setPrice(0); setFormOpen(false) }
@@ -373,6 +391,8 @@ function MarketTab() {
           <p className="text-[12px] text-[#3D8A5A] font-semibold">+ 도담장터에 올리기</p>
         </button>
       )}
+
+      {error && <div className="bg-[#FFF0E6] rounded-xl p-3"><p className="text-[11px] text-[#D08068]">{error}</p></div>}
 
       {loading ? (
         <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" /></div>
