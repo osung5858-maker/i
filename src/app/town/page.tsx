@@ -34,6 +34,10 @@ interface Place {
   id: string; name: string; address: string; phone: string; distance: string; lat: number; lng: number
 }
 
+interface Review {
+  id: string; rating: number; content: string; tags: string[] | null; child_age_months: number | null; created_at: string
+}
+
 export default function TownPage() {
   const [subTab, setSubTab] = useState<SubTab>('town')
   const [mode, setMode] = useState('parenting')
@@ -176,33 +180,127 @@ function MapTab({ categories }: { categories: { icon: string; label: string; que
         ) : places.length === 0 ? (
           <p className="text-[13px] text-[#AEB1B9] text-center py-8">주변에 검색 결과가 없어요</p>
         ) : (
-          places.map(p => (
-            <div key={p.id} className="bg-white rounded-xl border border-[#f0f0f0] p-3">
-              <Link href={`/map/${p.id}`} className="block active:opacity-80">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold text-[#1A1918] truncate">{p.name}</p>
-                    <p className="text-[10px] text-[#868B94] mt-0.5 truncate">{p.address}</p>
-                  </div>
-                  {p.distance && <span className="text-[10px] text-[#AEB1B9] shrink-0 ml-2">{p.distance}</span>}
-                </div>
-              </Link>
-              <div className="flex gap-2 mt-2 pt-2 border-t border-[#f0f0f0]">
-                {p.phone ? (
-                  <a href={`tel:${p.phone}`} className="flex-1 py-1.5 bg-[#F0F9F4] rounded-lg text-center text-[11px] text-[#3D8A5A] font-semibold active:opacity-80">📞 전화</a>
-                ) : (
-                  <div className="flex-1 py-1.5 bg-[#F5F4F1] rounded-lg text-center text-[11px] text-[#AEB1B9]">📞 전화</div>
-                )}
-                <a href={`https://map.kakao.com/link/to/${encodeURIComponent(p.name)},${p.lat},${p.lng}`} target="_blank" rel="noopener noreferrer"
-                  className="flex-1 py-1.5 bg-[#F0F9F4] rounded-lg text-center text-[11px] text-[#3D8A5A] font-semibold active:opacity-80">🧭 길찾기</a>
-                <Link href={`/map/${p.id}/review`} className="flex-1 py-1.5 bg-[#F0F9F4] rounded-lg text-center text-[11px] text-[#3D8A5A] font-semibold active:opacity-80">⭐ 리뷰</Link>
-              </div>
-            </div>
-          ))
+          places.map(p => <PlaceCard key={p.id} place={p} />)
         )}
       </div>
     </div>
   )
 }
 
+// ===== 장소 카드 (리뷰 포함) =====
+function PlaceCard({ place: p }: { place: Place }) {
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [showReviews, setShowReviews] = useState(false)
+  const [loaded, setLoaded] = useState(false)
 
+  const loadReviews = async () => {
+    if (loaded) { setShowReviews(!showReviews); return }
+    const supabase = createClient()
+    const { data } = await supabase.from('reviews').select('*').eq('place_id', p.id).order('created_at', { ascending: false }).limit(5)
+    setReviews(data || [])
+    setLoaded(true)
+    setShowReviews(true)
+  }
+
+  const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null
+
+  return (
+    <div className="bg-white rounded-xl border border-[#f0f0f0] p-3">
+      {/* 장소 정보 */}
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className="text-[13px] font-semibold text-[#1A1918] truncate">{p.name}</p>
+            {avgRating && (
+              <span className="text-[10px] text-[#C4A35A] font-semibold shrink-0">★ {avgRating}</span>
+            )}
+            {reviews.length > 0 && (
+              <span className="text-[9px] text-[#AEB1B9] shrink-0">({reviews.length})</span>
+            )}
+          </div>
+          <p className="text-[10px] text-[#868B94] mt-0.5 truncate">{p.address}</p>
+        </div>
+        {p.distance && <span className="text-[10px] text-[#AEB1B9] shrink-0 ml-2">{p.distance}</span>}
+      </div>
+
+      {/* 액션 버튼 */}
+      <div className="flex gap-1.5 mt-2 pt-2 border-t border-[#f0f0f0]">
+        {p.phone ? (
+          <a href={`tel:${p.phone}`} className="flex-1 py-1.5 bg-[#F0F9F4] rounded-lg text-center text-[11px] text-[#3D8A5A] font-semibold active:opacity-80">📞 전화</a>
+        ) : (
+          <div className="flex-1 py-1.5 bg-[#F5F4F1] rounded-lg text-center text-[11px] text-[#AEB1B9]">📞 전화</div>
+        )}
+        <a href={`https://map.kakao.com/link/to/${encodeURIComponent(p.name)},${p.lat},${p.lng}`} target="_blank" rel="noopener noreferrer"
+          className="flex-1 py-1.5 bg-[#F0F9F4] rounded-lg text-center text-[11px] text-[#3D8A5A] font-semibold active:opacity-80">🧭 길찾기</a>
+        <button onClick={loadReviews}
+          className="flex-1 py-1.5 bg-[#F0F9F4] rounded-lg text-center text-[11px] text-[#3D8A5A] font-semibold active:opacity-80">
+          ⭐ 리뷰 {loaded && reviews.length > 0 ? `(${reviews.length})` : ''}
+        </button>
+        <Link href={`/map/${p.id}/review`}
+          className="py-1.5 px-2 bg-[#3D8A5A] rounded-lg text-center text-[11px] text-white font-semibold active:opacity-80">✏️</Link>
+      </div>
+
+      {/* 리뷰 목록 (펼침) */}
+      {showReviews && (
+        <div className="mt-2 pt-2 border-t border-[#f0f0f0]">
+          {reviews.length === 0 ? (
+            <div className="text-center py-3">
+              <p className="text-[11px] text-[#AEB1B9]">아직 리뷰가 없어요</p>
+              <Link href={`/map/${p.id}/review`} className="text-[11px] text-[#3D8A5A] font-semibold mt-1 inline-block">첫 리뷰 작성하기 →</Link>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {/* 평균 평점 */}
+              <div className="flex items-center gap-2 mb-1">
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map(s => (
+                    <span key={s} className={`text-[14px] ${s <= Math.round(Number(avgRating)) ? 'text-amber-400' : 'text-[#E0E0E0]'}`}>★</span>
+                  ))}
+                </div>
+                <span className="text-[13px] font-bold text-[#1A1918]">{avgRating}</span>
+                <span className="text-[10px] text-[#868B94]">{reviews.length}개 리뷰</span>
+              </div>
+
+              {/* 태그 요약 */}
+              {(() => {
+                const allTags = reviews.flatMap(r => r.tags || [])
+                const tagCounts: Record<string, number> = {}
+                allTags.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1 })
+                const sorted = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 5)
+                if (sorted.length === 0) return null
+                return (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {sorted.map(([tag, count]) => (
+                      <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full bg-[#F0F9F4] text-[#3D8A5A]">{tag} ({count})</span>
+                    ))}
+                  </div>
+                )
+              })()}
+
+              {/* 리뷰 목록 */}
+              {reviews.map(r => (
+                <div key={r.id} className="bg-[#F5F4F1] rounded-lg p-2.5">
+                  <div className="flex items-center gap-1 mb-1">
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map(s => (
+                        <span key={s} className={`text-[10px] ${s <= r.rating ? 'text-amber-400' : 'text-[#E0E0E0]'}`}>★</span>
+                      ))}
+                    </div>
+                    {r.child_age_months !== null && <span className="text-[9px] text-[#868B94]">· 방문 시 {r.child_age_months}개월</span>}
+                  </div>
+                  <p className="text-[12px] text-[#1A1918] leading-relaxed">{r.content}</p>
+                  {r.tags && r.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {r.tags.map(t => <span key={t} className="text-[8px] px-1.5 py-0.5 rounded bg-white text-[#868B94]">{t}</span>)}
+                    </div>
+                  )}
+                  <p className="text-[9px] text-[#AEB1B9] mt-1">{new Date(r.created_at).toLocaleDateString('ko-KR')}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
