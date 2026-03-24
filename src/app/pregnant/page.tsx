@@ -117,9 +117,37 @@ function CheckupRecord({ currentWeek }: { currentWeek: number }) {
   const [babyWeight, setBabyWeight] = useState('')
   const [babyStatus, setBabyStatus] = useState('')
   const [doctorNote, setDoctorNote] = useState('')
+  const [photos, setPhotos] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    setUploading(true)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setUploading(false); return }
+
+      const newPhotos: string[] = []
+      for (let i = 0; i < Math.min(files.length, 5 - photos.length); i++) {
+        const file = files[i]
+        const ext = file.name.split('.').pop()
+        const path = `checkup/${user.id}/${Date.now()}_${i}.${ext}`
+        const { error } = await supabase.storage.from('photos').upload(path, file)
+        if (!error) {
+          const { data: urlData } = supabase.storage.from('photos').getPublicUrl(path)
+          newPhotos.push(urlData.publicUrl)
+        }
+      }
+      setPhotos(prev => [...prev, ...newPhotos])
+    } catch { /* */ }
+    setUploading(false)
+  }
 
   const save = () => {
-    if (!note.trim() && !doctorNote.trim()) return
+    if (!note.trim() && !doctorNote.trim() && photos.length === 0) return
     const entry = {
       id: Date.now(),
       date: new Date().toISOString().split('T')[0],
@@ -128,11 +156,12 @@ function CheckupRecord({ currentWeek }: { currentWeek: number }) {
       babyWeight: babyWeight.trim(),
       babyStatus,
       doctorNote: doctorNote.trim(),
+      photos,
     }
     const next = [entry, ...records]
     setRecords(next)
     localStorage.setItem('dodam_checkup_records', JSON.stringify(next))
-    setNote(''); setBabyWeight(''); setBabyStatus(''); setDoctorNote('')
+    setNote(''); setBabyWeight(''); setBabyStatus(''); setDoctorNote(''); setPhotos([])
     setFormOpen(false)
   }
 
@@ -182,8 +211,28 @@ function CheckupRecord({ currentWeek }: { currentWeek: number }) {
               className="w-full h-9 rounded-lg border border-[#f0f0f0] px-2 text-[12px]" />
           </div>
 
+          {/* 사진 업로드 */}
+          <div>
+            <p className="text-[10px] text-[#868B94] mb-1">📸 초음파 사진 / 영상 캡처 (최대 5장)</p>
+            <div className="flex gap-2 flex-wrap">
+              {photos.map((url, i) => (
+                <div key={i} className="w-16 h-16 rounded-lg overflow-hidden relative">
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <button onClick={() => setPhotos(prev => prev.filter((_, j) => j !== i))}
+                    className="absolute top-0 right-0 w-4 h-4 bg-black/50 text-white text-[8px] rounded-bl-lg">×</button>
+                </div>
+              ))}
+              {photos.length < 5 && (
+                <label className="w-16 h-16 rounded-lg border-2 border-dashed border-[#AEB1B9] flex flex-col items-center justify-center cursor-pointer active:opacity-60">
+                  <span className="text-lg text-[#AEB1B9]">{uploading ? '...' : '📷'}</span>
+                  <span className="text-[8px] text-[#AEB1B9]">{uploading ? '업로드' : '추가'}</span>
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+                </label>
+              )}
+            </div>
+          </div>
+
           <button onClick={save} className="w-full py-2 bg-[#3D8A5A] text-white text-[12px] font-semibold rounded-lg active:opacity-80">검진 기록 저장</button>
-          <p className="text-[9px] text-[#AEB1B9] text-center">초음파 사진/영상은 갤러리에서 직접 보관해주세요 (앱 저장 준비 중)</p>
         </div>
       )}
 
@@ -204,6 +253,13 @@ function CheckupRecord({ currentWeek }: { currentWeek: number }) {
               {r.babyStatus && <p className="text-[10px] text-[#1A1918] mb-0.5">{r.babyStatus}</p>}
               {r.doctorNote && <p className="text-[10px] text-[#868B94]">👨‍⚕️ {r.doctorNote}</p>}
               {r.note && <p className="text-[10px] text-[#868B94]">📝 {r.note}</p>}
+              {r.photos && r.photos.length > 0 && (
+                <div className="flex gap-1.5 mt-1.5">
+                  {r.photos.map((url: string, j: number) => (
+                    <img key={j} src={url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                  ))}
+                </div>
+              )}
             </div>
           ))}
           {records.length > 3 && <p className="text-[9px] text-[#AEB1B9] text-center">+{records.length - 3}건 더</p>}
