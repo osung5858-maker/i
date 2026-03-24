@@ -9,20 +9,104 @@ import StatsReport from '@/components/growth-chart/StatsReport'
 import DevelopmentCheck from '@/components/growth-chart/DevelopmentCheck'
 import type { Child, GrowthRecord, CareEvent } from '@/types'
 
+// ===== 여정 타임라인 — 기다림→임신→육아 통합 =====
+function JourneyTimeline({ childName }: { childName: string }) {
+  // localStorage에서 모든 기다림/임신 데이터 수집
+  const letters = (() => { try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]') } catch { return [] } })()
+  const diaries = (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] } })()
+  const checkups = (() => { try { return JSON.parse(localStorage.getItem('dodam_checkup_records') || '[]') } catch { return [] } })()
+  const pregTests = (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_tests') || '[]') } catch { return [] } })()
+
+  // 모든 이벤트를 날짜순 타임라인으로 합치기
+  const timeline: { date: string; type: string; emoji: string; title: string; content: string; sub?: string }[] = []
+
+  letters.forEach((l: any) => {
+    timeline.push({ date: l.date, type: 'letter', emoji: '✉️', title: '아이에게 보낸 편지', content: l.text?.slice(0, 60) || '', sub: l.reply?.slice(0, 40) })
+  })
+  diaries.forEach((d: any) => {
+    timeline.push({ date: d.date, type: 'diary', emoji: '✍️', title: '태교일기', content: d.text?.slice(0, 60) || '', sub: d.comment?.slice(0, 40) })
+  })
+  checkups.forEach((c: any) => {
+    timeline.push({ date: c.date, type: 'checkup', emoji: '🏥', title: `${c.week}주차 검진`, content: c.doctorNote || c.note || '', sub: c.babyWeight ? `⚖️ ${c.babyWeight}` : undefined })
+  })
+  pregTests.forEach((t: any) => {
+    if (t.result === '양성') timeline.push({ date: t.date, type: 'positive', emoji: '🎉', title: '양성! 아이가 찾아왔어요', content: `D+${t.dpo}에 확인` })
+  })
+
+  // 날짜 정렬 (최신 먼저)
+  timeline.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  const hasJourney = timeline.length > 0
+
+  return (
+    <div className="px-5 pt-4 space-y-3">
+      {/* 히어로 */}
+      <div className="bg-gradient-to-br from-[#FFF8F3] to-[#F0F9F4] rounded-xl border border-[#C8F0D8]/50 p-5 text-center">
+        <p className="text-3xl mb-2">{hasJourney ? '📖' : '🌱'}</p>
+        <p className="text-[16px] font-bold text-[#1A1918]">
+          {hasJourney ? `${childName}를 만나기까지의 여정` : '여정이 시작될 거예요'}
+        </p>
+        {hasJourney && (
+          <div className="flex justify-center gap-4 mt-3">
+            {letters.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{letters.length}</p><p className="text-[9px] text-[#868B94]">편지</p></div>}
+            {diaries.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{diaries.length}</p><p className="text-[9px] text-[#868B94]">태교일기</p></div>}
+            {checkups.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[#3D8A5A]">{checkups.length}</p><p className="text-[9px] text-[#868B94]">검진</p></div>}
+          </div>
+        )}
+        {!hasJourney && <p className="text-[12px] text-[#868B94] mt-2">편지, 태교일기, 검진 기록이 여기에 모여요</p>}
+      </div>
+
+      {/* 타임라인 */}
+      {timeline.length > 0 ? (
+        <div className="relative">
+          {/* 세로 라인 */}
+          <div className="absolute left-4 top-0 bottom-0 w-px bg-[#E0E0E0]" />
+
+          {timeline.map((item, i) => (
+            <div key={i} className="flex gap-3 mb-3 relative">
+              {/* 점 */}
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 ${
+                item.type === 'positive' ? 'bg-[#3D8A5A]' : 'bg-white border border-[#E0E0E0]'
+              }`}>
+                <span className="text-[12px]">{item.emoji}</span>
+              </div>
+              {/* 카드 */}
+              <div className="flex-1 bg-white rounded-xl border border-[#f0f0f0] p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-[12px] font-semibold text-[#1A1918]">{item.title}</p>
+                  <span className="text-[9px] text-[#AEB1B9]">{new Date(item.date).toLocaleDateString('ko-KR')}</span>
+                </div>
+                {item.content && <p className="text-[11px] text-[#868B94] line-clamp-2">{item.content}</p>}
+                {item.sub && <p className="text-[10px] text-[#3D8A5A] mt-0.5 italic">{item.sub}</p>}
+                {item.type === 'positive' && <p className="text-[11px] text-[#3D8A5A] font-semibold mt-1">🎉 이 순간부터 모든 게 시작되었어요</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <p className="text-[13px] text-[#AEB1B9]">아직 기록이 없어요</p>
+          <p className="text-[11px] text-[#868B94] mt-1">편지를 쓰거나, 태교일기를 남기면 여기에 모여요</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function getAgeMonths(birthdate: string): number {
   const birth = new Date(birthdate)
   const now = new Date()
   return (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
 }
 
-type MemoryTab = 'diary' | 'growth'
+type MemoryTab = 'journey' | 'diary' | 'growth'
 
 export default function MemoryPage() {
   const [child, setChild] = useState<Child | null>(null)
   const [events, setEvents] = useState<CareEvent[]>([])
   const [records, setRecords] = useState<GrowthRecord[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<MemoryTab>('diary')
+  const [tab, setTab] = useState<MemoryTab>('journey')
   const router = useRouter()
   const supabase = createClient()
 
@@ -71,8 +155,9 @@ export default function MemoryPage() {
           <Link href="/growth/add" className="text-[12px] font-semibold text-[#3D8A5A]">+ 성장 기록</Link>
         </div>
 
-        <div className="flex px-5 pb-2 max-w-lg mx-auto gap-2">
+        <div className="flex px-5 pb-2 max-w-lg mx-auto gap-1.5">
           {([
+            { key: 'journey' as MemoryTab, label: '여정' },
             { key: 'diary' as MemoryTab, label: '일기' },
             { key: 'growth' as MemoryTab, label: '성장' },
           ]).map((t) => (
@@ -90,6 +175,10 @@ export default function MemoryPage() {
       </header>
 
       <div className="max-w-lg mx-auto pb-28">
+        {/* 여정 탭 — 기다림→임신→육아 통합 타임라인 */}
+        {tab === 'journey' && (
+          <JourneyTimeline childName={child?.name || '도담이'} />
+        )}
         {tab === 'diary' && (
           <DiaryView events={events} childName={child?.name || '도담이'} />
         )}
