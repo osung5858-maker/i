@@ -106,7 +106,7 @@ export default function MemoryPage() {
   const [events, setEvents] = useState<CareEvent[]>([])
   const [records, setRecords] = useState<GrowthRecord[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<MemoryTab>('journey')
+  const [tab, setTab] = useState<MemoryTab>('growth')
   const router = useRouter()
   const supabase = createClient()
 
