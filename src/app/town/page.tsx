@@ -192,6 +192,19 @@ function PlaceCard({ place: p }: { place: Place }) {
   const [reviews, setReviews] = useState<Review[]>([])
   const [showReviews, setShowReviews] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [reviewCount, setReviewCount] = useState(0)
+  const [avgRating, setAvgRating] = useState<string | null>(null)
+
+  // 카드 렌더링 시 리뷰 수/평점만 먼저 로드
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.from('reviews').select('rating').eq('place_id', p.id).then(({ data }) => {
+      if (data && data.length > 0) {
+        setReviewCount(data.length)
+        setAvgRating((data.reduce((s: number, r: any) => s + r.rating, 0) / data.length).toFixed(1))
+      }
+    })
+  }, [p.id])
 
   const loadReviews = async () => {
     if (loaded) { setShowReviews(!showReviews); return }
@@ -202,8 +215,6 @@ function PlaceCard({ place: p }: { place: Place }) {
     setShowReviews(true)
   }
 
-  const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null
-
   return (
     <div className="bg-white rounded-xl border border-[#f0f0f0] p-3">
       {/* 상단: 이름 + 별점 + 거리 */}
@@ -213,9 +224,9 @@ function PlaceCard({ place: p }: { place: Place }) {
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           {avgRating ? (
-            <span className="text-[11px] text-[#C4A35A] font-bold">★ {avgRating}<span className="text-[9px] text-[#AEB1B9] font-normal"> ({reviews.length})</span></span>
+            <span className="text-[11px] text-[#C4A35A] font-bold">★ {avgRating}<span className="text-[9px] text-[#AEB1B9] font-normal"> ({reviewCount})</span></span>
           ) : (
-            <span className="text-[9px] text-[#AEB1B9]">리뷰 없음</span>
+            <span className="text-[9px] text-[#AEB1B9]">새 장소</span>
           )}
           {p.distance && <span className="text-[10px] text-[#AEB1B9]">{p.distance}</span>}
         </div>
@@ -230,7 +241,7 @@ function PlaceCard({ place: p }: { place: Place }) {
         <a href={`https://map.kakao.com/link/to/${encodeURIComponent(p.name)},${p.lat},${p.lng}`} target="_blank" rel="noopener noreferrer"
           className="px-2.5 py-1 rounded-full bg-[#F5F4F1] text-[10px] text-[#868B94] active:opacity-60">🧭 길찾기</a>
         <button onClick={loadReviews} className="px-2.5 py-1 rounded-full bg-[#F5F4F1] text-[10px] text-[#868B94] active:opacity-60">
-          💬 리뷰{loaded && reviews.length > 0 ? ` ${reviews.length}` : ''}
+          💬 리뷰{reviewCount > 0 ? ` ${reviewCount}` : ''}
         </button>
         <Link href={`/map/${p.id}/review`} className="px-2.5 py-1 rounded-full bg-[#3D8A5A] text-[10px] text-white font-semibold active:opacity-80 ml-auto">✏️ 리뷰 쓰기</Link>
       </div>
