@@ -322,7 +322,7 @@ export default function NamePage() {
                     <input value={name} onChange={e => updateCompareName(i, e.target.value)} placeholder={`후보 ${i + 1}`}
                       className="flex-1 h-10 rounded-lg border border-[#E8E4DF] px-3 text-[14px]" />
                     {compareNames.length > 2 && (
-                      <button onClick={() => setCompareNames(compareNames.filter((_, j) => j !== i))} className="text-[#9E9A95] text-lg">×</button>
+                      <button onClick={() => setCompareNames(compareNames.filter((_, j) => j !== i))} className="text-[#9E9A95] text-lg">✕</button>
                     )}
                   </div>
                 ))}

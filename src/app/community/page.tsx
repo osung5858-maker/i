@@ -438,7 +438,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                       {post.like_count >= 5 && <span className="text-[9px] font-semibold text-[#D89575]">🔥 인기</span>}
                     </div>
                     {post.user_id === userId && (
-                      <button onClick={() => { if (confirm('정말 삭제할까요?')) handleDelete(post.id) }} className="text-[10px] text-[#9E9A95]">삭제</button>
+                      <button onClick={() => { if (confirm('정말 삭제할까요?')) handleDelete(post.id) }} className="text-[10px] text-[#9E9A95]">🗑</button>
                     )}
                   </div>
                   <p className="text-[13px] text-[#1A1918] leading-relaxed mb-3 whitespace-pre-line">{post.content}</p>
@@ -485,7 +485,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                                 <div className="flex items-center gap-2 mt-0.5">
                                   <span className="text-[9px] text-[#9E9A95]">{timeAgo(c.created_at)}</span>
                                   {c.user_id === userId && (
-                                    <button onClick={() => { if (confirm('댓글을 삭제할까요?')) deleteComment(c.id, post.id) }} className="text-[9px] text-[#9E9A95]">삭제</button>
+                                    <button onClick={() => { if (confirm('댓글을 삭제할까요?')) deleteComment(c.id, post.id) }} className="text-[9px] text-[#9E9A95]">🗑</button>
                                   )}
                                 </div>
                               </div>

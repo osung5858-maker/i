@@ -443,7 +443,7 @@ export default function PreparingPage() {
             <p className="text-[12px] text-[#6B6966]">임신 준비 · {phaseLabel[getCyclePhase()]}</p>
             <p className="text-[16px] font-bold text-[#1A1918]">{cycle ? `주기 ${cycle.cycleDay}일차` : '주기 설정'}</p>
           </div>
-          <button onClick={() => setEditingCycle(true)} className="text-[11px] text-[#6B6966]">수정</button>
+          <button onClick={() => setEditingCycle(true)} className="text-[11px] text-[#6B6966]">✏️</button>
         </div>
       </header>
 

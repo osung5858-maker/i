@@ -367,17 +367,17 @@ export default function BottomNav() {
               {/* 중앙 FAB */}
               <button
                 onClick={() => setFabOpen((v) => !v)}
-                className={`flex flex-col items-center justify-center -mt-5 transition-transform duration-200 ${fabOpen ? 'scale-95' : ''}`}
+                className={`flex flex-col items-center justify-center -mt-7 transition-transform duration-200 ${fabOpen ? 'scale-95' : ''}`}
               >
                 <div
-                  className={`w-14 h-14 rounded-full flex items-center justify-center shadow-[0_4px_16px_rgba(61,138,90,0.35)] active:scale-90 transition-all duration-200 ${
+                  className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_6px_20px_rgba(61,138,90,0.35)] active:scale-90 transition-all duration-200 ${
                     fabOpen ? 'bg-[#212124]' : 'bg-[#3D8A5A]'
                   }`}
                 >
                   {fabOpen ? (
-                    <XIcon className="w-6 h-6 text-white" />
+                    <XIcon className="w-7 h-7 text-white" />
                   ) : (
-                    <PlusIcon className="w-6 h-6 text-white" />
+                    <PlusIcon className="w-7 h-7 text-white" />
                   )}
                 </div>
                 <span className={`text-[10px] mt-0.5 font-semibold ${fabOpen ? 'text-[#212124]' : 'text-[#3D8A5A]'}`}>

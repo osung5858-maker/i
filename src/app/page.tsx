@@ -697,7 +697,7 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
         {[
           { emoji: '🍼', count: todayFeedCount, label: '수유' },
           { emoji: '💤', count: todaySleepCount, label: '수면' },
-          { emoji: '🩲', count: todayPoopCount, label: '배변' },
+          { emoji: '💩', count: todayPoopCount, label: '배변' },
         ].map((s) => (
           <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center">
             <p className="text-[14px] font-bold text-[#1A1918]">{s.emoji} {s.count}</p>

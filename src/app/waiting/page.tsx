@@ -369,13 +369,13 @@ export default function WaitingPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[12px] text-[#6B6966]">기초체온</span>
-                <input type="number" step="0.01" min="35" max="38" value={bbtRecords[selectedDate] || ''} onChange={(e) => recordBBT(selectedDate, Number(e.target.value))} placeholder="36.50" className="w-20 h-8 rounded-lg border border-[#E8E4DF] px-2 text-[12px] text-right" />
+                <input type="number" step="0.01" min="35" max="38" value={bbtRecords[selectedDate] || ''} onChange={(e) => recordBBT(selectedDate, Number(e.target.value))} placeholder="36.50" className="w-20 h-10 rounded-lg border border-[#E8E4DF] px-2 text-[12px] text-right" />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] text-[#6B6966]">배란 테스트</span>
                 <div className="flex gap-1.5">
-                  <button onClick={() => recordOvulationTest(selectedDate, true)} className={`px-3 py-1 rounded-lg text-[11px] ${ovulationTests[selectedDate] === true ? 'bg-[#3D8A5A] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>양성</button>
-                  <button onClick={() => recordOvulationTest(selectedDate, false)} className={`px-3 py-1 rounded-lg text-[11px] ${ovulationTests[selectedDate] === false ? 'bg-[#D08068] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>음성</button>
+                  <button onClick={() => recordOvulationTest(selectedDate, true)} className={`px-3 py-1.5 rounded-xl text-[11px] ${ovulationTests[selectedDate] === true ? 'bg-[#3D8A5A] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>양성</button>
+                  <button onClick={() => recordOvulationTest(selectedDate, false)} className={`px-3 py-1.5 rounded-xl text-[11px] ${ovulationTests[selectedDate] === false ? 'bg-[#D08068] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>음성</button>
                 </div>
               </div>
             </div>

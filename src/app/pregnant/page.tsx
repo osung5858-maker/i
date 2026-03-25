@@ -219,7 +219,7 @@ function CheckupRecord({ currentWeek }: { currentWeek: number }) {
                 <div key={i} className="w-16 h-16 rounded-lg overflow-hidden relative">
                   <img src={url} alt="" className="w-full h-full object-cover" />
                   <button onClick={() => setPhotos(prev => prev.filter((_, j) => j !== i))}
-                    className="absolute top-0 right-0 w-6 h-6 bg-black/50 text-white text-[10px] rounded-bl-lg">×</button>
+                    className="absolute top-0 right-0 w-6 h-6 bg-black/50 text-white text-[10px] rounded-bl-lg">✕</button>
                 </div>
               ))}
               {photos.length < 5 && (
@@ -527,7 +527,7 @@ export default function PregnantPage() {
             <p className="text-[12px] text-[#6B6966]">임신 {currentWeek}주차 · {trimester}</p>
             <p className="text-[16px] font-bold text-[#1A1918]">D-{daysLeft}</p>
           </div>
-          <button onClick={() => setEditingDate(true)} className="text-[11px] text-[#6B6966]">수정</button>
+          <button onClick={() => setEditingDate(true)} className="text-[11px] text-[#6B6966]">✏️</button>
         </div>
       </header>
 
