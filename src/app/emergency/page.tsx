@@ -15,13 +15,41 @@ interface NearbyClinic {
   rating: number
 }
 
-// 샘플 데이터 (추후 Supabase PostGIS 연동)
-const SAMPLE_CLINICS: NearbyClinic[] = [
-  { id: '1', name: '행복한소아과', address: '역삼동 123-45', phone: '02-1234-5678', distance_km: 0.5, is_open: true, closing_time: '21:00', rating: 4.2 },
-  { id: '2', name: '우리아이소아과', address: '삼성동 456-78', phone: '02-2345-6789', distance_km: 1.2, is_open: true, closing_time: '20:00', rating: 4.5 },
-  { id: '3', name: '튼튼소아과', address: '대치동 789-12', phone: '02-3456-7890', distance_km: 2.1, is_open: true, closing_time: '22:00', rating: 3.8 },
-  { id: '4', name: '사랑소아과', address: '논현동 234-56', phone: '02-4567-8901', distance_km: 3.5, is_open: false, closing_time: '18:00', rating: 4.0 },
-]
+// 카카오맵 Places API로 실제 소아과 검색
+async function searchNearbyClinics(lat: number, lng: number, radiusKm: number): Promise<NearbyClinic[]> {
+  const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_REST_KEY || ''
+  if (!kakaoKey) return []
+
+  const results: NearbyClinic[] = []
+  const keywords = ['소아과', '응급소아과', '소아청소년과', '어린이병원', '대학병원 응급실']
+
+  for (const keyword of keywords) {
+    try {
+      const res = await fetch(
+        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(keyword)}&x=${lng}&y=${lat}&radius=${radiusKm * 1000}&sort=distance&size=5`,
+        { headers: { Authorization: `KakaoAK ${kakaoKey}` } }
+      )
+      if (!res.ok) continue
+      const data = await res.json()
+      for (const place of (data.documents || [])) {
+        if (results.some(r => r.id === place.id)) continue
+        const distKm = Number(place.distance) / 1000
+        results.push({
+          id: place.id,
+          name: place.place_name,
+          address: place.road_address_name || place.address_name,
+          phone: place.phone || '',
+          distance_km: Math.round(distKm * 10) / 10,
+          is_open: true, // 카카오 API는 영업 상태를 직접 제공하지 않음
+          closing_time: '',
+          rating: 0,
+        })
+      }
+    } catch { /* skip */ }
+  }
+
+  return results.sort((a, b) => a.distance_km - b.distance_km).slice(0, 10)
+}
 
 export default function EmergencyPage() {
   const [clinics, setClinics] = useState<NearbyClinic[]>([])
@@ -95,29 +123,29 @@ export default function EmergencyPage() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // GPS 위치 요청 시뮬레이션
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        () => {
-          // 성공: 샘플 데이터로 표시 (추후 PostGIS 연동)
-          const filtered = SAMPLE_CLINICS
-            .filter((c) => c.is_open && c.distance_km <= radius)
-            .sort((a, b) => a.distance_km - b.distance_km)
-          setClinics(filtered)
+        async (pos) => {
+          const { latitude, longitude } = pos.coords
+          const results = await searchNearbyClinics(latitude, longitude, radius)
+          setClinics(results)
           setLoading(false)
         },
-        () => {
-          // 위치 권한 거부: 전체 샘플 표시
+        async () => {
+          // 위치 권한 거부: 강남역 기본 좌표
           setLocationError(true)
-          setClinics(SAMPLE_CLINICS.filter((c) => c.is_open))
+          const results = await searchNearbyClinics(37.4979, 127.0276, radius)
+          setClinics(results)
           setLoading(false)
         },
         { timeout: 5000 }
       )
     } else {
       setLocationError(true)
-      setClinics(SAMPLE_CLINICS.filter((c) => c.is_open))
-      setLoading(false)
+      searchNearbyClinics(37.4979, 127.0276, radius).then(results => {
+        setClinics(results)
+        setLoading(false)
+      })
     }
   }, [radius])
 

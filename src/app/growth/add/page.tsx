@@ -71,7 +71,7 @@ export default function AddGrowthPage() {
       return
     }
 
-    router.push('/growth')
+    router.push('/record')
   }
 
   const hasValue = weightKg || heightCm || headCm

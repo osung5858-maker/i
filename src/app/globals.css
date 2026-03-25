@@ -3,10 +3,13 @@
 /* ===== 도담 디자인 시스템 D안 — 감성 모드별 테마 ===== */
 
 @theme inline {
-  /* 공통 */
-  --color-primary: #3D8A5A;
-  --color-primary-light: #5BA878;
-  --color-primary-bg: #F0FAF4;
+  /* 공통 — 기본값은 코랄 테마 (ThemeInitializer가 사용자 선택으로 덮어씀) */
+  --color-primary: #E8937A;
+  --color-primary-light: #F0A890;
+  --color-primary-bg: #FFF5F2;
+  --color-accent: #D07A62;
+  --color-accent-bg: #FFE0D4;
+  --dodam-gradient: linear-gradient(135deg, #FFF5F2 0%, #FFE8E0 50%, #FFD4C4 100%);
 
   --color-bg: #FFF9F5;
   --color-surface: #FFFFFF;
@@ -28,7 +31,7 @@
   --color-parenting-bg: #F0FAF4;
 
   /* Semantic */
-  --color-success: #3D8A5A;
+  --color-success: #4CAF50;
   --color-warning: #E8937A;
   --color-danger: #D05050;
   --color-info: #4A90D9;

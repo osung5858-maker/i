@@ -18,7 +18,7 @@ const QUESTIONS = [
 ]
 
 function getResult(score: number) {
-  if (score <= 8) return { level: 'safe', color: '#3D8A5A', emoji: '💚', title: '안정', desc: '현재 정서 상태가 양호해요. 지금처럼 자신을 잘 돌봐주세요.' }
+  if (score <= 8) return { level: 'safe', color: 'var(--color-primary)', emoji: '💚', title: '안정', desc: '현재 정서 상태가 양호해요. 지금처럼 자신을 잘 돌봐주세요.' }
   if (score <= 12) return { level: 'caution', color: '#C4A35A', emoji: '💛', title: '주의', desc: '가벼운 우울감이 있을 수 있어요. 충분한 휴식과 주변의 도움을 받아보세요.' }
   if (score <= 19) return { level: 'warning', color: '#D08068', emoji: '🧡', title: '경계', desc: '전문 상담을 권장해요. 산부인과 또는 정신건강의학과 방문을 추천드려요.' }
   return { level: 'danger', color: '#D05050', emoji: '❤️', title: '위험', desc: '전문가의 즉각적인 도움이 필요해요. 지금 바로 상담 전화를 해주세요.' }
@@ -74,7 +74,7 @@ export default function MentalCheckPage() {
 
         {score <= 12 && (
           <div className="w-full max-w-xs bg-[#F0F9F4] rounded-xl p-4 mb-4">
-            <p className="text-[14px] text-[#3D8A5A] text-center">괜찮아요. 당신은 충분히 잘 하고 있어요 💚</p>
+            <p className="text-[14px] text-[var(--color-primary)] text-center">괜찮아요. 당신은 충분히 잘 하고 있어요 💚</p>
           </div>
         )}
 
@@ -109,7 +109,7 @@ export default function MentalCheckPage() {
         {/* 프로그레스 */}
         <div className="flex gap-1 mb-6">
           {QUESTIONS.map((_, i) => (
-            <div key={i} className={`flex-1 h-1 rounded-full ${answers[i] !== null ? 'bg-[#3D8A5A]' : i === currentQ ? 'bg-[#3D8A5A]/40' : 'bg-[#E8E4DF]'}`} />
+            <div key={i} className={`flex-1 h-1 rounded-full ${answers[i] !== null ? 'bg-[var(--color-primary)]' : i === currentQ ? 'bg-[var(--color-primary)]/40' : 'bg-[#E8E4DF]'}`} />
           ))}
         </div>
 
@@ -120,12 +120,12 @@ export default function MentalCheckPage() {
           const q = QUESTIONS[currentQ]
           return (
             <div className="bg-white rounded-2xl border border-[#E8E4DF] p-5">
-              <p className="text-[13px] text-[#3D8A5A] font-semibold mb-2">{currentQ + 1} / 10</p>
+              <p className="text-[13px] text-[var(--color-primary)] font-semibold mb-2">{currentQ + 1} / 10</p>
               <p className="text-[16px] font-bold text-[#1A1918] mb-5 leading-relaxed">{q.q}</p>
               <div className="space-y-2">
                 {q.options.map((opt, oi) => (
                   <button key={oi} onClick={() => handleAnswer(currentQ, oi)}
-                    className={`w-full text-left px-4 py-3 rounded-xl text-[14px] transition-all ${answers[currentQ] === oi ? 'bg-[#3D8A5A] text-white font-semibold' : 'bg-[#FFF9F5] text-[#1A1918] active:bg-[#ECECEC]'}`}>
+                    className={`w-full text-left px-4 py-3 rounded-xl text-[14px] transition-all ${answers[currentQ] === oi ? 'bg-[var(--color-primary)] text-white font-semibold' : 'bg-[#FFF9F5] text-[#1A1918] active:bg-[#ECECEC]'}`}>
                     {opt}
                   </button>
                 ))}
@@ -141,12 +141,12 @@ export default function MentalCheckPage() {
 
           {allAnswered ? (
             <button onClick={() => { saveResult(); setShowResult(true) }}
-              className="px-6 py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80">
+              className="px-6 py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80">
               결과 보기
             </button>
           ) : (
             <button onClick={() => setCurrentQ(Math.min(9, currentQ + 1))} disabled={answers[currentQ] === null}
-              className={`text-[13px] ${answers[currentQ] === null ? 'text-[#F0F0F0]' : 'text-[#3D8A5A] font-semibold'}`}>다음 →</button>
+              className={`text-[13px] ${answers[currentQ] === null ? 'text-[#F0F0F0]' : 'text-[var(--color-primary)] font-semibold'}`}>다음 →</button>
           )}
         </div>
       </div>

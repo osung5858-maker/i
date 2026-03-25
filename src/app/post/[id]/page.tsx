@@ -27,7 +27,7 @@ export default function PublicPostPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[100dvh] bg-white">
-        <div className="w-8 h-8 border-3 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
       </div>
     )
   }
@@ -36,7 +36,7 @@ export default function PublicPostPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[100dvh] bg-white px-6">
         <p className="text-[15px] text-[#6B6966] mb-4">게시글을 찾을 수 없어요</p>
-        <Link href="/onboarding" className="text-[13px] text-[#3D8A5A] font-semibold">도담 시작하기 →</Link>
+        <Link href="/onboarding" className="text-[13px] text-[var(--color-primary)] font-semibold">도담 시작하기 →</Link>
       </div>
     )
   }
@@ -46,13 +46,13 @@ export default function PublicPostPage() {
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-[#3D8A5A] flex items-center justify-center">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center shrink-0">
               <span className="text-[14px] font-bold text-white">도</span>
             </div>
-            <span className="text-[15px] font-bold text-[#1A1918]">도담 이야기</span>
+            <span className="text-[15px] font-bold text-[#1A1918] truncate">도담 이야기</span>
           </div>
-          <Link href="/onboarding" className="text-[13px] text-[#3D8A5A] font-semibold px-3 py-1.5 bg-[#F0F9F4] rounded-lg">도담 시작하기</Link>
+          <Link href="/onboarding" className="text-[13px] text-[var(--color-primary)] font-semibold px-3 py-1.5 bg-[#F0F9F4] rounded-lg whitespace-nowrap shrink-0 ml-3">도담 시작하기</Link>
         </div>
       </header>
 
@@ -82,9 +82,9 @@ export default function PublicPostPage() {
 
         {/* CTA */}
         <div className="bg-[#F0F9F4] rounded-xl p-4 text-center">
-          <p className="text-[13px] font-semibold text-[#3D8A5A] mb-1">도담에서 더 많은 이야기를 나눠보세요</p>
+          <p className="text-[13px] font-semibold text-[var(--color-primary)] mb-1">도담에서 더 많은 이야기를 나눠보세요</p>
           <p className="text-[13px] text-[#6B6966] mb-3">임신 준비부터 육아까지, AI 케어 파트너</p>
-          <Link href="/onboarding" className="inline-block px-6 py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl">도담 시작하기</Link>
+          <Link href="/onboarding" className="inline-block px-6 py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl">도담 시작하기</Link>
         </div>
       </div>
     </div>

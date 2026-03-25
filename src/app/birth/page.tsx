@@ -45,7 +45,7 @@ export default function BirthPage() {
           </div>
 
           <h1 className="text-[28px] font-bold text-[#1A1918] mb-2">축하해요!</h1>
-          <p className="text-[18px] text-[#3D8A5A] font-semibold mb-4">우리 아이가 세상에 왔어요</p>
+          <p className="text-[18px] text-[var(--color-primary)] font-semibold mb-4">우리 아이가 세상에 왔어요</p>
           <p className="text-[14px] text-[#6B6966] leading-relaxed max-w-[280px] mx-auto">
             기다리고, 준비하고, 함께했던<br />
             그 모든 시간이 지금 이 순간을 위한 거였어요
@@ -61,7 +61,7 @@ export default function BirthPage() {
           </div>
 
           <button onClick={() => setStep(1)}
-            className="mt-10 px-8 py-3 bg-[#3D8A5A] text-white text-[15px] font-semibold rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98] transition-all">
+            className="mt-10 px-8 py-3 bg-[var(--color-primary)] text-white text-[15px] font-semibold rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98] transition-all">
             우리의 여정 돌아보기
           </button>
         </div>
@@ -80,7 +80,7 @@ export default function BirthPage() {
           <div className="w-full max-w-xs space-y-4">
             <div className="bg-white rounded-2xl p-5 text-center shadow-sm">
               <p className="text-3xl mb-2">🤰</p>
-              <p className="text-[24px] font-bold text-[#3D8A5A]">40주</p>
+              <p className="text-[24px] font-bold text-[var(--color-primary)]">40주</p>
               <p className="text-[13px] text-[#6B6966]">함께한 임신 여정</p>
             </div>
 
@@ -104,12 +104,12 @@ export default function BirthPage() {
 
             <div className="bg-[#FFF8F3] rounded-2xl p-4 text-center">
               <p className="text-[14px] text-[#6B6966] mb-1">모든 기록은 소중히 보관돼요</p>
-              <p className="text-[13px] text-[#3D8A5A] font-semibold">아이가 자라면 함께 읽어보세요 💌</p>
+              <p className="text-[13px] text-[var(--color-primary)] font-semibold">아이가 자라면 함께 읽어보세요 💌</p>
             </div>
           </div>
 
           <button onClick={() => setStep(2)}
-            className="mt-8 px-8 py-3 bg-[#3D8A5A] text-white text-[15px] font-semibold rounded-2xl active:scale-[0.98] transition-all">
+            className="mt-8 px-8 py-3 bg-[var(--color-primary)] text-white text-[15px] font-semibold rounded-2xl active:scale-[0.98] transition-all">
             육아 시작하기
           </button>
         </div>
@@ -131,7 +131,7 @@ export default function BirthPage() {
 
       <div className="w-full max-w-xs space-y-4">
         <div className="bg-[#F0F9F4] rounded-xl p-4">
-          <p className="text-[13px] font-semibold text-[#3D8A5A] mb-2">도담이 도와줄 것들</p>
+          <p className="text-[13px] font-semibold text-[var(--color-primary)] mb-2">도담이 도와줄 것들</p>
           {[
             { icon: '🍼', text: '수유 · 수면 · 배변 기록' },
             { icon: '📊', text: 'AI 패턴 분석 · 예측' },
@@ -147,7 +147,7 @@ export default function BirthPage() {
         </div>
 
         <button onClick={() => { shareBirth('우리 아이'); handleComplete() }}
-          className="w-full py-3.5 bg-[#3D8A5A] text-white text-[15px] font-semibold rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98]">
+          className="w-full py-3.5 bg-[var(--color-primary)] text-white text-[15px] font-semibold rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98]">
           카톡으로 알리고 시작하기 💛
         </button>
         <button onClick={handleComplete} className="w-full py-2.5 text-[13px] text-[#6B6966]">

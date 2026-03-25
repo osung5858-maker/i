@@ -53,7 +53,7 @@ export default function TownPage() {
     <div className="min-h-[100dvh] bg-[#FFF9F5]">
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
         <div className="max-w-lg mx-auto w-full">
-          <div className="flex items-center h-12 px-5">
+          <div className="flex items-center h-14 px-5">
             <h1 className="text-[17px] font-bold text-[#1A1918]">동네</h1>
           </div>
           <div className="flex px-5 gap-1 pb-2">
@@ -63,7 +63,7 @@ export default function TownPage() {
               { key: 'market' as SubTab, label: '도담장터' },
             ].map(t => (
               <button key={t.key} onClick={() => setSubTab(t.key)}
-                className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${subTab === t.key ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
+                className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${subTab === t.key ? 'bg-[var(--color-primary)] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                 {t.label}
               </button>
             ))}
@@ -195,14 +195,14 @@ function MapTab({ categories }: { categories: { icon: string; label: string; que
       <div className="flex gap-1.5 overflow-x-auto hide-scrollbar px-4 py-3">
         {categories.map((cat, i) => (
           <button key={cat.query} onClick={() => { setActiveIdx(i); searchPlaces(cat.query) }}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-[14px] font-semibold flex items-center gap-1 ${activeIdx === i ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
+            className={`shrink-0 px-3 py-1.5 rounded-full text-[14px] font-semibold flex items-center gap-1 ${activeIdx === i ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
             <span className="text-sm">{cat.icon}</span> {cat.label}
           </button>
         ))}
       </div>
       <div className="px-5 space-y-2">
         {loading ? (
-          <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" /></div>
+          <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" /></div>
         ) : places.length === 0 ? (
           <p className="text-[13px] text-[#9E9A95] text-center py-8">주변에 검색 결과가 없어요</p>
         ) : (
@@ -248,17 +248,22 @@ function PlaceCard({ place: p, stats }: { place: Place; stats?: { avg: string; c
       </div>
       <p className="text-[14px] text-[#6B6966] mt-0.5 truncate">{p.address}</p>
 
-      {/* 액션: 한 줄 컴팩트 */}
-      <div className="flex items-center gap-1.5 mt-2">
+      {/* 액션 버튼 */}
+      <div className="flex items-center gap-2 mt-2">
         {p.phone && (
-          <a href={`tel:${p.phone}`} className="px-2.5 py-1 rounded-full bg-[#FFF9F5] text-[14px] text-[#6B6966] active:opacity-60">📞 전화</a>
+          <a href={`tel:${p.phone}`} className="w-9 h-9 rounded-full bg-[#FFF9F5] flex items-center justify-center active:opacity-60" title="전화">
+            <span className="text-[16px]">📞</span>
+          </a>
         )}
         <a href={`https://map.kakao.com/link/to/${encodeURIComponent(p.name)},${p.lat},${p.lng}`} target="_blank" rel="noopener noreferrer"
-          className="px-2.5 py-1 rounded-full bg-[#FFF9F5] text-[14px] text-[#6B6966] active:opacity-60">🧭 길찾기</a>
-        <button onClick={loadReviews} className="px-2.5 py-1 rounded-full bg-[#FFF9F5] text-[14px] text-[#6B6966] active:opacity-60">
-          💬 리뷰{reviewCount > 0 ? ` ${reviewCount}` : ''}
+          className="w-9 h-9 rounded-full bg-[#FFF9F5] flex items-center justify-center active:opacity-60" title="길찾기">
+          <span className="text-[16px]">🧭</span>
+        </a>
+        <button onClick={loadReviews} className="w-9 h-9 rounded-full bg-[#FFF9F5] flex items-center justify-center active:opacity-60 relative" title="리뷰">
+          <span className="text-[16px]">💬</span>
+          {reviewCount > 0 && <span className="absolute -top-0.5 -right-0.5 bg-[var(--color-primary)] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{reviewCount}</span>}
         </button>
-        <Link href={`/map/${p.id}/review`} className="px-2.5 py-1 rounded-full bg-[#3D8A5A] text-[14px] text-white font-semibold active:opacity-80 ml-auto">✏️ 리뷰 쓰기</Link>
+        <Link href={`/map/${p.id}/review`} className="ml-auto px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-[12px] text-white font-semibold active:opacity-80">✏️ 리뷰</Link>
       </div>
 
       {/* 리뷰 바텀시트 */}
@@ -282,7 +287,7 @@ function PlaceCard({ place: p, stats }: { place: Place; stats?: { avg: string; c
                     </div>
                   )}
                 </div>
-                <Link href={`/map/${p.id}/review`} className="px-3 py-1.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-lg">리뷰 쓰기</Link>
+                <Link href={`/map/${p.id}/review`} className="px-3 py-1.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-lg">리뷰 쓰기</Link>
               </div>
 
               {/* 태그 요약 */}
@@ -295,7 +300,7 @@ function PlaceCard({ place: p, stats }: { place: Place; stats?: { avg: string; c
                 return (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {sorted.map(([tag, count]) => (
-                      <span key={tag} className="text-[13px] px-2 py-0.5 rounded-full bg-[#F0F9F4] text-[#3D8A5A]">{tag} ({count})</span>
+                      <span key={tag} className="text-[13px] px-2 py-0.5 rounded-full bg-[#F0F9F4] text-[var(--color-primary)]">{tag} ({count})</span>
                     ))}
                   </div>
                 )
@@ -307,7 +312,7 @@ function PlaceCard({ place: p, stats }: { place: Place; stats?: { avg: string; c
               {reviews.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-[13px] text-[#9E9A95]">아직 리뷰가 없어요</p>
-                  <Link href={`/map/${p.id}/review`} className="text-[14px] text-[#3D8A5A] font-semibold mt-2 inline-block">첫 리뷰 작성하기 →</Link>
+                  <Link href={`/map/${p.id}/review`} className="text-[14px] text-[var(--color-primary)] font-semibold mt-2 inline-block">첫 리뷰 작성하기 →</Link>
                 </div>
               ) : reviews.map(r => (
                 <div key={r.id} className="bg-[#FFF9F5] rounded-xl p-3">

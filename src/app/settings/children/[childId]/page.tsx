@@ -77,15 +77,9 @@ export default function EditChildPage() {
     <div className="min-h-[100dvh] bg-white flex flex-col">
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">취소</button>
-          <h1 className="text-[15px] font-bold text-[#0A0B0D]">프로필 수정</h1>
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="text-sm font-semibold text-[#FF6F0F] disabled:opacity-40"
-          >
-            {loading ? '저장 중...' : '저장'}
-          </button>
+          <button onClick={() => router.back()} className="text-sm text-[#9B9B9B] shrink-0">취소</button>
+          <h1 className="text-[15px] font-bold text-[#0A0B0D] truncate mx-3">프로필 수정</h1>
+          <div className="w-8" />
         </div>
       </header>
 
@@ -153,12 +147,23 @@ export default function EditChildPage() {
       </div>
 
       {/* 삭제 */}
-      <div className="px-6 pb-10 max-w-lg mx-auto w-full">
+      <div className="px-6 pb-4 max-w-lg mx-auto w-full">
         <button
           onClick={handleDelete}
           className="w-full py-3 text-sm text-red-500 font-medium active:opacity-70"
         >
           프로필 삭제
+        </button>
+      </div>
+
+      {/* 하단 고정 저장 버튼 */}
+      <div className="sticky bottom-0 bg-white border-t border-[#E8E4DF] px-5 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+        <button
+          onClick={handleSave}
+          disabled={loading}
+          className={`w-full py-3.5 rounded-xl text-[15px] font-bold transition-colors max-w-lg mx-auto block ${!loading ? 'bg-[var(--color-primary)] text-white active:bg-[#2D6B45]' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}
+        >
+          {loading ? '저장 중...' : '저장하기'}
         </button>
       </div>
     </div>

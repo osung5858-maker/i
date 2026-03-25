@@ -16,6 +16,12 @@ interface AnalysisResult {
   recommendations: string[]
 }
 
+interface HistoryItem {
+  date: string
+  summary: string
+  extracted: AnalysisResult['extracted']
+}
+
 export default function AnalyzeCheckupPage() {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -25,9 +31,19 @@ export default function AnalyzeCheckupPage() {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [childId, setChildId] = useState<string | null>(null)
+  const [history, setHistory] = useState<HistoryItem[]>([])
+  const [showHistory, setShowHistory] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const supabase = createClient()
+
+  // 히스토리 로드
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('dodam_checkup_history')
+      if (saved) setHistory(JSON.parse(saved))
+    } catch { /* */ }
+  }, [])
 
   useEffect(() => {
     async function load() {
@@ -101,6 +117,16 @@ export default function AnalyzeCheckupPage() {
       head_cm: head_cm || null,
     })
 
+    // 히스토리에 추가
+    const newHistory: HistoryItem = {
+      date: new Date().toISOString().split('T')[0],
+      summary: result.summary,
+      extracted: result.extracted,
+    }
+    const updated = [newHistory, ...history].slice(0, 20)
+    setHistory(updated)
+    localStorage.setItem('dodam_checkup_history', JSON.stringify(updated))
+
     setSaving(false)
     setSaved(true)
   }
@@ -111,11 +137,35 @@ export default function AnalyzeCheckupPage() {
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-[13px] text-[#6B6966]">뒤로</button>
           <h1 className="text-[15px] font-bold text-[#212124]">검진결과 AI 분석</h1>
-          <div className="w-8" />
+          {history.length > 0 && (
+            <button onClick={() => setShowHistory(!showHistory)} className="text-[13px] text-[var(--color-primary)] font-medium">
+              이력 {history.length}건
+            </button>
+          )}
+          {history.length === 0 && <div className="w-8" />}
         </div>
       </header>
 
       <div className="flex-1 px-5 pt-6 max-w-lg mx-auto w-full pb-10">
+        {/* 검진 히스토리 */}
+        {showHistory && history.length > 0 && (
+          <div className="mb-4 bg-[#FFF9F5] rounded-xl p-3 space-y-2">
+            <p className="text-[13px] font-bold text-[#1A1918]">분석 이력</p>
+            {history.map((h, i) => (
+              <div key={i} className="bg-white rounded-lg p-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] text-[#6B6966]">{h.date}</span>
+                  <div className="flex gap-2 text-[12px] text-[var(--color-primary)]">
+                    {h.extracted.height_cm && <span>{h.extracted.height_cm}cm</span>}
+                    {h.extracted.weight_kg && <span>{h.extracted.weight_kg}kg</span>}
+                    {h.extracted.head_cm && <span>머리 {h.extracted.head_cm}cm</span>}
+                  </div>
+                </div>
+                <p className="text-[12px] text-[#4A4744] mt-1 line-clamp-2">{h.summary}</p>
+              </div>
+            ))}
+          </div>
+        )}
         {/* 업로드 영역 */}
         {!preview ? (
           <button

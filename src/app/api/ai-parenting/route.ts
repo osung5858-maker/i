@@ -61,26 +61,26 @@ export async function POST(request: Request) {
 - 부모 기분: ${mood || '미기록'}
 
 [중요 규칙]
-1. "잘하고 있어요" 같은 식상한 말 금지. 데이터를 보고 구체적으로 분석하세요.
-2. ${ageMonths}개월 아기의 발달/수유/수면 기준에 비춰 현재 상태를 판단하세요.
-3. 지금 시각 기준으로 "다음에 할 일"을 제안하세요.
-4. 이상 징후가 있으면 부드럽게 알려주세요 (수유량 급감, 수면 패턴 급변 등).
+1. "잘하고 있어요" 같은 식상한 말 금지. 데이터 기반으로 간결하게.
+2. ${ageMonths}개월 기준에 비춰 상태를 판단.
+3. 지금 시각 기준 "다음에 할 일" 1가지만.
+4. 이상 징후 있으면 부드럽게 경고.
+5. ★ 모든 필드는 반드시 1문장, 최대 30자. 짧을수록 좋음. ★
 
 [JSON 출력]
 {
   "status": "좋음/보통/주의 중 하나",
   "statusEmoji": "해당 이모지",
-  "summary": "지금 아이 상태 한마디 (10자 이내)",
-  "mainInsight": "오늘 기록을 분석한 핵심 인사이트 (2-3문장, 수치 근거 포함)",
-  "nextAction": "지금 시각 기준 다음에 할 일 제안 (1문장, 구체적 시간 포함)",
-  "feedAnalysis": "수유 패턴 분석 (1문장, ${ageMonths}개월 권장량 대비)",
-  "sleepAnalysis": "수면 패턴 분석 (1문장, ${ageMonths}개월 권장시간 대비)",
-  "warning": "이상 징후 있으면 설명, 없으면 null",
-  "parentTip": "부모를 위한 실용 팁 (1문장)"
+  "mainInsight": "핵심 한 줄 요약 (15~25자, 예: '수유 리듬 안정적, 수면 보충 필요')",
+  "nextAction": "다음 행동 1가지 (20자 이내, 예: '30분 후 수유 시도')",
+  "feedAnalysis": "수유 한 줄 (20자, 예: '권장 대비 70% 섭취')",
+  "sleepAnalysis": "수면 한 줄 (20자, 예: '총 6시간, 2시간 부족')",
+  "warning": "이상 징후 한 줄 또는 null (25자 이내)",
+  "parentTip": "부모 팁 한 줄 (20자 이내)"
 }
-JSON만 출력.`
+JSON만 출력. 긴 문장 절대 금지.`
 
-      const { text, error } = await callGemini(prompt, 500)
+      const { text, error } = await callGemini(prompt, 300)
       if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })
       try {
         const match = text.match(/\{[\s\S]*\}/)

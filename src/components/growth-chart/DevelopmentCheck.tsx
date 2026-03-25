@@ -105,6 +105,41 @@ const MILESTONES_BY_MONTH: Record<number, Milestone[]> = {
     { id: 'm12-4', label: '간단한 역할놀이를 해요', category: 'social' },
     { id: 'm12-5', label: '동물 소리를 흉내내요', category: 'cognitive' },
   ],
+  15: [
+    { id: 'm15-1', label: '혼자 걸어요', category: 'gross_motor' },
+    { id: 'm15-2', label: '블록 2개를 쌓아요', category: 'fine_motor' },
+    { id: 'm15-3', label: '5~10개 단어를 사용해요', category: 'language' },
+    { id: 'm15-4', label: '원하는 것을 가리켜요', category: 'social' },
+    { id: 'm15-5', label: '숟가락으로 먹으려고 해요', category: 'cognitive' },
+  ],
+  18: [
+    { id: 'm18-1', label: '뛰기를 시도해요', category: 'gross_motor' },
+    { id: 'm18-2', label: '블록 3~4개를 쌓아요', category: 'fine_motor' },
+    { id: 'm18-3', label: '10~20개 단어를 말해요', category: 'language' },
+    { id: 'm18-4', label: '다른 아이와 나란히 놀아요', category: 'social' },
+    { id: 'm18-5', label: '신체 부위 1~2개를 가리켜요', category: 'cognitive' },
+  ],
+  24: [
+    { id: 'm24-1', label: '계단을 올라가요 (난간 잡고)', category: 'gross_motor' },
+    { id: 'm24-2', label: '선을 따라 끼적여요', category: 'fine_motor' },
+    { id: 'm24-3', label: '두 단어를 조합해요 ("엄마 물")', category: 'language' },
+    { id: 'm24-4', label: '또래에게 장난감을 건네요', category: 'social' },
+    { id: 'm24-5', label: '크기 비교(크다/작다)를 이해해요', category: 'cognitive' },
+  ],
+  30: [
+    { id: 'm30-1', label: '두 발 모아 점프해요', category: 'gross_motor' },
+    { id: 'm30-2', label: '동그라미를 그려요', category: 'fine_motor' },
+    { id: 'm30-3', label: '3~4단어 문장을 말해요', category: 'language' },
+    { id: 'm30-4', label: '차례를 기다려요 (짧은 시간)', category: 'social' },
+    { id: 'm30-5', label: '색깔 1~2개를 알아요', category: 'cognitive' },
+  ],
+  36: [
+    { id: 'm36-1', label: '세발자전거 페달을 밟아요', category: 'gross_motor' },
+    { id: 'm36-2', label: '가위로 종이를 자르려 해요', category: 'fine_motor' },
+    { id: 'm36-3', label: '이름, 나이를 말할 수 있어요', category: 'language' },
+    { id: 'm36-4', label: '친구와 함께 놀이해요', category: 'social' },
+    { id: 'm36-5', label: '숫자 1~3을 세요', category: 'cognitive' },
+  ],
 }
 
 const PLAY_ACTIVITIES: Record<number, string[]> = {
@@ -120,6 +155,11 @@ const PLAY_ACTIVITIES: Record<number, string[]> = {
   10: ['가구 잡고 걷기 격려', '블록 쌓기', '간단한 지시 놀이'],
   11: ['균형 잡기 놀이', '숟가락 놀이', '동물 소리 놀이'],
   12: ['걷기 놀이', '크레용 끼적이기', '역할놀이 시작'],
+  15: ['공 던지고 받기', '블록 쌓기 놀이', '그림책 함께 읽기'],
+  18: ['달리기 놀이', '도형 맞추기', '동요 부르기'],
+  24: ['계단 오르기 놀이', '퍼즐 맞추기 (3~4조각)', '역할놀이 (소꿉놀이)'],
+  30: ['점프 놀이', '색칠하기', '숫자 세기 놀이'],
+  36: ['세발자전거 타기', '가위 사용 연습', '규칙 있는 간단한 게임'],
 }
 
 function getStorageKey(ageMonths: number): string {
@@ -127,13 +167,16 @@ function getStorageKey(ageMonths: number): string {
 }
 
 function getMilestones(ageMonths: number): Milestone[] {
-  const clamped = Math.max(1, Math.min(12, ageMonths))
-  return MILESTONES_BY_MONTH[clamped] || MILESTONES_BY_MONTH[1]
+  // 정확한 월령이 없으면 가장 가까운 이전 단계 사용
+  const months = Object.keys(MILESTONES_BY_MONTH).map(Number).sort((a, b) => a - b)
+  const match = months.reverse().find((m) => ageMonths >= m)
+  return MILESTONES_BY_MONTH[match || 1] || MILESTONES_BY_MONTH[1]
 }
 
 function getActivities(ageMonths: number): string[] {
-  const clamped = Math.max(1, Math.min(12, ageMonths))
-  return PLAY_ACTIVITIES[clamped] || PLAY_ACTIVITIES[1]
+  const months = Object.keys(PLAY_ACTIVITIES).map(Number).sort((a, b) => a - b)
+  const match = months.reverse().find((m) => ageMonths >= m)
+  return PLAY_ACTIVITIES[match || 1] || PLAY_ACTIVITIES[1]
 }
 
 function generateAIInsight(milestones: Milestone[], checked: Set<string>, ageMonths: number): string {
@@ -230,13 +273,13 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
   return (
     <div className="space-y-4 px-5 pb-8 pt-4">
       {/* Progress Ring */}
-      <div className="bg-white rounded-2xl border border-[#E8E4DF] p-5 flex items-center gap-5">
+      <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-5 flex items-center gap-5">
         <div className="relative shrink-0">
           <svg width="96" height="96" viewBox="0 0 96 96">
             <circle cx="48" cy="48" r={radius} fill="none" stroke="#E8E6E1" strokeWidth="8" />
             <circle
               cx="48" cy="48" r={radius} fill="none"
-              stroke="#3D8A5A" strokeWidth="8" strokeLinecap="round"
+              stroke="var(--color-primary)" strokeWidth="8" strokeLinecap="round"
               strokeDasharray={circumference} strokeDashoffset={strokeDashoffset}
               transform="rotate(-90 48 48)"
               className="transition-all duration-500"
@@ -248,8 +291,8 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
         </div>
         <div>
           <h3 className="text-[15px] font-bold text-[#212124]">{ageMonths}개월 발달 체크</h3>
-          <p className="text-[14px] text-[#6B6966] mt-1">{done}/{total} 항목 달성</p>
-          <p className="text-[13px] text-[#9E9A95] mt-0.5">아이마다 속도가 달라요</p>
+          <p className="text-[13px] text-[#4A4744] mt-1">{done}/{total} 항목 달성</p>
+          <p className="text-[12px] text-[#7A7672] mt-0.5">아이마다 속도가 달라요</p>
         </div>
       </div>
 
@@ -257,7 +300,7 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
       {Object.entries(grouped).map(([cat, items]) => {
         const info = CATEGORY_LABELS[cat]
         return (
-          <div key={cat} className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
+          <div key={cat} className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
             <div className="flex items-center gap-1.5 mb-3">
               <span className="text-sm">{info.emoji}</span>
               <h4 className="text-[13px] font-bold text-[#212124]">{info.label}</h4>
@@ -271,7 +314,7 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
                   <div
                     className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
                       checked.has(m.id)
-                        ? 'bg-[#3D8A5A] border-[#3D8A5A]'
+                        ? 'bg-[var(--color-primary)] border-[var(--color-primary)]'
                         : 'border-[#D1D5DB] bg-white'
                     }`}
                     onClick={() => toggle(m.id)}
@@ -300,17 +343,17 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
       })}
 
       {/* AI Insight */}
-      <div className="bg-white rounded-2xl border-l-4 border-l-[#3D8A5A] border border-[#E8E4DF] p-4">
+      <div className="bg-white rounded-2xl border-l-4 border-l-[var(--color-primary)] border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center gap-1.5 mb-2">
           <span className="text-sm">🤖</span>
-          <h3 className="text-[13px] font-bold text-[#3D8A5A]">AI 발달 인사이트</h3>
+          <h3 className="text-[13px] font-bold text-[var(--color-primary)]">AI 발달 인사이트</h3>
         </div>
         <p className="text-[13px] text-[#212124] leading-relaxed">{insight}</p>
-        <p className="text-[14px] text-[#9E9A95] mt-3">아이마다 발달 시기가 달라요. 참고용이며, 걱정되시면 소아과 상담을 추천드려요.</p>
+        <p className="text-[12px] text-[#7A7672] mt-3">아이마다 발달 시기가 달라요. 참고용이며, 걱정되시면 소아과 상담을 추천드려요.</p>
       </div>
 
       {/* Recommended Activities */}
-      <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
+      <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center gap-1.5 mb-3">
           <span className="text-sm">🎮</span>
           <h3 className="text-[13px] font-bold text-[#212124]">추천 놀이</h3>
@@ -328,7 +371,7 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
       </div>
 
       {/* Checkup Questions */}
-      <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
+      <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
         <button
           onClick={() => setShowQuestions((v) => !v)}
           className="flex items-center justify-between w-full"
@@ -337,7 +380,7 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
             <span className="text-sm">🏥</span>
             <h3 className="text-[13px] font-bold text-[#212124]">검진 시 질문 추천</h3>
           </div>
-          <span className="text-[14px] text-[#9E9A95]">{showQuestions ? '접기' : '펼치기'}</span>
+          <span className="text-[13px] text-[#7A7672]">{showQuestions ? '접기' : '펼치기'}</span>
         </button>
         {showQuestions && (
           <div className="mt-3 space-y-2">

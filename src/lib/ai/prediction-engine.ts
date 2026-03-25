@@ -4,6 +4,14 @@ interface PredictionResult {
   target: 'feed_next' | 'sleep_next'
   predicted_ts: string
   ci_minutes: number // ± 분
+  confidence: 'low' | 'medium' | 'high'
+}
+
+// 데이터 충분 여부 체크
+export function hasEnoughData(events: CareEvent[], type: 'feed' | 'sleep'): { enough: boolean; count: number; needed: number } {
+  const count = events.filter((e) => e.type === type).length
+  const needed = 10 // 최소 10건 (약 2-3일치)
+  return { enough: count >= needed, count, needed }
 }
 
 // 이동 평균 + 최근 3일 가중치 기반 예측
@@ -42,10 +50,16 @@ export function predictNextEvent(
   const lastEvent = typeEvents[typeEvents.length - 1]
   const predictedTime = new Date(new Date(lastEvent.start_ts).getTime() + ema * 60000)
 
+  // 신뢰도: 데이터 충분 + 편차 적을수록 높음
+  const confidence: 'low' | 'medium' | 'high' =
+    intervals.length >= 20 && stdDev < 30 ? 'high' :
+    intervals.length >= 10 && stdDev < 60 ? 'medium' : 'low'
+
   return {
     target: type === 'feed' ? 'feed_next' : 'sleep_next',
     predicted_ts: predictedTime.toISOString(),
     ci_minutes: Math.round(stdDev),
+    confidence,
   }
 }
 
@@ -94,6 +108,29 @@ export function detectAnomalies(events: CareEvent[]): {
       anomalies.push({
         metric: 'temperature',
         message: `체온 ${celsius}°C — 미열이에요. 경과를 살펴보세요.`,
+        severity: 'major',
+      })
+    }
+  }
+
+  // 수면 패턴 이상 감지 (최근 3일 vs 이전 평균)
+  const sleepEvents = events.filter((e) => e.type === 'sleep' && e.end_ts)
+  if (sleepEvents.length >= 6) {
+    const sorted = [...sleepEvents].sort((a, b) => new Date(b.start_ts).getTime() - new Date(a.start_ts).getTime())
+    const recent3 = sorted.slice(0, 3)
+    const older = sorted.slice(3, Math.min(sorted.length, 10))
+
+    const avgDur = (arr: CareEvent[]) =>
+      arr.reduce((s, e) => s + (new Date(e.end_ts!).getTime() - new Date(e.start_ts).getTime()) / 3600000, 0) / arr.length
+
+    const recentAvg = avgDur(recent3)
+    const olderAvg = avgDur(older)
+
+    if (olderAvg > 0 && Math.abs(recentAvg - olderAvg) >= 2) {
+      const direction = recentAvg > olderAvg ? '늘었어요' : '줄었어요'
+      anomalies.push({
+        metric: 'sleep_pattern',
+        message: `최근 수면 시간이 평소보다 ${Math.abs(Math.round(recentAvg - olderAvg))}시간 ${direction}. 컨디션 변화를 살펴보세요.`,
         severity: 'major',
       })
     }

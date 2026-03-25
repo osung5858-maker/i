@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import type { CareEvent } from '@/types'
-import { predictNextEvent, detectAnomalies } from '@/lib/ai/prediction-engine'
+import { predictNextEvent, detectAnomalies, hasEnoughData } from '@/lib/ai/prediction-engine'
 import EmergencyCard from '@/components/ai-cards/EmergencyCard'
 import RewardBanner from '@/components/ai-cards/RewardBanner'
 import RoutineTimelapse from '@/components/ai-cards/RoutineTimelapse'
@@ -35,6 +35,8 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
   const feedPred = useMemo(() => predictNextEvent(events, 'feed'), [events])
   const sleepPred = useMemo(() => predictNextEvent(events, 'sleep'), [events])
   const anomalies = useMemo(() => detectAnomalies(events), [events])
+  const feedDataCheck = useMemo(() => hasEnoughData(events, 'feed'), [events])
+  const sleepDataCheck = useMemo(() => hasEnoughData(events, 'sleep'), [events])
 
   const todayFeedCount = events.filter((e) => e.type === 'feed').length
   const todaySleepCount = events.filter((e) => e.type === 'sleep' && e.end_ts).length
@@ -64,7 +66,7 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
     } else if (hasMajor) {
       chips.push({ label: '관찰 필요', color: 'text-orange-700', bg: 'bg-orange-50' })
     } else if (events.length >= 3) {
-      chips.push({ label: '리듬 안정 🟢', color: 'text-[#2D6B45]', bg: 'bg-[#C8F0D8]' })
+      chips.push({ label: '리듬 안정 🟢', color: 'text-[#2D6B45]', bg: 'bg-[var(--color-accent-bg)]' })
     }
 
     if (todaySleepCount >= 1) {
@@ -111,12 +113,12 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
       </div>
 
       {/* 다음 예측 카드 2열 */}
-      {(feedPred || sleepPred) && (
+      {(feedPred || sleepPred) ? (
         <div className="mx-4 mb-3 grid grid-cols-2 gap-3">
           {feedPred && (
             <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,25,24,0.03)]">
               <div className="flex items-center gap-2 mb-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#C8F0D8] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-[var(--color-accent-bg)] flex items-center justify-center">
                   <span className="text-[14px]">🍼</span>
                 </div>
                 <span className="text-[14px] font-semibold text-[#212124]">다음 수유</span>
@@ -133,6 +135,9 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
                   style={{ width: `${Math.min(100, Math.max(10, 100 - ((new Date(feedPred.predicted_ts).getTime() - Date.now()) / (3 * 3600000)) * 100))}%` }}
                 />
               </div>
+              {feedPred.confidence === 'low' && (
+                <p className="text-[11px] text-[#9E9A95] mt-2">도담이가 아직 배우는 중이에요</p>
+              )}
             </div>
           )}
           {sleepPred && (
@@ -155,10 +160,32 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
                   style={{ width: `${Math.min(100, Math.max(10, 100 - ((new Date(sleepPred.predicted_ts).getTime() - Date.now()) / (3 * 3600000)) * 100))}%` }}
                 />
               </div>
+              {sleepPred.confidence === 'low' && (
+                <p className="text-[11px] text-[#9E9A95] mt-2">도담이가 아직 배우는 중이에요</p>
+              )}
             </div>
           )}
         </div>
-      )}
+      ) : (!feedDataCheck.enough || !sleepDataCheck.enough) && events.length > 0 ? (
+        <div className="mx-4 mb-3 bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,25,24,0.03)]">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[14px]">🌱</span>
+            <span className="text-[14px] font-semibold text-[#212124]">루틴 예보 학습 중</span>
+          </div>
+          <p className="text-[13px] text-[#5A5854] leading-relaxed">
+            도담이가 {childName}의 패턴을 배우고 있어요.
+            {!feedDataCheck.enough && ` 수유 ${feedDataCheck.count}/${feedDataCheck.needed}건`}
+            {!feedDataCheck.enough && !sleepDataCheck.enough && ' ·'}
+            {!sleepDataCheck.enough && ` 수면 ${sleepDataCheck.count}/${sleepDataCheck.needed}건`}
+          </p>
+          <div className="mt-2 w-full h-1.5 bg-[#E8E6E1] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#4A9B6E] rounded-full transition-all"
+              style={{ width: `${Math.min(100, ((feedDataCheck.count + sleepDataCheck.count) / (feedDataCheck.needed + sleepDataCheck.needed)) * 100)}%` }}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {/* 스마트 리마인더 */}
       <SmartReminder events={events} />

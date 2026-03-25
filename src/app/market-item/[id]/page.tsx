@@ -24,7 +24,7 @@ export default function PublicMarketItemPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[100dvh] bg-white">
-        <div className="w-8 h-8 border-3 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
       </div>
     )
   }
@@ -33,7 +33,7 @@ export default function PublicMarketItemPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[100dvh] bg-white px-6">
         <p className="text-[15px] text-[#6B6966] mb-4">게시글을 찾을 수 없어요</p>
-        <Link href="/onboarding" className="text-[13px] text-[#3D8A5A] font-semibold">도담 시작하기 →</Link>
+        <Link href="/onboarding" className="text-[13px] text-[var(--color-primary)] font-semibold">도담 시작하기 →</Link>
       </div>
     )
   }
@@ -43,12 +43,12 @@ export default function PublicMarketItemPage() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-[#3D8A5A] flex items-center justify-center">
+            <div className="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
               <span className="text-[14px] font-bold text-white">도</span>
             </div>
             <span className="text-[15px] font-bold text-[#1A1918]">도담장터</span>
           </div>
-          <Link href="/onboarding" className="text-[13px] text-[#3D8A5A] font-semibold px-3 py-1.5 bg-[#F0F9F4] rounded-lg">도담 시작하기</Link>
+          <Link href="/onboarding" className="text-[13px] text-[var(--color-primary)] font-semibold px-3 py-1.5 bg-[#F0F9F4] rounded-lg">도담 시작하기</Link>
         </div>
       </header>
 
@@ -65,12 +65,12 @@ export default function PublicMarketItemPage() {
 
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-[16px] font-bold text-[#1A1918]">{item.title}</h2>
-            <span className={`text-[13px] px-2 py-0.5 rounded-full ${item.status === 'active' ? 'bg-[#F0F9F4] text-[#3D8A5A]' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
+            <span className={`text-[13px] px-2 py-0.5 rounded-full ${item.status === 'active' ? 'bg-[#F0F9F4] text-[var(--color-primary)]' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
               {item.status === 'active' ? '판매중' : item.status === 'reserved' ? '예약중' : '거래완료'}
             </span>
           </div>
 
-          <p className="text-[20px] font-bold text-[#3D8A5A] mb-3">{item.price > 0 ? `${item.price.toLocaleString()}원` : '나눔 🤝'}</p>
+          <p className="text-[20px] font-bold text-[var(--color-primary)] mb-3">{item.price > 0 ? `${item.price.toLocaleString()}원` : '나눔 🤝'}</p>
 
           {item.description && <p className="text-[13px] text-[#1A1918] leading-relaxed whitespace-pre-line">{item.description}</p>}
 
@@ -82,9 +82,9 @@ export default function PublicMarketItemPage() {
 
         {/* CTA */}
         <div className="bg-[#F0F9F4] rounded-xl p-4 text-center">
-          <p className="text-[13px] font-semibold text-[#3D8A5A] mb-1">도담장터에서 거래해보세요</p>
+          <p className="text-[13px] font-semibold text-[var(--color-primary)] mb-1">도담장터에서 거래해보세요</p>
           <p className="text-[13px] text-[#6B6966] mb-3">동네 엄마들과 육아용품 나눔 · 거래</p>
-          <Link href="/onboarding" className="inline-block px-6 py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl">도담 시작하기</Link>
+          <Link href="/onboarding" className="inline-block px-6 py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl">도담 시작하기</Link>
         </div>
       </div>
     </div>

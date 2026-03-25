@@ -105,7 +105,7 @@ export default function FortunePage() {
             { key: 'fortune' as const, label: '🎴 오늘의 운세' },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === t.key ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
+              className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === t.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
               {t.label}
             </button>
           ))}
@@ -117,7 +117,7 @@ export default function FortunePage() {
             <p className="text-[14px] font-bold text-[#1A1918] mb-3">오늘의 바이오리듬</p>
             {[
               { label: '신체', value: bio.physical, color: '#D08068', emoji: '💪' },
-              { label: '감정', value: bio.emotional, color: '#3D8A5A', emoji: '💚' },
+              { label: '감정', value: bio.emotional, color: 'var(--color-primary)', emoji: '💚' },
               { label: '지성', value: bio.intellectual, color: '#4A90D9', emoji: '🧠' },
             ].map(b => (
               <div key={b.label} className="mb-3 last:mb-0">
@@ -159,7 +159,7 @@ export default function FortunePage() {
             {dueDate && (() => {
               const due = new Date(dueDate)
               return (
-                <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8]/50 p-4 text-center">
+                <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)]/50 p-4 text-center">
                   <p className="text-[13px] font-bold text-[#1A1918] mb-2">아이 예상 띠 · 별자리</p>
                   <p className="text-3xl mb-1">{getZodiacAnimal(due.getFullYear()).split(' ')[0]}</p>
                   <p className="text-[14px] font-semibold text-[#1A1918]">{getZodiacAnimal(due.getFullYear())}</p>
@@ -188,7 +188,7 @@ export default function FortunePage() {
               </div>
             ) : (
               <button onClick={fetchFortune} disabled={loading}
-                className="w-full py-3 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                className="w-full py-3 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                 {loading ? '운세 보는 중...' : '🔮 띠 · 별자리 운세 보기'}
               </button>
             )}
@@ -265,13 +265,13 @@ export default function FortunePage() {
 
                 {/* 주간 조언 + 피할 것 */}
                 <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 space-y-2">
-                  {fortuneResult.weekAdvice && <p className="text-[13px] text-[#3D8A5A]">💡 이번 주: {fortuneResult.weekAdvice}</p>}
+                  {fortuneResult.weekAdvice && <p className="text-[13px] text-[var(--color-primary)]">💡 이번 주: {fortuneResult.weekAdvice}</p>}
                   {fortuneResult.avoidToday && <p className="text-[13px] text-[#D08068]">⚠️ 오늘 피할 것: {fortuneResult.avoidToday}</p>}
                 </div>
 
                 <div className="flex justify-between items-center">
                   <p className="text-[13px] text-[#9E9A95]">재미로만 봐주세요 😊</p>
-                  <button onClick={() => { localStorage.removeItem(`dodam_fortune_${new Date().toISOString().split('T')[0]}_${birthDate}`); setFortuneResult(null); fetchFortune() }} className="text-[14px] text-[#3D8A5A]">다시 보기 🔄</button>
+                  <button onClick={() => { localStorage.removeItem(`dodam_fortune_${new Date().toISOString().split('T')[0]}_${birthDate}`); setFortuneResult(null); fetchFortune() }} className="text-[14px] text-[var(--color-primary)]">다시 보기 🔄</button>
                 </div>
               </>
             ) : (
@@ -280,7 +280,7 @@ export default function FortunePage() {
                 <p className="text-[14px] font-bold text-[#1A1918] mb-1">오늘의 운세</p>
                 <p className="text-[14px] text-[#6B6966] mb-4">띠·별자리·사주 기반 AI 운세를 봐드려요</p>
                 <button onClick={fetchFortune} disabled={loading || !birthDate}
-                  className="px-6 py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                  className="px-6 py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                   {loading ? '운세 보는 중...' : '오늘의 운세 보기 🎴'}
                 </button>
               </div>

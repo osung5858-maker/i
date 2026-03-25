@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
+import Link from 'next/link'
 import type { CareEvent } from '@/types'
 import { predictNextEvent, detectAnomalies } from '@/lib/ai/prediction-engine'
 
@@ -33,6 +34,7 @@ interface Props {
 
 export default function AICardFeed({ events }: Props) {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  const [feedback, setFeedback] = useState<Record<string, 'helpful' | 'not_helpful'>>({})
 
   const cards = useMemo<AICard[]>(() => {
     const result: AICard[] = []
@@ -76,6 +78,43 @@ export default function AICardFeed({ events }: Props) {
     return result
   }, [events])
 
+  // 위치 기반 소아과 카드 (이상 감지 시)
+  const [locationCard, setLocationCard] = useState<AICard | null>(null)
+
+  useEffect(() => {
+    const anomalies = detectAnomalies(events)
+    const hasCritical = anomalies.some((a) => a.severity === 'critical')
+    const hasMajor = anomalies.some((a) => a.metric === 'temperature')
+    if (!hasCritical && !hasMajor) return
+
+    // 위치 기반 카드 생성
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setLocationCard({
+            id: 'location-clinic',
+            type: 'health',
+            colorBar: hasCritical ? 'bg-red-500' : 'bg-orange-500',
+            icon: '🏥',
+            body: '근처 소아과를 확인해보세요. 지도에서 실시간 진료 가능한 소아과를 찾을 수 있어요.',
+            disclaimer: '응급 상황 시 119에 연락하세요.',
+          })
+        },
+        () => {
+          // 위치 권한 거부 시에도 일반 카드 표시
+          setLocationCard({
+            id: 'location-clinic',
+            type: 'health',
+            colorBar: hasCritical ? 'bg-red-500' : 'bg-orange-500',
+            icon: '🏥',
+            body: '체온이 높아요. 가까운 소아과를 확인해보세요.',
+          })
+        },
+        { timeout: 5000 }
+      )
+    }
+  }, [events])
+
   // Gemini AI 감정 카드 (비동기)
   const [aiCard, setAiCard] = useState<AICard | null>(null)
 
@@ -117,7 +156,8 @@ export default function AICardFeed({ events }: Props) {
       })
   }, [events])
 
-  const allCards = aiCard ? [...cards, aiCard] : cards
+  const extraCards = [locationCard, aiCard].filter(Boolean) as AICard[]
+  const allCards = [...cards, ...extraCards]
   const visibleCards = allCards.filter((c) => !dismissed.has(c.id)).slice(0, 5)
 
   if (visibleCards.length === 0) return null
@@ -142,6 +182,32 @@ export default function AICardFeed({ events }: Props) {
                 </p>
                 {card.disclaimer && (
                   <p className="text-[14px] text-[#9B9B9B] mt-1.5">⚠️ {card.disclaimer}</p>
+                )}
+                {card.type === 'health' && !feedback[card.id] && (
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() => setFeedback((p) => ({ ...p, [card.id]: 'helpful' }))}
+                      className="text-[12px] px-2.5 py-1 rounded-full bg-[#E8F5EE] text-[#2D7A4A] font-medium"
+                    >
+                      도움이 됐어요
+                    </button>
+                    <button
+                      onClick={() => setFeedback((p) => ({ ...p, [card.id]: 'not_helpful' }))}
+                      className="text-[12px] px-2.5 py-1 rounded-full bg-[#F5F3F0] text-[#7A7672] font-medium"
+                    >
+                      아니요
+                    </button>
+                  </div>
+                )}
+                {feedback[card.id] && (
+                  <p className="text-[12px] text-[#9E9A95] mt-2">
+                    {feedback[card.id] === 'helpful' ? '피드백 감사해요! 더 정확해질게요.' : '알겠어요, 참고할게요.'}
+                  </p>
+                )}
+                {card.id === 'location-clinic' && (
+                  <Link href="/emergency" className="inline-block mt-2 text-[13px] font-semibold text-red-600">
+                    가까운 소아과 찾기 →
+                  </Link>
                 )}
               </div>
               <button

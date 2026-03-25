@@ -90,7 +90,7 @@ export default function StreakCard({ mode }: { mode: string }) {
         {streak >= 3 && (
           <div className="flex gap-0.5">
             {Array.from({ length: Math.min(streak, 7) }).map((_, i) => (
-              <div key={i} className="w-1.5 h-4 rounded-full bg-[#3D8A5A]" style={{ opacity: 0.4 + (i / 7) * 0.6 }} />
+              <div key={i} className="w-1.5 h-4 rounded-full bg-[var(--color-primary)]" style={{ opacity: 0.4 + (i / 7) * 0.6 }} />
             ))}
           </div>
         )}
@@ -103,10 +103,10 @@ export default function StreakCard({ mode }: { mode: string }) {
             <p className="text-[14px] text-[#6B6966]">
               {aiUnlocked ? '🔓' : '🔒'} {nextUnlock.label}
             </p>
-            <p className="text-[14px] text-[#3D8A5A] font-semibold">{nextUnlock.days}일 남음</p>
+            <p className="text-[14px] text-[var(--color-primary)] font-semibold">{nextUnlock.days}일 남음</p>
           </div>
           <div className="w-full h-1.5 bg-[#E8E4DF] rounded-full">
-            <div className="h-full bg-[#3D8A5A] rounded-full transition-all" style={{ width: `${(nextUnlock.current / nextUnlock.target) * 100}%` }} />
+            <div className="h-full bg-[var(--color-primary)] rounded-full transition-all" style={{ width: `${(nextUnlock.current / nextUnlock.target) * 100}%` }} />
           </div>
         </div>
       )}

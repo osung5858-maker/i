@@ -10,11 +10,10 @@ import Toast from '@/components/ui/Toast'
 import { BellIcon, ChevronRightIcon } from '@/components/ui/Icons'
 import { createClient } from '@/lib/supabase/client'
 import { shareTodayRecord } from '@/lib/kakao/share-parenting'
-import StreakCard from '@/components/engagement/StreakCard'
-import CommunityTeaser from '@/components/engagement/CommunityTeaser'
 import { useOfflineSync } from '@/hooks/useOfflineSync'
 import { savePendingEvent } from '@/lib/offline/db'
 import type { CareEvent, EventType, Child } from '@/types'
+import { useGestureInput, getGestureEnabled } from '@/hooks/useGestureInput'
 import type { User } from '@supabase/supabase-js'
 
 function getAgeMonths(birthdate: string): number {
@@ -129,15 +128,7 @@ export default function HomePage() {
     if (e) setToast({ message: '소변 기록 완료!', undoId: e.id })
   }, [user, child, sleepActive, events, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // FAB 퀵버튼 이벤트 리스너 (BottomNav에서 dispatch)
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const type = (e as CustomEvent).detail?.type
-      if (type) handleRecord(type as EventType)
-    }
-    window.addEventListener('dodam-record', handler)
-    return () => window.removeEventListener('dodam-record', handler)
-  }, [handleRecord])
+  // FAB 이벤트 리스너는 insertEvent 선언 이후에 배치 (아래)
 
   // Shake → 응급 모드
   useEffect(() => {
@@ -209,6 +200,51 @@ export default function HomePage() {
     return data as CareEvent
   }
 
+  // FAB 퀵버튼 이벤트 리스너 (BottomNav에서 dispatch)
+  // FAB에서 이미 상세 선택(tags/amount)을 완료한 경우 바텀시트를 건너뛰고 바로 기록
+  const handleFabRecord = useCallback(async (detail: Record<string, unknown>) => {
+    const type = detail.type as EventType
+    if (!type) return
+    const { type: _, ...extra } = detail
+    const hasTags = extra.tags && Object.keys(extra.tags as object).length > 0
+    const hasAmount = 'amount_ml' in extra
+
+    // FAB에서 상세 정보가 이미 포함된 경우 → 바로 기록
+    if (type === 'poop' && hasTags) {
+      const e = await insertEvent(type, extra)
+      if (e) setToast({ message: '배변 기록 완료!', undoId: e.id })
+      return
+    }
+    if (type === 'feed' && (hasTags || hasAmount)) {
+      const e = await insertEvent(type, extra)
+      if (e) setToast({ message: '수유 기록 완료!', undoId: e.id })
+      return
+    }
+    if (type === 'temp' && hasTags && (extra.tags as Record<string, unknown>).celsius) {
+      const e = await insertEvent(type, extra)
+      if (e) setToast({ message: `체온 ${(extra.tags as Record<string, unknown>).celsius}°C 기록 완료!`, undoId: e.id })
+      return
+    }
+    // 상세 정보 없으면 기존 handleRecord 흐름 (바텀시트 열기)
+    handleRecord(type)
+  }, [handleRecord, insertEvent]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (detail?.type) handleFabRecord(detail)
+    }
+    window.addEventListener('dodam-record', handler)
+    return () => window.removeEventListener('dodam-record', handler)
+  }, [handleFabRecord])
+
+  // 제스처 입력
+  const gestureEnabled = typeof window !== 'undefined' ? getGestureEnabled() : false
+  const { lastGesture, showFeedback } = useGestureInput({
+    enabled: gestureEnabled,
+    onGesture: handleRecord,
+  })
+
   const handleUndo = useCallback(async () => {
     if (!toast?.undoId) return
     await supabase.from('events').delete().eq('id', toast.undoId)
@@ -261,6 +297,20 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-white">
+      {/* 제스처 피드백 오버레이 */}
+      {showFeedback && lastGesture && (
+        <div className="fixed inset-0 z-[200] pointer-events-none flex items-center justify-center">
+          <div className="bg-black/70 text-white px-6 py-4 rounded-2xl text-center animate-[fadeIn_0.15s_ease-out]">
+            <p className="text-3xl mb-1">
+              {lastGesture.type === 'feed' ? '🍼' : lastGesture.type === 'sleep' ? '💤' : lastGesture.type === 'poop' ? '💩' : '💧'}
+            </p>
+            <p className="text-[14px] font-semibold">
+              {lastGesture.type === 'feed' ? '수유' : lastGesture.type === 'sleep' ? '수면' : lastGesture.type === 'poop' ? '대변' : '소변'} 기록!
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white">
         <div className="px-5 pt-3 pb-2 max-w-lg mx-auto w-full">
@@ -279,10 +329,11 @@ export default function HomePage() {
                   <span className="text-[14px]">🌙</span>
                 </Link>
               )}
-              <Link href="/settings" className="w-9 h-9 rounded-full bg-[#F0EDE8] flex items-center justify-center active:bg-[#ECECEC]">
+              <Link href="/settings" className="relative w-9 h-9 rounded-full bg-[#F0EDE8] flex items-center justify-center active:bg-[#ECECEC]">
                 <BellIcon className="w-[18px] h-[18px] text-[#212124]" />
+                {events.length > 0 && events.length < 5 && <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full" />}
               </Link>
-              <Link href="/settings/children" className="w-9 h-9 rounded-full bg-[#3D8A5A] flex items-center justify-center overflow-hidden active:opacity-80">
+              <Link href="/settings/children" className="w-9 h-9 rounded-full bg-[var(--color-primary)] flex items-center justify-center overflow-hidden active:opacity-80">
                 {user?.user_metadata?.avatar_url ? (
                   <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -324,44 +375,30 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-2">
               <p className="text-[14px] font-bold text-[#1A1918]">최근 기록 {events.length > 0 && <span className="text-[13px] text-[#9E9A95] font-normal ml-1">{events.length}건</span>}</p>
               {events.length > 0 && (
-                <Link href={`/records/${new Date().toISOString().split('T')[0]}`} className="text-[13px] text-[#3D8A5A] font-medium">전체보기 →</Link>
+                <Link href={`/records/${new Date().toISOString().split('T')[0]}`} className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</Link>
               )}
             </div>
             {events.length === 0 ? (
               <p className="text-[14px] text-[#9E9A95] text-center py-3">아직 기록이 없어요. FAB(+)으로 첫 기록을 남겨보세요!</p>
             ) : (
-              <div className="max-h-[240px] overflow-y-auto space-y-1.5 hide-scrollbar">
-                {events.map((e) => {
+              <div className="grid grid-cols-2 gap-1.5 max-h-[240px] overflow-y-auto hide-scrollbar">
+                {events.slice(0, 8).map((e) => {
                   const time = new Date(e.start_ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
                   const icons: Record<string, string> = { feed: '🍼', sleep: '💤', poop: '💩', pee: '💧', temp: '🌡️', memo: '💊' }
                   const labels: Record<string, string> = { feed: '수유', sleep: '수면', poop: '대변', pee: '소변', temp: '체온', memo: '투약' }
-                  const amount = e.amount_ml ? `${e.amount_ml}ml` : ''
-                  const duration = e.end_ts ? `${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` : ''
-                  const tempVal = e.tags?.celsius ? `${e.tags.celsius}°C` : ''
-                  const poopStatus = e.tags?.status ? ({ normal: '정상', watery: '묽음', hard: '단단' }[e.tags.status as string] || '') : ''
-                  const side = e.tags?.side ? (e.tags.side === 'left' ? '왼쪽' : e.tags.side === 'right' ? '오른쪽' : '양쪽') : ''
-                  const elapsed = Math.round((Date.now() - new Date(e.start_ts).getTime()) / 60000)
-                  const elapsedText = elapsed < 60 ? `${elapsed}분 전` : `${Math.floor(elapsed / 60)}시간 전`
+                  const detail = e.amount_ml ? `${e.amount_ml}ml` :
+                    e.end_ts ? `${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` :
+                    e.tags?.celsius ? `${e.tags.celsius}°C` :
+                    e.tags?.status ? ({ normal: '정상', watery: '묽음', hard: '단단' }[e.tags.status as string] || '') : ''
 
                   return (
-                    <div key={e.id} className="flex items-center gap-2.5 py-2 px-2 bg-[#F5F1EC] rounded-lg">
-                      <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm">
-                        <span className="text-[16px]">{icons[e.type] || '📝'}</span>
-                      </div>
+                    <div key={e.id} className="flex items-center gap-2 py-2 px-2.5 bg-[#F5F1EC] rounded-lg">
+                      <span className="text-[14px]">{icons[e.type] || '📝'}</span>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[14px] font-semibold text-[#1A1918]">{labels[e.type] || e.type}</span>
-                          {side && <span className="text-[13px] text-[#3D8A5A] bg-[#E8F5E9] px-1 py-0.5 rounded">{side}</span>}
-                          {poopStatus && <span className="text-[13px] text-[#6B6966] bg-[#E8E4DF] px-1 py-0.5 rounded">{poopStatus}</span>}
-                        </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[14px] text-[#9E9A95]">{time}</span>
-                          {amount && <span className="text-[14px] text-[#3D8A5A] font-medium">{amount}</span>}
-                          {duration && <span className="text-[14px] text-[#3D8A5A] font-medium">{duration}</span>}
-                          {tempVal && <span className="text-[14px] text-[#D08068] font-medium">{tempVal}</span>}
-                        </div>
+                        <span className="text-[13px] font-semibold text-[#1A1918]">{labels[e.type]}</span>
+                        {detail && <span className="text-[12px] text-[var(--color-primary)] ml-1">{detail}</span>}
+                        <p className="text-[11px] text-[#9E9A95]">{time}</p>
                       </div>
-                      <span className="text-[13px] text-[#9E9A95] shrink-0">{elapsedText}</span>
                     </div>
                   )
                 })}
@@ -395,7 +432,7 @@ export default function HomePage() {
                 </div>
               </div>
             ) : (
-              <Link href="/memory" className="bg-white rounded-xl border border-[#E8E4DF] p-3 flex items-center gap-2.5 active:bg-[#F5F1EC]">
+              <Link href="/record" className="bg-white rounded-xl border border-[#E8E4DF] p-3 flex items-center gap-2.5 active:bg-[#F5F1EC]">
                 <span className="text-lg">📈</span>
                 <div>
                   <p className="text-[14px] font-semibold text-[#1A1918]">{ageMonths}개월</p>
@@ -405,62 +442,7 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* ━━━ 키즈노트 알림 ━━━ */}
-          <KidsnoteCard />
-
-          {/* ━━━ 스트릭 + 커뮤니티 ━━━ */}
-          <StreakCard mode="parenting" />
-          <CommunityTeaser />
-
-          {/* ━━━ 4. 오늘의 팁 ━━━ */}
-          {(() => {
-            const tips = [
-              { age: [0, 3], emoji: '🤱', title: '모유 수유 자세', desc: '크로스 크래들, 사이드 라잉 등 편한 자세를 찾아보세요', href: '/care' },
-              { age: [0, 6], emoji: '💤', title: '수면 교육', desc: `${ageMonths}개월은 ${ageMonths < 3 ? '아직 수면 패턴이 없어요. 편하게 재워주세요' : '서서히 수면 루틴을 만들어볼 시기예요'}`, href: '/care' },
-              { age: [4, 7], emoji: '🥣', title: '이유식 시작', desc: '쌀미음부터 시작해서 한 가지씩 늘려보세요', href: '/care' },
-              { age: [6, 12], emoji: '👶', title: '발달 체크', desc: `${ageMonths}개월 발달 이정표를 확인해보세요`, href: '/memory' },
-              { age: [0, 24], emoji: '💉', title: '예방접종', desc: '다음 접종 일정을 확인하세요', href: '/vaccination' },
-            ]
-            const tip = tips.find(t => ageMonths >= t.age[0] && ageMonths <= t.age[1]) || tips[tips.length - 1]
-            return (
-              <Link href={tip.href} className="bg-gradient-to-r from-[#FFF8F0] to-[#F0F9F4] rounded-xl border border-[#E8E4DF] p-3.5 flex items-center gap-3 active:opacity-80">
-                <span className="text-2xl">{tip.emoji}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-bold text-[#1A1918]">{tip.title}</p>
-                  <p className="text-[14px] text-[#6B6966] mt-0.5 line-clamp-1">{tip.desc}</p>
-                </div>
-                <ChevronRightIcon className="w-4 h-4 text-[#9E9A95] shrink-0" />
-              </Link>
-            )
-          })()}
-
-          {/* ━━━ 5. 빠른 링크 ━━━ */}
-          <div className="grid grid-cols-3 gap-2">
-            <Link href="/lullaby" className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center active:bg-[#F5F1EC]">
-              <span className="text-lg">🌙</span>
-              <p className="text-[14px] font-semibold text-[#1A1918] mt-1">자장가</p>
-            </Link>
-            <Link href="/growth/analyze" className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center active:bg-[#F5F1EC]">
-              <span className="text-lg">📄</span>
-              <p className="text-[14px] font-semibold text-[#1A1918] mt-1">검진 분석</p>
-            </Link>
-            <Link href="/vaccination" className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center active:bg-[#F5F1EC]">
-              <span className="text-lg">💉</span>
-              <p className="text-[14px] font-semibold text-[#1A1918] mt-1">예방접종</p>
-            </Link>
-            <Link href="/memory" className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center active:bg-[#F5F1EC]">
-              <span className="text-lg">📖</span>
-              <p className="text-[14px] font-semibold text-[#1A1918] mt-1">추억</p>
-            </Link>
-            <Link href="/name" className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center active:bg-[#F5F1EC]">
-              <span className="text-lg">✨</span>
-              <p className="text-[14px] font-semibold text-[#1A1918] mt-1">이름 짓기</p>
-            </Link>
-            <Link href="/mental-check" className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center active:bg-[#F5F1EC]">
-              <span className="text-lg">🧘</span>
-              <p className="text-[14px] font-semibold text-[#1A1918] mt-1">마음 체크</p>
-            </Link>
-          </div>
+          {/* 키즈노트·스트릭·커뮤니티·팁·퀵링크 → 성장탭/우리탭으로 이동 완료 */}
 
         </div>
       </div>
@@ -582,7 +564,7 @@ function KidsnoteCard() {
           <span className="text-[13px] font-bold text-[#1A1918]">오늘의 키즈노트</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-[13px] text-[#3D8A5A] bg-[#E8F5E9] px-1.5 py-0.5 rounded-full">연동됨</span>
+          <span className="text-[13px] text-[var(--color-primary)] bg-[#E8F5E9] px-1.5 py-0.5 rounded-full">연동됨</span>
           <ChevronRightIcon className="w-4 h-4 text-[#9E9A95]" />
         </div>
       </Link>
@@ -678,7 +660,7 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
   const statusColors: Record<string, string> = { '좋음': 'bg-[#E8F5E9] text-[#2E7D32]', '보통': 'bg-[#FFF8E1] text-[#F57F17]', '주의': 'bg-[#FFF0E6] text-[#D08068]' }
 
   return (
-    <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-4">
+    <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-sm">✨</span>
@@ -689,7 +671,7 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
             </span>
           )}
         </div>
-        <button onClick={onShare} className="text-[14px] text-[#3D8A5A]">카톡 공유</button>
+        <button onClick={onShare} className="text-[14px] text-[var(--color-primary)]">카톡 공유</button>
       </div>
 
       {/* 오늘 요약 */}
@@ -711,44 +693,49 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
 
       {!ai && !loading && (
         <button onClick={handleAiCare} disabled={events.length < 3}
-          className="w-full py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-40">
+          className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-40">
           {events.length < 3 ? `기록 ${3 - events.length}건 더 남기면 AI 케어 가능` : '✨ AI 케어받기'}
         </button>
       )}
 
       {ai && (
         <div className="space-y-2">
-          {/* 핵심 인사이트 */}
-          {ai.mainInsight && (
-            <p className="text-[14px] text-[#1A1918] leading-relaxed">{ai.mainInsight}</p>
-          )}
+          {/* 핵심: 첫 문장 볼드 + 나머지 일반 */}
+          {ai.mainInsight && (() => {
+            const text = ai.mainInsight as string
+            const firstDot = text.search(/[.!?]\s|[.!?]$/)
+            const headline = firstDot > 0 ? text.slice(0, firstDot + 1) : text.slice(0, 50)
+            const rest = firstDot > 0 ? text.slice(firstDot + 1).trim() : text.slice(50).trim()
+            return (
+              <div>
+                <span className="text-[15px] font-bold text-[#1A1918]">{headline}</span>
+                {rest && <span className="text-[14px] text-[#4A4744]"> {rest}</span>}
+              </div>
+            )
+          })()}
 
-          {/* 다음 행동 제안 */}
-          {ai.nextAction && (
-            <div className="bg-[#E8F5E9] rounded-lg px-3 py-2">
-              <p className="text-[13px] text-[#2E7D32] font-medium">👉 {ai.nextAction}</p>
-            </div>
-          )}
+          {/* 다음 행동 + 경고 (인라인) */}
+          <div className="space-y-1.5">
+            {ai.nextAction && (
+              <p className="text-[13px] text-[#2E7D32] bg-[#E8F5E9] rounded-lg px-3 py-1.5">👉 {ai.nextAction}</p>
+            )}
+            {ai.warning && (
+              <p className="text-[13px] text-[#D08068] bg-[#FFF0E6] rounded-lg px-3 py-1.5">⚠️ {ai.warning}</p>
+            )}
+          </div>
 
-          {/* 경고 */}
-          {ai.warning && (
-            <div className="bg-[#FFF0E6] rounded-lg px-3 py-2">
-              <p className="text-[13px] text-[#D08068]">⚠️ {ai.warning}</p>
-            </div>
-          )}
-
-          {/* 상세 (펼치기) */}
-          {!expanded && (ai.feedAnalysis || ai.sleepAnalysis || ai.parentTip) && (
-            <button onClick={() => setExpanded(true)} className="text-[14px] text-[#3D8A5A] font-medium">자세히 보기 ▼</button>
-          )}
-
-          {expanded && (
-            <div className="space-y-1.5 pt-1 border-t border-[#C8F0D8]/50">
-              {ai.feedAnalysis && <p className="text-[13px] text-[#6B6966]">🍼 {ai.feedAnalysis}</p>}
-              {ai.sleepAnalysis && <p className="text-[13px] text-[#6B6966]">💤 {ai.sleepAnalysis}</p>}
-              {ai.parentTip && <p className="text-[13px] text-[#3D8A5A]">💚 {ai.parentTip}</p>}
-              <button onClick={() => setExpanded(false)} className="text-[14px] text-[#9E9A95]">접기 ▲</button>
-            </div>
+          {/* 상세 (접기) */}
+          {(ai.feedAnalysis || ai.sleepAnalysis || ai.parentTip) && (
+            !expanded ? (
+              <button onClick={() => setExpanded(true)} className="text-[12px] text-[var(--color-primary)]">자세히 ▼</button>
+            ) : (
+              <div className="text-[12px] text-[#6B6966] space-y-1 pt-1.5 border-t border-[var(--color-accent-bg)]/40">
+                {ai.feedAnalysis && <p>🍼 {ai.feedAnalysis}</p>}
+                {ai.sleepAnalysis && <p>💤 {ai.sleepAnalysis}</p>}
+                {ai.parentTip && <p className="text-[var(--color-primary)]">💚 {ai.parentTip}</p>}
+                <button onClick={() => setExpanded(false)} className="text-[#9E9A95]">접기 ▲</button>
+              </div>
+            )
           )}
         </div>
       )}

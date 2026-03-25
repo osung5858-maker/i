@@ -51,7 +51,7 @@ export default function DevResetButton() {
               { mode: 'parenting', label: '육아' },
             ].map(m => (
               <button key={m.mode} onClick={() => resetToMode(m.mode)}
-                className="flex-1 py-1 rounded text-[13px] font-medium bg-[#FFF9F5] text-[#6B6966] active:bg-[#3D8A5A] active:text-white">
+                className="flex-1 py-1 rounded text-[13px] font-medium bg-[#FFF9F5] text-[#6B6966] active:bg-[var(--color-primary)] active:text-white">
                 {m.label}
               </button>
             ))}

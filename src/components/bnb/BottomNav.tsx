@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   SunIcon, HeartIcon, ShieldIcon, UsersIcon,
-  PlusIcon, XIcon,
+  PlusIcon, XIcon, BookOpenIcon, MenuIcon,
   BottleIcon, MoonIcon, DropletIcon, ThermometerIcon, PillIcon,
 } from '@/components/ui/Icons'
 import { autoBackup, restoreLocalData } from '@/lib/storage/backup'
@@ -19,21 +19,21 @@ interface Tab {
 const TABS_BY_MODE: Record<string, Tab[]> = {
   parenting: [
     { href: '/', icon: SunIcon, label: '오늘' },
-    { href: '/memory', icon: HeartIcon, label: '추억' },
+    { href: '/record', icon: BookOpenIcon, label: '추억' },
     { href: '/town', icon: ShieldIcon, label: '동네' },
-    { href: '/us', icon: UsersIcon, label: '우리' },
+    { href: '/more', icon: UsersIcon, label: '우리' },
   ],
   pregnant: [
     { href: '/pregnant', icon: SunIcon, label: '오늘' },
-    { href: '/waiting', icon: HeartIcon, label: '기다림' },
+    { href: '/waiting', icon: BookOpenIcon, label: '기다림' },
     { href: '/town', icon: ShieldIcon, label: '동네' },
-    { href: '/us', icon: UsersIcon, label: '우리' },
+    { href: '/more', icon: UsersIcon, label: '우리' },
   ],
   preparing: [
     { href: '/preparing', icon: SunIcon, label: '오늘' },
-    { href: '/waiting', icon: HeartIcon, label: '기다림' },
+    { href: '/waiting', icon: BookOpenIcon, label: '기다림' },
     { href: '/town', icon: ShieldIcon, label: '동네' },
-    { href: '/us', icon: UsersIcon, label: '우리' },
+    { href: '/more', icon: UsersIcon, label: '우리' },
   ],
 }
 
@@ -81,7 +81,7 @@ function buildCategories(ageMonths: number): RecordCategory[] {
     eatItems.push({ type: 'pump', label: '유축', emoji: '🫙', baseType: 'feed',
       step3: [{ label: '30', value: 30, unit: 'ml' }, { label: '60', value: 60, unit: 'ml' }, { label: '90', value: 90, unit: 'ml' }, { label: '120', value: 120, unit: 'ml' }, { label: '150', value: 150, unit: 'ml' }] })
   }
-  cats.push({ key: 'eat', emoji: '🍼', label: '먹기', color: '#3D8A5A', items: eatItems })
+  cats.push({ key: 'eat', emoji: '🍼', label: '먹기', color: 'var(--color-primary)', items: eatItems })
 
   // 잠 — 항상
   cats.push({ key: 'sleep', emoji: '💤', label: '잠', color: '#6366F1',
@@ -123,7 +123,7 @@ interface RecordCategory {
 }
 
 const RECORD_CATEGORIES: RecordCategory[] = [
-  { key: 'eat', emoji: '🍼', label: '먹기', color: '#3D8A5A',
+  { key: 'eat', emoji: '🍼', label: '먹기', color: 'var(--color-primary)',
     items: [
       { type: 'breast_left', label: '모유(왼)', emoji: '🤱', baseType: 'feed', tags: { side: 'left' },
         step3: [{ label: '5분', value: 5, unit: '분' }, { label: '10분', value: 10, unit: '분' }, { label: '15분', value: 15, unit: '분' }, { label: '20분', value: 20, unit: '분' }, { label: '30분', value: 30, unit: '분' }] },
@@ -289,7 +289,7 @@ export default function BottomNav() {
                           else extra.tags = { ...(extra.tags as any || {}), subtype: p.value }
                           handleQuickRecord(recordType, extra)
                         }} className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform bg-white">
-                          <span className="text-[14px] font-bold text-[#3D8A5A]">{p.label}</span>
+                          <span className="text-[14px] font-bold text-[var(--color-primary)]">{p.label}</span>
                         </button>
                         <span className="text-[13px] font-semibold text-white drop-shadow-sm">{p.unit || ''}</span>
                       </div>
@@ -371,7 +371,7 @@ export default function BottomNav() {
               >
                 <div
                   className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_6px_20px_rgba(61,138,90,0.35)] active:scale-90 transition-all duration-200 ${
-                    fabOpen ? 'bg-[#212124]' : 'bg-[#3D8A5A]'
+                    fabOpen ? 'bg-[#212124]' : 'bg-[var(--color-primary)]'
                   }`}
                 >
                   {fabOpen ? (
@@ -380,7 +380,7 @@ export default function BottomNav() {
                     <PlusIcon className="w-7 h-7 text-white" />
                   )}
                 </div>
-                <span className={`text-[14px] mt-0.5 font-semibold ${fabOpen ? 'text-[#212124]' : 'text-[#3D8A5A]'}`}>
+                <span className={`text-[14px] mt-0.5 font-semibold ${fabOpen ? 'text-[#212124]' : 'text-[var(--color-primary)]'}`}>
                   기록
                 </span>
               </button>

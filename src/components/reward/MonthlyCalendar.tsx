@@ -43,7 +43,7 @@ export default function MonthlyCalendar({ events }: Props) {
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[14px] font-bold text-[#212124]">📅 {monthName} 도담 스토리</h3>
         <div className="flex items-center gap-1.5">
-          <span className={`text-[14px] font-bold ${rate === 100 ? 'text-[#3D8A5A]' : 'text-[#212124]'}`}>
+          <span className={`text-[14px] font-bold ${rate === 100 ? 'text-[var(--color-primary)]' : 'text-[#212124]'}`}>
             {rate}%
           </span>
           {rate === 100 && <span className="text-[14px]">🏅</span>}
@@ -76,9 +76,9 @@ export default function MonthlyCalendar({ events }: Props) {
               key={dateStr}
               className={`aspect-square rounded-lg flex items-center justify-center text-[14px] font-medium transition-colors ${
                 isToday
-                  ? 'bg-[#3D8A5A] text-white font-bold'
+                  ? 'bg-[var(--color-primary)] text-white font-bold'
                   : hasRecord
-                    ? 'bg-[#C8F0D8] text-[#3D8A5A]'
+                    ? 'bg-[var(--color-accent-bg)] text-[var(--color-primary)]'
                     : isPast
                       ? 'bg-[#FFF0E6] text-[#D89575]'
                       : 'bg-[#F0EDE8] text-[#9E9A95]'
@@ -93,7 +93,7 @@ export default function MonthlyCalendar({ events }: Props) {
       {/* 범례 */}
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-sm bg-[#C8F0D8]" />
+          <div className="w-2.5 h-2.5 rounded-sm bg-[var(--color-accent-bg)]" />
           <span className="text-[13px] text-[#6B6966]">기록 있음</span>
         </div>
         <div className="flex items-center gap-1">

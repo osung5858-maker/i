@@ -67,7 +67,7 @@ export default function OnboardingPage() {
   if (checkingAuth) {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-3 border-[#3D8A5A]/20 border-t-[#3D8A5A] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
       </div>
     )
   }
@@ -77,7 +77,7 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-[100dvh] flex flex-col bg-white">
         <div className="flex-1 flex flex-col items-center justify-center px-6">
-          <div className="w-16 h-16 rounded-full bg-[#3D8A5A] flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-full bg-[var(--color-primary)] flex items-center justify-center mb-4">
             <span className="text-2xl font-bold text-white">도</span>
           </div>
           <h1 className="text-[22px] font-bold text-[#212124] mb-1">환영해요!</h1>
@@ -92,7 +92,7 @@ export default function OnboardingPage() {
               <button
                 key={option.key}
                 onClick={() => handleModeSelect(option.key)}
-                className="w-full p-5 rounded-2xl border-2 border-[#ECECEC] bg-white text-left transition-all active:scale-[0.98] active:border-[#3D8A5A] active:bg-[#F0F9F4]"
+                className="w-full p-5 rounded-2xl border-2 border-[#ECECEC] bg-white text-left transition-all active:scale-[0.98] active:border-[var(--color-primary)] active:bg-[#F0F9F4]"
               >
                 <div className="flex items-center gap-4">
                   <span className="text-3xl">{option.emoji}</span>
@@ -113,7 +113,7 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-[100dvh] flex flex-col bg-white">
       <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-20 h-20 rounded-full bg-[#3D8A5A] flex items-center justify-center shadow-[0_4px_20px_rgba(61,138,90,0.25)]">
+        <div className="w-20 h-20 rounded-full bg-[var(--color-primary)] flex items-center justify-center shadow-[0_4px_20px_rgba(61,138,90,0.25)]">
           <span className="text-3xl font-bold text-white">도</span>
         </div>
         <h1 className="mt-6 text-[28px] font-bold text-[#212124]">도담</h1>

@@ -71,7 +71,7 @@ export default function KidsnotePage() {
   const [selectedChild, setSelectedChild] = useState<number | null>(null)
   const [albums, setAlbums] = useState<any[]>([])
   const [reports, setReports] = useState<any[]>([])
-  const [tab, setTab] = useState<'albums' | 'reports'>('albums')
+  const [tab, setTab] = useState<'timeline' | 'albums' | 'reports'>('timeline')
 
   // 세션 + 저장된 계정 + 캐시 복원
   useEffect(() => {
@@ -240,7 +240,7 @@ export default function KidsnotePage() {
   return (
     <div className="min-h-[100dvh] bg-[#FFF9F5] flex flex-col">
       <PageHeader title="키즈노트" showBack
-        rightAction={session ? <button onClick={logout} className="text-[14px] text-[#6B6966]">로그아웃</button> : undefined} />
+        rightAction={session ? <button onClick={logout} className="text-[13px] text-[#6B6966] whitespace-nowrap">로그아웃</button> : undefined} />
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 w-full space-y-3">
 
@@ -265,7 +265,7 @@ export default function KidsnotePage() {
             </div>
 
             <button onClick={() => { setAgreed(true); localStorage.setItem('kn_agreed', 'true') }}
-              className="w-full mt-4 py-3 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80">
+              className="w-full mt-4 py-3 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80">
               위 내용을 확인했으며 동의합니다
             </button>
 
@@ -300,11 +300,11 @@ export default function KidsnotePage() {
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={saveCredentials} onChange={e => setSaveCredentials(e.target.checked)}
-                  className="w-4 h-4 rounded accent-[#3D8A5A]" />
+                  className="w-4 h-4 rounded accent-[var(--color-primary)]" />
                 <span className="text-[14px] text-[#6B6966]">아이디/비밀번호 이 기기에 저장하기</span>
               </label>
               <button onClick={handleLogin} disabled={loading}
-                className="w-full py-3 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                className="w-full py-3 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                 {loading ? '연결 중...' : '키즈노트 연결하기'}
               </button>
             </div>
@@ -336,7 +336,7 @@ export default function KidsnotePage() {
             {/* 연결 상태 */}
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
               <div className="flex items-center gap-2 mb-3">
-                <span className="w-2 h-2 rounded-full bg-[#3D8A5A]" />
+                <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
                 <span className="text-[13px] font-semibold text-[#1A1918]">키즈노트 연결됨</span>
               </div>
               <div className="space-y-2">
@@ -352,7 +352,7 @@ export default function KidsnotePage() {
                   </button>
                   {loadingAlbums && (
                     <div className="mt-1.5 h-1.5 bg-[#E8E8E8] rounded-full overflow-hidden">
-                      <div className="h-full bg-[#3D8A5A] rounded-full transition-all duration-300" style={{ width: `${albumProgress}%` }} />
+                      <div className="h-full bg-[var(--color-primary)] rounded-full transition-all duration-300" style={{ width: `${albumProgress}%` }} />
                     </div>
                   )}
                 </div>
@@ -368,7 +368,7 @@ export default function KidsnotePage() {
                   </button>
                   {loadingReports && (
                     <div className="mt-1.5 h-1.5 bg-[#E8E8E8] rounded-full overflow-hidden">
-                      <div className="h-full bg-[#3D8A5A] rounded-full transition-all duration-300" style={{ width: `${reportProgress}%` }} />
+                      <div className="h-full bg-[var(--color-primary)] rounded-full transition-all duration-300" style={{ width: `${reportProgress}%` }} />
                     </div>
                   )}
                 </div>
@@ -378,14 +378,81 @@ export default function KidsnotePage() {
             {/* 탭 (데이터 있을 때만) */}
             {(albums.length > 0 || reports.length > 0) && (
               <div className="flex gap-1.5">
+                <button onClick={() => setTab('timeline')}
+                  className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === 'timeline' ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-[#6B6966]'}`}>
+                  📅 통합
+                </button>
                 <button onClick={() => setTab('albums')}
-                  className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === 'albums' ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#6B6966]'}`}>
+                  className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === 'albums' ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-[#6B6966]'}`}>
                   📸 앨범 {albums.length > 0 && `(${albums.length})`}
                 </button>
                 <button onClick={() => setTab('reports')}
-                  className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === 'reports' ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#6B6966]'}`}>
+                  className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === 'reports' ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-[#6B6966]'}`}>
                   📋 알림장 {reports.length > 0 && `(${reports.length})`}
                 </button>
+              </div>
+            )}
+
+            {/* 통합 타임라인 */}
+            {tab === 'timeline' && (albums.length > 0 || reports.length > 0) && (
+              <div className="space-y-2">
+                {[
+                  ...albums.map((a: any) => ({ ...a, _type: 'album', _date: a.created })),
+                  ...reports.map((r: any) => ({ ...r, _type: 'report', _date: r.created })),
+                ]
+                  .sort((a, b) => new Date(b._date).getTime() - new Date(a._date).getTime())
+                  .slice(0, 30)
+                  .map((item: any) => (
+                    <div key={`${item._type}-${item.id}`} className="bg-white rounded-xl border border-[#E8E4DF] p-3">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="text-[12px] px-1.5 py-0.5 rounded font-medium" style={{
+                          backgroundColor: item._type === 'album' ? '#E8F5EE' : '#FEF0E8',
+                          color: item._type === 'album' ? '#2D7A4A' : '#C06020',
+                        }}>
+                          {item._type === 'album' ? '📸 앨범' : '📋 알림장'}
+                        </span>
+                        <span className="text-[12px] text-[#9E9A95]">
+                          {item._date ? new Date(item._date).toLocaleDateString('ko-KR') : ''}
+                        </span>
+                      </div>
+                      {item.title && <p className="text-[13px] font-semibold text-[#1A1918] mb-1">{item.title}</p>}
+                      {item.content && <p className="text-[13px] text-[#6B6966] line-clamp-2 whitespace-pre-line">{item.content}</p>}
+                      {/* 구조화된 콘텐츠 파싱 (식사/활동/건강 추출) */}
+                      {item._type === 'report' && item.content && (() => {
+                        const tags: { label: string; color: string }[] = []
+                        const c = item.content as string
+                        if (/식사|급식|간식|우유|밥|이유식/.test(c)) tags.push({ label: '식사', color: '#FF6F0F' })
+                        if (/낮잠|수면|잠/.test(c)) tags.push({ label: '수면', color: '#5B6DFF' })
+                        if (/놀이|활동|산책|체육/.test(c)) tags.push({ label: '활동', color: 'var(--color-primary)' })
+                        if (/체온|열|건강|약|투약/.test(c)) tags.push({ label: '건강', color: '#E85D4A' })
+                        if (/배변|기저귀/.test(c)) tags.push({ label: '배변', color: '#A87420' })
+                        if (tags.length === 0) return null
+                        return (
+                          <div className="flex gap-1 mt-1.5 flex-wrap">
+                            {tags.map((t) => (
+                              <span key={t.label} className="text-[11px] font-medium px-1.5 py-0.5 rounded" style={{ backgroundColor: `${t.color}15`, color: t.color }}>
+                                {t.label}
+                              </span>
+                            ))}
+                          </div>
+                        )
+                      })()}
+                      {item.images && item.images.length > 0 && (
+                        <div className="flex gap-1 mt-2 overflow-x-auto">
+                          {item.images.slice(0, 3).map((img: any, j: number) => (
+                            <img key={j} src={img.thumbnail || img.original} alt=""
+                              onClick={() => { setViewerImages(item.images); setViewerStart(j) }}
+                              className="w-14 h-14 rounded-lg object-cover shrink-0 cursor-pointer" />
+                          ))}
+                          {item.images.length > 3 && (
+                            <span className="w-14 h-14 rounded-lg bg-[#FFF9F5] flex items-center justify-center shrink-0 text-[12px] text-[#6B6966]">
+                              +{item.images.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
               </div>
             )}
 
@@ -413,7 +480,7 @@ export default function KidsnotePage() {
                     {album.content && <p className="text-[14px] text-[#1A1918] line-clamp-3">{album.content}</p>}
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-[13px] text-[#9E9A95]">{album.created ? new Date(album.created).toLocaleDateString('ko-KR') : ''}</span>
-                      <button onClick={() => downloadImages(album)} className="text-[14px] text-[#3D8A5A] font-semibold active:opacity-60">사진 다운로드 📥</button>
+                      <button onClick={() => downloadImages(album)} className="text-[14px] text-[var(--color-primary)] font-semibold active:opacity-60">사진 다운로드 📥</button>
                     </div>
                   </div>
                 ))}
@@ -444,7 +511,7 @@ export default function KidsnotePage() {
                     )}
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-[13px] text-[#9E9A95]">{report.created ? new Date(report.created).toLocaleDateString('ko-KR') : ''}</span>
-                      <button onClick={() => downloadImages(report)} className="text-[14px] text-[#3D8A5A] font-semibold active:opacity-60">사진 다운로드 📥</button>
+                      <button onClick={() => downloadImages(report)} className="text-[14px] text-[var(--color-primary)] font-semibold active:opacity-60">사진 다운로드 📥</button>
                     </div>
                   </div>
                 ))}

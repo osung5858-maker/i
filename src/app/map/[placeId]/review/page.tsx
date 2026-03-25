@@ -92,15 +92,9 @@ export default function WriteReviewPage() {
     <div className="min-h-[100dvh] bg-white flex flex-col">
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">취소</button>
-          <h1 className="text-[15px] font-bold text-[#0A0B0D]">리뷰 쓰기</h1>
-          <button
-            onClick={handleSubmit}
-            disabled={loading || !isValid}
-            className="text-sm font-semibold text-[#FF6F0F] disabled:opacity-40"
-          >
-            {loading ? '등록 중...' : '등록'}
-          </button>
+          <button onClick={() => router.back()} className="text-sm text-[#9B9B9B] shrink-0">취소</button>
+          <h1 className="text-[15px] font-bold text-[#0A0B0D] truncate mx-3">리뷰 쓰기</h1>
+          <div className="w-8" />
         </div>
       </header>
 
@@ -175,6 +169,17 @@ export default function WriteReviewPage() {
             {error}
           </div>
         )}
+      </div>
+
+      {/* 하단 고정 등록 버튼 */}
+      <div className="sticky bottom-0 bg-white border-t border-[#E8E4DF] px-5 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+        <button
+          onClick={handleSubmit}
+          disabled={loading || !isValid}
+          className={`w-full py-3.5 rounded-xl text-[15px] font-bold transition-colors max-w-lg mx-auto block ${isValid ? 'bg-[var(--color-primary)] text-white active:bg-[#2D6B45]' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}
+        >
+          {loading ? '등록 중...' : '리뷰 등록'}
+        </button>
       </div>
     </div>
   )

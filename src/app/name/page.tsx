@@ -7,7 +7,7 @@ type Tab = 'nickname' | 'suggest' | 'compare' | 'analyze'
 
 const THEMES = ['건강하게', '지혜롭게', '사랑받는', '밝고 환한', '자연을 닮은', '큰 뜻을 품은', '예술적인', '강인한']
 const ELEMENTS = [
-  { key: 'wood', label: '목(木)', color: '#3D8A5A', emoji: '🌳' },
+  { key: 'wood', label: '목(木)', color: 'var(--color-primary)', emoji: '🌳' },
   { key: 'fire', label: '화(火)', color: '#D08068', emoji: '🔥' },
   { key: 'earth', label: '토(土)', color: '#C4A35A', emoji: '🏔️' },
   { key: 'metal', label: '금(金)', color: '#868B94', emoji: '⚙️' },
@@ -92,7 +92,14 @@ export default function NamePage() {
         body: JSON.stringify({ type: 'hanja', fullName: analyzeName }),
       })
       const data = await res.json()
-      if (data.error) { setError(data.error) } else { setHanjaOptions(data); setHanjaStep('select') }
+      if (data.error) {
+        // parse error는 재시도로 해결되는 경우가 많음
+        if (data.error.includes('parse')) {
+          setError('AI 응답 처리 중 오류가 발생했어요. 다시 시도해주세요.')
+        } else {
+          setError(data.error)
+        }
+      } else { setHanjaOptions(data); setHanjaStep('select') }
     } catch { setError('일시적 오류가 발생했어요. 잠시 후 다시 시도해주세요.') }
     setLoading(false)
   }
@@ -156,7 +163,7 @@ export default function NamePage() {
             { key: 'analyze' as Tab, label: '이름 분석' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setError(null) }}
-              className={`shrink-0 px-4 py-2 rounded-xl text-[13px] font-semibold ${tab === t.key ? 'bg-[#3D8A5A] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
+              className={`shrink-0 px-4 py-2 rounded-xl text-[13px] font-semibold ${tab === t.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
               {t.label}
             </button>
           ))}
@@ -177,7 +184,7 @@ export default function NamePage() {
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {THEMES.map(t => (
                   <button key={t} onClick={() => setNickTheme(t)}
-                    className={`px-3 py-1.5 rounded-full text-[13px] ${nickTheme === t ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
+                    className={`px-3 py-1.5 rounded-full text-[13px] ${nickTheme === t ? 'bg-[var(--color-primary)] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {t}
                   </button>
                 ))}
@@ -185,13 +192,13 @@ export default function NamePage() {
               <div className="flex gap-1.5 mb-3">
                 {['모름', '남아', '여아'].map(g => (
                   <button key={g} onClick={() => setNickGender(g)}
-                    className={`flex-1 py-1.5 rounded-lg text-[14px] ${nickGender === g ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
+                    className={`flex-1 py-1.5 rounded-lg text-[14px] ${nickGender === g ? 'bg-[var(--color-primary)] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {g}
                   </button>
                 ))}
               </div>
               <button onClick={fetchNickname} disabled={loading}
-                className="w-full py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                 {loading ? 'AI가 고민 중...' : '태명 추천받기 ✨'}
               </button>
             </div>
@@ -200,7 +207,7 @@ export default function NamePage() {
               <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-[18px] font-bold text-[#1A1918]">{n.name}</p>
-                  <button onClick={() => saveName(n.name)} className={`text-[13px] px-2 py-0.5 rounded-full ${saved.includes(n.name) ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
+                  <button onClick={() => saveName(n.name)} className={`text-[13px] px-2 py-0.5 rounded-full ${saved.includes(n.name) ? 'bg-[var(--color-primary)] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {saved.includes(n.name) ? '♥ 저장됨' : '♡ 저장'}
                   </button>
                 </div>
@@ -221,8 +228,8 @@ export default function NamePage() {
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
               <p className="text-[14px] font-bold text-[#1A1918] mb-1">✨ AI 이름 추천</p>
               <div className="flex gap-2 mb-3">
-                <a href="https://baby-name.kr/" target="_blank" rel="noopener noreferrer" className="text-[13px] text-[#3D8A5A] px-2 py-0.5 bg-[#F0F9F4] rounded-full">📊 인기 이름 순위</a>
-                <a href="https://www.namechart.kr/" target="_blank" rel="noopener noreferrer" className="text-[13px] text-[#3D8A5A] px-2 py-0.5 bg-[#F0F9F4] rounded-full">📈 이름 차트</a>
+                <a href="https://baby-name.kr/" target="_blank" rel="noopener noreferrer" className="text-[13px] text-[var(--color-primary)] px-2 py-0.5 bg-[#F0F9F4] rounded-full">📊 인기 이름 순위</a>
+                <a href="https://www.namechart.kr/" target="_blank" rel="noopener noreferrer" className="text-[13px] text-[var(--color-primary)] px-2 py-0.5 bg-[#F0F9F4] rounded-full">📈 이름 차트</a>
               </div>
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div>
@@ -235,7 +242,7 @@ export default function NamePage() {
                   <div className="flex gap-1.5">
                     {[2, 3].map(n => (
                       <button key={n} onClick={() => setSyllables(n)}
-                        className={`flex-1 h-10 rounded-lg text-[13px] ${syllables === n ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
+                        className={`flex-1 h-10 rounded-lg text-[13px] ${syllables === n ? 'bg-[var(--color-primary)] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                         {n}글자
                       </button>
                     ))}
@@ -245,7 +252,7 @@ export default function NamePage() {
               <div className="flex gap-1.5 mb-3">
                 {['모름', '남아', '여아'].map(g => (
                   <button key={g} onClick={() => setSuggestGender(g)}
-                    className={`flex-1 py-1.5 rounded-lg text-[14px] ${suggestGender === g ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
+                    className={`flex-1 py-1.5 rounded-lg text-[14px] ${suggestGender === g ? 'bg-[var(--color-primary)] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {g}
                   </button>
                 ))}
@@ -254,13 +261,13 @@ export default function NamePage() {
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {THEMES.map(t => (
                   <button key={t} onClick={() => setSuggestTheme(t)}
-                    className={`px-3 py-1.5 rounded-full text-[13px] ${suggestTheme === t ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
+                    className={`px-3 py-1.5 rounded-full text-[13px] ${suggestTheme === t ? 'bg-[var(--color-primary)] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {t}
                   </button>
                 ))}
               </div>
               <button onClick={fetchSuggest} disabled={loading}
-                className="w-full py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                 {loading ? 'AI가 이름을 짓는 중...' : '이름 추천받기 ✨'}
               </button>
             </div>
@@ -273,9 +280,9 @@ export default function NamePage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-full bg-[#F0F9F4] flex items-center justify-center">
-                      <span className="text-[14px] font-bold text-[#3D8A5A]">{n.score}</span>
+                      <span className="text-[14px] font-bold text-[var(--color-primary)]">{n.score}</span>
                     </div>
-                    <button onClick={() => saveName(`${lastName}${n.name}`)} className={`text-[13px] px-2 py-0.5 rounded-full ${saved.includes(`${lastName}${n.name}`) ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
+                    <button onClick={() => saveName(`${lastName}${n.name}`)} className={`text-[13px] px-2 py-0.5 rounded-full ${saved.includes(`${lastName}${n.name}`) ? 'bg-[var(--color-primary)] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                       {saved.includes(`${lastName}${n.name}`) ? '♥' : '♡'}
                     </button>
                   </div>
@@ -297,7 +304,7 @@ export default function NamePage() {
 
                 <p className="text-[14px] text-[#1A1918] mb-2">{n.meaning}</p>
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="text-[14px] px-2 py-0.5 rounded bg-[#F0F9F4] text-[#3D8A5A]">{n.fiveElements}</span>
+                  <span className="text-[14px] px-2 py-0.5 rounded bg-[#F0F9F4] text-[var(--color-primary)]">{n.fiveElements}</span>
                   <span className="text-[14px] px-2 py-0.5 rounded bg-[#FFF9F5] text-[#6B6966]">{n.pronunciation}</span>
                   <span className="text-[14px] px-2 py-0.5 rounded bg-[#FFF9F5] text-[#6B6966]">{n.uniqueness}</span>
                   {n.popularity && <span className="text-[14px] px-2 py-0.5 rounded bg-[#FFF8F3] text-[#C4A35A]">📊 {n.popularity}</span>}
@@ -348,7 +355,7 @@ export default function NamePage() {
                         const emptyIdx = compareNames.findIndex(n => !n.trim())
                         if (emptyIdx >= 0) updateCompareName(emptyIdx, name)
                         else if (compareNames.length < 6) setCompareNames([...compareNames, name])
-                      }} className="px-2 py-1 rounded-full bg-[#F0F9F4] text-[14px] text-[#3D8A5A]">
+                      }} className="px-2 py-1 rounded-full bg-[#F0F9F4] text-[14px] text-[var(--color-primary)]">
                         + {name}
                       </button>
                     ))}
@@ -357,7 +364,7 @@ export default function NamePage() {
               )}
 
               <button onClick={fetchCompare} disabled={loading}
-                className="w-full py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                 {loading ? 'AI가 비교 분석 중...' : '비교 분석하기 🏆'}
               </button>
             </div>
@@ -366,11 +373,11 @@ export default function NamePage() {
               <>
                 {/* 순위 결과 */}
                 {compareResult.results?.map((r: any, i: number) => (
-                  <div key={i} className={`bg-white rounded-xl border ${r.rank === 1 ? 'border-[#C8F0D8] bg-gradient-to-br from-white to-[#F0F9F4]' : 'border-[#E8E4DF]'} p-4`}>
+                  <div key={i} className={`bg-white rounded-xl border ${r.rank === 1 ? 'border-[var(--color-accent-bg)] bg-gradient-to-br from-white to-[#F0F9F4]' : 'border-[#E8E4DF]'} p-4`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[14px] font-bold ${
-                          r.rank === 1 ? 'bg-[#3D8A5A] text-white' : r.rank === 2 ? 'bg-[#C4A35A] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'
+                          r.rank === 1 ? 'bg-[var(--color-primary)] text-white' : r.rank === 2 ? 'bg-[#C4A35A] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'
                         }`}>{r.rank}</div>
                         <div>
                           <p className="text-[16px] font-bold text-[#1A1918]">{r.name}</p>
@@ -378,28 +385,28 @@ export default function NamePage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${r.rank === 1 ? 'bg-[#3D8A5A]' : 'bg-[#FFF9F5]'}`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${r.rank === 1 ? 'bg-[var(--color-primary)]' : 'bg-[#FFF9F5]'}`}>
                           <span className={`text-[14px] font-bold ${r.rank === 1 ? 'text-white' : 'text-[#1A1918]'}`}>{r.score}</span>
                         </div>
-                        <button onClick={() => saveName(r.name)} className={`text-[13px] px-2 py-0.5 rounded-full ${saved.includes(r.name) ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
+                        <button onClick={() => saveName(r.name)} className={`text-[13px] px-2 py-0.5 rounded-full ${saved.includes(r.name) ? 'bg-[var(--color-primary)] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                           {saved.includes(r.name) ? '♥' : '♡'}
                         </button>
                       </div>
                     </div>
                     <p className="text-[14px] text-[#1A1918] mb-1">{r.meaning}</p>
                     <div className="flex flex-wrap gap-1.5 mb-1">
-                      <span className="text-[14px] px-2 py-0.5 rounded bg-[#F0F9F4] text-[#3D8A5A]">{r.fiveElements}</span>
+                      <span className="text-[14px] px-2 py-0.5 rounded bg-[#F0F9F4] text-[var(--color-primary)]">{r.fiveElements}</span>
                       <span className="text-[14px] px-2 py-0.5 rounded bg-[#FFF9F5] text-[#6B6966]">{r.pronunciation}</span>
                       <span className="text-[14px] px-2 py-0.5 rounded bg-[#FFF9F5] text-[#6B6966]">{r.strokes}</span>
                     </div>
-                    {r.highlight && <p className="text-[13px] text-[#3D8A5A]">✨ {r.highlight}</p>}
+                    {r.highlight && <p className="text-[13px] text-[var(--color-primary)]">✨ {r.highlight}</p>}
                   </div>
                 ))}
 
                 {/* 종합 추천 */}
                 {compareResult.recommendation && (
-                  <div className="bg-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-4">
-                    <p className="text-[13px] font-bold text-[#3D8A5A] mb-1">🏆 AI 추천</p>
+                  <div className="bg-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-4">
+                    <p className="text-[13px] font-bold text-[var(--color-primary)] mb-1">🏆 AI 추천</p>
                     <p className="text-[14px] text-[#1A1918] leading-relaxed">{compareResult.recommendation}</p>
                     {compareResult.tip && <p className="text-[14px] text-[#6B6966] mt-2">{compareResult.tip}</p>}
                   </div>
@@ -430,7 +437,7 @@ export default function NamePage() {
                   </div>
                 </div>
                 <button onClick={fetchHanjaOptions} disabled={loading}
-                  className="w-full py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                  className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                   {loading ? '한자 후보 조회 중...' : '한자 선택하기 →'}
                 </button>
               </div>
@@ -461,7 +468,7 @@ export default function NamePage() {
                       {c.options?.map((opt: any, oIdx: number) => (
                         <button key={oIdx} onClick={() => setSelectedHanja(prev => ({ ...prev, [cIdx]: oIdx }))}
                           className={`w-full flex items-center gap-3 p-2.5 rounded-lg text-left transition-colors ${
-                            (selectedHanja[cIdx] ?? 0) === oIdx ? 'bg-[#E8F5E9] border border-[#3D8A5A]' : 'bg-[#F5F1EC] border border-transparent'
+                            (selectedHanja[cIdx] ?? 0) === oIdx ? 'bg-[#E8F5E9] border border-[var(--color-primary)]' : 'bg-[#F5F1EC] border border-transparent'
                           }`}>
                           <span className="text-[20px] font-serif shrink-0">{opt.hanja}</span>
                           <div className="flex-1 min-w-0">
@@ -474,7 +481,7 @@ export default function NamePage() {
                               <span className="text-[13px] text-[#6B6966]">{opt.element}</span>
                             </div>
                           </div>
-                          {(selectedHanja[cIdx] ?? 0) === oIdx && <span className="text-[#3D8A5A] text-sm">✓</span>}
+                          {(selectedHanja[cIdx] ?? 0) === oIdx && <span className="text-[var(--color-primary)] text-sm">✓</span>}
                         </button>
                       ))}
                     </div>
@@ -491,7 +498,7 @@ export default function NamePage() {
                 </div>
 
                 <button onClick={fetchAnalyze} disabled={loading}
-                  className="w-full py-2.5 bg-[#3D8A5A] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                  className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                   {loading ? '분석 중...' : '이 한자로 분석하기 🔍'}
                 </button>
               </div>
@@ -508,14 +515,14 @@ export default function NamePage() {
             {analyzeResult && (
               <>
                 {/* 총점 */}
-                <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-5 text-center">
+                <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-5 text-center">
                   <p className="text-[13px] text-[#6B6966]">{analyzeResult.name}</p>
                   {analyzeResult.hanja && <p className="text-[13px] text-[#9E9A95]">{analyzeResult.hanja}</p>}
-                  <div className="w-20 h-20 mx-auto rounded-full bg-[#3D8A5A] flex items-center justify-center my-3 shadow-[0_4px_20px_rgba(61,138,90,0.3)]">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-[var(--color-primary)] flex items-center justify-center my-3 shadow-[0_4px_20px_rgba(61,138,90,0.3)]">
                     <span className="text-[28px] font-bold text-white">{analyzeResult.totalScore}</span>
                   </div>
                   <p className="text-[14px] text-[#6B6966]">종합 점수 (100점 만점)</p>
-                  <button onClick={() => saveName(analyzeResult.name)} className={`mt-2 text-[13px] px-3 py-1 rounded-full ${saved.includes(analyzeResult.name) ? 'bg-[#3D8A5A] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
+                  <button onClick={() => saveName(analyzeResult.name)} className={`mt-2 text-[13px] px-3 py-1 rounded-full ${saved.includes(analyzeResult.name) ? 'bg-[var(--color-primary)] text-white' : 'bg-[#FFF9F5] text-[#6B6966]'}`}>
                     {saved.includes(analyzeResult.name) ? '♥ 저장됨' : '♡ 저장하기'}
                   </button>
                 </div>
@@ -548,14 +555,14 @@ export default function NamePage() {
                             const r = val * 80
                             return `${100 + r * Math.cos(angle)},${100 + r * Math.sin(angle)}`
                           }).join(' ')}
-                          fill="rgba(61,138,90,0.2)" stroke="#3D8A5A" strokeWidth="2"
+                          fill="rgba(61,138,90,0.2)" stroke="var(--color-primary)" strokeWidth="2"
                         />
                         {/* 꼭짓점 점 */}
                         {ELEMENTS.map((el, i) => {
                           const val = (analyzeResult.fiveElements[el.key] || 0) / 100
                           const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2
                           const r = val * 80
-                          return <circle key={el.key} cx={100 + r * Math.cos(angle)} cy={100 + r * Math.sin(angle)} r="3" fill="#3D8A5A" />
+                          return <circle key={el.key} cx={100 + r * Math.cos(angle)} cy={100 + r * Math.sin(angle)} r="3" fill="var(--color-primary)" />
                         })}
                         {/* 라벨 */}
                         {ELEMENTS.map((el, i) => {
@@ -581,18 +588,78 @@ export default function NamePage() {
                   </div>
                 )}
 
-                {/* 상세 분석 */}
+                {/* 5대 지표 상세 점수 */}
+                {analyzeResult.scoreBreakdown && (
+                  <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
+                    <p className="text-[13px] font-bold text-[#1A1918] mb-3">📋 성명학 5대 지표</p>
+                    <div className="space-y-3">
+                      {[
+                        { key: 'pronunciationOheng', icon: '🔊', label: '발음오행' },
+                        { key: 'suriOheng', icon: '🔢', label: '수리오행' },
+                        { key: 'yinYangHarmony', icon: '☯️', label: '음양조화' },
+                        { key: 'sourceOheng', icon: '🌿', label: '자원오행' },
+                        { key: 'pronunciation', icon: '🗣️', label: '발음/어감' },
+                      ].map(item => {
+                        const data = analyzeResult.scoreBreakdown[item.key]
+                        if (!data) return null
+                        const pct = data.max > 0 ? (data.score / data.max) * 100 : 0
+                        return (
+                          <div key={item.key}>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[12px] font-semibold text-[#1A1918]">{item.icon} {item.label}</span>
+                              <span className="text-[12px] font-bold text-[var(--color-primary)]">{data.score}/{data.max}</span>
+                            </div>
+                            <div className="h-2 bg-[#E8E4DF] rounded-full overflow-hidden mb-1">
+                              <div className="h-full bg-[var(--color-primary)] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                            <p className="text-[11px] text-[#6B6966] leading-snug">{data.detail}</p>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 종합 분석 */}
                 <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 space-y-2">
-                  <p className="text-[13px] font-bold text-[#1A1918] mb-2">📋 상세 분석</p>
-                  {analyzeResult.yinYang && <div className="flex gap-2"><span className="text-sm">☯️</span><p className="text-[14px] text-[#1A1918]">{analyzeResult.yinYang}</p></div>}
-                  {analyzeResult.pronunciation && <div className="flex gap-2"><span className="text-sm">🗣️</span><p className="text-[14px] text-[#1A1918]">{analyzeResult.pronunciation}</p></div>}
-                  {analyzeResult.strokes && <div className="flex gap-2"><span className="text-sm">✏️</span><p className="text-[14px] text-[#1A1918]">{analyzeResult.strokes}</p></div>}
-                  {analyzeResult.overall && <div className="bg-[#F0F9F4] rounded-lg p-3 mt-2"><p className="text-[14px] text-[#1A1918] leading-relaxed">{analyzeResult.overall}</p></div>}
-                  <div className="flex gap-3 pt-2">
-                    {analyzeResult.luckyColor && <p className="text-[14px] text-[#6B6966]">🎨 행운의 색: <span className="font-semibold">{analyzeResult.luckyColor}</span></p>}
-                    {analyzeResult.luckyNumber && <p className="text-[14px] text-[#6B6966]">🔢 행운의 수: <span className="font-semibold">{analyzeResult.luckyNumber}</span></p>}
+                  <p className="text-[13px] font-bold text-[#1A1918] mb-2">💡 종합 분석</p>
+                  {analyzeResult.meaning && (
+                    <div className="bg-[#FFF9F5] rounded-lg p-3">
+                      <p className="text-[12px] font-semibold text-[#6B6966] mb-1">이름 뜻</p>
+                      <p className="text-[13px] text-[#1A1918] leading-relaxed">{analyzeResult.meaning}</p>
+                    </div>
+                  )}
+                  {analyzeResult.strengths && (
+                    <div className="flex gap-2">
+                      <span className="text-sm shrink-0">💪</span>
+                      <p className="text-[13px] text-[#1A1918] leading-relaxed">{analyzeResult.strengths}</p>
+                    </div>
+                  )}
+                  {analyzeResult.caution && analyzeResult.caution !== '특별한 주의사항 없음' && (
+                    <div className="flex gap-2">
+                      <span className="text-sm shrink-0">⚠️</span>
+                      <p className="text-[13px] text-[#D08068] leading-relaxed">{analyzeResult.caution}</p>
+                    </div>
+                  )}
+                  {analyzeResult.overall && (
+                    <div className="bg-[#F0F9F4] rounded-lg p-3 mt-2">
+                      <p className="text-[13px] text-[#1A1918] leading-relaxed">{analyzeResult.overall}</p>
+                    </div>
+                  )}
+                  <div className="flex gap-4 pt-2">
+                    {analyzeResult.luckyColor && <p className="text-[12px] text-[#6B6966]">🎨 행운의 색: <span className="font-semibold">{analyzeResult.luckyColor}</span></p>}
+                    {analyzeResult.luckyNumber && <p className="text-[12px] text-[#6B6966]">🔢 행운의 수: <span className="font-semibold">{analyzeResult.luckyNumber}</span></p>}
                   </div>
                 </div>
+
+                {/* 레거시 호환 (scoreBreakdown 없는 경우) */}
+                {!analyzeResult.scoreBreakdown && (
+                  <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 space-y-2">
+                    {analyzeResult.yinYang && <div className="flex gap-2"><span className="text-sm">☯️</span><p className="text-[13px] text-[#1A1918]">{analyzeResult.yinYang}</p></div>}
+                    {analyzeResult.pronunciation && <div className="flex gap-2"><span className="text-sm">🗣️</span><p className="text-[13px] text-[#1A1918]">{analyzeResult.pronunciation}</p></div>}
+                    {analyzeResult.strokes && <div className="flex gap-2"><span className="text-sm">✏️</span><p className="text-[13px] text-[#1A1918]">{analyzeResult.strokes}</p></div>}
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -605,7 +672,7 @@ export default function NamePage() {
             <div className="flex flex-wrap gap-1.5">
               {saved.map(name => (
                 <button key={name} onClick={() => { setAnalyzeName(name); setTab('analyze') }}
-                  className="px-3 py-1.5 rounded-full bg-[#F0F9F4] text-[14px] text-[#3D8A5A] font-medium">
+                  className="px-3 py-1.5 rounded-full bg-[#F0F9F4] text-[14px] text-[var(--color-primary)] font-medium">
                   {name}
                 </button>
               ))}

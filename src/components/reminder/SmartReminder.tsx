@@ -106,14 +106,14 @@ export default function SmartReminder({ events }: Props) {
             </button>
           )}
           {notifPermission === 'granted' && (
-            <span className="text-[13px] text-[#3D8A5A] font-semibold">알림 ON</span>
+            <span className="text-[13px] text-[var(--color-primary)] font-semibold">알림 ON</span>
           )}
         </div>
 
         <div className="space-y-2.5">
           {feedPred && (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-[#F0FFF4]">
-              <div className="w-9 h-9 rounded-full bg-[#C8F0D8] flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-full bg-[var(--color-accent-bg)] flex items-center justify-center shrink-0">
                 <span className="text-[16px]">🍼</span>
               </div>
               <div className="flex-1 min-w-0">

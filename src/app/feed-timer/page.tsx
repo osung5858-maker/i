@@ -92,7 +92,7 @@ export default function FeedTimerPage() {
         {/* 타이머 메인 */}
         <div className="bg-white rounded-2xl border border-[#E8E4DF] p-6 text-center">
           {/* 시간 표시 */}
-          <p className={`text-[48px] font-bold tracking-wider ${active ? 'text-[#3D8A5A]' : 'text-[#1A1918]'}`}>
+          <p className={`text-[48px] font-bold tracking-wider ${active ? 'text-[var(--color-primary)]' : 'text-[#1A1918]'}`}>
             {formatTime(elapsed)}
           </p>
 
@@ -109,7 +109,7 @@ export default function FeedTimerPage() {
           {!active && lastSide && (
             <p className="text-[14px] text-[#6B6966] mt-2 mb-4">
               지난번 <span className="font-semibold">{lastSide === 'left' ? '왼쪽' : '오른쪽'}</span>이었으니 →{' '}
-              <span className="text-[#3D8A5A] font-semibold">{lastSide === 'left' ? '오른쪽' : '왼쪽'}</span> 추천
+              <span className="text-[var(--color-primary)] font-semibold">{lastSide === 'left' ? '오른쪽' : '왼쪽'}</span> 추천
             </p>
           )}
 

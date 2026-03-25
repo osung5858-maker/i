@@ -198,7 +198,7 @@ export default function DiaryView({ events, childName }: Props) {
       {emotionTags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {emotionTags.map((tag) => (
-            <span key={tag} className="px-2.5 py-1 rounded-full bg-[#F0F9F4] text-[13px] font-medium text-[#3D8A5A]">
+            <span key={tag} className="px-2.5 py-1 rounded-full bg-[#F0F9F4] text-[13px] font-medium text-[var(--color-primary)]">
               {tag}
             </span>
           ))}
@@ -212,7 +212,7 @@ export default function DiaryView({ events, childName }: Props) {
           <button onClick={() => {
             if (editingMemo) saveDayData(memo, photos)
             setEditingMemo(!editingMemo)
-          }} className="text-[13px] text-[#3D8A5A] font-semibold">
+          }} className="text-[13px] text-[var(--color-primary)] font-semibold">
             {editingMemo ? '저장' : '✏️ 편집'}
           </button>
         </div>
@@ -221,7 +221,7 @@ export default function DiaryView({ events, childName }: Props) {
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
             placeholder="오늘 하루를 기록해보세요..."
-            className="w-full h-20 text-[13px] text-[#212124] bg-[#F0EDE8] rounded-xl p-3 resize-none focus:outline-none focus:ring-1 focus:ring-[#3D8A5A]"
+            className="w-full h-20 text-[13px] text-[#212124] bg-[#F0EDE8] rounded-xl p-3 resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
             maxLength={500}
           />
         ) : memo ? (
@@ -229,17 +229,17 @@ export default function DiaryView({ events, childName }: Props) {
         ) : (
           <button onClick={() => setEditingMemo(true)} className="w-full py-4 text-center active:opacity-60">
             <p className="text-[13px] text-[#9E9A95]">오늘 하루는 어땠나요?</p>
-            <p className="text-[13px] text-[#3D8A5A] mt-1">탭해서 일기를 남겨보세요 ✏️</p>
+            <p className="text-[13px] text-[var(--color-primary)] mt-1">탭해서 일기를 남겨보세요 ✏️</p>
           </button>
         )}
       </div>
 
       {/* AI 자동일기 */}
       {aiDiary && (
-        <div className="bg-white rounded-2xl border-l-4 border-l-[#3D8A5A] border border-[#E8E4DF] p-4">
+        <div className="bg-white rounded-2xl border-l-4 border-l-[var(--color-primary)] border border-[#E8E4DF] p-4">
           <div className="flex items-center gap-1.5 mb-2">
             <span className="text-sm">🤖</span>
-            <span className="text-[13px] font-bold text-[#3D8A5A]">AI 오늘의 요약</span>
+            <span className="text-[13px] font-bold text-[var(--color-primary)]">AI 오늘의 요약</span>
           </div>
           <p className="text-[13px] text-[#212124] leading-relaxed">{aiDiary}</p>
         </div>

@@ -38,30 +38,32 @@ function getRecentDates(days: number): string[] {
 // 간단 바 차트 컴포넌트
 function BarChart({ data, maxVal, color }: { data: { label: string; value: number }[]; maxVal: number; color: string }) {
   return (
-    <div className="flex items-end gap-1.5 h-28 px-1">
+    <div className="flex items-end gap-1.5 h-32 px-1">
       {data.map((d, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-1">
-          <span className="text-[14px] font-semibold text-[#212124]">{d.value || ''}</span>
+          <span className="text-[13px] font-bold text-[#1A1918]">{d.value || ''}</span>
           <div
-            className="w-full rounded-t-md transition-all duration-500"
+            className="w-full rounded-t-lg transition-all duration-500"
             style={{
-              height: maxVal > 0 ? `${Math.max((d.value / maxVal) * 80, d.value > 0 ? 4 : 0)}px` : '0px',
-              backgroundColor: d.value > 0 ? color : '#ECECEC',
-              minHeight: d.value > 0 ? 4 : 2,
+              height: maxVal > 0 ? `${Math.max((d.value / maxVal) * 88, d.value > 0 ? 8 : 0)}px` : '0px',
+              backgroundColor: d.value > 0 ? color : '#E0DCD6',
+              minHeight: d.value > 0 ? 8 : 3,
             }}
           />
-          <span className="text-[14px] text-[#6B6966]">{d.label}</span>
+          <span className="text-[12px] font-medium text-[#4A4744]">{d.label}</span>
         </div>
       ))}
     </div>
   )
 }
 
-// 수면 히트맵 (24시간 × 7일)
+// 수면 히트맵 (24시간 × N일, 월간도 지원)
 function SleepHeatmap({ events, dates }: { events: CareEvent[]; dates: string[] }) {
+  // 월간일 때는 최근 7일만 히트맵으로 표시하고, 주간 요약 추가
+  const displayDates = dates.length > 14 ? dates.slice(-7) : dates
   const grid = useMemo(() => {
     const map: Record<string, Set<number>> = {}
-    dates.forEach((d) => (map[d] = new Set()))
+    displayDates.forEach((d) => (map[d] = new Set()))
 
     events
       .filter((e) => e.type === 'sleep')
@@ -75,37 +77,95 @@ function SleepHeatmap({ events, dates }: { events: CareEvent[]; dates: string[] 
         }
       })
     return map
+  }, [events, displayDates])
+
+  // 월간일 때 주별 수면 시간 요약
+  const weeklySummary = useMemo(() => {
+    if (dates.length <= 14) return null
+    const weeks: { label: string; hours: number }[] = []
+    for (let w = 0; w < 4; w++) {
+      const weekDates = dates.slice(w * 7, (w + 1) * 7)
+      let totalMin = 0
+      events.filter((e) => e.type === 'sleep' && e.end_ts).forEach((e) => {
+        const d = e.start_ts.split('T')[0]
+        if (weekDates.includes(d)) {
+          const diff = (new Date(e.end_ts!).getTime() - new Date(e.start_ts).getTime()) / 60000
+          if (diff > 0 && diff < 1440) totalMin += diff
+        }
+      })
+      const avgH = weekDates.length > 0 ? totalMin / weekDates.length / 60 : 0
+      weeks.push({ label: `${w + 1}주`, hours: Math.round(avgH * 10) / 10 })
+    }
+    return weeks
   }, [events, dates])
 
   return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[300px]">
-        <div className="flex gap-0.5">
-          <div className="w-6" />
-          {[0, 3, 6, 9, 12, 15, 18, 21].map((h) => (
-            <div key={h} className="flex-1 text-[13px] text-[#9E9A95] text-center">{h}</div>
+    <div className="space-y-3">
+      {weeklySummary && (
+        <div className="flex gap-2">
+          {weeklySummary.map((w, i) => (
+            <div key={i} className="flex-1 text-center bg-[#F0EDF6] rounded-lg py-2">
+              <p className="text-[11px] text-[#6B6966]">{w.label}</p>
+              <p className="text-[14px] font-bold text-[#4A5AE8]">{w.hours}h</p>
+            </div>
           ))}
         </div>
-        {dates.map((date) => (
-          <div key={date} className="flex items-center gap-0.5 mb-0.5">
-            <span className="w-6 text-[13px] text-[#6B6966] shrink-0">{getDayLabel(date)}</span>
-            <div className="flex-1 flex gap-px">
-              {Array.from({ length: 24 }, (_, h) => (
-                <div
-                  key={h}
-                  className="flex-1 h-3 rounded-sm"
-                  style={{
-                    backgroundColor: grid[date]?.has(h) ? '#5B6DFF' : '#F0F2FF',
-                    opacity: grid[date]?.has(h) ? 0.8 : 0.3,
-                  }}
-                />
-              ))}
-            </div>
+      )}
+      <div className="overflow-x-auto">
+        <div className="min-w-[300px]">
+          <div className="flex gap-0.5">
+            <div className="w-6" />
+            {[0, 3, 6, 9, 12, 15, 18, 21].map((h) => (
+              <div key={h} className="flex-1 text-[11px] text-[#6B6966] font-medium text-center">{h}</div>
+            ))}
           </div>
-        ))}
+          {displayDates.map((date) => (
+            <div key={date} className="flex items-center gap-0.5 mb-0.5">
+              <span className="w-6 text-[11px] text-[#4A4744] font-medium shrink-0">{getDayLabel(date)}</span>
+              <div className="flex-1 flex gap-px">
+                {Array.from({ length: 24 }, (_, h) => (
+                  <div
+                    key={h}
+                    className="flex-1 h-4 rounded-sm"
+                    style={{
+                      backgroundColor: grid[date]?.has(h) ? '#4A5AE8' : '#E8E4F0',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+          {dates.length > 14 && (
+            <p className="text-[11px] text-[#7A7672] mt-1 text-center">최근 7일 수면 패턴</p>
+          )}
+        </div>
       </div>
     </div>
   )
+}
+
+// 전주 대비 트렌드 계산
+function calcTrend(events: CareEvent[], type: string, days: number): { delta: number; arrow: string; color: string } | null {
+  if (days < 7) return null
+  const now = new Date()
+  const thisWeek: number[] = []
+  const lastWeek: number[] = []
+  for (let i = 0; i < 7; i++) {
+    const d1 = new Date(now); d1.setDate(d1.getDate() - i)
+    const d2 = new Date(now); d2.setDate(d2.getDate() - 7 - i)
+    const k1 = d1.toISOString().split('T')[0]
+    const k2 = d2.toISOString().split('T')[0]
+    thisWeek.push(events.filter((e) => e.type === type && e.start_ts.startsWith(k1)).length)
+    lastWeek.push(events.filter((e) => e.type === type && e.start_ts.startsWith(k2)).length)
+  }
+  const avg1 = thisWeek.reduce((a, b) => a + b, 0) / 7
+  const avg2 = lastWeek.reduce((a, b) => a + b, 0) / 7
+  if (avg2 === 0) return null
+  const pct = Math.round(((avg1 - avg2) / avg2) * 100)
+  if (pct === 0) return { delta: 0, arrow: '→', color: '#7A7672' }
+  return pct > 0
+    ? { delta: pct, arrow: '↑', color: '#E85D4A' }
+    : { delta: Math.abs(pct), arrow: '↓', color: '#4A5AE8' }
 }
 
 // AI 인사이트 생성 (로컬, API 호출 없이)
@@ -125,7 +185,6 @@ function generateInsights(events: CareEvent[], ageMonths: number): string[] {
   }
 
   // 수면 패턴
-  const sleepEvents = events.filter((e) => e.type === 'sleep' && e.end_ts)
   const nightFeeds = events.filter((e) => {
     if (e.type !== 'feed') return false
     const h = new Date(e.start_ts).getHours()
@@ -163,15 +222,37 @@ export default function StatsReport({ events, ageMonths }: Props) {
   const dates = useMemo(() => getRecentDates(days), [days])
   const grouped = useMemo(() => groupByDate(events), [events])
 
-  // 통계 계산
-  const feedData = dates.map((d) => ({
-    label: period === 'monthly' ? d.slice(8) : getDayLabel(d),
-    value: (grouped[d] || []).filter((e) => e.type === 'feed').length,
-  }))
-  const poopData = dates.map((d) => ({
-    label: period === 'monthly' ? d.slice(8) : getDayLabel(d),
-    value: (grouped[d] || []).filter((e) => e.type === 'poop' || e.type === 'pee').length,
-  }))
+  // 통계 계산 — 월간은 주별 그룹핑
+  const chartDates = period === 'monthly'
+    ? (() => {
+        const weeks: { label: string; dates: string[] }[] = []
+        for (let w = 0; w < 4; w++) {
+          const wDates = dates.slice(w * 7, (w + 1) * 7)
+          weeks.push({ label: `${w + 1}주`, dates: wDates })
+        }
+        if (dates.length > 28) weeks.push({ label: '5주', dates: dates.slice(28) })
+        return weeks
+      })()
+    : null
+
+  const feedData = chartDates
+    ? chartDates.map((w) => ({
+        label: w.label,
+        value: Math.round(w.dates.reduce((s, d) => s + (grouped[d] || []).filter((e) => e.type === 'feed').length, 0) / Math.max(w.dates.length, 1)),
+      }))
+    : dates.map((d) => ({
+        label: getDayLabel(d),
+        value: (grouped[d] || []).filter((e) => e.type === 'feed').length,
+      }))
+  const poopData = chartDates
+    ? chartDates.map((w) => ({
+        label: w.label,
+        value: Math.round(w.dates.reduce((s, d) => s + (grouped[d] || []).filter((e) => e.type === 'poop' || e.type === 'pee').length, 0) / Math.max(w.dates.length, 1)),
+      }))
+    : dates.map((d) => ({
+        label: getDayLabel(d),
+        value: (grouped[d] || []).filter((e) => e.type === 'poop' || e.type === 'pee').length,
+      }))
 
   const avgFeed = dates.length > 0
     ? (feedData.reduce((a, b) => a + b.value, 0) / dates.filter((d) => (grouped[d] || []).length > 0).length || 0).toFixed(1)
@@ -189,8 +270,11 @@ export default function StatsReport({ events, ageMonths }: Props) {
   const maxFeed = Math.max(...feedData.map((d) => d.value), 1)
   const maxPoop = Math.max(...poopData.map((d) => d.value), 1)
 
+  const feedTrend = useMemo(() => calcTrend(events, 'feed', days), [events, days])
+  const poopTrend = useMemo(() => calcTrend(events, 'poop', days), [events, days])
+
   return (
-    <div className="space-y-4 px-5 pb-8">
+    <div className="space-y-4 pb-8">
       {/* 기간 탭 */}
       <div className="flex gap-2 justify-center pt-2">
         {([
@@ -203,8 +287,8 @@ export default function StatsReport({ events, ageMonths }: Props) {
             onClick={() => setPeriod(tab.key)}
             className={`px-4 py-1.5 rounded-full text-[14px] font-semibold transition-colors ${
               period === tab.key
-                ? 'bg-[#3D8A5A] text-white'
-                : 'bg-[#E8E4DF] text-[#6B6966]'
+                ? 'bg-[var(--color-primary)] text-white'
+                : 'bg-[#D5D0CA] text-[#4A4744]'
             }`}
           >
             {tab.label}
@@ -213,42 +297,56 @@ export default function StatsReport({ events, ageMonths }: Props) {
       </div>
 
       {/* 수유 카드 */}
-      <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
+      <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[15px] font-bold text-[#212124]">🍼 수유</h3>
-          <span className="text-[14px] text-[#3D8A5A] font-semibold">하루 평균 {avgFeed}회</span>
+          <div className="flex items-center gap-2">
+            <h3 className="text-[15px] font-bold text-[#212124]">🍼 수유</h3>
+            {feedTrend && (
+              <span className="text-[12px] font-semibold" style={{ color: feedTrend.color }}>
+                {feedTrend.arrow} {feedTrend.delta}%
+              </span>
+            )}
+          </div>
+          <span className="text-[14px] text-[#2D7A4A] font-bold">하루 평균 {avgFeed}회</span>
         </div>
         {period !== 'daily' ? (
           <BarChart data={feedData} maxVal={maxFeed} color="#FF6F0F" />
         ) : (
           <div className="text-center py-6">
-            <p className="text-3xl font-bold text-[#FF6F0F]">{feedData[0]?.value || 0}<span className="text-sm text-[#6B6966] ml-1">회</span></p>
-            <p className="text-[14px] text-[#6B6966] mt-1">오늘 수유</p>
+            <p className="text-3xl font-bold text-[#FF6F0F]">{feedData[0]?.value || 0}<span className="text-sm text-[#4A4744] ml-1">회</span></p>
+            <p className="text-[13px] text-[#4A4744] mt-1">오늘 수유</p>
           </div>
         )}
       </div>
 
       {/* 수면 카드 */}
-      <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
+      <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[15px] font-bold text-[#212124]">💤 수면</h3>
-          <span className="text-[14px] text-[#5B6DFF] font-semibold">평균 {avgSleep}시간</span>
+          <span className="text-[14px] text-[#4A5AE8] font-bold">평균 {avgSleep}시간</span>
         </div>
-        {period !== 'daily' && dates.length <= 7 ? (
+        {period !== 'daily' ? (
           <SleepHeatmap events={events} dates={dates} />
         ) : (
           <div className="text-center py-6">
-            <p className="text-3xl font-bold text-[#5B6DFF]">{avgSleep}<span className="text-sm text-[#6B6966] ml-1">시간</span></p>
-            <p className="text-[14px] text-[#6B6966] mt-1">{period === 'daily' ? '오늘 수면' : '일 평균 수면'}</p>
+            <p className="text-3xl font-bold text-[#5B6DFF]">{avgSleep}<span className="text-sm text-[#4A4744] ml-1">시간</span></p>
+            <p className="text-[13px] text-[#4A4744] mt-1">오늘 수면</p>
           </div>
         )}
       </div>
 
       {/* 배변 카드 */}
-      <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
+      <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[15px] font-bold text-[#212124]">🩲 배변</h3>
-          <span className="text-[14px] text-[#C68A2E] font-semibold">
+          <div className="flex items-center gap-2">
+            <h3 className="text-[15px] font-bold text-[#212124]">🩲 배변</h3>
+            {poopTrend && (
+              <span className="text-[12px] font-semibold" style={{ color: poopTrend.color }}>
+                {poopTrend.arrow} {poopTrend.delta}%
+              </span>
+            )}
+          </div>
+          <span className="text-[14px] text-[#A87420] font-bold">
             하루 평균 {(poopData.reduce((a, b) => a + b.value, 0) / Math.max(dates.filter((d) => (grouped[d] || []).length > 0).length, 1)).toFixed(1)}회
           </span>
         </div>
@@ -256,24 +354,24 @@ export default function StatsReport({ events, ageMonths }: Props) {
           <BarChart data={poopData} maxVal={maxPoop} color="#C68A2E" />
         ) : (
           <div className="text-center py-6">
-            <p className="text-3xl font-bold text-[#C68A2E]">{poopData[0]?.value || 0}<span className="text-sm text-[#6B6966] ml-1">회</span></p>
-            <p className="text-[14px] text-[#6B6966] mt-1">오늘 배변</p>
+            <p className="text-3xl font-bold text-[#C68A2E]">{poopData[0]?.value || 0}<span className="text-sm text-[#4A4744] ml-1">회</span></p>
+            <p className="text-[13px] text-[#4A4744] mt-1">오늘 배변</p>
           </div>
         )}
       </div>
 
       {/* AI 인사이트 */}
-      <div className="bg-white rounded-2xl border-l-4 border-l-[#3D8A5A] border border-[#E8E4DF] p-4">
+      <div className="bg-white rounded-2xl border-l-4 border-l-[var(--color-primary)] border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center gap-1.5 mb-2">
           <span className="text-sm">🤖</span>
-          <h3 className="text-[13px] font-bold text-[#3D8A5A]">AI 인사이트</h3>
+          <h3 className="text-[13px] font-bold text-[var(--color-primary)]">AI 인사이트</h3>
         </div>
         <div className="space-y-2">
           {insights.map((insight, i) => (
             <p key={i} className="text-[13px] text-[#212124] leading-relaxed">• {insight}</p>
           ))}
         </div>
-        <p className="text-[14px] text-[#9E9A95] mt-3">⚠️ 참고용 정보예요. 걱정되시면 소아과 상담을 추천드려요.</p>
+        <p className="text-[12px] text-[#7A7672] mt-3">⚠️ 참고용 정보예요. 걱정되시면 소아과 상담을 추천드려요.</p>
       </div>
 
       {/* 공유 버튼 */}
@@ -308,7 +406,7 @@ export default function StatsReport({ events, ageMonths }: Props) {
             alert('공유 기능을 사용할 수 없어요.')
           }
         }}
-        className="w-full py-3 text-[13px] font-semibold text-[#3D8A5A] text-center active:opacity-70"
+        className="w-full py-3 text-[13px] font-semibold text-[var(--color-primary)] text-center active:opacity-70"
       >
         📤 리포트 공유하기
       </button>

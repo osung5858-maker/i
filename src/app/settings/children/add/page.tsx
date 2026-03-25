@@ -45,7 +45,6 @@ export default function AddChildPage() {
     })
 
     if (insertError) {
-      console.error('children insert error:', insertError)
       setError(`프로필 생성에 실패했어요: ${insertError.message}`)
       setLoading(false)
       return

@@ -64,7 +64,6 @@ export default function InviteAcceptPage() {
       const data = await res.json()
 
       if (data.error) {
-        console.error('Accept error:', data.error)
         setStatus('error')
         setProcessing(false)
         return

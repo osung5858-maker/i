@@ -89,9 +89,9 @@ export default function PlaceDetailPage() {
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white border-b border-[#ECECEC]">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-[13px] text-[#6B6966]">뒤로</button>
-          <h1 className="text-[15px] font-bold text-[#212124] truncate max-w-[220px]">{place.name}</h1>
-          <div className="w-8" />
+          <button onClick={() => router.back()} className="text-[13px] text-[#6B6966] shrink-0">뒤로</button>
+          <h1 className="text-[15px] font-bold text-[#212124] truncate mx-3 min-w-0">{place.name}</h1>
+          <div className="w-8 shrink-0" />
         </div>
       </header>
 

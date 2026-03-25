@@ -54,8 +54,13 @@ const GOV_SUPPORTS = [
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
+function haptic() { if (navigator.vibrate) navigator.vibrate(20) }
+
 export default function WaitingPage() {
   const router = useRouter()
+  const [toast, setToast] = useState<string | null>(null)
+  const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
+
   const [appMode] = useState(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('dodam_mode') || 'preparing'
     return 'preparing'
@@ -97,10 +102,13 @@ export default function WaitingPage() {
     return {}
   })
   const toggleIntimacy = (date: string) => {
+    // 미래 날짜 하트 방지
+    if (new Date(date) > new Date()) { showToast('미래 날짜는 기록할 수 없어요'); return }
     const next = { ...intimacyDates, [date]: !intimacyDates[date] }
     if (!next[date]) delete next[date]
     setIntimacyDates(next)
     localStorage.setItem('dodam_intimacy_dates', JSON.stringify(next))
+    showToast(next[date] ? '❤️ 함께한 날 기록!' : '기록 취소')
   }
   const [checked, setChecked] = useState<Record<string, boolean>>(() => {
     if (typeof window !== 'undefined') {
@@ -186,17 +194,22 @@ export default function WaitingPage() {
   const toggleCheck = (id: string) => {
     const next = { ...checked, [id]: !checked[id] }; setChecked(next)
     localStorage.setItem('dodam_preparing_checks', JSON.stringify(next))
+    const done = Object.values(next).filter(Boolean).length
+    showToast(next[id] ? `체크 완료! (${done}/${CHECKLIST.length})` : '체크 취소')
   }
 
   const recordBBT = useCallback((date: string, temp: number) => {
+    if (!temp || temp < 35 || temp > 38) return
     const next = { ...bbtRecords, [date]: temp }; setBbtRecords(next)
     localStorage.setItem('dodam_bbt_records', JSON.stringify(next))
-  }, [bbtRecords])
+    showToast(`기초체온 ${temp.toFixed(2)}°C 기록!`)
+  }, [bbtRecords]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const recordOvulationTest = useCallback((date: string, positive: boolean) => {
     const next = { ...ovulationTests, [date]: positive }; setOvulationTests(next)
     localStorage.setItem('dodam_ovulation_tests', JSON.stringify(next))
-  }, [ovulationTests])
+    showToast(positive ? '배란 양성 기록!' : '배란 음성 기록')
+  }, [ovulationTests]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [showPregConfirm, setShowPregConfirm] = useState(false)
 
@@ -206,6 +219,8 @@ export default function WaitingPage() {
     setPregTests(next); localStorage.setItem('dodam_preg_tests', JSON.stringify(next))
     if (result === '양성') {
       setShowPregConfirm(true)
+    } else {
+      showToast(result === '음성' ? '기록 완료. 다음에 꼭 될 거예요 💪' : '흐린 양성 기록됨')
     }
   }
 
@@ -234,9 +249,9 @@ export default function WaitingPage() {
                 <>
                   <p className="text-3xl mb-2">🤞</p>
                   <p className="text-[18px] font-bold text-[#1A1918]">착상을 기다리는 중</p>
-                  <p className="text-[24px] font-bold text-[#3D8A5A] mt-1">D+{dpo}</p>
+                  <p className="text-[24px] font-bold text-[var(--color-primary)] mt-1">D+{dpo}</p>
                   <div className="w-full h-2 bg-[#E8E4DF] rounded-full mt-3 mb-2">
-                    <div className="h-full bg-[#3D8A5A] rounded-full transition-all" style={{ width: `${Math.min((dpo / 14) * 100, 100)}%` }} />
+                    <div className="h-full bg-[var(--color-primary)] rounded-full transition-all" style={{ width: `${Math.min((dpo / 14) * 100, 100)}%` }} />
                   </div>
                   <p className="text-[14px] text-[#6B6966]">
                     {dpo <= 3 ? '아직 이른 시기예요. 평소처럼 지내세요' :
@@ -248,14 +263,14 @@ export default function WaitingPage() {
               ) : isFertile ? (
                 <>
                   <p className="text-3xl mb-2">💫</p>
-                  <p className="text-[18px] font-bold text-[#3D8A5A]">지금 가임기예요</p>
+                  <p className="text-[18px] font-bold text-[var(--color-primary)]">지금 가임기예요</p>
                   <p className="text-[14px] text-[#6B6966] mt-2">가장 좋은 시기. 도담하게 준비하고 있어요</p>
                 </>
               ) : (
                 <>
                   <p className="text-3xl mb-2">🌙</p>
                   <p className="text-[18px] font-bold text-[#1A1918]">다음 기회까지</p>
-                  <p className="text-[24px] font-bold text-[#3D8A5A] mt-1">{daysToNext}일</p>
+                  <p className="text-[24px] font-bold text-[var(--color-primary)] mt-1">{daysToNext}일</p>
                   <p className="text-[14px] text-[#6B6966] mt-2">지금은 몸과 마음을 돌보는 시간이에요</p>
                 </>
               )}
@@ -267,7 +282,7 @@ export default function WaitingPage() {
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <p className="text-[13px] font-bold text-[#1A1918] mb-2">🤰 임신 테스트</p>
           <div className="flex gap-2 mb-2">
-            <button onClick={() => addPregTest('양성')} className="flex-1 py-2.5 rounded-xl bg-[#F0F9F4] text-[13px] font-semibold text-[#3D8A5A] active:opacity-80">양성 ✚</button>
+            <button onClick={() => addPregTest('양성')} className="flex-1 py-2.5 rounded-xl bg-[#F0F9F4] text-[13px] font-semibold text-[var(--color-primary)] active:opacity-80">양성 ✚</button>
             <button onClick={() => addPregTest('음성')} className="flex-1 py-2.5 rounded-xl bg-[#FFF9F5] text-[13px] font-semibold text-[#6B6966] active:opacity-80">음성 −</button>
           </div>
           {pregTests.length > 0 && (
@@ -275,7 +290,7 @@ export default function WaitingPage() {
               {pregTests.slice(0, 3).map((t, i) => (
                 <div key={i} className="flex justify-between py-1">
                   <span className="text-[13px] text-[#6B6966]">{t.date} {t.dpo > 0 && `(D+${t.dpo})`}</span>
-                  <span className={`text-[13px] font-semibold ${t.result === '양성' ? 'text-[#3D8A5A]' : 'text-[#6B6966]'}`}>{t.result}</span>
+                  <span className={`text-[13px] font-semibold ${t.result === '양성' ? 'text-[var(--color-primary)]' : 'text-[#6B6966]'}`}>{t.result}</span>
                 </div>
               ))}
             </div>
@@ -301,7 +316,7 @@ export default function WaitingPage() {
                 <p className="text-[14px] text-[#1A1918]">💌 {l.reply}</p>
                 <div className="flex items-center justify-between mt-1">
                   <p className="text-[13px] text-[#9E9A95]">아이의 답장</p>
-                  <button onClick={() => shareLetter(l.text, l.reply, letters.length - i)} className="text-[13px] text-[#3D8A5A] font-medium">카톡 공유</button>
+                  <button onClick={() => shareLetter(l.text, l.reply, letters.length - i)} className="text-[13px] text-[var(--color-primary)] font-medium">카톡 공유</button>
                 </div>
               </div>
             </div>
@@ -311,13 +326,13 @@ export default function WaitingPage() {
               <textarea value={letterText} onChange={(e) => setLetterText(e.target.value.slice(0, 500))} placeholder="아이에게 하고 싶은 말..." className="w-full h-20 text-[13px] p-3 bg-[#FFF9F5] rounded-xl resize-none focus:outline-none" autoFocus />
               <div className="flex justify-between mt-2">
                 <button onClick={() => setLetterOpen(false)} className="text-[14px] text-[#6B6966]">취소</button>
-                <button onClick={saveLetter} disabled={!letterText.trim() || letterSaving} className={`text-[14px] font-semibold px-3 py-1 rounded-lg ${letterText.trim() && !letterSaving ? 'bg-[#3D8A5A] text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}>
+                <button onClick={saveLetter} disabled={!letterText.trim() || letterSaving} className={`text-[14px] font-semibold px-3 py-1 rounded-lg ${letterText.trim() && !letterSaving ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}>
                   {letterSaving ? 'AI가 답장 쓰는 중...' : '보내기'}
                 </button>
               </div>
             </div>
           ) : (
-            <button onClick={() => setLetterOpen(true)} className="w-full py-2.5 text-[13px] font-semibold text-[#3D8A5A] bg-[#F0F9F4] rounded-xl">오늘의 편지 쓰기 ✉️</button>
+            <button onClick={() => setLetterOpen(true)} className="w-full py-2.5 text-[13px] font-semibold text-[var(--color-primary)] bg-[#F0F9F4] rounded-xl">오늘의 편지 쓰기 ✉️</button>
           )}
         </div>
 
@@ -340,43 +355,49 @@ export default function WaitingPage() {
               return (
                 <button key={ds}
                   onClick={() => toggleIntimacy(ds)}
+                  onContextMenu={(e) => { e.preventDefault(); setSelectedDate(ds) }}
+                  onTouchStart={(e) => {
+                    const timer = setTimeout(() => { setSelectedDate(ds); if (navigator.vibrate) navigator.vibrate(30) }, 500)
+                    ;(e.target as HTMLElement).dataset.longpress = String(timer)
+                  }}
+                  onTouchEnd={(e) => { clearTimeout(Number((e.target as HTMLElement).dataset.longpress)) }}
                   className={`aspect-square rounded-lg flex flex-col items-center justify-center text-[14px] font-medium relative active:scale-95 transition-transform ${
-                    isToday ? 'ring-2 ring-[#3D8A5A]' : status === 'period' ? 'bg-[#FDE8E8] text-[#D08068]' : status === 'ovulation' ? 'bg-[#3D8A5A] text-white' : status === 'fertile' ? 'bg-[#C8F0D8] text-[#3D8A5A]' : 'bg-[#F0EDE8] text-[#1A1918]'
+                    isToday ? 'ring-2 ring-[var(--color-primary)]' : status === 'period' ? 'bg-[#FDE8E8] text-[#D08068]' : status === 'ovulation' ? 'bg-[var(--color-primary)] text-white' : status === 'fertile' ? 'bg-[var(--color-accent-bg)] text-[var(--color-primary)]' : 'bg-[#F0EDE8] text-[#1A1918]'
                   }`}>
                   {intimacyDates[ds] ? <span className="text-[13px]">❤️</span> : date.getDate()}
+                  {(bbtRecords[ds] || ovulationTests[ds] !== undefined) && <div className="absolute bottom-0.5 w-1 h-1 rounded-full bg-[var(--color-primary)]" />}
                 </button>
               )
             })}
           </div>
           <div className="flex items-center justify-center gap-3 mt-3">
             <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#FDE8E8]" /><span className="text-[13px] text-[#6B6966]">생리</span></div>
-            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#C8F0D8]" /><span className="text-[13px] text-[#6B6966]">가임기</span></div>
-            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#3D8A5A]" /><span className="text-[13px] text-[#6B6966]">배란일</span></div>
+            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[var(--color-accent-bg)]" /><span className="text-[13px] text-[#6B6966]">가임기</span></div>
+            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[var(--color-primary)]" /><span className="text-[13px] text-[#6B6966]">배란일</span></div>
             <div className="flex items-center gap-1"><span className="text-[13px]">❤️</span><span className="text-[13px] text-[#6B6966]">함께한 날</span></div>
           </div>
-          <p className="text-[13px] text-[#9E9A95] text-center mt-2">날짜 탭 = ❤️ 토글 · 아래에서 체온/배란 기록</p>
-          {/* 날짜 선택 (체온/배란용) */}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#E8E4DF]">
-            <span className="text-[14px] text-[#6B6966]">기록할 날짜</span>
-            <input type="date" value={selectedDate || ''} onChange={e => setSelectedDate(e.target.value || null)}
-              className="h-8 rounded-lg border border-[#E8E4DF] px-2 text-[14px] text-[#1A1918]" />
-          </div>
+          <p className="text-[13px] text-[#9E9A95] text-center mt-2">날짜 탭 = ❤️ 토글 · 길게 누르면 체온/배란 기록</p>
         </div>
 
+        {/* 날짜 기록 바텀시트 */}
         {selectedDate && (
-          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[13px] font-semibold text-[#1A1918] mb-3">{selectedDate}</p>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[14px] text-[#6B6966]">기초체온</span>
-                <input type="number" step="0.01" min="35" max="38" value={bbtRecords[selectedDate] || ''} onChange={(e) => recordBBT(selectedDate, Number(e.target.value))} placeholder="36.50" className="w-20 h-10 rounded-lg border border-[#E8E4DF] px-2 text-[14px] text-right" />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[14px] text-[#6B6966]">배란 테스트</span>
-                <div className="flex gap-1.5">
-                  <button onClick={() => recordOvulationTest(selectedDate, true)} className={`px-3 py-1.5 rounded-xl text-[13px] ${ovulationTests[selectedDate] === true ? 'bg-[#3D8A5A] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>양성</button>
-                  <button onClick={() => recordOvulationTest(selectedDate, false)} className={`px-3 py-1.5 rounded-xl text-[13px] ${ovulationTests[selectedDate] === false ? 'bg-[#D08068] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>음성</button>
+          <div className="fixed inset-0 z-[80] bg-black/40" onClick={() => setSelectedDate(null)}>
+            <div className="absolute bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white rounded-t-2xl pb-[env(safe-area-inset-bottom)]" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
+              <div className="px-5 pb-5 space-y-3">
+                <p className="text-[15px] font-bold text-[#1A1918]">{selectedDate} 기록</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[14px] text-[#6B6966]">기초체온</span>
+                  <input type="number" step="0.01" min="35" max="38" value={bbtRecords[selectedDate] || ''} onChange={(e) => recordBBT(selectedDate, Number(e.target.value))} placeholder="36.50" className="w-24 h-10 rounded-lg border border-[#E8E4DF] px-2 text-[14px] text-right" />
                 </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[14px] text-[#6B6966]">배란 테스트</span>
+                  <div className="flex gap-1.5">
+                    <button onClick={() => recordOvulationTest(selectedDate, true)} className={`px-3 py-1.5 rounded-xl text-[13px] ${ovulationTests[selectedDate] === true ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>양성</button>
+                    <button onClick={() => recordOvulationTest(selectedDate, false)} className={`px-3 py-1.5 rounded-xl text-[13px] ${ovulationTests[selectedDate] === false ? 'bg-[#D08068] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>음성</button>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedDate(null)} className="w-full py-3 bg-[var(--color-primary)] text-white text-[14px] font-bold rounded-xl">완료</button>
               </div>
             </div>
           </div>
@@ -395,13 +416,13 @@ export default function WaitingPage() {
               <div className="space-y-2">
                 <button
                   onClick={() => { sharePositiveTest(); router.push('/celebration') }}
-                  className="w-full py-3 bg-[#3D8A5A] text-white text-[14px] font-semibold rounded-xl active:opacity-80"
+                  className="w-full py-3 bg-[var(--color-primary)] text-white text-[14px] font-semibold rounded-xl active:opacity-80"
                 >
                   네, 임신했어요! 💛
                 </button>
                 <button
                   onClick={() => router.push('/celebration')}
-                  className="w-full py-2.5 text-[13px] text-[#3D8A5A]"
+                  className="w-full py-2.5 text-[13px] text-[var(--color-primary)]"
                 >
                   공유 없이 넘어가기
                 </button>
@@ -424,13 +445,112 @@ export default function WaitingPage() {
           </div>
           {CHECKLIST.map((item) => (
             <button key={item.id} onClick={() => toggleCheck(item.id)} className="w-full flex items-center gap-3 py-2 rounded-lg active:bg-[#FFF9F5]">
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${checked[item.id] ? 'bg-[#3D8A5A] border-[#3D8A5A]' : 'border-[#AEB1B9]'}`}>
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${checked[item.id] ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'border-[#AEB1B9]'}`}>
                 {checked[item.id] && <span className="text-white text-[14px]">✓</span>}
               </div>
               <span className={`text-[13px] ${checked[item.id] ? 'text-[#9E9A95] line-through' : 'text-[#1A1918]'}`}>{item.icon} {item.title}</span>
             </button>
           ))}
         </div>
+
+        {/* BBT 기초체온 차트 */}
+        {Object.keys(bbtRecords).length > 0 && (
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
+            <p className="text-[14px] font-bold text-[#1A1918] mb-3">기초체온 차트</p>
+            <div className="h-32 flex items-end gap-px">
+              {(() => {
+                const sortedDates = Object.keys(bbtRecords).sort().slice(-14)
+                const temps = sortedDates.map((d) => bbtRecords[d])
+                const min = Math.min(...temps, 36.0)
+                const max = Math.max(...temps, 37.0)
+                const range = max - min || 0.5
+                return sortedDates.map((d, i) => {
+                  const t = bbtRecords[d]
+                  const h = ((t - min) / range) * 80 + 16
+                  const isHigh = t >= 36.7
+                  return (
+                    <div key={d} className="flex-1 flex flex-col items-center gap-0.5">
+                      <span className="text-[10px] text-[#6B6966]">{t.toFixed(1)}</span>
+                      <div
+                        className={`w-full rounded-t transition-all ${isHigh ? 'bg-[#FF6F0F]' : 'bg-[#4A9B6E]'}`}
+                        style={{ height: `${h}px` }}
+                      />
+                      <span className="text-[9px] text-[#9E9A95]">{d.slice(8)}</span>
+                    </div>
+                  )
+                })
+              })()}
+            </div>
+            <div className="flex justify-between mt-2">
+              <span className="text-[11px] text-[#9E9A95]">저온기 (36.0~36.6)</span>
+              <span className="text-[11px] text-[#FF6F0F]">고온기 (36.7+)</span>
+            </div>
+            {(() => {
+              const sortedDates = Object.keys(bbtRecords).sort()
+              const shiftIdx = sortedDates.findIndex((d, i) =>
+                i > 0 && bbtRecords[d] >= 36.7 && bbtRecords[sortedDates[i - 1]] < 36.7
+              )
+              if (shiftIdx > 0) {
+                return (
+                  <p className="text-[12px] text-[#FF6F0F] mt-1 font-medium">
+                    체온 상승 전환일: {sortedDates[shiftIdx]} (배란 추정)
+                  </p>
+                )
+              }
+              return null
+            })()}
+          </div>
+        )}
+
+        {/* 주기 이력 */}
+        {lastPeriod && (
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
+            <p className="text-[14px] font-bold text-[#1A1918] mb-3">주기 이력</p>
+            {(() => {
+              const records = Object.entries(periodRecords)
+                .filter(([, v]) => v === 'start')
+                .sort(([a], [b]) => b.localeCompare(a))
+                .slice(0, 6)
+              if (records.length < 2) return (
+                <p className="text-[13px] text-[#9E9A95]">생리 시작일이 2회 이상 기록되면 주기 분석이 표시됩니다.</p>
+              )
+              const gaps: number[] = []
+              for (let i = 1; i < records.length; i++) {
+                const diff = (new Date(records[i - 1][0]).getTime() - new Date(records[i][0]).getTime()) / 86400000
+                gaps.push(Math.round(diff))
+              }
+              const avg = Math.round(gaps.reduce((a, b) => a + b, 0) / gaps.length)
+              const minG = Math.min(...gaps)
+              const maxG = Math.max(...gaps)
+              return (
+                <div className="space-y-2">
+                  <div className="flex gap-3">
+                    <div className="flex-1 bg-[#FFF9F5] rounded-lg p-2.5 text-center">
+                      <p className="text-[11px] text-[#6B6966]">평균 주기</p>
+                      <p className="text-[16px] font-bold text-[#1A1918]">{avg}일</p>
+                    </div>
+                    <div className="flex-1 bg-[#FFF9F5] rounded-lg p-2.5 text-center">
+                      <p className="text-[11px] text-[#6B6966]">범위</p>
+                      <p className="text-[16px] font-bold text-[#1A1918]">{minG}~{maxG}일</p>
+                    </div>
+                    <div className="flex-1 bg-[#FFF9F5] rounded-lg p-2.5 text-center">
+                      <p className="text-[11px] text-[#6B6966]">기록</p>
+                      <p className="text-[16px] font-bold text-[#1A1918]">{records.length}회</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    {records.slice(0, 4).map(([date], i) => (
+                      <div key={date} className="flex justify-between text-[13px]">
+                        <span className="text-[#6B6966]">{date}</span>
+                        {i < gaps.length && <span className="text-[#1A1918] font-medium">{gaps[i]}일 주기</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+        )}
 
         {/* 정부 지원 */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
@@ -439,17 +559,24 @@ export default function WaitingPage() {
             <div key={item.title} className="p-3 bg-[#FFF9F5] rounded-xl mb-2 last:mb-0">
               <p className="text-[13px] font-semibold text-[#1A1918]">{item.title}</p>
               <p className="text-[13px] text-[#6B6966]">{item.desc}</p>
-              <a href={item.link} target="_blank" className="text-[14px] text-[#3D8A5A] mt-1 inline-block">자세히 보기 →</a>
+              <a href={item.link} target="_blank" className="text-[14px] text-[var(--color-primary)] mt-1 inline-block">자세히 보기 →</a>
             </div>
           ))}
         </div>
       </div>
+
+      {/* 토스트 */}
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1A1918]/80 text-white text-[13px] font-medium px-4 py-2.5 rounded-xl shadow-lg animate-[fadeIn_0.15s_ease-out]">
+          {toast}
+        </div>
+      )}
     </div>
   )
 }
 
 // ===== 임신 중 기다림 페이지 =====
-function PregnantWaitingPage() {
+export function PregnantWaitingPage() {
   const dueDate = typeof window !== 'undefined' ? localStorage.getItem('dodam_due_date') || '' : ''
   const currentWeek = (() => {
     if (!dueDate) return 0
@@ -473,7 +600,7 @@ function PregnantWaitingPage() {
           <Link href="/birth" className="block bg-gradient-to-r from-[#FFF0E6] to-[#FFF8F3] rounded-xl border border-[#FFDDC8] p-5 text-center active:opacity-80">
             <p className="text-3xl mb-2">👶</p>
             <p className="text-[16px] font-bold text-[#1A1918]">우리 아이, 만났나요?</p>
-            <p className="text-[13px] font-semibold text-[#3D8A5A] mt-2">🎉 네, 만났어요! →</p>
+            <p className="text-[13px] font-semibold text-[var(--color-primary)] mt-2">🎉 네, 만났어요! →</p>
           </Link>
         )}
 
@@ -481,9 +608,9 @@ function PregnantWaitingPage() {
         <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-5 text-center">
           <p className="text-3xl mb-2">{daysLeft <= 7 ? '💛' : '👶'}</p>
           <p className="text-[18px] font-bold text-[#1A1918]">{daysLeft <= 0 ? '만날 날이 지났어요!' : daysLeft <= 7 ? '이번 주에 만나요!' : '아이를 만나는 날'}</p>
-          <p className="text-[28px] font-bold text-[#3D8A5A] mt-1">{daysLeft <= 0 ? `D+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</p>
+          <p className="text-[28px] font-bold text-[var(--color-primary)] mt-1">{daysLeft <= 0 ? `D+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</p>
           <div className="w-full h-2 bg-[#E8E4DF] rounded-full mt-3">
-            <div className="h-full bg-[#3D8A5A] rounded-full" style={{ width: `${(currentWeek / 40) * 100}%` }} />
+            <div className="h-full bg-[var(--color-primary)] rounded-full" style={{ width: `${(currentWeek / 40) * 100}%` }} />
           </div>
           <p className="text-[14px] text-[#6B6966] mt-2">{currentWeek}주차 · {trimester} · {Math.round((currentWeek / 40) * 100)}%</p>
         </div>
@@ -512,41 +639,76 @@ function PregnantWaitingPage() {
           </div>
         </Link>
 
-        {/* 주차별 정보 */}
+        {/* 주차별 발달 가이드 (전체 + 현재 하이라이트) */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <p className="text-[13px] font-bold text-[#1A1918] mb-3">📋 {currentWeek}주차 체크</p>
-          {currentWeek <= 12 && (
-            <div className="space-y-2">
-              <p className="text-[13px] text-[#1A1918]">🏥 첫 초음파 검사 받으셨나요?</p>
-              <p className="text-[13px] text-[#1A1918]">💊 엽산 복용 (매일)</p>
-              <p className="text-[13px] text-[#1A1918]">🤢 입덧이 심하면 소량 자주 식사</p>
-            </div>
-          )}
-          {currentWeek >= 13 && currentWeek <= 27 && (
-            <div className="space-y-2">
-              <p className="text-[13px] text-[#1A1918]">📸 정밀 초음파 (20주 전후)</p>
-              <p className="text-[13px] text-[#1A1918]">🍬 임신성 당뇨 검사 (24~28주)</p>
-              <p className="text-[13px] text-[#1A1918]">✈️ 태교여행 적기 (16~28주)</p>
-              <p className="text-[13px] text-[#1A1918]">🤱 산후조리원 예약 시작</p>
-            </div>
-          )}
-          {currentWeek >= 28 && (
-            <div className="space-y-2">
-              <p className="text-[13px] text-[#1A1918]">🎒 출산 가방 준비</p>
-              <p className="text-[13px] text-[#1A1918]">🏨 출산 병원 확정</p>
-              <p className="text-[13px] text-[#1A1918]">📄 출생신고 서류 준비</p>
-              <p className="text-[13px] text-[#1A1918]">⏱️ 36주부터 진통 타이머 사용</p>
-            </div>
-          )}
+          <p className="text-[14px] font-bold text-[#1A1918] mb-3">🍐 주차별 발달 가이드</p>
+          <div className="space-y-1">
+            {[
+              { w: '4~7', size: '🫘 콩알', baby: '심장 뛰기 시작', mom: '입덧 시작, 피로감', check: '첫 초음파, 엽산 복용' },
+              { w: '8~11', size: '🍓 딸기', baby: '손가락/발가락 형성', mom: '입덧 절정', check: '기형아 검사 (11주~)' },
+              { w: '12~15', size: '🍋 레몬', baby: '성별 구분 가능', mom: '입덧 완화, 안정기', check: '목덜미 투명대 검사' },
+              { w: '16~19', size: '🥑 아보카도', baby: '태동 느낌 시작', mom: '배가 나오기 시작', check: '쿼드 검사, 태교여행 적기' },
+              { w: '20~23', size: '🥭 망고', baby: '청각 발달, 소리 반응', mom: '태동 뚜렷', check: '정밀 초음파 (20주)' },
+              { w: '24~27', size: '🌽 옥수수', baby: '눈 뜨기 시작', mom: '요통, 부종', check: '임신성 당뇨 검사' },
+              { w: '28~31', size: '🥥 코코넛', baby: '폐 성숙 진행', mom: '숨참, 잦은 소변', check: '백일해 접종, 출산 준비' },
+              { w: '32~35', size: '🍍 파인애플', baby: '머리 아래로 전환', mom: '가진통 시작', check: '출산 가방, 산후조리원' },
+              { w: '36~40', size: '🍉 수박', baby: '출생 준비 완료', mom: '이슬/진통', check: '매주 검진, 진통 타이머' },
+            ].map(g => {
+              const [start] = g.w.split('~').map(Number)
+              const [, end] = g.w.split('~').map(Number)
+              const isCurrent = currentWeek >= start && currentWeek <= end
+              return (
+                <div key={g.w} className={`p-2.5 rounded-lg ${isCurrent ? 'bg-[#E8F5EE] ring-1 ring-[var(--color-primary)]/30' : 'bg-[#FAFAFA]'}`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px]">{g.size}</span>
+                    <span className={`text-[12px] font-bold ${isCurrent ? 'text-[var(--color-primary)]' : 'text-[#6B6966]'}`}>{g.w}주</span>
+                    {isCurrent && <span className="text-[10px] bg-[var(--color-primary)] text-white px-1.5 py-0.5 rounded-full font-bold">지금</span>}
+                  </div>
+                  <p className="text-[12px] text-[#4A4744] mt-0.5">아기: {g.baby}</p>
+                  <p className="text-[12px] text-[#6B6966]">엄마: {g.mom}</p>
+                  <p className="text-[12px] text-[var(--color-primary)]">체크: {g.check}</p>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
-        {/* 혜택 · 축하박스 바로가기 */}
+        {/* 정부 지원 · 혜택 전체 리스트 */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <p className="text-[13px] font-bold text-[#1A1918] mb-2">🎁 혜택 챙기기</p>
-          <div className="space-y-1.5">
-            <a href="https://www.gov.kr/portal/onestopSvc/fertility" target="_blank" rel="noopener noreferrer" className="block p-2 bg-[#FFF9F5] rounded-lg text-[13px] text-[#1A1918] active:opacity-80">💳 국민행복카드 신청</a>
-            <a href="https://bebeform.co.kr/giftbox/" target="_blank" rel="noopener noreferrer" className="block p-2 bg-[#FFF9F5] rounded-lg text-[13px] text-[#1A1918] active:opacity-80">🎁 베베폼 축하박스</a>
-            <a href="https://www.momq.co.kr/" target="_blank" rel="noopener noreferrer" className="block p-2 bg-[#FFF9F5] rounded-lg text-[13px] text-[#1A1918] active:opacity-80">🧷 맘큐 하기스 허그박스</a>
+          <p className="text-[14px] font-bold text-[#1A1918] mb-3">🏛️ 정부 지원 · 혜택</p>
+          <div className="space-y-2">
+            {[
+              { cat: '💳 카드/급여', items: [
+                { t: '국민행복카드 (100만원)', u: 'https://www.gov.kr/portal/onestopSvc/fertility' },
+                { t: '첫만남이용권 (200만원)', u: 'https://www.gov.kr/portal/service/serviceInfo/PTR000050455' },
+                { t: '부모급여 (월 100만원, 0세)', u: 'https://www.gov.kr/portal/service/serviceInfo/SD0000054655' },
+              ]},
+              { cat: '🏥 의료/건강', items: [
+                { t: '엽산·철분제 무료 (보건소)', u: 'https://www.gov.kr/portal/service/serviceInfo/SD0000016094' },
+                { t: '임산부 건강관리 (보건소)', u: 'https://www.mohw.go.kr/menu.es?mid=a10711020200' },
+                { t: '영유아 건강검진 (무료)', u: 'https://www.nhis.or.kr/nhis/healthin/wbhace04200m01.do' },
+              ]},
+              { cat: '🎁 축하박스', items: [
+                { t: '베베폼 축하박스', u: 'https://bebeform.co.kr/giftbox/' },
+                { t: '맘큐 하기스 허그박스', u: 'https://www.momq.co.kr/' },
+                { t: '아이챌린지 웰컴박스', u: 'https://www.i-challenge.co.kr/' },
+              ]},
+              { cat: '💰 기타', items: [
+                { t: '난임 시술비 지원 (최대 110만원)', u: 'https://www.gov.kr/portal/service/serviceInfo/SME000000100' },
+                { t: '맘편한임신 통합신청', u: 'https://www.gov.kr/portal/onestopSvc/fertility' },
+                { t: '다자녀 전기요금 할인', u: 'https://www.gov.kr/portal/service/serviceInfo/SD0000022936' },
+              ]},
+            ].map(sec => (
+              <div key={sec.cat}>
+                <p className="text-[12px] font-semibold text-[#6B6966] mb-1">{sec.cat}</p>
+                {sec.items.map(it => (
+                  <a key={it.t} href={it.u} target="_blank" rel="noopener noreferrer"
+                    className="block p-2 bg-[#FFF9F5] rounded-lg text-[13px] text-[#1A1918] mb-1 last:mb-0 active:opacity-80">
+                    {it.t} <span className="text-[var(--color-primary)]">→</span>
+                  </a>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -570,8 +732,8 @@ function PregnantWaitingPage() {
         </div>
 
         {/* 마음 체크 */}
-        <Link href="/mental-check" className="block bg-[#F0F9F4] rounded-xl border border-[#C8F0D8] p-3 text-center active:opacity-80">
-          <p className="text-[14px] text-[#3D8A5A] font-semibold">💚 마음 체크 — 오늘 기분은 어때요?</p>
+        <Link href="/mental-check" className="block bg-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-3 text-center active:opacity-80">
+          <p className="text-[14px] text-[var(--color-primary)] font-semibold">💚 마음 체크 — 오늘 기분은 어때요?</p>
         </Link>
       </div>
     </div>

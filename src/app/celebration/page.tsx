@@ -78,7 +78,7 @@ export default function CelebrationPage() {
           <h1 className="text-[28px] font-bold text-[#1A1918] mb-2">
             축하해요!
           </h1>
-          <p className="text-[18px] text-[#3D8A5A] font-semibold mb-4">
+          <p className="text-[18px] text-[var(--color-primary)] font-semibold mb-4">
             새 생명이 찾아왔어요
           </p>
           <p className="text-[14px] text-[#6B6966] leading-relaxed max-w-[280px] mx-auto">
@@ -98,7 +98,7 @@ export default function CelebrationPage() {
 
           <button
             onClick={() => setStep(1)}
-            className="mt-10 px-8 py-3 bg-[#3D8A5A] text-white text-[15px] font-semibold rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98] transition-all"
+            className="mt-10 px-8 py-3 bg-[var(--color-primary)] text-white text-[15px] font-semibold rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98] transition-all"
           >
             우리의 여정 돌아보기
           </button>
@@ -119,7 +119,7 @@ export default function CelebrationPage() {
             {/* 준비 기간 */}
             <div className="bg-white rounded-2xl p-5 text-center shadow-sm">
               <p className="text-3xl mb-2">📅</p>
-              <p className="text-[24px] font-bold text-[#3D8A5A]">{journey.days}일</p>
+              <p className="text-[24px] font-bold text-[var(--color-primary)]">{journey.days}일</p>
               <p className="text-[13px] text-[#6B6966]">함께 준비한 날들</p>
             </div>
 
@@ -148,7 +148,7 @@ export default function CelebrationPage() {
               {/* 성장 시각화 */}
               <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
                 <p className="text-2xl mb-1">{journey.letters >= 30 ? '🌳' : journey.letters >= 10 ? '🌿' : '🌱'}</p>
-                <p className="text-[13px] font-semibold text-[#3D8A5A]">
+                <p className="text-[13px] font-semibold text-[var(--color-primary)]">
                   {journey.letters >= 30 ? '큰 나무' : journey.letters >= 10 ? '푸른 잎' : '작은 새싹'}
                 </p>
                 <p className="text-[13px] text-[#6B6966]">사랑으로 자란 나무</p>
@@ -158,14 +158,14 @@ export default function CelebrationPage() {
             {journey.letters > 0 && (
               <div className="bg-[#FFF8F3] rounded-2xl p-4 text-center">
                 <p className="text-[14px] text-[#6B6966] mb-1">보낸 편지들은 소중히 보관돼요</p>
-                <p className="text-[13px] text-[#3D8A5A] font-semibold">아이가 태어나면 함께 읽어보세요 💌</p>
+                <p className="text-[13px] text-[var(--color-primary)] font-semibold">아이가 태어나면 함께 읽어보세요 💌</p>
               </div>
             )}
           </div>
 
           <button
             onClick={() => setStep(2)}
-            className="mt-8 px-8 py-3 bg-[#3D8A5A] text-white text-[15px] font-semibold rounded-2xl active:scale-[0.98] transition-all"
+            className="mt-8 px-8 py-3 bg-[var(--color-primary)] text-white text-[15px] font-semibold rounded-2xl active:scale-[0.98] transition-all"
           >
             새로운 여정 시작하기
           </button>
@@ -193,13 +193,13 @@ export default function CelebrationPage() {
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full h-12 rounded-xl border border-[#E8E4DF] px-4 text-[14px] focus:outline-none focus:border-[#3D8A5A]"
+            className="w-full h-12 rounded-xl border border-[#E8E4DF] px-4 text-[14px] focus:outline-none focus:border-[var(--color-primary)]"
           />
           <p className="text-[14px] text-[#9E9A95] mt-1">모르면 나중에 설정할 수 있어요</p>
         </div>
 
         <div className="bg-[#F0F9F4] rounded-xl p-4">
-          <p className="text-[13px] font-semibold text-[#3D8A5A] mb-2">앞으로 도담이 도와줄 것들</p>
+          <p className="text-[13px] font-semibold text-[var(--color-primary)] mb-2">앞으로 도담이 도와줄 것들</p>
           <div className="space-y-2">
             {[
               { icon: '🫐', text: '주차별 태아 크기 · 발달 정보' },
@@ -219,7 +219,7 @@ export default function CelebrationPage() {
 
       <button
         onClick={handleComplete}
-        className="mt-8 w-full max-w-xs py-3.5 bg-[#3D8A5A] text-white text-[15px] font-semibold rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98] transition-all"
+        className="mt-8 w-full max-w-xs py-3.5 bg-[var(--color-primary)] text-white text-[15px] font-semibold rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98] transition-all"
       >
         {dueDate ? '임신 여정 시작하기 💛' : '나중에 설정할게요'}
       </button>
