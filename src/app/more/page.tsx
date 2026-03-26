@@ -35,60 +35,63 @@ interface MenuItem {
 
 const MENUS: Record<string, { label: string; items: MenuItem[] }[]> = {
   preparing: [
-    { label: '', items: [
-      { href: '/waiting', icon: 'clipboard', title: '준비 가이드', desc: '주기 추적 · 체크리스트 · 혜택 정보' },
-      { href: '/name', icon: 'sparkles', title: '태명 지어주기', desc: '예쁜 이름, 함께 고르는 즐거움' },
-      { href: 'https://www.gov.kr/portal/onestopSvc/Infertility', icon: 'landmark', title: '정부 지원 혜택', desc: '난임시술비 · 엽산 지원', external: true },
+    { label: '도구', items: [
+      { href: '/name', icon: 'sparkles', title: '태명 · 이름 짓기', desc: 'AI 추천 · 음양오행 분석' },
+      { href: '/guide', icon: 'clipboard', title: '임신 준비 가이드', desc: '난임 Q&A · 생활 습관 · 병원 안내' },
     ]},
-    { label: '', items: [
-      { href: '/mental-check', icon: 'heart', title: '오늘 마음은 어때요?', desc: '나를 돌보는 시간' },
+    { label: '정보 · 혜택', items: [
+      { href: 'https://www.gov.kr/portal/onestopSvc/Infertility', icon: 'landmark', title: '정부 지원 혜택', desc: '난임시술비 · 엽산 무료', external: true },
+    ]},
+    { label: '나', items: [
+      { href: '/mental-check', icon: 'heart', title: '마음 체크', desc: '스트레스 자가검사' },
       { href: '/fortune', icon: 'compass', title: '오늘의 운세', desc: '바이오리듬 · 별자리' },
+      { href: '/settings/caregivers/invite', icon: 'users', title: '배우자 초대', desc: '함께 준비해요' },
     ]},
     { label: '', items: [
-      { href: '/settings/caregivers/invite', icon: 'users', title: '함께 준비해요', desc: '배우자 초대하기' },
-      { href: '/settings', icon: 'settings', title: '설정', desc: '프로필 · 알림' },
+      { href: '/settings', icon: 'settings', title: '설정', desc: '테마 · 계정 관리' },
     ]},
   ],
   pregnant: [
-    { label: '', items: [
-      { href: '/pregnant', icon: 'baby', title: '우리 아이 이만큼', desc: '주차별 발달 · 검진 일정' },
-      { href: '/name', icon: 'sparkles', title: '이름 지어주기', desc: '예쁜 이름, 함께 고르는 즐거움' },
+    { label: '도구', items: [
+      { href: '/name', icon: 'sparkles', title: '이름 짓기', desc: 'AI 추천 · 한자 · 음양오행' },
+    ]},
+    { label: '정보 · 혜택', items: [
       { href: 'https://www.gov.kr/portal/onestopSvc/fertility', icon: 'landmark', title: '정부 지원 혜택', desc: '맘편한임신 통합신청', external: true },
     ]},
-    { label: '', items: [
-      { href: '/mental-check', icon: 'heart', title: '오늘 마음은 어때요?', desc: '나를 돌보는 시간' },
+    { label: '나', items: [
+      { href: '/mental-check', icon: 'heart', title: '마음 체크', desc: '산후우울증 자가검사' },
       { href: '/fortune', icon: 'compass', title: '오늘의 운세', desc: '바이오리듬 · 별자리' },
+      { href: '/settings/caregivers/invite', icon: 'mail', title: '가족 초대', desc: '카카오톡으로 초대' },
     ]},
     { label: '', items: [
       { href: '/birth', icon: 'party', title: '우리 아이, 만났어요!', desc: '육아 모드로 전환', highlight: true },
-      { href: '/settings/caregivers/invite', icon: 'mail', title: '함께 돌봐요', desc: '가족 초대하기' },
-      { href: '/settings', icon: 'settings', title: '설정', desc: '프로필 · 알림' },
+      { href: '/settings', icon: 'settings', title: '설정', desc: '테마 · 계정 관리' },
     ]},
   ],
   parenting: [
-    { label: '', items: [
-      { href: '/emergency', icon: 'siren', iconColor: '#D05050', title: '가까운 소아과', desc: '지금 문 연 곳 찾기', highlight: true },
-      { href: '/troubleshoot', icon: 'sparkles', title: '이럴 땐 어떡하죠?', desc: '울음 · 발열 · 거부 대응법' },
+    { label: '긴급', items: [
+      { href: '/emergency', icon: 'siren', iconColor: '#D05050', title: '응급 모드', desc: '소아과 · 어린이병원 · 응급실', highlight: true },
+      { href: '/troubleshoot', icon: 'sparkles', title: '이럴 땐 어떡하죠?', desc: 'AI 상황별 대응 가이드' },
     ]},
-    { label: '', items: [
+    { label: '도구', items: [
       { href: '/feed-timer', icon: 'timer', title: '수유 타이머', desc: '좌우 교대 · 시간 측정' },
-      { href: '/babyfood', icon: 'clipboard', title: '이유식 가이드', desc: '단계별 식재료 · 주의사항' },
-      { href: '/lullaby', icon: 'moon', title: '자장가 · 동요', desc: '잠이 솔솔 125곡' },
-      { href: '/vaccination', icon: 'syringe', title: '예방접종', desc: '스케줄 · 완료 체크' },
-      { href: '/growth/analyze', icon: 'scan', title: '검진 결과 분석', desc: '검진표 찍으면 쉽게 해석' },
+      { href: '/babyfood', icon: 'clipboard', title: '이유식 가이드', desc: '단계별 식재료 · 알레르기' },
+      { href: '/lullaby', icon: 'moon', title: '자장가 · 동요', desc: '수면 도우미 125곡' },
+      { href: '/vaccination', icon: 'syringe', title: '예방접종', desc: '스케줄 · 부작용 · 완료 체크' },
+      { href: '/growth/analyze', icon: 'scan', title: '검진표 AI 분석', desc: '사진 찍으면 AI가 해석' },
+      { href: '/name', icon: 'sparkles', title: '이름 분석', desc: '음양오행 · 삼원수리' },
     ]},
-    { label: '', items: [
+    { label: '정보 · 혜택', items: [
       { href: '/gov-support', icon: 'landmark', title: '정부 지원 혜택', desc: '부모급여 · 아동수당 · 보육료' },
-      { href: '/kidsnote', icon: 'school', title: '키즈노트 연동', desc: '어린이집 알림장 · 사진' },
+      { href: '/kidsnote', icon: 'school', title: '키즈노트', desc: '알림장 · 사진 백업' },
     ]},
-    { label: '', items: [
-      { href: '/mental-check', icon: 'heart', title: '오늘 마음은 어때요?', desc: '나를 돌보는 시간' },
+    { label: '나', items: [
+      { href: '/mental-check', icon: 'heart', title: '마음 체크', desc: '산후우울증 자가검사 (EPDS)' },
       { href: '/fortune', icon: 'compass', title: '오늘의 운세', desc: '바이오리듬 · 별자리' },
+      { href: '/settings/caregivers/invite', icon: 'mail', title: '가족 초대', desc: '카카오톡으로 초대' },
     ]},
     { label: '', items: [
-      { href: '/settings/caregivers', icon: 'users', title: '함께 돌봐요', desc: '가족과 기록 공유' },
-      { href: '/settings/caregivers/invite', icon: 'mail', title: '가족 초대', desc: '카카오톡으로 초대' },
-      { href: '/settings', icon: 'settings', title: '설정', desc: '프로필 · 아이 관리 · 알림' },
+      { href: '/settings', icon: 'settings', title: '설정', desc: '테마 · 아이 관리 · 계정' },
     ]},
   ],
 }
@@ -109,7 +112,7 @@ export default function MorePage() {
         {groups.map((group, gi) => (
           <div key={group.label || gi}>
             {/* 두 번째 그룹 뒤에 네이티브 광고 1개 */}
-            {gi === 2 && <AdSlot variant="native" />}
+            {gi === 2 && <AdSlot provider="kakao" />}
             {group.items.length > 0 && (
               <>
                 <div className="bg-white rounded-xl border border-[#D5D0CA] shadow-sm overflow-hidden">

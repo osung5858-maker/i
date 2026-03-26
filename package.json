@@ -12,6 +12,7 @@
     "app": "npm run cap:sync && npm run cap:open"
   },
   "dependencies": {
+    "@anthropic-ai/claude-code": "^2.1.84",
     "@capacitor/android": "^8.2.0",
     "@capacitor/cli": "^8.2.0",
     "@capacitor/core": "^8.2.0",

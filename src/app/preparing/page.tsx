@@ -228,7 +228,7 @@ export default function PreparingPage() {
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
+    createClient().auth.getUser().then(({ data }: any) => {
       setAvatarUrl(data.user?.user_metadata?.avatar_url || null)
     })
   }, [])
@@ -242,12 +242,22 @@ export default function PreparingPage() {
     return 28
   })
   const [editingCycle, setEditingCycle] = useState(!lastPeriod)
-  const [supplements, setSupplements] = useState<Record<string, boolean>>(() => {
+  const SUPPL_DEFAULT: Record<string, number> = { folic: 0, vitd: 0, iron: 0, omega3: 0 }
+  const [supplements, setSupplements] = useState<Record<string, number>>(() => {
     if (typeof window !== 'undefined') {
       const today = new Date().toISOString().split('T')[0]
-      const s = localStorage.getItem(`dodam_suppl_${today}`); return s ? JSON.parse(s) : {}
+      const s = localStorage.getItem(`dodam_suppl_${today}`)
+      if (s) {
+        const parsed = JSON.parse(s)
+        const migrated: Record<string, number> = { ...SUPPL_DEFAULT }
+        for (const [k, v] of Object.entries(parsed)) {
+          migrated[k] = typeof v === 'boolean' ? (v ? 1 : 0) : (v as number)
+        }
+        return migrated
+      }
+      return { ...SUPPL_DEFAULT }
     }
-    return {}
+    return { ...SUPPL_DEFAULT }
   })
   const [todayMood, setTodayMood] = useState<string>(() => {
     if (typeof window !== 'undefined') {
@@ -432,15 +442,18 @@ export default function PreparingPage() {
 
   // 핸들러
   const SUPPL_NAMES: Record<string, string> = { folic: '엽산', vitd: '비타민D', iron: '철분', omega3: '오메가3' }
+  const SUPPL_MAX = 4 // 하루 최대 복용 횟수
   const toggleSupplement = (key: string) => {
     const today = new Date().toISOString().split('T')[0]
-    const next = { ...supplements, [key]: !supplements[key] }
+    const current = supplements[key] || 0
+    const nextVal = current >= SUPPL_MAX ? 0 : current + 1 // 0→1→2→3→4→0 순환
+    const next = { ...supplements, [key]: nextVal }
     setSupplements(next); localStorage.setItem(`dodam_suppl_${today}`, JSON.stringify(next))
-    saveHistory('suppl', Object.values(next).filter(Boolean).length)
-    const done = Object.values(next).filter(Boolean).length
-    const total = Object.keys(next).length
+    const totalDone = Object.values(next).reduce((s, v) => s + v, 0)
+    saveHistory('suppl', totalDone)
     const name = SUPPL_NAMES[key] || key
-    showToast(next[key] ? `${name} 복용 완료! (${done}/${total})` : `${name} 취소`)
+    if (nextVal === 0) showToast(`${name} 초기화`)
+    else showToast(`${name} ${nextVal}/${SUPPL_MAX}회 복용!`)
   }
   const saveMood = (mood: string) => {
     const today = new Date().toISOString().split('T')[0]
@@ -552,7 +565,7 @@ export default function PreparingPage() {
     )
   }
 
-  const supplCount = Object.values(supplements).filter(Boolean).length
+  const supplCount = Object.values(supplements).reduce((s, v) => s + (v > 0 ? 1 : 0), 0)
   const partnerCount = Object.values(partnerChecks).filter(Boolean).length
   const apptCount = APPOINTMENTS.filter(a => appointments[a.id]).length
   const dpo = cycle ? Math.floor((Date.now() - cycle.ovulationDay.getTime()) / 86400000) : -99
@@ -650,24 +663,41 @@ export default function PreparingPage() {
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <p className="text-[14px] font-bold text-[#1A1918] mb-3">오늘 할 일</p>
 
-          {/* 영양제 */}
-          <div className="mb-3">
-            <div className="flex items-center justify-between mb-1.5">
-              <p className="text-[14px] font-semibold text-[#6B6966]">영양제 {supplCount}/4</p>
-            </div>
-            <div className="flex gap-1.5">
-              {[
-                { key: 'folic', name: '엽산' },
-                { key: 'vitd', name: '비타민D' },
-                { key: 'iron', name: '철분' },
-                { key: 'omega3', name: '오메가3' },
-              ].map((s) => (
+          {/* 영양제 — 탭할 때마다 1회씩 채워짐 (최대 4회) */}
+          <div className="grid grid-cols-4 gap-1.5 mb-3">
+            {[
+              { key: 'folic', name: '엽산' },
+              { key: 'vitd', name: '비타민D' },
+              { key: 'iron', name: '철분' },
+              { key: 'omega3', name: '오메가3' },
+            ].map((s) => {
+              const count = supplements[s.key] || 0
+              const done = count >= SUPPL_MAX
+              const pct = (count / SUPPL_MAX) * 100
+              return (
                 <button key={s.key} onClick={() => toggleSupplement(s.key)}
-                  className={`flex-1 py-2 rounded-lg text-center text-[13px] font-medium ${supplements[s.key] ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
-                  {supplements[s.key] ? '✓ ' : ''}{s.name}
+                  className={`relative rounded-xl overflow-hidden active:scale-95 transition-transform ${done ? 'border-2 border-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border border-[#E8E4DF]'}`}>
+                  {/* 채우기 프로그레스 (완료 아닐 때만) */}
+                  {!done && (
+                    <div
+                      className="absolute bottom-0 left-0 right-0 bg-[var(--color-primary)]/15 transition-all duration-300"
+                      style={{ height: `${pct}%` }}
+                    />
+                  )}
+                  <div className="relative py-2.5 text-center">
+                    <p className={`text-[12px] font-semibold ${done ? 'text-[var(--color-primary)]' : count > 0 ? 'text-[#1A1918]' : 'text-[#6B6966]'}`}>
+                      {done ? '✓ ' : ''}{s.name}
+                    </p>
+                    {/* 도트 인디케이터 */}
+                    <div className="flex justify-center gap-1 mt-1">
+                      {Array.from({ length: SUPPL_MAX }).map((_, i) => (
+                        <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i < count ? 'bg-[var(--color-primary)]' : 'bg-[#D5D0CA]'}`} />
+                      ))}
+                    </div>
+                  </div>
                 </button>
-              ))}
-            </div>
+              )
+            })}
           </div>
 
         </div>

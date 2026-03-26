@@ -1,9 +1,22 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { checkRateLimit, getClientIP } from '@/lib/security/rate-limit'
+import { sanitizeForPrompt } from '@/lib/security/sanitize'
 
 export async function POST(request: Request) {
-  const { childName, senderName, messageType } = await request.json()
+  // Rate limit 체크 (메시지 전송은 분당 5회로 제한)
+  const ip = getClientIP(request)
+  const { limited } = checkRateLimit(`kakao-msg:${ip}`, { limit: 5, windowMs: 60_000 })
+  if (limited) return NextResponse.json({ error: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.' }, { status: 429 })
+
+  let childName: string, senderName: string, messageType: string
+  try {
+    const body = await request.json()
+    childName = body.childName; senderName = body.senderName; messageType = body.messageType
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
 
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -31,13 +44,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ sent: false, reason: 'no_kakao_token' })
   }
 
+  // 사용자 입력 sanitize (메시지 인젝션 방지)
+  const safeChildName = sanitizeForPrompt(childName, 50)
+  const safeSenderName = sanitizeForPrompt(senderName, 50)
+
   let templateText = ''
   if (messageType === 'emergency') {
-    templateText = `🚨 [도담 응급 알림]\n\n${senderName}님이 ${childName}의 응급 모드를 실행했어요.\n가까운 소아과를 찾고 있어요.\n\n확인해주세요!`
+    templateText = `🚨 [도담 응급 알림]\n\n${safeSenderName}님이 ${safeChildName}의 응급 모드를 실행했어요.\n가까운 소아과를 찾고 있어요.\n\n확인해주세요!`
   } else if (messageType === 'record') {
-    templateText = `📝 [도담 기록 알림]\n\n${senderName}님이 ${childName}의 새 기록을 남겼어요.\n\n도담에서 확인해보세요!`
+    templateText = `📝 [도담 기록 알림]\n\n${safeSenderName}님이 ${safeChildName}의 새 기록을 남겼어요.\n\n도담에서 확인해보세요!`
   } else {
-    templateText = `💌 [도담]\n\n${senderName}님이 메시지를 보냈어요.`
+    templateText = `💌 [도담]\n\n${safeSenderName}님이 메시지를 보냈어요.`
   }
 
   try {
@@ -53,8 +70,8 @@ export async function POST(request: Request) {
           object_type: 'text',
           text: templateText,
           link: {
-            web_url: 'https://dodam.life',
-            mobile_web_url: 'https://dodam.life',
+            web_url: 'https://dodam.app',
+            mobile_web_url: 'https://dodam.app',
           },
           button_title: '도담 열기',
         }),

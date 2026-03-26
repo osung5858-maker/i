@@ -12,6 +12,7 @@ interface NearbyClinic {
   distance_km: number
   is_open: boolean
   closing_time: string
+  tag: string // 소아과 | 어린이병원 | 대학병원 응급실
   rating: number
 }
 
@@ -21,41 +22,62 @@ async function searchNearbyClinics(lat: number, lng: number, radiusKm: number): 
   if (!kakaoKey) return []
 
   const results: NearbyClinic[] = []
-  const keywords = ['소아과', '응급소아과', '소아청소년과', '어린이병원', '대학병원 응급실']
+  const keywordGroups: { keywords: string[]; tag: string }[] = [
+    { keywords: ['소아과', '소아청소년과'], tag: '소아과' },
+    { keywords: ['어린이병원', '소아 전문'], tag: '어린이병원' },
+    { keywords: ['대학병원 응급실', '응급소아과', '소아 응급', '어린이 응급', '종합병원 소아'], tag: '응급실' },
+  ]
 
-  for (const keyword of keywords) {
-    try {
-      const res = await fetch(
-        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(keyword)}&x=${lng}&y=${lat}&radius=${radiusKm * 1000}&sort=distance&size=5`,
-        { headers: { Authorization: `KakaoAK ${kakaoKey}` } }
-      )
-      if (!res.ok) continue
-      const data = await res.json()
-      for (const place of (data.documents || [])) {
-        if (results.some(r => r.id === place.id)) continue
-        const distKm = Number(place.distance) / 1000
-        results.push({
-          id: place.id,
-          name: place.place_name,
-          address: place.road_address_name || place.address_name,
-          phone: place.phone || '',
-          distance_km: Math.round(distKm * 10) / 10,
-          is_open: true, // 카카오 API는 영업 상태를 직접 제공하지 않음
-          closing_time: '',
-          rating: 0,
-        })
-      }
-    } catch { /* skip */ }
+  for (const group of keywordGroups) {
+    for (const keyword of group.keywords) {
+      try {
+        const res = await fetch(
+          `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(keyword)}&x=${lng}&y=${lat}&radius=${radiusKm * 1000}&sort=distance&size=5`,
+          { headers: { Authorization: `KakaoAK ${kakaoKey}` } }
+        )
+        if (!res.ok) continue
+        const data = await res.json()
+        for (const place of (data.documents || [])) {
+          if (results.some(r => r.id === place.id)) continue
+          const distKm = Number(place.distance) / 1000
+          // 이름으로 태그 재분류
+          const name = place.place_name || ''
+          let tag = group.tag
+          if (name.includes('대학') || name.includes('응급')) tag = '응급실'
+          else if (name.includes('어린이병원') || name.includes('소아병원')) tag = '어린이병원'
+          results.push({
+            id: place.id,
+            name,
+            address: place.road_address_name || place.address_name,
+            phone: place.phone || '',
+            distance_km: Math.round(distKm * 10) / 10,
+            is_open: true,
+            closing_time: '',
+            rating: 0,
+            tag,
+          })
+        }
+      } catch { /* skip */ }
+    }
   }
 
   return results.sort((a, b) => a.distance_km - b.distance_km).slice(0, 10)
 }
 
+type EmergencyCategory = 'all' | 'pediatric' | 'hospital' | 'emergency'
+const EMERGENCY_CATEGORIES: { key: EmergencyCategory; label: string }[] = [
+  { key: 'all', label: '전체' },
+  { key: 'pediatric', label: '소아과' },
+  { key: 'hospital', label: '어린이병원' },
+  { key: 'emergency', label: '응급실' },
+]
+
 export default function EmergencyPage() {
   const [clinics, setClinics] = useState<NearbyClinic[]>([])
   const [loading, setLoading] = useState(true)
   const [locationError, setLocationError] = useState(false)
-  const [radius, setRadius] = useState(3)
+  const [radius, setRadius] = useState(5)
+  const [category, setCategory] = useState<EmergencyCategory>('all')
   const [notified, setNotified] = useState(false)
   const notifiedRef = useRef(false)
   const supabase = createClient()
@@ -167,8 +189,8 @@ export default function EmergencyPage() {
               <AlertIcon className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">가까운 소아과 찾기</h1>
-              <p className="text-sm text-white/70">지금 영업 중인 소아과만 보여드려요</p>
+              <h1 className="text-xl font-bold text-white">응급 모드</h1>
+              <p className="text-sm text-white/70">소아과 · 어린이병원 · 대학병원 응급실</p>
             </div>
           </div>
           <a href="tel:119" className="block w-full py-2.5 bg-white rounded-xl text-center text-[#E53935] font-bold text-[14px] active:opacity-80 mb-2">
@@ -258,27 +280,39 @@ export default function EmergencyPage() {
             </div>
           </div>
         ) : (
-          /* 소아과 목록 */
-          <div className="mt-4 mx-4 space-y-3">
-            {clinics.map((clinic) => (
-              <div
-                key={clinic.id}
-                className="p-4 rounded-2xl bg-white border border-[#E8E4DF]"
-              >
-                {/* 상단: 이름 + 거리 */}
+          /* 의료기관 목록 */
+          <div className="mt-3 mx-4">
+            {/* 카테고리 필터 */}
+            <div className="flex gap-1.5 mb-3 overflow-x-auto hide-scrollbar">
+              {EMERGENCY_CATEGORIES.map(c => (
+                <button key={c.key} onClick={() => setCategory(c.key)}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-colors ${category === c.key ? 'bg-[#E53935] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
+                  {c.label} {c.key !== 'all' && `(${clinics.filter(cl => c.key === 'pediatric' ? cl.tag === '소아과' : c.key === 'hospital' ? cl.tag === '어린이병원' : cl.tag === '응급실').length})`}
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+            {clinics.filter(cl => {
+              if (category === 'all') return true
+              if (category === 'pediatric') return cl.tag === '소아과'
+              if (category === 'hospital') return cl.tag === '어린이병원'
+              return cl.tag === '응급실'
+            }).map((clinic) => (
+              <div key={clinic.id} className="p-4 rounded-2xl bg-white border border-[#E8E4DF]">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h3 className="text-[15px] font-bold text-[#0A0B0D]">
-                      <HospitalIcon className="w-4 h-4 inline mr-1" />{clinic.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs font-medium text-green-600">
-                        영업중 · {clinic.closing_time}까지
-                      </span>
-                      <span className="text-xs text-[#9B9B9B]">{clinic.rating}</span>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <h3 className="text-[15px] font-bold text-[#0A0B0D]">{clinic.name}</h3>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                        clinic.tag === '응급실' ? 'bg-[#FDE8E8] text-[#D05050]' :
+                        clinic.tag === '어린이병원' ? 'bg-[#FFF0E6] text-[#C4913E]' :
+                        'bg-[#E8F5EE] text-[#2D7A4A]'
+                      }`}>{clinic.tag}</span>
                     </div>
+                    <p className="text-[12px] text-[#6B6966]">{clinic.address}</p>
                   </div>
-                  <span className="text-lg font-bold text-[#E53935] shrink-0">
+                  <span className="text-lg font-bold text-[#E53935] shrink-0 ml-2">
                     {clinic.distance_km}km
                   </span>
                 </div>
@@ -303,6 +337,7 @@ export default function EmergencyPage() {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         )}
 

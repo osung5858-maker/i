@@ -43,9 +43,22 @@ export async function GET(request: NextRequest) {
 
 // POST /api/invite — 초대 수락 (RLS 우회)
 export async function POST(request: NextRequest) {
-  const { token, userId } = await request.json()
+  let token: string, userId: string
+  try {
+    const body = await request.json()
+    token = body.token; userId = body.userId
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   if (!token || !userId) {
     return NextResponse.json({ error: 'Token and userId required' }, { status: 400 })
+  }
+
+  // 인증된 사용자가 자신의 userId로만 수락할 수 있도록 검증
+  const { getAuthUser } = await import('@/lib/security/auth')
+  const authUser = await getAuthUser()
+  if (!authUser || authUser.id !== userId) {
+    return NextResponse.json({ error: '권한이 없습니다' }, { status: 403 })
   }
 
   const supabase = getAdminClient()

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/layout/PageLayout'
+import { encrypt, decrypt } from '@/lib/security/crypto'
 
 // 사진 확대 뷰어
 function ImageViewer({ images, startIndex, onClose }: { images: { original: string; thumbnail: string }[]; startIndex: number; onClose: () => void }) {
@@ -25,7 +26,7 @@ function ImageViewer({ images, startIndex, onClose }: { images: { original: stri
       </div>
       <div className="flex-1 flex items-center justify-center px-2"
         onClick={e => e.stopPropagation()} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-        <img src={images[idx].original} alt="" className="max-w-full max-h-[80vh] object-contain rounded-lg select-none" draggable={false} />
+        <img src={`/api/kidsnote/image?url=${encodeURIComponent(images[idx].original)}`} alt="" className="max-w-full max-h-[80vh] object-contain rounded-lg select-none" draggable={false} />
       </div>
       {images.length > 1 && (
         <>
@@ -60,6 +61,9 @@ export default function KidsnotePage() {
   const [reportProgress, setReportProgress] = useState(0)
   const [albumTotal, setAlbumTotal] = useState(0)
   const [reportTotal, setReportTotal] = useState(0)
+  // 키즈노트 이미지는 프록시를 통해야 표시됨
+  const proxyImg = (url: string) => `/api/kidsnote/image?url=${encodeURIComponent(url)}`
+
   const [error, setError] = useState<string | null>(null)
   const [agreed, setAgreed] = useState(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('kn_agreed') === 'true'
@@ -75,13 +79,32 @@ export default function KidsnotePage() {
 
   // 세션 + 저장된 계정 + 캐시 복원
   useEffect(() => {
-    const savedCreds = localStorage.getItem('kn_credentials')
-    if (savedCreds) {
-      try {
-        const { u, p } = JSON.parse(savedCreds)
-        setUsername(u); setPassword(p); setSaveCredentials(true)
-      } catch { /* */ }
+    async function restoreCredentials() {
+      const savedCreds = localStorage.getItem('kn_credentials_enc')
+      // 마이그레이션: 평문 credential이 남아있으면 삭제
+      const legacyCreds = localStorage.getItem('kn_credentials')
+      if (legacyCreds) {
+        localStorage.removeItem('kn_credentials')
+        // 레거시 데이터로 암호화 재저장 시도
+        try {
+          const { u, p } = JSON.parse(legacyCreds)
+          setUsername(u); setPassword(p); setSaveCredentials(true)
+          const payload = JSON.stringify({ u, p })
+          const encrypted = await encrypt(payload, 'dodam-kn-local-key')
+          localStorage.setItem('kn_credentials_enc', encrypted)
+        } catch { /* */ }
+      } else if (savedCreds) {
+        try {
+          const decrypted = await decrypt(savedCreds, 'dodam-kn-local-key')
+          if (decrypted) {
+            const { u, p } = JSON.parse(decrypted)
+            setUsername(u); setPassword(p); setSaveCredentials(true)
+          }
+        } catch { /* */ }
+      }
     }
+    restoreCredentials()
+
     // 캐시된 데이터 복원
     const cachedAlbums = localStorage.getItem('kn_cache_albums')
     const cachedReports = localStorage.getItem('kn_cache_reports')
@@ -110,11 +133,16 @@ export default function KidsnotePage() {
       setSession(data.sessionCookie)
       setInfo(data.info)
       sessionStorage.setItem('kn_session', data.sessionCookie)
-      // 계정 저장 체크 시 localStorage에 보관
+      // 계정 저장 체크 시 암호화하여 localStorage에 보관
       if (saveCredentials) {
-        localStorage.setItem('kn_credentials', JSON.stringify({ u: username, p: password }))
+        try {
+          const payload = JSON.stringify({ u: username, p: password })
+          const encrypted = await encrypt(payload, 'dodam-kn-local-key')
+          localStorage.setItem('kn_credentials_enc', encrypted)
+        } catch { /* 암호화 실패 시 저장하지 않음 */ }
       } else {
-        localStorage.removeItem('kn_credentials')
+        localStorage.removeItem('kn_credentials_enc')
+        localStorage.removeItem('kn_credentials') // 레거시 정리
         setPassword('') // 비밀번호 즉시 삭제
       }
       // 로그인 응답에 children이 바로 포함됨
@@ -218,23 +246,176 @@ export default function KidsnotePage() {
     setAlbums([]); setReports([])
   }
 
-  // 사진 다운로드
-  const downloadImages = async (item: any) => {
+  // 사진 다운로드 (로컬)
+  const [downloadProgress, setDownloadProgress] = useState<{ total: number; done: number } | null>(null)
+  const [showDownloadMenu, setShowDownloadMenu] = useState<string | null>(null) // item.id
+
+  const downloadToLocal = async (item: any) => {
     const images = item.images || []
     if (images.length === 0) { window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '다운로드할 사진이 없어요' } })); return }
+    setDownloadProgress({ total: images.length, done: 0 })
+    setShowDownloadMenu(null)
     for (let i = 0; i < images.length; i++) {
       try {
         const url = images[i].original || images[i].thumbnail
         if (!url) continue
-        const res = await fetch(url)
-        const blob = await res.blob()
+        // 프록시 API 시도, 실패 시 직접 다운로드
+        let blob: Blob | null = null
+        const proxyRes = await fetch(`/api/kidsnote/image?url=${encodeURIComponent(url)}`)
+        if (proxyRes.ok && proxyRes.headers.get('content-type')?.startsWith('image')) {
+          blob = await proxyRes.blob()
+        } else {
+          // 프록시 실패 시 직접 fetch
+          try {
+            const directRes = await fetch(url)
+            if (directRes.ok) blob = await directRes.blob()
+          } catch { /* CORS 차단 시 무시 */ }
+        }
+        if (!blob || blob.size < 100) continue // 에러 응답 필터
         const a = document.createElement('a')
         a.href = URL.createObjectURL(blob)
         a.download = `kidsnote_${item.id}_${i + 1}.jpg`
         a.click()
         URL.revokeObjectURL(a.href)
       } catch { /* */ }
+      setDownloadProgress(prev => prev ? { ...prev, done: prev.done + 1 } : null)
     }
+    window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${images.length}장 다운로드 완료!` } }))
+    setDownloadProgress(null)
+  }
+
+  // 구글 드라이브 업로드
+  const uploadToGoogleDrive = async (item: any) => {
+    const images = item.images || []
+    if (images.length === 0) { window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '업로드할 사진이 없어요' } })); return }
+    setDownloadProgress({ total: images.length, done: 0 })
+    setShowDownloadMenu(null)
+
+    // Google OAuth 토큰 확인
+    let gToken = localStorage.getItem('dodam_gdrive_token')
+    if (!gToken) {
+      // Google 로그인 필요 → 간이 토스트 안내
+      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 로그인이 필요해요. 설정에서 Google 계정을 연결해주세요.' } }))
+      setDownloadProgress(null)
+      return
+    }
+
+    let successCount = 0
+    for (let i = 0; i < images.length; i++) {
+      try {
+        const url = images[i].original || images[i].thumbnail
+        if (!url) continue
+        // 이미지 다운로드
+        const imgRes = await fetch(`/api/kidsnote/image?url=${encodeURIComponent(url)}`)
+        const blob = await imgRes.blob()
+
+        // Google Drive 업로드
+        const metadata = {
+          name: `kidsnote_${item.id}_${i + 1}.jpg`,
+          parents: ['root'], // 루트 폴더
+          mimeType: 'image/jpeg',
+        }
+        const form = new FormData()
+        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }))
+        form.append('file', blob)
+
+        const driveRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${gToken}` },
+          body: form,
+        })
+
+        if (driveRes.status === 401) {
+          // 토큰 만료
+          localStorage.removeItem('dodam_gdrive_token')
+          window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 인증이 만료됐어요. 다시 연결해주세요.' } }))
+          break
+        }
+        if (driveRes.ok) successCount++
+      } catch { /* */ }
+      setDownloadProgress(prev => prev ? { ...prev, done: prev.done + 1 } : null)
+    }
+    window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${successCount}장 Google Drive 업로드 완료!` } }))
+    setDownloadProgress(null)
+  }
+
+  // 전체 사진 일괄 저장
+  const downloadAll = async (target: 'local' | 'gdrive') => {
+    const allImages: { url: string; albumId: string; index: number }[] = []
+    // 앨범 사진 수집
+    albums.forEach((album: any) => {
+      (album.images || []).forEach((img: any, i: number) => {
+        const url = img.original || img.thumbnail
+        if (url) allImages.push({ url, albumId: album.id, index: i + 1 })
+      })
+    })
+    // 알림장 사진 수집
+    reports.forEach((report: any) => {
+      (report.images || []).forEach((img: any, i: number) => {
+        const url = img.original || img.thumbnail
+        if (url) allImages.push({ url, albumId: report.id, index: i + 1 })
+      })
+    })
+
+    if (allImages.length === 0) {
+      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '저장할 사진이 없어요' } }))
+      return
+    }
+
+    setDownloadProgress({ total: allImages.length, done: 0 })
+
+    if (target === 'local') {
+      for (let i = 0; i < allImages.length; i++) {
+        try {
+          let blob: Blob | null = null
+          const proxyRes = await fetch(`/api/kidsnote/image?url=${encodeURIComponent(allImages[i].url)}`)
+          if (proxyRes.ok && proxyRes.headers.get('content-type')?.startsWith('image')) {
+            blob = await proxyRes.blob()
+          } else {
+            try { const d = await fetch(allImages[i].url); if (d.ok) blob = await d.blob() } catch { /* */ }
+          }
+          if (blob && blob.size > 100) {
+            const a = document.createElement('a')
+            a.href = URL.createObjectURL(blob)
+            a.download = `kidsnote_${allImages[i].albumId}_${allImages[i].index}.jpg`
+            a.click()
+            URL.revokeObjectURL(a.href)
+          }
+        } catch { /* */ }
+        setDownloadProgress(prev => prev ? { ...prev, done: prev.done + 1 } : null)
+        // 브라우저 부담 줄이기
+        if (i % 5 === 4) await new Promise(r => setTimeout(r, 300))
+      }
+      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `전체 ${allImages.length}장 다운로드 완료!` } }))
+    } else {
+      const gToken = localStorage.getItem('dodam_gdrive_token')
+      if (!gToken) {
+        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 로그인이 필요해요' } }))
+        setDownloadProgress(null)
+        return
+      }
+      let ok = 0
+      for (let i = 0; i < allImages.length; i++) {
+        try {
+          const proxyRes = await fetch(`/api/kidsnote/image?url=${encodeURIComponent(allImages[i].url)}`)
+          if (!proxyRes.ok) continue
+          const blob = await proxyRes.blob()
+          if (blob.size < 100) continue
+          const meta = { name: `kidsnote_${allImages[i].albumId}_${allImages[i].index}.jpg`, parents: ['root'], mimeType: 'image/jpeg' }
+          const form = new FormData()
+          form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }))
+          form.append('file', blob)
+          const dr = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST', headers: { Authorization: `Bearer ${gToken}` }, body: form,
+          })
+          if (dr.status === 401) { localStorage.removeItem('dodam_gdrive_token'); window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 인증 만료' } })); break }
+          if (dr.ok) ok++
+        } catch { /* */ }
+        setDownloadProgress(prev => prev ? { ...prev, done: prev.done + 1 } : null)
+      }
+      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `전체 ${ok}장 Google Drive 업로드 완료!` } }))
+    }
+    setDownloadProgress(null)
   }
 
   return (
@@ -242,13 +423,29 @@ export default function KidsnotePage() {
       <PageHeader title="키즈노트" showBack
         rightAction={session ? <button onClick={logout} className="text-[13px] text-[#6B6966] whitespace-nowrap">로그아웃</button> : undefined} />
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 w-full space-y-3">
+      {/* 다운로드 프로그레스 */}
+      {downloadProgress && (
+        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[100] w-72">
+          <div className="bg-[#212124]/90 text-white px-4 py-3 rounded-xl shadow-lg backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[13px] font-medium">다운로드 중...</p>
+              <p className="text-[12px] text-white/70">{downloadProgress.done}/{downloadProgress.total}</p>
+            </div>
+            <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--color-primary)] rounded-full transition-all duration-300"
+                style={{ width: `${(downloadProgress.done / downloadProgress.total) * 100}%` }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
 
         {/* 동의 화면 */}
         {step === 'login' && !agreed && (
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-5">
             <div className="text-center mb-4">
-              <p className="text-2xl mb-2"></p>
+              <svg className="w-8 h-8 text-[var(--color-primary)] mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
               <p className="text-[15px] font-bold text-[#1A1918]">키즈노트 연동</p>
               <p className="text-[13px] text-[#6B6966] mt-1">어린이집 알림장 · 사진을 도담으로 가져와요</p>
             </div>
@@ -280,7 +477,7 @@ export default function KidsnotePage() {
         {step === 'login' && agreed && (
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-5">
             <div className="text-center mb-4">
-              <p className="text-2xl mb-2"></p>
+              <svg className="w-8 h-8 text-[var(--color-primary)] mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
               <p className="text-[15px] font-bold text-[#1A1918]">키즈노트 로그인</p>
               <p className="text-[13px] text-[#6B6966] mt-1">키즈노트 계정으로 로그인해주세요</p>
             </div>
@@ -393,6 +590,33 @@ export default function KidsnotePage() {
               </div>
             )}
 
+            {/* 전체 저장 */}
+            {(albums.length > 0 || reports.length > 0) && (() => {
+              const totalPhotos = albums.reduce((s: number, a: any) => s + (a.images?.length || 0), 0) + reports.reduce((s: number, r: any) => s + (r.images?.length || 0), 0)
+              return (
+                <div className="bg-gradient-to-r from-[#FFF8F3] to-[#F0F4FF] rounded-2xl border border-[#E8DFD5] p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-[13px] font-bold text-[#1A1918]">전체 사진 백업</p>
+                      <p className="text-[11px] text-[#6B6966]">앨범 + 알림장 총 {totalPhotos}장</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => downloadAll('local')}
+                      className="py-2.5 rounded-xl bg-white border border-[#E8E4DF] text-[12px] font-semibold text-[#1A1918] active:bg-[#F5F1EC] flex items-center justify-center gap-1.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                      내 기기에 저장
+                    </button>
+                    <button onClick={() => downloadAll('gdrive')}
+                      className="py-2.5 rounded-xl bg-white border border-[#D5DFEF] text-[12px] font-semibold text-[#4A6FA5] active:bg-[#E0EAFF] flex items-center justify-center gap-1.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+                      클라우드 저장
+                    </button>
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* 통합 타임라인 */}
             {tab === 'timeline' && (albums.length > 0 || reports.length > 0) && (
               <div className="space-y-2">
@@ -440,7 +664,7 @@ export default function KidsnotePage() {
                       {item.images && item.images.length > 0 && (
                         <div className="flex gap-1 mt-2 overflow-x-auto">
                           {item.images.slice(0, 3).map((img: any, j: number) => (
-                            <img key={j} src={img.thumbnail || img.original} alt=""
+                            <img key={j} src={proxyImg(img.thumbnail || img.original)} alt=""
                               onClick={() => { setViewerImages(item.images); setViewerStart(j) }}
                               className="w-14 h-14 rounded-lg object-cover shrink-0 cursor-pointer" />
                           ))}
@@ -465,7 +689,7 @@ export default function KidsnotePage() {
                     {album.images && album.images.length > 0 && (
                       <div className="flex gap-1.5 mb-2 overflow-x-auto hide-scrollbar">
                         {album.images.slice(0, 4).map((img: any, j: number) => (
-                          <img key={j} src={img.thumbnail || img.original} alt=""
+                          <img key={j} src={proxyImg(img.thumbnail || img.original)} alt=""
                             onClick={() => { setViewerImages(album.images); setViewerStart(j) }}
                             className="w-20 h-20 rounded-lg object-cover shrink-0 cursor-pointer active:opacity-80" />
                         ))}
@@ -480,7 +704,18 @@ export default function KidsnotePage() {
                     {album.content && <p className="text-[14px] text-[#1A1918] line-clamp-3">{album.content}</p>}
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-[13px] text-[#9E9A95]">{album.created ? new Date(album.created).toLocaleDateString('ko-KR') : ''}</span>
-                      <button onClick={() => downloadImages(album)} className="text-[14px] text-[var(--color-primary)] font-semibold active:opacity-60">사진 다운로드</button>
+                      <div className="relative">
+                        <button onClick={() => setShowDownloadMenu(showDownloadMenu === album.id ? null : album.id)} className="text-[13px] text-[var(--color-primary)] font-semibold active:opacity-60">저장하기</button>
+                        {showDownloadMenu === album.id && (
+                          <>
+                            <div className="fixed inset-0 z-40" onClick={() => setShowDownloadMenu(null)} />
+                            <div className="absolute right-0 bottom-8 z-50 w-40 bg-white rounded-xl shadow-lg border border-[#E8E4DF] py-1 overflow-hidden">
+                              <button onClick={() => downloadToLocal(album)} className="w-full px-3.5 py-2.5 text-left text-[13px] text-[#1A1918] active:bg-[#F5F1EC]">로컬 다운로드</button>
+                              <button onClick={() => uploadToGoogleDrive(album)} className="w-full px-3.5 py-2.5 text-left text-[13px] text-[#1A1918] active:bg-[#F5F1EC]">Google Drive</button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -497,7 +732,7 @@ export default function KidsnotePage() {
                     {report.images && report.images.length > 0 && (
                       <div className="flex gap-1.5 mt-2">
                         {report.images.slice(0, 4).map((img: any, j: number) => (
-                          <img key={j} src={img.thumbnail || img.original} alt=""
+                          <img key={j} src={proxyImg(img.thumbnail || img.original)} alt=""
                             onClick={() => { setViewerImages(report.images); setViewerStart(j) }}
                             className="w-16 h-16 rounded-lg object-cover cursor-pointer active:opacity-80" />
                         ))}
@@ -511,7 +746,18 @@ export default function KidsnotePage() {
                     )}
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-[13px] text-[#9E9A95]">{report.created ? new Date(report.created).toLocaleDateString('ko-KR') : ''}</span>
-                      <button onClick={() => downloadImages(report)} className="text-[14px] text-[var(--color-primary)] font-semibold active:opacity-60">사진 다운로드</button>
+                      <div className="relative">
+                        <button onClick={() => setShowDownloadMenu(showDownloadMenu === report.id ? null : report.id)} className="text-[13px] text-[var(--color-primary)] font-semibold active:opacity-60">저장하기</button>
+                        {showDownloadMenu === report.id && (
+                          <>
+                            <div className="fixed inset-0 z-40" onClick={() => setShowDownloadMenu(null)} />
+                            <div className="absolute right-0 bottom-8 z-50 w-40 bg-white rounded-xl shadow-lg border border-[#E8E4DF] py-1 overflow-hidden">
+                              <button onClick={() => downloadToLocal(report)} className="w-full px-3.5 py-2.5 text-left text-[13px] text-[#1A1918] active:bg-[#F5F1EC]">로컬 다운로드</button>
+                              <button onClick={() => uploadToGoogleDrive(report)} className="w-full px-3.5 py-2.5 text-left text-[13px] text-[#1A1918] active:bg-[#F5F1EC]">Google Drive</button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

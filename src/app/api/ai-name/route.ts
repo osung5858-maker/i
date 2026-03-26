@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
+import { getAuthUserSoft } from '@/lib/security/auth'
+import { checkRateLimit, getClientIP, AI_RATE_LIMIT } from '@/lib/security/rate-limit'
+import { sanitizeForPrompt } from '@/lib/security/sanitize'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
+// 이름 분석은 정확도가 중요 → Pro 모델 사용
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent`
 
 async function callGemini(prompt: string, maxTokens = 800, retries = 2): Promise<{ text: string | null; error: string | null }> {
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -45,6 +49,15 @@ async function callGemini(prompt: string, maxTokens = 800, retries = 2): Promise
 export async function POST(request: Request) {
   if (!GEMINI_API_KEY) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
 
+  // 인증 체크
+  const user = await getAuthUserSoft()
+  // soft auth — 인증 실패해도 진행 (rate limit은 IP 폴백)
+
+  // Rate limit 체크
+  const ip = getClientIP(request)
+  const { limited } = checkRateLimit(`ai-name:${user?.id || ip}`, AI_RATE_LIMIT)
+  if (limited) return NextResponse.json({ error: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.' }, { status: 429 })
+
   const body = await request.json()
   const { type } = body
 
@@ -56,8 +69,8 @@ export async function POST(request: Request) {
       const prompt = `한국 전통 태명을 추천해주세요.
 
 [조건]
-- 희망 테마: ${theme || '건강하게 자라길'}
-- 성별: ${gender || '모름'}
+- 희망 테마: ${sanitizeForPrompt(theme, 200) || '건강하게 자라길'}
+- 성별: ${sanitizeForPrompt(gender, 20) || '모름'}
 - 태명은 임신 중 아이를 부르는 별명입니다
 
 JSON으로 5개 추천:
@@ -92,9 +105,9 @@ JSON만 출력.`
       const prompt = `당신은 전통 한국 성명학 전문가입니다. 아기 이름을 추천하되, **삼원오행 상생과 정확한 획수 계산**을 반영하세요.
 
 [조건]
-- 성: ${lastName || '미정'}
-- 성별: ${gender || '모름'}
-- 희망 테마/뜻: ${theme || '건강하고 지혜로운'}
+- 성: ${sanitizeForPrompt(lastName, 20) || '미정'}
+- 성별: ${sanitizeForPrompt(gender, 20) || '모름'}
+- 희망 테마/뜻: ${sanitizeForPrompt(theme, 200) || '건강하고 지혜로운'}
 - 음절 수: ${syllables || 2}글자
 
 [★ 핵심 규칙]
@@ -138,7 +151,9 @@ JSON만 출력.`
 
     // === 이름 분석 ===
     if (type === 'analyze') {
-      const { fullName, birthYear, hanja } = body
+      const { fullName: rawFullName, birthYear, hanja: rawHanja } = body
+      const fullName = sanitizeForPrompt(rawFullName, 50)
+      const hanja = sanitizeForPrompt(rawHanja, 50)
 
       const prompt = `당신은 전통 한국 성명학(작명학) 최고 전문가입니다. 아래 이름을 정밀 분석하되, **획수 계산과 오행 배치를 정확하게** 수행하세요.
 

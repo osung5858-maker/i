@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isAllowedImageUrl } from '@/lib/security/sanitize'
+import { checkRateLimit, getClientIP } from '@/lib/security/rate-limit'
 
 export async function GET(request: NextRequest) {
+  // Rate limit 체크 (이미지 프록시는 IP 기반, 분당 60회)
+  const ip = getClientIP(request)
+  const { limited } = checkRateLimit(`kn-image:${ip}`, { limit: 60, windowMs: 60_000 })
+  if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+
   const url = request.nextUrl.searchParams.get('url')
-  if (!url || !url.includes('kakaocdn.net') && !url.includes('kage.kakao.com')) {
+  // URL 파싱 기반 도메인 검증 (SSRF 방지)
+  if (!url || !isAllowedImageUrl(url)) {
     return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
   }
 

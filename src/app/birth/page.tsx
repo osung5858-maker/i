@@ -11,12 +11,17 @@ export default function BirthPage() {
   const [step, setStep] = useState(0)
   const [showConfetti, setShowConfetti] = useState(true)
 
-  const dueDate = typeof window !== 'undefined' ? localStorage.getItem('dodam_due_date') : ''
-  const diaryCount = (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]').length } catch { return 0 } })()
-  const checkupCount = (() => { try { return Object.values(JSON.parse(localStorage.getItem('dodam_preg_checkups') || '{}')).filter(Boolean).length } catch { return 0 } })()
-  const letterCount = (() => { try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]').length } catch { return 0 } })()
+  const [dueDate, setDueDate] = useState('')
+  const [diaryCount, setDiaryCount] = useState(0)
+  const [checkupCount, setCheckupCount] = useState(0)
+  const [letterCount, setLetterCount] = useState(0)
 
   useEffect(() => {
+    setDueDate(localStorage.getItem('dodam_due_date') || '')
+    try { setDiaryCount(JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]').length) } catch { /* */ }
+    try { setCheckupCount(Object.values(JSON.parse(localStorage.getItem('dodam_preg_checkups') || '{}')).filter(Boolean).length) } catch { /* */ }
+    try { setLetterCount(JSON.parse(localStorage.getItem('dodam_letters') || '[]').length) } catch { /* */ }
+
     const timer = setTimeout(() => setShowConfetti(false), 5000)
     return () => clearTimeout(timer)
   }, [])

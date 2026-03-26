@@ -1,23 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import IllustVideo from '@/components/ui/IllustVideo'
-import DiaryView from '@/components/diary/DiaryView'
-import StatsReport from '@/components/growth-chart/StatsReport'
-import DevelopmentCheck from '@/components/growth-chart/DevelopmentCheck'
-import GrowthTimelapse from '@/components/growth-chart/GrowthTimelapse'
-import CommunityComparison from '@/components/growth-chart/CommunityComparison'
-import GrowthStory from '@/components/growth-chart/GrowthStory'
-import SiblingCompare from '@/components/growth-chart/SiblingCompare'
 import type { Child, GrowthRecord, CareEvent } from '@/types'
 import { PregnantWaitingPage } from '@/app/waiting/page'
 import dynamic from 'next/dynamic'
 
-// 임신 전: waiting 페이지의 기본 콘텐츠를 그대로 사용 (lazy load)
-const WaitingPage = dynamic(() => import('@/app/waiting/page'), { loading: () => <div className="flex items-center justify-center h-[60vh]"><div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" /></div> })
+const LoadingSpinner = () => <div className="flex items-center justify-center h-[60vh]"><div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" /></div>
+
+// Lazy load heavy components
+const WaitingPage = dynamic(() => import('@/app/waiting/page'), { loading: LoadingSpinner })
+const StatsReport = dynamic(() => import('@/components/growth-chart/StatsReport'), { loading: LoadingSpinner })
+const DevelopmentCheck = dynamic(() => import('@/components/growth-chart/DevelopmentCheck'), { loading: LoadingSpinner })
+const GrowthTimelapse = dynamic(() => import('@/components/growth-chart/GrowthTimelapse'), { loading: LoadingSpinner })
+const CommunityComparison = dynamic(() => import('@/components/growth-chart/CommunityComparison'), { loading: LoadingSpinner })
+const GrowthStory = dynamic(() => import('@/components/growth-chart/GrowthStory'), { loading: LoadingSpinner })
+const SiblingCompare = dynamic(() => import('@/components/growth-chart/SiblingCompare'), { loading: LoadingSpinner })
 
 function PreparingRecord() {
   return <WaitingPage />
@@ -40,18 +41,23 @@ function JourneyTimeline({ childName }: { childName: string }) {
     setNewText(''); setShowForm(false)
   }
 
-  const letters = (() => { try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]') } catch { return [] } })()
-  const diaries = (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] } })()
-  const checkups = (() => { try { return JSON.parse(localStorage.getItem('dodam_checkup_records') || '[]') } catch { return [] } })()
-  const pregTests = (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_tests') || '[]') } catch { return [] } })()
-  const timeline: { date: string; type: string; emoji: string; title: string; content: string; sub?: string }[] = []
+  const { letters, diaries, checkups, pregTests } = useMemo(() => ({
+    letters: (() => { try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]') } catch { return [] } })(),
+    diaries: (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] } })(),
+    checkups: (() => { try { return JSON.parse(localStorage.getItem('dodam_checkup_records') || '[]') } catch { return [] } })(),
+    pregTests: (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_tests') || '[]') } catch { return [] } })(),
+  }), []) // read once on mount
 
-  letters.forEach((l: any) => { timeline.push({ date: l.date, type: 'letter', emoji: '/images/illustrations/t1.webm', title: '아이에게 보낸 편지', content: l.text?.slice(0, 60) || '', sub: l.reply?.slice(0, 40) }) })
-  diaries.forEach((d: any) => { timeline.push({ date: d.date, type: 'diary', emoji: '/images/illustrations/t2.webm', title: '태교일기', content: d.text?.slice(0, 60) || '', sub: d.comment?.slice(0, 40) }) })
-  checkups.forEach((c: any) => { timeline.push({ date: c.date, type: 'checkup', emoji: '/images/illustrations/t3.webm', title: `${c.week}주차 검진`, content: c.doctorNote || c.note || '', sub: c.babyWeight ? `${c.babyWeight}` : undefined }) })
-  pregTests.forEach((t: any) => { if (t.result === '양성') timeline.push({ date: t.date, type: 'positive', emoji: '/images/illustrations/t4.webm', title: '양성! 아이가 찾아왔어요', content: `D+${t.dpo}에 확인` }) })
-  journeyEntries.forEach((e: any) => { timeline.push({ date: e.date, type: 'manual', emoji: '/images/illustrations/t5.webm', title: '추억 한마디', content: e.text?.slice(0, 80) || '' }) })
-  timeline.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const timeline = useMemo(() => {
+    const items: { date: string; type: string; emoji: string; title: string; content: string; sub?: string }[] = []
+    letters.forEach((l: any) => { items.push({ date: l.date, type: 'letter', emoji: '/images/illustrations/t1.webm', title: '아이에게 보낸 편지', content: l.text?.slice(0, 60) || '', sub: l.reply?.slice(0, 40) }) })
+    diaries.forEach((d: any) => { items.push({ date: d.date, type: 'diary', emoji: '/images/illustrations/t2.webm', title: '태교일기', content: d.text?.slice(0, 60) || '', sub: d.comment?.slice(0, 40) }) })
+    checkups.forEach((c: any) => { items.push({ date: c.date, type: 'checkup', emoji: '/images/illustrations/t3.webm', title: `${c.week}주차 검진`, content: c.doctorNote || c.note || '', sub: c.babyWeight ? `${c.babyWeight}` : undefined }) })
+    pregTests.forEach((t: any) => { if (t.result === '양성') items.push({ date: t.date, type: 'positive', emoji: '/images/illustrations/t4.webm', title: '양성! 아이가 찾아왔어요', content: `D+${t.dpo}에 확인` }) })
+    journeyEntries.forEach((e: any) => { items.push({ date: e.date, type: 'manual', emoji: '/images/illustrations/t5.webm', title: '추억 한마디', content: e.text?.slice(0, 80) || '' }) })
+    items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return items
+  }, [letters, diaries, checkups, pregTests, journeyEntries])
 
   const hasJourney = timeline.length > 0
 
@@ -122,6 +128,13 @@ function getAgeMonths(birthdate: string): number {
 // ===== 육아 모드 성장 탭 =====
 type ParentingTab = 'growth' | 'stats' | 'develop' | 'journey'
 
+const PARENTING_TABS: { key: ParentingTab; label: string }[] = [
+  { key: 'growth', label: '성장' },
+  { key: 'stats', label: '통계' },
+  { key: 'develop', label: '발달' },
+  { key: 'journey', label: '여정' },
+]
+
 function ParentingRecord() {
   const [child, setChild] = useState<Child | null>(null)
   const [events, setEvents] = useState<CareEvent[]>([])
@@ -135,7 +148,7 @@ function ParentingRecord() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/onboarding'); return }
-      const { data: children } = await supabase.from('children').select('*').eq('user_id', user.id).limit(1)
+      const { data: children } = await supabase.from('children').select('id,name,birthdate,sex,photo_url').eq('user_id', user.id).limit(1)
       if (!children || children.length === 0) { router.push('/settings/children/add'); return }
       const c = children[0] as Child
       setChild(c)
@@ -159,13 +172,6 @@ function ParentingRecord() {
   const ageMonths = child ? getAgeMonths(child.birthdate) : 0
   const latestRecord = records.length > 0 ? records[records.length - 1] : null
 
-  const TABS: { key: ParentingTab; label: string }[] = [
-    { key: 'growth', label: '성장' },
-    { key: 'stats', label: '통계' },
-    { key: 'develop', label: '발달' },
-    { key: 'journey', label: '여정' },
-  ]
-
   return (
     <>
       <div className="max-w-lg mx-auto w-full px-5 pt-3 pb-3">
@@ -174,7 +180,7 @@ function ParentingRecord() {
           <Link href="/growth/add" className="text-[13px] font-semibold text-[var(--color-primary)]">+ 측정</Link>
         </div>
         <div className="flex gap-2 bg-[#F0EDE8] p-1 rounded-xl">
-          {TABS.map((t) => (
+          {PARENTING_TABS.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`flex-1 py-1.5 text-[13px] font-semibold text-center rounded-lg transition-colors ${tab === t.key ? 'bg-white text-[#1A1918] shadow-sm' : 'text-[#9E9A95]'}`}>
               {t.label}

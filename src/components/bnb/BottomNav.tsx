@@ -170,10 +170,7 @@ const RECORD_CATEGORIES: RecordCategory[] = [
 export default function BottomNav() {
   const pathname = usePathname()
   const [fabOpen, setFabOpen] = useState(false)
-  const [mode, setMode] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('dodam_mode') || 'parenting'
-    return 'parenting'
-  })
+  const [mode, setMode] = useState('parenting') // SSR 일관성 — useEffect에서 실제 모드 설정
 
   // 앱 시작 시 데이터 자동 백업 + 복원
   useEffect(() => {
@@ -340,7 +337,7 @@ export default function BottomNav() {
     return `${mm}:${ss}`
   }
 
-  if (pathname?.startsWith('/onboarding') || pathname?.startsWith('/invite') || pathname?.startsWith('/post/') || pathname?.startsWith('/market-item/')) {
+  if (pathname?.startsWith('/onboarding') || pathname?.startsWith('/invite') || pathname?.startsWith('/post/') || pathname?.startsWith('/market-item/') || pathname?.startsWith('/landing')) {
     return null
   }
 

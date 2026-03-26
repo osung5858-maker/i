@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getCachedResponse, setCachedResponse } from '@/lib/ai/cache'
+import { getAuthUserSoft } from '@/lib/security/auth'
+import { checkRateLimit, getClientIP, AI_RATE_LIMIT } from '@/lib/security/rate-limit'
+import { sanitizeForPrompt } from '@/lib/security/sanitize'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
@@ -44,6 +47,15 @@ async function callGemini(prompt: string, maxTokens = 500, retries = 2): Promise
 
 export async function POST(request: Request) {
   if (!GEMINI_API_KEY) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
+
+  // 인증 체크
+  const user = await getAuthUserSoft()
+  // soft auth — 인증 실패해도 진행 (rate limit은 IP 폴백)
+
+  // Rate limit 체크
+  const ip = getClientIP(request)
+  const { limited } = checkRateLimit(`ai-pregnant:${user?.id || ip}`, AI_RATE_LIMIT)
+  if (limited) return NextResponse.json({ error: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.' }, { status: 429 })
 
   const body = await request.json()
   const { type } = body
@@ -96,9 +108,10 @@ JSON만 출력.`
     // === 태교 일기 AI 코멘트 ===
     if (type === 'diary') {
       const { text: diaryText, week, mood } = body
+      const safeDiaryText = sanitizeForPrompt(diaryText, 1000)
       const prompt = `임신 ${week}주차 예비맘이 태교 일기를 썼어요. 따뜻하게 1-2문장으로 코멘트해주세요. 이모지 1개 포함.
 기분: ${mood || '미기록'}
-일기: "${diaryText}"
+일기: "${safeDiaryText}"
 코멘트만 출력.`
       const { text } = await callGemini(prompt, 100)
       return NextResponse.json({ comment: text || '오늘도 도담하게 잘 지내고 있어요 💚' })
@@ -171,34 +184,6 @@ JSON 형식으로 풍부하게 출력:
 재미로 보는 것이므로 부담 없이, 하지만 풍부하고 구체적으로. JSON만 출력.`
 
       const { text, error } = await callGemini(prompt, 900)
-      if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })
-      try {
-        const match = text.match(/\{[\s\S]*\}/)
-        if (!match) return NextResponse.json({ error: 'parse error' }, { status: 500 })
-        return NextResponse.json(JSON.parse(match[0]))
-      } catch {
-        return NextResponse.json({ error: 'parse error' }, { status: 500 })
-      }
-    }
-
-    // === 임신 중 식단 추천 ===
-    if (type === 'meal') {
-      const { week } = body
-      const trimester = week <= 13 ? '초기' : week <= 27 ? '중기' : '후기'
-      const prompt = `임신 ${week}주차(${trimester}) 산모를 위한 오늘의 식단을 추천해주세요.
-
-JSON 형식:
-{
-  "breakfast": {"menu": "아침 메뉴명 (한식)", "reason": "이유 1줄"},
-  "lunch": {"menu": "점심 메뉴명", "reason": "이유 1줄"},
-  "dinner": {"menu": "저녁 메뉴명", "reason": "이유 1줄"},
-  "snack": {"menu": "간식", "reason": "이유 1줄"},
-  "keyNutrient": "${trimester}에 가장 중요한 영양소",
-  "avoid": "이 시기에 특히 피할 음식/습관"
-}
-한국 가정식 위주. 현실적으로. JSON만 출력.`
-
-      const { text, error } = await callGemini(prompt, 700)
       if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })
       try {
         const match = text.match(/\{[\s\S]*\}/)

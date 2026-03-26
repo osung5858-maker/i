@@ -30,7 +30,14 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // 비로그인 허용 경로
-  const publicPaths = ['/onboarding', '/invite', '/map', '/emergency', '/auth/callback']
+  const publicPaths = [
+    '/onboarding', '/invite', '/auth/callback',
+    '/api/',        // API 라우트 (자체 인증 처리)
+    '/landing',     // 랜딩 페이지
+    '/privacy', '/terms',
+    '/map', '/emergency',
+    '/babyfood', '/gov-support', '/guide',
+  ]
   const isPublic = publicPaths.some((p) => request.nextUrl.pathname.startsWith(p))
 
   if (!user && !isPublic && request.nextUrl.pathname !== '/') {

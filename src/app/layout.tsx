@@ -8,7 +8,9 @@ import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import KakaoSDK from '@/components/ui/KakaoSDK'
 import DevResetButton from '@/components/ui/DevResetButton'
 import GlobalToast from '@/components/ui/GlobalToast'
+import ScrollToTop from '@/components/ui/ScrollToTop'
 import ThemeInitializer from '@/components/ThemeInitializer'
+import SplashProvider from '@/components/SplashProvider'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dodam.app'),
@@ -127,17 +129,19 @@ export default function RootLayout({
           crossOrigin="anonymous"
           strategy="lazyOnload"
         />
+        <Script
+          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false&libraries=services`}
+          strategy="afterInteractive"
+        />
       </head>
       <body className="min-h-full bg-[#E8E4DF] flex justify-center">
+        <SplashProvider />
+        <KakaoSDK />
         <div className="w-full max-w-[430px] min-h-full flex flex-col relative shadow-[0_0_40px_rgba(0,0,0,0.08)]" style={{ backgroundColor: 'var(--color-page-bg)' }}>
-          <Script
-            src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false&libraries=services`}
-            strategy="beforeInteractive"
-          />
-          <KakaoSDK />
           <ThemeInitializer />
           <GlobalHeader />
-          <main className="flex-1 pb-20">{children}</main>
+          <main className="flex-1 pb-20" id="main-content">{children}</main>
+          <ScrollToTop />
           <BottomNav />
           <PWAInstallPrompt />
           <DevResetButton />

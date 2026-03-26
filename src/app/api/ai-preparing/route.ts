@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getCachedResponse, setCachedResponse } from '@/lib/ai/cache'
+import { getAuthUserSoft } from '@/lib/security/auth'
+import { checkRateLimit, getClientIP, AI_RATE_LIMIT } from '@/lib/security/rate-limit'
+import { sanitizeForPrompt } from '@/lib/security/sanitize'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
@@ -41,6 +44,15 @@ export async function POST(request: Request) {
   if (!GEMINI_API_KEY) {
     return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
   }
+
+  // 인증 체크
+  const user = await getAuthUserSoft()
+  // soft auth — 인증 실패해도 진행 (rate limit은 IP 폴백)
+
+  // Rate limit 체크
+  const ip = getClientIP(request)
+  const { limited } = checkRateLimit(`ai-preparing:${user?.id || ip}`, AI_RATE_LIMIT)
+  if (limited) return NextResponse.json({ error: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.' }, { status: 429 })
 
   const body = await request.json()
   const { type } = body
@@ -105,6 +117,7 @@ JSON만 출력하세요.`
     // === 편지 AI 답장 ===
     if (type === 'letter') {
       const { letterText, letterCount } = body
+      const safeLetterText = sanitizeForPrompt(letterText, 1000)
 
       const prompt = `당신은 아직 세상에 오지 않은 아기입니다. 엄마(또는 아빠)가 편지를 보냈어요.
 아기의 시점에서 따뜻하고 순수하게 답장을 써주세요.
@@ -117,7 +130,7 @@ JSON만 출력하세요.`
 - ${letterCount > 20 ? '많은 편지를 받아 사랑으로 가득 찬 느낌' : letterCount > 5 ? '점점 엄마 아빠를 알아가는 느낌' : '처음 인사하는 설렘'}을 담아주세요
 
 [엄마/아빠의 편지]
-"${letterText}"
+"${safeLetterText}"
 
 아기의 답장만 출력하세요. 따옴표 없이.`
 

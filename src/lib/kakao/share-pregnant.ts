@@ -1,4 +1,4 @@
-const SITE_URL = 'https://dodam.life'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dodam.app'
 
 function sendKakao(params: { title: string; description: string; link?: string; buttonTitle?: string }) {
   if (typeof window === 'undefined') return

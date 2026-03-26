@@ -2,9 +2,14 @@
 
 import { useState, useCallback, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import KakaoMap from '@/components/map/KakaoMap'
+import dynamic from 'next/dynamic'
 import LocalParentingGuide from '@/components/map/LocalParentingGuide'
 import { MapIcon } from '@/components/ui/Icons'
+
+const KakaoMap = dynamic(() => import('@/components/map/KakaoMap'), {
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-[#F0EDE8] flex items-center justify-center"><div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" /></div>,
+})
 
 interface MapPlace {
   id: string

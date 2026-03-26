@@ -9,9 +9,5 @@ export async function GET() {
   return NextResponse.json({
     hasToken,
     hasRefresh,
-    debug: {
-      tokenLength: cookieStore.get('gfit_token')?.value?.length || 0,
-      refreshLength: cookieStore.get('gfit_refresh')?.value?.length || 0,
-    },
   })
 }

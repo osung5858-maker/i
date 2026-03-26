@@ -200,7 +200,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
     })
   }
 
-  const SITE_URL = 'https://dodam.life'
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dodam.app'
 
   const sharePost = (post: any) => {
     const url = `${SITE_URL}/post/${post.id}`
@@ -489,7 +489,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 </div>
               ) : posts.map((post, pi) => (
                 <div key={post.id}>
-                {pi === 3 && posts.length > 5 && <AdSlot variant="native" className="mb-2" />}
+                {pi === 3 && posts.length > 5 && <AdSlot provider="kakao" className="mb-2" />}
                 <div className="bg-white rounded-xl p-4 border border-[#E8E4DF]">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">

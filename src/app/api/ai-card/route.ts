@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getCachedResponse, setCachedResponse } from '@/lib/ai/cache'
+import { getAuthUserSoft } from '@/lib/security/auth'
+import { checkRateLimit, getClientIP, AI_RATE_LIMIT } from '@/lib/security/rate-limit'
+import { sanitizeForPrompt } from '@/lib/security/sanitize'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
@@ -39,6 +42,15 @@ export async function POST(request: Request) {
   if (!GEMINI_API_KEY) {
     return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
   }
+
+  // 인증 체크
+  const user = await getAuthUserSoft()
+  // soft auth — 인증 실패해도 진행 (rate limit은 IP 폴백)
+
+  // Rate limit 체크
+  const ip = getClientIP(request)
+  const { limited } = checkRateLimit(`ai-card:${user?.id || ip}`, AI_RATE_LIMIT)
+  if (limited) return NextResponse.json({ error: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.' }, { status: 429 })
 
   const body = await request.json()
   const { cardType } = body
@@ -285,9 +297,9 @@ JSON만 출력.`
 의료 진단은 절대 하지 마세요. 심각한 상황이면 소아과/119를 안내하세요.
 
 [상황]
-- 문제: ${situation}
+- 문제: ${sanitizeForPrompt(situation, 500)}
 - 아이 월령: ${age || '미상'}개월
-- 상세 정보: ${details || '없음'}
+- 상세 정보: ${sanitizeForPrompt(details, 500) || '없음'}
 
 [규칙]
 1. 체크리스트는 부모가 즉시 확인할 수 있는 항목

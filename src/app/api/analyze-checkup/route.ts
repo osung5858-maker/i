@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+import { getAuthUserSoft } from '@/lib/security/auth'
+import { checkRateLimit, getClientIP } from '@/lib/security/rate-limit'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 
@@ -6,6 +8,15 @@ export async function POST(request: Request) {
   if (!GEMINI_API_KEY) {
     return NextResponse.json({ error: 'Gemini API key not configured' }, { status: 500 })
   }
+
+  // 인증 체크
+  const user = await getAuthUserSoft()
+  // soft auth — 인증 실패해도 진행 (rate limit은 IP 폴백)
+
+  // Rate limit 체크 (이미지 분석은 더 제한)
+  const ip = getClientIP(request)
+  const { limited } = checkRateLimit(`analyze-checkup:${user?.id || ip}`, { limit: 5, windowMs: 60_000 })
+  if (limited) return NextResponse.json({ error: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.' }, { status: 429 })
 
   const { image } = await request.json()
   if (!image) {

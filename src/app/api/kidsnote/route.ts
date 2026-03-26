@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getAuthUser, unauthorizedResponse } from '@/lib/security/auth'
+import { checkRateLimit, getClientIP, DEFAULT_RATE_LIMIT } from '@/lib/security/rate-limit'
 
 const KN_BASE = 'https://www.kidsnote.com/api'
 
@@ -27,6 +29,15 @@ function normalizeItem(item: any) {
 }
 
 export async function POST(request: NextRequest) {
+  // 인증 체크
+  const user = await getAuthUser()
+  if (!user) return unauthorizedResponse()
+
+  // Rate limit 체크
+  const ip = getClientIP(request)
+  const { limited } = checkRateLimit(`kidsnote:${user.id || ip}`, DEFAULT_RATE_LIMIT)
+  if (limited) return NextResponse.json({ error: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.' }, { status: 429 })
+
   const body = await request.json()
   const { action, username, password, sessionCookie, childId, cursor } = body
 

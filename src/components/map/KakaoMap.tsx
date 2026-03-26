@@ -23,24 +23,30 @@ export default function KakaoMap({ onPlacesFound, searchKeyword, onMapReady }: P
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<kakao.maps.Map | null>(null)
   const markersRef = useRef<kakao.maps.Marker[]>([])
+  const retryRef = useRef(0)
   const [mapLoaded, setMapLoaded] = useState(false)
 
-  // 지도 초기화
+  // 지도 초기화 — SDK 로드 대기
   useEffect(() => {
-    if (!mapRef.current || !window.kakao?.maps) return
+    if (!mapRef.current) return
 
-    window.kakao.maps.load(() => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          initMap(pos.coords.latitude, pos.coords.longitude)
-        },
-        () => {
-          // 위치 거부 시 서울 강남 기본
-          initMap(37.4979, 127.0276)
-        },
-        { timeout: 5000 }
-      )
-    })
+    function tryInit() {
+      if (!window.kakao?.maps) {
+        // SDK 아직 로드 안 됨 → 100ms 후 재시도 (최대 50회 = 5초)
+        if (retryRef.current < 50) {
+          retryRef.current++
+          setTimeout(tryInit, 100)
+        }
+        return
+      }
+      window.kakao.maps.load(() => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => initMap(pos.coords.latitude, pos.coords.longitude),
+          () => initMap(37.4979, 127.0276),
+          { timeout: 5000 }
+        )
+      })
+    }
 
     function initMap(lat: number, lng: number) {
       if (!mapRef.current) return
@@ -53,6 +59,8 @@ export default function KakaoMap({ onPlacesFound, searchKeyword, onMapReady }: P
       setMapLoaded(true)
       onMapReady?.()
     }
+
+    tryInit()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 키워드 검색

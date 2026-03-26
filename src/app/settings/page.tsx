@@ -142,10 +142,10 @@ export default function SettingsPage() {
           </Link>
         </div>
 
-        {/* 테마 설정 */}
+        {/* 테마 컬러 */}
         <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
           <div className="px-5 pt-3 pb-2">
-            <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">테마 컬러</p>
+            <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">테마</p>
           </div>
           <div className="px-3 py-3 border-t border-[#E8E4DF]">
             <ThemeSelector />
@@ -186,20 +186,18 @@ export default function SettingsPage() {
           <div className="px-5 pt-3 pb-2">
             <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">서비스</p>
           </div>
-          {[
-            { label: '서비스 이용약관', href: '/terms' },
-            { label: '개인정보처리방침', href: '/privacy' },
-            { label: '의견 보내기', href: 'mailto:osung5858@gmail.com?subject=%5B%EB%8F%84%EB%8B%B4%5D%20%EC%9D%98%EA%B2%AC&body=%EC%95%88%EB%85%95%ED%95%98%EC%84%B8%EC%9A%94%2C%20%EB%8F%84%EB%8B%B4%20%ED%8C%80%EC%97%90%EA%B2%8C%20%EC%9D%98%EA%B2%AC%EC%9D%84%20%EB%B3%B4%EB%83%85%EB%8B%88%EB%8B%A4.%0A%0A' },
-          ].map((item, i) => (
-            <Link
-              key={i}
-              href={item.href}
-              className="flex items-center justify-between px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5] transition-colors"
-            >
-              <p className="text-sm text-[#0A0B0D]">{item.label}</p>
-              <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
-            </Link>
-          ))}
+          <Link href="/terms" className="flex items-center justify-between px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5]">
+            <p className="text-sm text-[#0A0B0D]">서비스 이용약관</p>
+            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+          </Link>
+          <Link href="/privacy" className="flex items-center justify-between px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5]">
+            <p className="text-sm text-[#0A0B0D]">개인정보처리방침</p>
+            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+          </Link>
+          <Link href="/feedback" className="flex items-center justify-between px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5]">
+            <p className="text-sm text-[#0A0B0D]">의견 보내기</p>
+            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+          </Link>
           <div className="flex items-center justify-between px-4 py-3.5 border-t border-[#E8E4DF]">
             <p className="text-sm text-[#9B9B9B]">버전</p>
             <p className="text-sm text-[#9B9B9B]">0.1.3</p>

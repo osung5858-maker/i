@@ -16,7 +16,7 @@ export default function IllustVideo({ src, className = 'w-48 h-48', variant = 'f
           maskImage: 'radial-gradient(circle, black 55%, transparent 80%)',
           WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 80%)',
         }}>
-        <video src={src} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+        <video src={src} autoPlay loop muted playsInline preload="none" className="w-full h-full object-cover" />
       </div>
     )
   }
@@ -29,7 +29,7 @@ export default function IllustVideo({ src, className = 'w-48 h-48', variant = 'f
           maskImage: 'radial-gradient(circle, black 40%, transparent 72%)',
           WebkitMaskImage: 'radial-gradient(circle, black 40%, transparent 72%)',
         }}>
-        <video src={src} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+        <video src={src} autoPlay loop muted playsInline preload="none" className="w-full h-full object-cover" />
       </div>
     )
   }
@@ -43,6 +43,7 @@ export default function IllustVideo({ src, className = 'w-48 h-48', variant = 'f
         loop
         muted
         playsInline
+        preload="none"
         className="w-full h-full object-cover"
       />
       {/* 외곽 투명 그라데이션 — radial mask로 가장자리 페이드 */}

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getCachedResponse, setCachedResponse } from '@/lib/ai/cache'
+import { getAuthUserSoft } from '@/lib/security/auth'
+import { checkRateLimit, getClientIP, AI_RATE_LIMIT } from '@/lib/security/rate-limit'
+import { sanitizeForPrompt } from '@/lib/security/sanitize'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
@@ -27,13 +30,23 @@ async function callGemini(prompt: string, maxTokens = 500): Promise<{ text: stri
 export async function POST(request: Request) {
   if (!GEMINI_API_KEY) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
 
+  // 인증 체크
+  const user = await getAuthUserSoft()
+  // soft auth — 인증 실패해도 진행 (rate limit은 IP 폴백)
+
+  // Rate limit 체크
+  const ip = getClientIP(request)
+  const { limited } = checkRateLimit(`ai-parenting:${user?.id || ip}`, AI_RATE_LIMIT)
+  if (limited) return NextResponse.json({ error: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.' }, { status: 429 })
+
   const body = await request.json()
   const { type } = body
 
   try {
     // === 데일리 케어 ===
     if (type === 'daily') {
-      const { childName, ageMonths, feedCount, sleepCount, poopCount, feedTotal, sleepTotal, mood } = body
+      const { childName: rawChildName, ageMonths, feedCount, sleepCount, poopCount, feedTotal, sleepTotal, mood } = body
+      const childName = sanitizeForPrompt(rawChildName, 50)
       const cacheKey = `parent-daily-${ageMonths}-${feedCount}-${sleepCount}-${mood || 'none'}`
       const cached = getCachedResponse(cacheKey)
       if (cached) return NextResponse.json(cached)

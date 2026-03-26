@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import type { CareEvent } from '@/types'
 import { PenIcon, SparkleIcon, NoteIcon, BottleIcon, MoonIcon, DropletIcon, ThermometerIcon } from '@/components/ui/Icons'
 
@@ -145,7 +145,7 @@ export default function DiaryView({ events, childName }: Props) {
   }
 
   // 초기 로드
-  useState(() => { loadDayData(dateKey) })
+  useEffect(() => { loadDayData(dateKey) }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 오늘의 감정 태그 (기록 기반 자동 생성)
   const emotionTags = useMemo(() => {

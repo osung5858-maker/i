@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { BellIcon, MoonIcon, XIcon } from '@/components/ui/Icons'
 import { createClient } from '@/lib/supabase/client'
 
-const NO_HEADER_PATHS = ['/onboarding', '/invite/', '/auth', '/settings', '/post/', '/market-item/', '/privacy', '/terms']
+const NO_HEADER_PATHS = ['/onboarding', '/invite/', '/auth', '/settings', '/post/', '/market-item/', '/privacy', '/terms', '/landing']
 
 const PROFILE_AVATARS = [
   '/images/illustrations/profile-default1.webm',
@@ -102,7 +102,7 @@ export default function GlobalHeader() {
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => setShowAvatarPicker(true)}
-              className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-[#F0EDE8] active:scale-95 transition-transform ring-2 ring-transparent hover:ring-[var(--color-primary)]/30"
+              className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-[#F0EDE8] active:scale-95 transition-transform ring-2 ring-[var(--color-primary)]/20"
             >
               {data?.photoUrl ? (
                 <video src={data.photoUrl} autoPlay loop muted playsInline className="w-full h-full object-cover" />

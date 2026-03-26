@@ -10,7 +10,7 @@ import AdSlot from '@/components/ads/AdSlot'
 type SubTab = 'town' | 'story' | 'market'
 
 // 슬라이더 스냅 포인트 (미터)
-const RANGE_STEPS = [500, 1000, 2000, 3000, 5000]
+const RANGE_STEPS = [500, 1000, 2000, 3000, 5000, 10000, 20000]
 
 const STORAGE_KEY_RANGE = 'dodam_neighborhood_range'
 const STORAGE_KEY_RANGE_SET = 'dodam_neighborhood_range_set'
@@ -377,7 +377,7 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
     if (places.length === 0) return
     const supabase = createClient()
     const ids = places.map(p => p.id)
-    supabase.from('reviews').select('place_id, rating').in('place_id', ids).then(({ data }) => {
+    supabase.from('reviews').select('place_id, rating').in('place_id', ids).then(({ data }: any) => {
       if (!data) return
       const stats: Record<string, { avg: string; count: number }> = {}
       const grouped: Record<string, number[]> = {}
@@ -453,7 +453,7 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
           places.map((p, i) => (
             <div key={p.id}>
               <PlaceCard place={p} stats={reviewStats[p.id]} />
-              {i === 2 && places.length > 4 && <AdSlot variant="native" className="mt-2" />}
+              {i === 2 && places.length > 4 && <AdSlot provider="kakao" className="mt-2" />}
             </div>
           ))
         )}

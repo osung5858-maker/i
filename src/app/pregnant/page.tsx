@@ -2,14 +2,20 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { shareFetalSize, shareDday } from '@/lib/kakao/share-pregnant'
 import BabyIllust from '@/components/pregnant/BabyIllust'
-import HospitalGuide from '@/components/pregnant/HospitalGuide'
-import FetalCarousel from '@/components/pregnant/FetalCarousel'
 import { SparkleIcon, PenIcon, StethoscopeIcon, ClipboardIcon, SyringeIcon, HospitalIcon, ShieldIcon, CheckCircleIcon, ActivityIcon, PregnantIcon, WarningIcon, BabyIcon, HeartFilledIcon, ExternalLinkIcon, WaterGlassIcon, WalkIcon, VitaminIcon, StretchIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon } from '@/components/ui/Icons'
 import IllustVideo from '@/components/ui/IllustVideo'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
+
+const HospitalGuide = dynamic(() => import('@/components/pregnant/HospitalGuide'), {
+  loading: () => <div className="h-32 bg-[#F0EDE8] rounded-xl animate-pulse" />,
+})
+const FetalCarousel = dynamic(() => import('@/components/pregnant/FetalCarousel'), {
+  loading: () => <div className="h-24 bg-[#F0EDE8] rounded-xl animate-pulse" />,
+})
 
 // ===== 태아 데이터 =====
 const FETAL_DATA = [
@@ -550,7 +556,7 @@ export default function PregnantPage() {
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
+    createClient().auth.getUser().then(({ data }: any) => {
       setAvatarUrl(data.user?.user_metadata?.avatar_url || null)
     })
   }, [])
@@ -561,24 +567,16 @@ export default function PregnantPage() {
   })
   const [editingDate, setEditingDate] = useState(!dueDate)
 
-  // 건강 기록
+  // 건강 기록 (parse once instead of 4x)
   const today = new Date().toISOString().split('T')[0]
-  const [weight, setWeight] = useState<number>(() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')[today]?.weight || 0 } catch { return 0 } }
-    return 0
-  })
-  const [bp, setBp] = useState<string>(() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')[today]?.bp || '' } catch { return '' } }
-    return ''
-  })
-  const [fetalMove, setFetalMove] = useState<number>(() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')[today]?.fetalMove || 0 } catch { return 0 } }
-    return 0
-  })
-  const [edema, setEdema] = useState<string>(() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')[today]?.edema || '' } catch { return '' } }
-    return ''
-  })
+  const _initHealth = (() => {
+    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')[today] || {} } catch { return {} } }
+    return {}
+  })()
+  const [weight, setWeight] = useState<number>(_initHealth.weight || 0)
+  const [bp, setBp] = useState<string>(_initHealth.bp || '')
+  const [fetalMove, setFetalMove] = useState<number>(_initHealth.fetalMove || 0)
+  const [edema, setEdema] = useState<string>(_initHealth.edema || '')
   const [mood, setMood] = useState<string>(() => {
     if (typeof window !== 'undefined') return localStorage.getItem(`dodam_preg_mood_${today}`) || ''
     return ''
@@ -1160,23 +1158,21 @@ export default function PregnantPage() {
           </div>
         )}
 
-        {/* ━━━ 혜택 · 축하박스 — 3탭 ━━━ */}
-        <BenefitTabs
-          currentWeek={currentWeek}
-          benefitDone={benefitDone}
-          toggleBenefit={toggleBenefit}
+        {/* ━━━ 혜택 · 축하박스 — 접기 가능 ━━━ */}
+        {moreOpen ? (
+          <>
+            <BenefitTabs
+              currentWeek={currentWeek}
+              benefitDone={benefitDone}
+              toggleBenefit={toggleBenefit}
         />
-
-        {/* 스트릭·주차별 체크 → 우리 탭으로 이동 */}
-
-        {/* ━━━ 성장 탭 안내 ━━━ */}
-        <Link href="/record" className="w-full bg-white rounded-xl border border-[#E8E4DF] p-3 flex items-center justify-between active:bg-[var(--color-page-bg)]">
-          <div>
-            <p className="text-[13px] font-semibold text-[#1A1918]">성장 탭에서 더 보기</p>
-            <p className="text-[14px] text-[#6B6966]">검진 · 혜택 · 축하박스 · 출산 가방 · 이름 짓기</p>
-          </div>
-          <span className="text-[#9E9A95]">→</span>
-        </Link>
+            <button onClick={() => setMoreOpen(false)} className="w-full py-2 text-[12px] text-[#9E9A95] text-center">접기</button>
+          </>
+        ) : (
+          <button onClick={() => setMoreOpen(true)} className="w-full bg-white rounded-xl border border-[#E8E4DF] p-3 text-center active:bg-[#F5F1EC]">
+            <p className="text-[13px] font-semibold text-[#1A1918]">혜택 · 축하박스 · 출산 가방 더보기</p>
+          </button>
+        )}
 
       </div>
 

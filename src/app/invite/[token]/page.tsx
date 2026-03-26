@@ -114,7 +114,7 @@ export default function InviteAcceptPage() {
       {status === 'expired' && (
         <div className="text-center">
           <div className="w-16 h-16 rounded-full bg-[#F0EDE8] flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">⏰</span>
+            <svg className="w-7 h-7 text-[#9E9A95]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
           <h1 className="text-[18px] font-bold text-[#212124] mb-1">초대가 만료되었어요</h1>
           <p className="text-[13px] text-[#6B6966]">다시 초대해달라고 해주세요</p>

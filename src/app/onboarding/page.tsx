@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { HeartIcon, PregnantIcon, BabyIcon } from '@/components/ui/Icons'
+import Image from 'next/image'
 type Mode = 'preparing' | 'pregnant' | 'parenting'
 
 const PROFILE_AVATARS = [
@@ -128,9 +129,14 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-[100dvh] flex flex-col bg-white">
       <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-20 h-20 rounded-full bg-[var(--color-primary)] flex items-center justify-center shadow-[0_4px_20px_rgba(61,138,90,0.25)]">
-          <span className="text-3xl font-bold text-white">도</span>
-        </div>
+        <Image
+          src="/app-icon.png"
+          alt="도담"
+          width={80}
+          height={80}
+          priority
+          className="rounded-[20px] shadow-[0_4px_20px_rgba(232,147,122,0.25)]"
+        />
         <h1 className="mt-6 text-[28px] font-bold text-[#212124]">도담</h1>
         <p className="mt-2 text-[15px] text-[#6B6966] text-center">오늘도 도담하게</p>
         <p className="mt-8 text-[13px] text-[#9E9A95] text-center leading-relaxed max-w-[260px]">

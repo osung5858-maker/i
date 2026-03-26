@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import FeedSheet from '@/components/quick-buttons/FeedSheet'
@@ -8,6 +8,7 @@ import PoopSheet from '@/components/quick-buttons/PoopSheet'
 import TempSheet from '@/components/quick-buttons/TempSheet'
 import Toast from '@/components/ui/Toast'
 import { BellIcon, ChevronRightIcon, BottleIcon, MoonIcon, PoopIcon, DropletIcon, ThermometerIcon, PillIcon, NoteIcon, SyringeIcon, BowlIcon, ChartIcon, SparkleIcon, BuildingIcon, BabyIcon, BathIcon, PumpIcon, CookieIcon, RiceIcon } from '@/components/ui/Icons'
+import { decrypt } from '@/lib/security/crypto'
 import { createClient } from '@/lib/supabase/client'
 import { shareTodayRecord } from '@/lib/kakao/share-parenting'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
@@ -16,6 +17,25 @@ import { savePendingEvent } from '@/lib/offline/db'
 import type { CareEvent, EventType, Child } from '@/types'
 import { useGestureInput, getGestureEnabled } from '@/hooks/useGestureInput'
 import type { User } from '@supabase/supabase-js'
+
+// Event display constants (module-level to avoid re-creation per render)
+const EVENT_ICON_MAP: Record<string, { Icon: React.FC<{ className?: string }>; bg: string; color: string }> = {
+  feed: { Icon: BottleIcon, bg: 'bg-[#FFF0E6]', color: 'text-[var(--color-primary)]' },
+  sleep: { Icon: MoonIcon, bg: 'bg-[#E8E0F8]', color: 'text-[#7B6DB0]' },
+  poop: { Icon: PoopIcon, bg: 'bg-[#FFF5E6]', color: 'text-[#C4913E]' },
+  pee: { Icon: DropletIcon, bg: 'bg-[#E6F4FF]', color: 'text-[#5B9FD6]' },
+  temp: { Icon: ThermometerIcon, bg: 'bg-[#FFE8E8]', color: 'text-[#D46A6A]' },
+  memo: { Icon: NoteIcon, bg: 'bg-[#F0EDE8]', color: 'text-[#9E9A95]' },
+  bath: { Icon: BathIcon, bg: 'bg-[#E6F4FF]', color: 'text-[#5B9FD6]' },
+  pump: { Icon: PumpIcon, bg: 'bg-[#FFF0E6]', color: 'text-[var(--color-primary)]' },
+  babyfood: { Icon: BowlIcon, bg: 'bg-[#FFF8F0]', color: 'text-[#C4913E]' },
+  snack: { Icon: CookieIcon, bg: 'bg-[#FFF8F0]', color: 'text-[#C4913E]' },
+  toddler_meal: { Icon: RiceIcon, bg: 'bg-[#FFF8F0]', color: 'text-[#C4913E]' },
+  medication: { Icon: PillIcon, bg: 'bg-[#FFECDB]', color: 'text-[#C4783E]' },
+}
+const EVENT_ICON_DEFAULT = { Icon: NoteIcon, bg: 'bg-[#F0EDE8]', color: 'text-[#9E9A95]' }
+const EVENT_LABELS: Record<string, string> = { feed: '수유', sleep: '수면', poop: '대변', pee: '소변', temp: '체온', memo: '메모', bath: '목욕', pump: '유축', babyfood: '이유식', snack: '간식', toddler_meal: '유아식', medication: '투약' }
+const NEXT_VACCINES: Record<number, string> = { 0: 'BCG', 1: 'B형간염 2차', 2: 'DTaP 1차', 4: 'DTaP 2차', 6: 'DTaP 3차', 12: 'MMR', 15: '수두', 24: '일본뇌염' }
 
 function getAgeMonths(birthdate: string): number {
   const birth = new Date(birthdate)
@@ -83,12 +103,12 @@ export default function HomePage() {
 
       const { start, end } = getTodayRange()
       const { data: todayEvents } = await supabase
-        .from('events').select('*').eq('child_id', currentChild.id)
+        .from('events').select('id,child_id,recorder_id,type,start_ts,end_ts,amount_ml,tags,source').eq('child_id', currentChild.id)
         .gte('start_ts', start).lte('start_ts', end)
         .order('start_ts', { ascending: false })
 
       if (todayEvents) setEvents(todayEvents as CareEvent[])
-      const activeSleep = todayEvents?.find((e) => e.type === 'sleep' && !e.end_ts)
+      const activeSleep = todayEvents?.find((e: CareEvent) => e.type === 'sleep' && !e.end_ts)
       if (activeSleep) setSleepActive(true)
       setLoading(false)
     }
@@ -100,9 +120,9 @@ export default function HomePage() {
     if (!child) return
     const channel = supabase.channel('events-realtime')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events', filter: `child_id=eq.${child.id}` },
-        (payload) => {
+        (payload: any) => {
           const n = payload.new as CareEvent
-          setEvents((prev) => prev.some((e) => e.id === n.id) ? prev : [n, ...prev])
+          setEvents((prev: CareEvent[]) => prev.some((e) => e.id === n.id) ? prev : [n, ...prev])
         })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
@@ -348,32 +368,39 @@ export default function HomePage() {
     }
   }
 
+  const ageMonths = child ? getAgeMonths(child.birthdate) : 0
+  const { todayFeedCount, todaySleepCount, todayPoopCount } = useMemo(() => ({
+    todayFeedCount: events.filter((e) => e.type === 'feed').length,
+    todaySleepCount: events.filter((e) => e.type === 'sleep' && e.end_ts).length,
+    todayPoopCount: events.filter((e) => e.type === 'poop').length,
+  }), [events])
+
+  const dailySummary = useMemo(() => {
+    if (events.length === 0) return null
+    const totalFeedMl = events.filter(e => e.type === 'feed').reduce((s, e) => s + (e.amount_ml || 0), 0)
+    const feedCount = events.filter(e => e.type === 'feed').length
+    const sleepEvents = events.filter(e => e.type === 'sleep' && e.end_ts)
+    const napMin = sleepEvents.filter(e => e.tags?.sleepType === 'nap' || (!e.tags?.sleepType && new Date(e.start_ts).getHours() >= 6 && new Date(e.start_ts).getHours() < 20))
+      .reduce((s, e) => s + (new Date(e.end_ts!).getTime() - new Date(e.start_ts).getTime()) / 60000, 0)
+    const nightMin = sleepEvents.filter(e => e.tags?.sleepType === 'night' || (!e.tags?.sleepType && (new Date(e.start_ts).getHours() >= 20 || new Date(e.start_ts).getHours() < 6)))
+      .reduce((s, e) => s + (new Date(e.end_ts!).getTime() - new Date(e.start_ts).getTime()) / 60000, 0)
+    return { totalFeedMl, feedCount, napMin, nightMin }
+  }, [events])
+
   if (loading) {
     return (
       <div className="h-[100dvh] bg-white px-5 pt-14">
-        {/* 스켈레톤: 인사 영역 */}
         <div className="h-5 w-32 bg-[#E8E4DF] rounded-lg animate-pulse mb-2" />
         <div className="h-4 w-48 bg-[#E8E4DF] rounded-lg animate-pulse mb-6" />
-        {/* 스켈레톤: 퀵버튼 */}
         <div className="flex gap-3 mb-6">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="w-14 h-14 bg-[#E8E4DF] rounded-2xl animate-pulse" />
-          ))}
+          {[1, 2, 3, 4].map(i => <div key={i} className="w-14 h-14 bg-[#E8E4DF] rounded-2xl animate-pulse" />)}
         </div>
-        {/* 스켈레톤: 카드 3개 */}
         <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-24 bg-[#E8E4DF] rounded-xl animate-pulse" />
-          ))}
+          {[1, 2, 3].map(i => <div key={i} className="h-24 bg-[#E8E4DF] rounded-xl animate-pulse" />)}
         </div>
       </div>
     )
   }
-
-  const ageMonths = child ? getAgeMonths(child.birthdate) : 0
-  const todayFeedCount = events.filter((e) => e.type === 'feed').length
-  const todaySleepCount = events.filter((e) => e.type === 'sleep' && e.end_ts).length
-  const todayPoopCount = events.filter((e) => e.type === 'poop').length
 
   return (
     <div className="flex flex-col h-[100dvh] bg-white">
@@ -418,14 +445,8 @@ export default function HomePage() {
           />
 
           {/* ━━━ 하루 요약 바 ━━━ */}
-          {events.length > 0 && (() => {
-            const totalFeedMl = events.filter(e => e.type === 'feed').reduce((s, e) => s + (e.amount_ml || 0), 0)
-            const feedCount = events.filter(e => e.type === 'feed').length
-            const sleepEvents = events.filter(e => e.type === 'sleep' && e.end_ts)
-            const napMin = sleepEvents.filter(e => e.tags?.sleepType === 'nap' || (!e.tags?.sleepType && new Date(e.start_ts).getHours() >= 6 && new Date(e.start_ts).getHours() < 20))
-              .reduce((s, e) => s + (new Date(e.end_ts!).getTime() - new Date(e.start_ts).getTime()) / 60000, 0)
-            const nightMin = sleepEvents.filter(e => e.tags?.sleepType === 'night' || (!e.tags?.sleepType && (new Date(e.start_ts).getHours() >= 20 || new Date(e.start_ts).getHours() < 6)))
-              .reduce((s, e) => s + (new Date(e.end_ts!).getTime() - new Date(e.start_ts).getTime()) / 60000, 0)
+          {dailySummary && (() => {
+            const { totalFeedMl, feedCount, napMin, nightMin } = dailySummary
             const fmtMin = (m: number) => m >= 60 ? `${Math.floor(m/60)}시간 ${Math.round(m%60)}분` : `${Math.round(m)}분`
             return (
               <div className="flex gap-2">
@@ -459,22 +480,7 @@ export default function HomePage() {
               <div className="max-h-[220px] overflow-y-auto hide-scrollbar">
                 {events.slice(0, 10).map((e) => {
                   const time = new Date(e.start_ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
-                  const iconMap: Record<string, { Icon: React.FC<{ className?: string }>; bg: string; color: string }> = {
-                    feed: { Icon: BottleIcon, bg: 'bg-[#FFF0E6]', color: 'text-[var(--color-primary)]' },
-                    sleep: { Icon: MoonIcon, bg: 'bg-[#E8E0F8]', color: 'text-[#7B6DB0]' },
-                    poop: { Icon: PoopIcon, bg: 'bg-[#FFF5E6]', color: 'text-[#C4913E]' },
-                    pee: { Icon: DropletIcon, bg: 'bg-[#E6F4FF]', color: 'text-[#5B9FD6]' },
-                    temp: { Icon: ThermometerIcon, bg: 'bg-[#FFE8E8]', color: 'text-[#D46A6A]' },
-                    memo: { Icon: NoteIcon, bg: 'bg-[#F0EDE8]', color: 'text-[#9E9A95]' },
-                    bath: { Icon: BathIcon, bg: 'bg-[#E6F4FF]', color: 'text-[#5B9FD6]' },
-                    pump: { Icon: PumpIcon, bg: 'bg-[#FFF0E6]', color: 'text-[var(--color-primary)]' },
-                    babyfood: { Icon: BowlIcon, bg: 'bg-[#FFF8F0]', color: 'text-[#C4913E]' },
-                    snack: { Icon: CookieIcon, bg: 'bg-[#FFF8F0]', color: 'text-[#C4913E]' },
-                    toddler_meal: { Icon: RiceIcon, bg: 'bg-[#FFF8F0]', color: 'text-[#C4913E]' },
-                    medication: { Icon: PillIcon, bg: 'bg-[#FFECDB]', color: 'text-[#C4783E]' },
-                  }
-                  const labels: Record<string, string> = { feed: '수유', sleep: '수면', poop: '대변', pee: '소변', temp: '체온', memo: '메모', bath: '목욕', pump: '유축', babyfood: '이유식', snack: '간식', toddler_meal: '유아식', medication: '투약' }
-                  const iconInfo = iconMap[e.type] || { Icon: NoteIcon, bg: 'bg-[#F0EDE8]', color: 'text-[#9E9A95]' }
+                  const iconInfo = EVENT_ICON_MAP[e.type] || EVENT_ICON_DEFAULT
                   const detail = e.amount_ml ? `${e.amount_ml}ml` :
                     e.end_ts ? `${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` :
                     e.tags?.celsius ? `${e.tags.celsius}°C` :
@@ -487,7 +493,7 @@ export default function HomePage() {
                       <div className={`w-7 h-7 rounded-full ${iconInfo.bg} flex items-center justify-center shrink-0`}>
                         <iconInfo.Icon className={`w-3.5 h-3.5 ${iconInfo.color}`} />
                       </div>
-                      <span className="text-[13px] font-semibold text-[#1A1918]">{labels[e.type]}</span>
+                      <span className="text-[13px] font-semibold text-[#1A1918]">{EVENT_LABELS[e.type]}</span>
                       {detail && <span className={`text-[12px] font-medium ${isAlert ? 'text-red-500' : 'text-[var(--color-primary)]'}`}>{detail}</span>}
                       {isAlert && <span className="text-[10px] bg-red-50 text-red-500 px-1 py-0.5 rounded font-bold">주의</span>}
                     </div>
@@ -507,29 +513,27 @@ export default function HomePage() {
               <div>
                 <p className="text-[14px] font-semibold text-[#1A1918]">
                   {(() => {
-                    const VACCINES: Record<number, string> = { 0: 'BCG', 1: 'B형간염 2차', 2: 'DTaP 1차', 4: 'DTaP 2차', 6: 'DTaP 3차', 12: 'MMR', 15: '수두', 24: '일본뇌염' }
-                    const next = Object.entries(VACCINES).find(([m]) => Number(m) >= ageMonths)
+                    const next = Object.entries(NEXT_VACCINES).find(([m]) => Number(m) >= ageMonths)
                     return next ? next[1] : '완료!'
                   })()}
                 </p>
                 <p className="text-[13px] text-[#9E9A95]">다음 접종</p>
               </div>
             </Link>
-            {/* 이유식 AI 식단 or 성장 */}
-            {ageMonths >= 5 ? (
-              <AIMealCard mode="parenting" value={ageMonths} />
-            ) : (
-              <Link href="/record" className="bg-white rounded-xl border border-[#E8E4DF] p-3 flex items-center gap-2.5 active:bg-[#F5F1EC]">
-                <div className="w-9 h-9 rounded-full bg-[#E8F5E9] flex items-center justify-center shrink-0">
-                  <ChartIcon className="w-4.5 h-4.5 text-[#4A9B6E]" />
-                </div>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#1A1918]">{ageMonths}개월</p>
-                  <p className="text-[13px] text-[#9E9A95]">성장 기록</p>
-                </div>
-              </Link>
-            )}
+            {/* 성장 기록 */}
+            <Link href="/record" className="bg-white rounded-xl border border-[#E8E4DF] p-3 flex items-center gap-2.5 active:bg-[#F5F1EC]">
+              <div className="w-9 h-9 rounded-full bg-[#E8F5E9] flex items-center justify-center shrink-0">
+                <ChartIcon className="w-4.5 h-4.5 text-[#4A9B6E]" />
+              </div>
+              <div>
+                <p className="text-[14px] font-semibold text-[#1A1918]">{ageMonths}개월</p>
+                <p className="text-[13px] text-[#9E9A95]">성장 기록</p>
+              </div>
+            </Link>
           </div>
+
+          {/* AI 식단 추천 (풀 너비) */}
+          <AIMealCard mode="parenting" value={ageMonths} />
 
           {/* 키즈노트 — 조건부 노출 */}
           <KidsnoteCard ageMonths={ageMonths} />
@@ -600,15 +604,37 @@ function KidsnoteCard({ ageMonths }: { ageMonths: number }) {
 
   const autoFetch = async () => {
     try {
-      const creds = JSON.parse(localStorage.getItem('kn_credentials') || '{}')
-      if (!creds.u || !creds.p) return
+      // credential 읽기 (암호화 → 레거시 평문 폴백)
+      let creds: { u?: string; p?: string } = {}
+      const encData = localStorage.getItem('kn_credentials_enc')
+      if (encData) {
+        try {
+          const decrypted = await decrypt(encData, 'dodam-kn-local-key')
+          if (decrypted) creds = JSON.parse(decrypted)
+        } catch { /* 복호화 실패 */ }
+      }
+      // 암호화 실패 시 레거시 평문 폴백
+      if (!creds.u || !creds.p) {
+        const legacy = localStorage.getItem('kn_credentials')
+        if (legacy) {
+          try { creds = JSON.parse(legacy) } catch { /* */ }
+        }
+      }
+      if (!creds.u || !creds.p) { setKnError(null); return }
       setLoading(true)
       const loginRes = await fetch('/api/kidsnote', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'login', username: creds.u, password: creds.p }),
       })
       const loginData = await loginRes.json()
-      if (!loginData.success || !loginData.children?.length) { setReports([]); setKnError('로그인 실패 — 키즈노트 계정을 확인해주세요'); setLoading(false); return }
+      if (!loginData.success || !loginData.children?.length) {
+        // 캐시된 데이터가 있으면 그걸로 표시, 없으면 에러
+        const cached = localStorage.getItem('kn_cache_reports')
+        if (cached) { try { setReports(JSON.parse(cached).slice(0, 2)) } catch { /* */ } }
+        else { setKnError('키즈노트 계정을 확인해주세요') }
+        setLoading(false); return
+      }
+      setKnError(null) // 로그인 성공 시 에러 초기화
       const childId = loginData.children[0].id
       const reportRes = await fetch('/api/kidsnote', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -622,7 +648,7 @@ function KidsnoteCard({ ageMonths }: { ageMonths: number }) {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const hasCreds = !!localStorage.getItem('kn_credentials')
+    const hasCreds = !!localStorage.getItem('kn_credentials_enc') || !!localStorage.getItem('kn_credentials')
     const hasDaycare = localStorage.getItem('dodam_daycare') === 'true'
     setConnected(hasCreds)
     setDaycare(hasDaycare)

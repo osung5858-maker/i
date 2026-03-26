@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { getAuthUser, unauthorizedResponse } from '@/lib/security/auth'
+import { checkRateLimit, getClientIP } from '@/lib/security/rate-limit'
 
 const GOOGLE_FIT_BASE = 'https://www.googleapis.com/fitness/v1/users/me'
 
@@ -90,6 +92,15 @@ async function fetchWithRefresh(url: string, body: object | null, cookieStore: a
 }
 
 export async function GET(request: NextRequest) {
+  // 인증 체크
+  const user = await getAuthUser()
+  if (!user) return unauthorizedResponse()
+
+  // Rate limit 체크
+  const ip = getClientIP(request)
+  const { limited } = checkRateLimit(`google-fit:${user.id || ip}`, { limit: 20, windowMs: 60_000 })
+  if (limited) return NextResponse.json({ error: '요청이 너무 많아요. 잠시 후 다시 시도해주세요.' }, { status: 429 })
+
   const cookieStore = await cookies()
   const { searchParams } = new URL(request.url)
   const type = searchParams.get('type') || 'today'
