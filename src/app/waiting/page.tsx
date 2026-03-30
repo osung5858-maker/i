@@ -406,7 +406,7 @@ export default function WaitingPage() {
 
         {/* 양성 확인 모달 */}
         {showPregConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/40">
             <div className="bg-white rounded-2xl p-6 mx-6 max-w-sm w-full text-center shadow-xl animate-[fadeIn_0.2s_ease-out]">
               <HeartIcon className="w-10 h-10 text-[var(--color-primary)] mx-auto" />
               <h3 className="text-[18px] font-bold text-[#1A1918] mt-3 mb-1">정말이에요?</h3>

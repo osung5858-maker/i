@@ -50,7 +50,7 @@ export default function PWAInstallPrompt() {
   if (!show) return null
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-[55] max-w-lg mx-auto animate-slideUp">
+    <div className="fixed bottom-[calc(80px+env(safe-area-inset-bottom))] left-4 right-4 z-[75] max-w-lg mx-auto animate-slideUp">
       <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-[#ECECEC] p-4">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)] flex items-center justify-center shrink-0">

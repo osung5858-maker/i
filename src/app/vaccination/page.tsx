@@ -448,7 +448,7 @@ export default function VaccinationPage() {
 
       {/* Side effect prompt toast */}
       {showSEPrompt && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowSEPrompt(null)}>
+        <div className="fixed inset-0 z-[75] flex items-end justify-center" onClick={() => setShowSEPrompt(null)}>
           <div className="absolute inset-0 bg-black/30" />
           <div
             className="relative w-full max-w-[430px] bg-white rounded-t-2xl p-5 pb-8"

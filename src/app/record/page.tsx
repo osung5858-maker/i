@@ -145,24 +145,29 @@ function ParentingRecord() {
   const supabase = createClient()
 
   useEffect(() => {
+    const timeout = setTimeout(() => setLoading(false), 10000) // 10초 후 강제 해제
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/onboarding'); return }
-      const { data: children } = await supabase.from('children').select('id,name,birthdate,sex,photo_url').eq('user_id', user.id).limit(1)
-      if (!children || children.length === 0) { router.push('/settings/children/add'); return }
-      const c = children[0] as Child
-      setChild(c)
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-      const [eventsRes, growthRes] = await Promise.all([
-        supabase.from('events').select('*').eq('child_id', c.id).gte('start_ts', thirtyDaysAgo.toISOString()).order('start_ts', { ascending: false }),
-        supabase.from('growth_records').select('*').eq('child_id', c.id).order('measured_at', { ascending: true }),
-      ])
-      if (eventsRes.data) setEvents(eventsRes.data as CareEvent[])
-      if (growthRes.data) setRecords(growthRes.data as GrowthRecord[])
-      setLoading(false)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { router.push('/onboarding'); return }
+        const { data: children } = await supabase.from('children').select('id,name,birthdate,sex,photo_url').eq('user_id', user.id).limit(1)
+        if (!children || children.length === 0) { router.push('/settings/children/add'); return }
+        const c = children[0] as Child
+        setChild(c)
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+        const [eventsRes, growthRes] = await Promise.all([
+          supabase.from('events').select('*').eq('child_id', c.id).gte('start_ts', thirtyDaysAgo.toISOString()).order('start_ts', { ascending: false }),
+          supabase.from('growth_records').select('*').eq('child_id', c.id).order('measured_at', { ascending: true }),
+        ])
+        if (eventsRes.data) setEvents(eventsRes.data as CareEvent[])
+        if (growthRes.data) setRecords(growthRes.data as GrowthRecord[])
+      } finally {
+        setLoading(false)
+      }
     }
     load()
+    return () => clearTimeout(timeout)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {

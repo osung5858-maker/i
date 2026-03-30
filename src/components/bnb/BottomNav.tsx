@@ -195,14 +195,6 @@ export default function BottomNav() {
   // 다른 페이지로 이동하면 FAB 닫기
   useEffect(() => { setFabOpen(false) }, [pathname])
 
-  // ESC로 닫기
-  useEffect(() => {
-    if (!fabOpen) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setFabOpen(false) }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [fabOpen])
-
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<string | null>(null) // 3단계: 용량 선택
   const [tempSlider, setTempSlider] = useState<string | null>(null) // 슬라이더 열린 아이템 타입
@@ -211,6 +203,25 @@ export default function BottomNav() {
   const [memoItem, setMemoItem] = useState<string | null>(null) // 투약 메모
   const [memoText, setMemoText] = useState('')
   const fabStyle = 'B' as const // B안 확정
+
+  // ESC로 닫기 — 단계별 역방향 닫기
+  useEffect(() => {
+    if (!fabOpen) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      if (tempSlider || memoItem) {
+        setTempSlider(null); setMemoItem(null); setMemoText('')
+      } else if (selectedItem) {
+        setSelectedItem(null)
+      } else if (selectedCategory) {
+        setSelectedCategory(null)
+      } else {
+        setFabOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [fabOpen, selectedCategory, selectedItem, tempSlider, memoItem])
 
   const handleQuickRecord = useCallback(async (type: string, extra?: Record<string, unknown>) => {
     if (navigator.vibrate) navigator.vibrate(30)
