@@ -1,2 +1,6 @@
 /build/*
 !/build/.npmkeep
+
+# 릴리즈 키스토어 (절대 git에 올리지 말 것)
+*.jks
+*.keystore
