@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 export default function LandingLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
+      id="landing-scroll"
       className="overflow-y-auto bg-white"
       style={{
         position: 'fixed',

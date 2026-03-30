@@ -175,3 +175,78 @@ input:focus, textarea:focus, select:focus {
   animation: fadeIn 0.15s ease-out;
 }
 
+
+/* ===== 랜딩 패럴럭스 & 스크롤 리빌 ===== */
+
+/* 스크롤 리빌 베이스 */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-right {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.92) translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.is-visible, .reveal-left.is-visible, .reveal-right.is-visible, .reveal-scale.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.reveal-d1 { transition-delay: 80ms; }
+.reveal-d2 { transition-delay: 160ms; }
+.reveal-d3 { transition-delay: 240ms; }
+.reveal-d4 { transition-delay: 320ms; }
+
+/* 히어로 진입 애니메이션 */
+@keyframes heroSlideUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes heroBadge {
+  from { opacity: 0; transform: scale(0.85) translateY(-8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.hero-badge  { animation: heroBadge  0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both; }
+.hero-video  { animation: heroSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
+.hero-title  { animation: heroSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both; }
+.hero-sub    { animation: heroSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
+.hero-cta    { animation: heroSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both; }
+
+/* 배경 블롭 부유 */
+@keyframes blobFloat1 {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-28px) scale(1.04); }
+}
+@keyframes blobFloat2 {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  50%       { transform: translateY(20px) scale(1.06) rotate(8deg); }
+}
+@keyframes blobFloat3 {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  33%       { transform: translateY(-16px) translateX(12px); }
+  66%       { transform: translateY(10px) translateX(-8px); }
+}
+.blob-1 { animation: blobFloat1 8s ease-in-out infinite; }
+.blob-2 { animation: blobFloat2 11s ease-in-out infinite; }
+.blob-3 { animation: blobFloat3 14s ease-in-out infinite; }
+
+/* CTA 버튼 글로우 펄스 */
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 4px 20px rgba(232,147,122,0.40); }
+  50%       { box-shadow: 0 4px 36px rgba(232,147,122,0.70), 0 0 0 6px rgba(232,147,122,0.12); }
+}
+.cta-glow { animation: ctaGlow 2.8s ease-in-out infinite; }
+
+/* 패럴럭스 레이어 — JS가 transform 덮어씀 */
+.parallax-layer { will-change: transform; }
