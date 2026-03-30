@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
@@ -35,7 +36,7 @@ const FETAL_DATA = [
 ]
 
 // ===== 무료 축하박스 · 샘플 =====
-const FREE_BOXES = [
+const DEFAULT_FREE_BOXES = [
   // 임신 축하박스
   { id: 'bebeform_p', category: 'pregnancy', name: '베베폼 임신축하박스', desc: '임신 선물 꾸러미 (SNS 공유 필요)', link: 'https://bebeform.co.kr/giftbox/', tip: '매월 추첨' },
   { id: 'bebeking_p', category: 'pregnancy', name: '베베킹 임신축하박스', desc: '매월 200명 선물 증정', link: 'https://bebeking.co.kr/theme/bbk2026/contents/bebebox.php', tip: '매월 추첨' },
@@ -56,7 +57,7 @@ const FREE_BOXES = [
 ]
 
 // ===== 검진 리마인더 =====
-const CHECKUPS = [
+const DEFAULT_CHECKUPS = [
   { week: 8, id: 'first_us', title: '첫 초음파', desc: '심장 박동 확인', icon: '' },
   { week: 11, id: 'nt', title: 'NT 검사', desc: '목덜미 투명대 측정', icon: '' },
   { week: 16, id: 'quad', title: '쿼드 검사', desc: '기형아 선별 검사', icon: '' },
@@ -69,7 +70,7 @@ const CHECKUPS = [
 ]
 
 // ===== 혜택 · 제도 타임라인 =====
-const BENEFITS_TIMELINE = [
+const DEFAULT_BENEFITS_TIMELINE = [
   // 임신 확인 즉시
   { week: 0, id: 'happy_card', title: '국민행복카드 신청', desc: '임신 1회당 100만원 (다태아 140만원) 바우처', when: '임신 확인 즉시', icon: '', link: 'https://www.gov.kr/portal/onestopSvc/fertility', priority: 'high' },
   { week: 0, id: 'health_center', title: '보건소 등록', desc: '엽산제 · 철분제 무료 + 산전검사', when: '임신 확인 즉시', icon: '', link: 'https://www.gov.kr/portal/onestopSvc/fertility', priority: 'high' },
@@ -94,7 +95,7 @@ const BENEFITS_TIMELINE = [
 ]
 
 // ===== 출산 가방 =====
-const HOSPITAL_BAG = {
+const DEFAULT_HOSPITAL_BAG = {
   mom: [
     '산모 수첩 · 보험증', '수유 브라 2개', '산모 패드', '산모복 · 속옷',
     '세면도구 · 수건', '슬리퍼', '보온 양말', '간식 · 음료', '충전기', '산후 복대',
@@ -375,11 +376,13 @@ function PregnantMealCard({ week }: { week: number }) {
 // ===== 혜택 3탭 (정부지원 / 축하박스 / 출산 후) =====
 function BenefitTabs({ currentWeek, benefitDone, toggleBenefit }: { currentWeek: number; benefitDone: Record<string, boolean>; toggleBenefit: (id: string) => void }) {
   const [tab, setTab] = useState<'gov' | 'box' | 'after'>('gov')
+  const freeBoxes = useRemoteContent('free_boxes', DEFAULT_FREE_BOXES)
+  const benefitsTimeline = useRemoteContent('benefits_timeline', DEFAULT_BENEFITS_TIMELINE)
 
-  const govBenefits = BENEFITS_TIMELINE.filter(b => b.week <= 40)
-  const afterBenefits = BENEFITS_TIMELINE.filter(b => b.week > 40)
-  const pregBoxes = FREE_BOXES.filter(b => b.category === 'pregnancy')
-  const birthBoxes = FREE_BOXES.filter(b => b.category === 'birth')
+  const govBenefits = benefitsTimeline.filter(b => b.week <= 40)
+  const afterBenefits = benefitsTimeline.filter(b => b.week > 40)
+  const pregBoxes = freeBoxes.filter(b => b.category === 'pregnancy')
+  const birthBoxes = freeBoxes.filter(b => b.category === 'birth')
 
   const urgentCount = govBenefits.filter(b => b.week <= currentWeek && !benefitDone[b.id] && b.priority === 'high').length
     + afterBenefits.filter(b => currentWeek >= 38 && !benefitDone[b.id]).length
@@ -554,6 +557,8 @@ function PregnantAIDisplay({ briefing, onRefresh, week, daysLeft, fruit, fruitNa
 function haptic() { if (navigator.vibrate) navigator.vibrate(20) }
 
 export default function PregnantPage() {
+  const checkups = useRemoteContent('checkups', DEFAULT_CHECKUPS)
+  const hospitalBag = useRemoteContent('hospital_bag', DEFAULT_HOSPITAL_BAG)
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
   const [showGuide, setShowGuide] = useState(false)
@@ -649,7 +654,7 @@ export default function PregnantPage() {
   }, [currentWeek])
 
   const trimester = currentWeek <= 13 ? '초기' : currentWeek <= 27 ? '중기' : '후기'
-  const upcomingCheckups = CHECKUPS.filter(c => c.week >= currentWeek && !checkupDone[c.id]).slice(0, 3)
+  const upcomingCheckups = checkups.filter(c => c.week >= currentWeek && !checkupDone[c.id]).slice(0, 3)
 
   // 저장 핸들러
   const saveHealth = () => {
@@ -802,7 +807,7 @@ export default function PregnantPage() {
   }
 
   const seasonalBag = getSeasonalBag()
-  const allBagItems = [...HOSPITAL_BAG.mom, ...HOSPITAL_BAG.baby, ...HOSPITAL_BAG.partner, ...(seasonalBag?.items || [])]
+  const allBagItems = [...(hospitalBag.mom ?? []), ...(hospitalBag.baby ?? []), ...(hospitalBag.partner ?? []), ...(seasonalBag?.items || [])]
   const bagTotal = allBagItems.length
   const bagDone = Object.values(bagChecked).filter(Boolean).length
 

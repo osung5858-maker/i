@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
@@ -31,19 +32,19 @@ interface AIBriefing {
 }
 
 // ===== 더보기 섹션 데이터 =====
-const GOOD_FOODS = [
+const DEFAULT_GOOD_FOODS = [
   { icon: '', name: '엽산 식품', items: '시금치 · 브로콜리 · 아보카도' },
   { icon: '', name: '오메가3', items: '연어 · 고등어 · 호두' },
   { icon: '', name: '철분', items: '소고기 · 두부 · 렌틸콩' },
   { icon: '', name: '항산화', items: '블루베리 · 토마토 · 석류' },
 ]
-const BAD_FOODS = [
+const DEFAULT_BAD_FOODS = [
   { icon: '', name: '카페인', desc: '하루 1잔 이하' },
   { icon: '', name: '알코올', desc: '완전 금주' },
   { icon: '', name: '고수은 생선', desc: '참치(큰것) · 황새치' },
 ]
 
-const APPOINTMENTS = [
+const DEFAULT_APPOINTMENTS = [
   { id: 'basic', title: '기본 혈액검사', priority: 'high', desc: '빈혈 · 갑상선 · 간기능 · 혈당 · 혈액형', where: '산부인과 또는 보건소 (무료)', why: '임신 전 몸 상태 확인. 빈혈이 있으면 임신이 어려울 수 있어요' },
   { id: 'rubella', title: '풍진 항체검사', priority: 'high', desc: '풍진 면역 여부 확인', where: '산부인과 또는 보건소 (무료)', why: '임신 중 풍진 감염 시 태아 기형 위험. 항체 없으면 접종 후 1개월 피임 필요' },
   { id: 'amh', title: 'AMH 검사', priority: 'high', desc: '난소 기능 · 잔여 난자 수 예측', where: '산부인과 (유료 5~10만원)', why: '35세 이상 필수. 난소 나이를 확인해 임신 계획에 도움' },
@@ -54,7 +55,7 @@ const APPOINTMENTS = [
   { id: 'sperm', title: '정액 검사', priority: 'low', desc: '정자 수 · 운동성 · 형태', where: '비뇨기과 또는 난임 클리닉', why: '6개월 이상 임신 안 될 때. 남성 요인이 40%' },
 ]
 
-const STRESS_TIPS = [
+const DEFAULT_STRESS_TIPS = [
   { icon: '', title: '4-7-8 호흡법', desc: '4초 들숨 → 7초 멈춤 → 8초 날숨' },
   { icon: '', title: '산책 명상', desc: '15분 걷기 + 자연 소리' },
   { icon: '', title: '감사 일기', desc: '매일 3가지 감사한 것' },
@@ -226,6 +227,7 @@ function PreparingMealCard({ phase }: { phase: string }) {
 }
 
 export default function PreparingPage() {
+  const apptList = useRemoteContent('preparing_appointments', DEFAULT_APPOINTMENTS)
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
   const [showGuide, setShowGuide] = useState(false)
@@ -578,7 +580,7 @@ export default function PreparingPage() {
 
   const supplCount = Object.values(supplements).reduce((s, v) => s + (v > 0 ? 1 : 0), 0)
   const partnerCount = Object.values(partnerChecks).filter(Boolean).length
-  const apptCount = APPOINTMENTS.filter(a => appointments[a.id]).length
+  const apptCount = apptList.filter(a => appointments[a.id]).length
   const dpo = cycle ? Math.floor((Date.now() - cycle.ovulationDay.getTime()) / 86400000) : -99
   const showTWW = dpo >= 0 && dpo <= 16
 

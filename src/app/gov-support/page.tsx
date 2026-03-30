@@ -2,6 +2,7 @@
 
 import { PageHeader } from '@/components/layout/PageLayout'
 import { ExternalLinkIcon } from '@/components/ui/Icons'
+import { useRemoteContent } from '@/lib/useRemoteContent'
 
 interface Benefit {
   title: string
@@ -9,7 +10,7 @@ interface Benefit {
   link?: string
 }
 
-const SECTIONS: { label: string; color: string; items: Benefit[] }[] = [
+const DEFAULT_SECTIONS: { label: string; color: string; items: Benefit[] }[] = [
   {
     label: '현금 지원',
     color: '#E8F5EE',
@@ -44,6 +45,7 @@ const SECTIONS: { label: string; color: string; items: Benefit[] }[] = [
 ]
 
 export default function GovSupportPage() {
+  const sections = useRemoteContent('gov_support_sections', DEFAULT_SECTIONS)
   return (
     <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="정부 지원 혜택" showBack />
@@ -54,7 +56,7 @@ export default function GovSupportPage() {
           </p>
         </div>
 
-        {SECTIONS.map(section => (
+        {sections.map(section => (
           <div key={section.label}>
             <p className="text-[12px] font-semibold text-[#9E9A95] mb-2 uppercase tracking-wider">{section.label}</p>
             <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useRemoteContent } from '@/lib/useRemoteContent'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChatIcon, FireIcon, TrashIcon, HeartIcon, HeartFilledIcon, BookmarkIcon, BookmarkFilledIcon, GiftIcon, PackageIcon, MapPinIcon, CameraIcon, XIcon } from '@/components/ui/Icons'
@@ -82,7 +83,7 @@ function getDodamDays(): number {
 
 const MAX_PHOTOS = 5
 
-const WEEKLY_POLLS = [
+const DEFAULT_WEEKLY_POLLS = [
   { q: '이유식 첫 메뉴는?', options: ['쌀미음', '감자', '고구마'] },
   { q: '수면 교육 방법은?', options: ['퍼버법', '쉬닥법', '안 함'] },
   { q: '기저귀 브랜드는?', options: ['하기스', '팸퍼스', '기타'] },
@@ -92,7 +93,7 @@ const WEEKLY_POLLS = [
   { q: '육아 필수 앱은?', options: ['도담', '베이비타임', '삐요로그'] },
 ]
 
-const DAILY_QUESTIONS = [
+const DEFAULT_DAILY_QUESTIONS = [
   '우리 아기 첫 이유식 뭐였어요?',
   '통잠 성공 비결이 있다면?',
   '가장 유용했던 육아템은?',
@@ -145,6 +146,8 @@ export default function CommunityPage() {
 }
 
 export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initialTab?: 'feed' | 'market'; hideHeader?: boolean } = {}) {
+  const weeklyPolls = useRemoteContent('community_polls', DEFAULT_WEEKLY_POLLS)
+  const dailyQuestions = useRemoteContent('community_questions', DEFAULT_DAILY_QUESTIONS)
   const searchParams = useSearchParams()
   const paramTab = searchParams.get('tab') === 'market' ? 'market' : 'feed'
   const [tab, setTab] = useState<MainTab>(propTab || paramTab as MainTab)
@@ -164,7 +167,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   })
 
   // 주간 투표
-  const todayPoll = WEEKLY_POLLS[new Date().getDay() % WEEKLY_POLLS.length]
+  const todayPoll = weeklyPolls[new Date().getDay() % weeklyPolls.length]
   const pollKey = `dodam_poll_${new Date().getDay()}`
   const [pollVote, setPollVote] = useState<number | null>(() => {
     if (typeof window !== 'undefined') {
@@ -216,7 +219,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
 
   const router = useRouter()
   const supabase = createClient()
-  const dailyQuestion = DAILY_QUESTIONS[new Date().getDay() % DAILY_QUESTIONS.length]
+  const dailyQuestion = dailyQuestions[new Date().getDay() % dailyQuestions.length]
 
   const toggleBookmark = (postId: string) => {
     setBookmarks((prev) => {

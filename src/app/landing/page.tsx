@@ -13,13 +13,14 @@ function V({ src, className = 'w-12 h-12' }: { src: string; className?: string }
 }
 
 export default function LandingPage() {
-  const heroVideoRef = useRef<HTMLDivElement>(null)
-  const blob1Ref = useRef<HTMLDivElement>(null)
-  const blob2Ref = useRef<HTMLDivElement>(null)
-  const blob3Ref = useRef<HTMLDivElement>(null)
-  const ctaVideoRef = useRef<HTMLDivElement>(null)
+  // 패럴럭스 대상 refs
+  const heroCardRef  = useRef<HTMLDivElement>(null)
+  const blobARef     = useRef<HTMLDivElement>(null)  // 바깥 wrapper (JS parallax)
+  const blobBRef     = useRef<HTMLDivElement>(null)
+  const blobCRef     = useRef<HTMLDivElement>(null)
+  const ctaCardRef   = useRef<HTMLDivElement>(null)
 
-  // ── 패럴럭스 스크롤 ──
+  // ── 패럴럭스 ──
   useEffect(() => {
     const container = document.getElementById('landing-scroll')
     if (!container) return
@@ -30,16 +31,19 @@ export default function LandingPage() {
       ticking = true
       requestAnimationFrame(() => {
         const sy = container.scrollTop
-        if (heroVideoRef.current)
-          heroVideoRef.current.style.transform = `translateY(${sy * 0.22}px)`
-        if (blob1Ref.current)
-          blob1Ref.current.style.transform = `translateY(${sy * 0.12}px) translateX(${sy * 0.04}px)`
-        if (blob2Ref.current)
-          blob2Ref.current.style.transform = `translateY(${sy * 0.07}px) translateX(-${sy * 0.03}px)`
-        if (blob3Ref.current)
-          blob3Ref.current.style.transform = `translateY(${sy * 0.05}px)`
-        if (ctaVideoRef.current)
-          ctaVideoRef.current.style.transform = `translateY(-${sy * 0.04}px)`
+        // hero 영상: 스크롤 22% 속도 → 배경보다 천천히 올라가는 느낌
+        if (heroCardRef.current)
+          heroCardRef.current.style.transform = `translateY(${sy * 0.22}px)`
+        // blobs: 각기 다른 속도 (CSS 부유 애니메이션은 inner div에 있어서 충돌 없음)
+        if (blobARef.current)
+          blobARef.current.style.transform = `translateY(${sy * 0.14}px)`
+        if (blobBRef.current)
+          blobBRef.current.style.transform = `translateY(${sy * 0.08}px)`
+        if (blobCRef.current)
+          blobCRef.current.style.transform = `translateY(${sy * 0.05}px)`
+        // CTA 영상: 역방향 — 올라오는 느낌
+        if (ctaCardRef.current)
+          ctaCardRef.current.style.transform = `translateY(-${sy * 0.04}px)`
         ticking = false
       })
     }
@@ -48,13 +52,21 @@ export default function LandingPage() {
     return () => container.removeEventListener('scroll', onScroll)
   }, [])
 
-  // ── 스크롤 리빌 (IntersectionObserver) ──
+  // ── 스크롤 리빌 ──
+  // root를 스크롤 컨테이너로 지정해야 fixed 레이아웃에서 정확히 동작함
   useEffect(() => {
+    const container = document.getElementById('landing-scroll')
     const observer = new IntersectionObserver(
-      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('is-visible') }),
-      { threshold: 0.12, rootMargin: '0px 0px -48px 0px' }
+      (entries) => entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-visible')
+          observer.unobserve(e.target)
+        }
+      }),
+      { root: container, threshold: 0.1, rootMargin: '0px 0px -60px 0px' }
     )
-    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale')
+    document
+      .querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale')
       .forEach(el => observer.observe(el))
     return () => observer.disconnect()
   }, [])
@@ -63,35 +75,41 @@ export default function LandingPage() {
     <div className="w-full min-h-[100dvh]">
 
       {/* ━━━ 히어로 ━━━ */}
-      <section className="relative overflow-hidden text-center"
-        style={{ background: 'linear-gradient(180deg, #FFF8F3 0%, #FFE8D8 50%, #FFD4C4 100%)' }}>
+      {/* overflow: clip — JS clip과 달리 scroll container를 만들지 않으면서 클리핑 */}
+      <section className="relative text-center" style={{
+        background: 'linear-gradient(180deg, #FFF8F3 0%, #FFE8D8 50%, #FFD4C4 100%)',
+        overflow: 'clip',
+      }}>
 
-        {/* 배경 블롭 */}
-        <div ref={blob1Ref}
-          className="blob-1 parallax-layer pointer-events-none absolute -top-16 -right-16 w-72 h-72 rounded-full opacity-40"
-          style={{ background: 'radial-gradient(circle, #FFB8A0 0%, transparent 70%)' }} />
-        <div ref={blob2Ref}
-          className="blob-2 parallax-layer pointer-events-none absolute top-1/3 -left-20 w-64 h-64 rounded-full opacity-30"
-          style={{ background: 'radial-gradient(circle, #FFDBB5 0%, transparent 70%)' }} />
-        <div ref={blob3Ref}
-          className="blob-3 parallax-layer pointer-events-none absolute bottom-10 right-10 w-40 h-40 rounded-full opacity-25"
-          style={{ background: 'radial-gradient(circle, #FFD4C4 0%, transparent 70%)' }} />
+        {/* 배경 블롭 — outer div: JS parallax / inner div: CSS 부유 애니메이션 (분리!) */}
+        <div ref={blobARef} className="parallax-layer pointer-events-none absolute -top-16 -right-16 w-72 h-72">
+          <div className="blob-1 w-full h-full rounded-full opacity-40"
+            style={{ background: 'radial-gradient(circle, #FFB8A0 0%, transparent 70%)' }} />
+        </div>
+        <div ref={blobBRef} className="parallax-layer pointer-events-none absolute top-1/3 -left-20 w-64 h-64">
+          <div className="blob-2 w-full h-full rounded-full opacity-30"
+            style={{ background: 'radial-gradient(circle, #FFDBB5 0%, transparent 70%)' }} />
+        </div>
+        <div ref={blobCRef} className="parallax-layer pointer-events-none absolute bottom-10 right-10 w-40 h-40">
+          <div className="blob-3 w-full h-full rounded-full opacity-25"
+            style={{ background: 'radial-gradient(circle, #FFD4C4 0%, transparent 70%)' }} />
+        </div>
 
-        {/* 히어로 뱃지 */}
+        {/* 뱃지 */}
         <div className="hero-badge pt-10 lg:pt-14 flex justify-center">
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-semibold text-[#D47B62] bg-white/70 backdrop-blur-sm border border-[#FFD4C4]">
             ✨ AI 육아 파트너
           </span>
         </div>
 
-        {/* 히어로 영상 */}
-        <div ref={heroVideoRef} className="hero-video parallax-layer w-full max-w-md lg:max-w-2xl mx-auto px-6 pt-6 lg:pt-10">
-          <div className="rounded-3xl lg:rounded-[32px] overflow-hidden shadow-[0_12px_48px_rgba(232,147,122,0.30)]">
+        {/* 히어로 영상 — parallax-layer는 패럴럭스 전용, 카드는 그 안에 */}
+        <div ref={heroCardRef} className="parallax-layer w-full max-w-md lg:max-w-2xl mx-auto px-6 pt-6 lg:pt-10">
+          <div className="hero-video rounded-3xl lg:rounded-[32px] overflow-hidden shadow-[0_12px_48px_rgba(232,147,122,0.30)]">
             <video src="/images/illustrations/hero1.webm" autoPlay loop muted playsInline className="w-full object-cover" />
           </div>
         </div>
 
-        <div className="max-w-3xl mx-auto relative px-6 pt-10 lg:pt-14 pb-16 lg:pb-28">
+        <div className="max-w-3xl mx-auto relative px-6 pt-10 lg:pt-14 pb-20 lg:pb-32">
           <h1 className="hero-title text-[26px] sm:text-[40px] lg:text-[52px] font-bold text-[#1A1918] mb-4 lg:mb-6 leading-[1.3]">
             기록만 해도,<br />
             <span className="text-[#D47B62]">AI가 먼저 챙겨줘요.</span>
@@ -121,12 +139,12 @@ export default function LandingPage() {
           </p>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {[
-              { video: '/images/illustrations/t3.webm', title: '수유·수면 기록', desc: 'FAB 한 번으로 바로 기록', delay: '' },
-              { video: '/images/illustrations/h3.webm', title: '성장 차트', desc: '표준 백분위 비교', delay: 'reveal-d1' },
-              { video: '/images/illustrations/e2.webm', title: '발달 마일스톤', desc: '월령별 첫 순간 체크', delay: 'reveal-d2' },
-              { video: '/images/illustrations/f4.webm', title: '이유식 가이드', desc: '단계별 식재료·알레르기', delay: 'reveal-d3' },
+              { video: '/images/illustrations/t3.webm', title: '수유·수면 기록', desc: 'FAB 한 번으로 바로 기록', d: '' },
+              { video: '/images/illustrations/h3.webm', title: '성장 차트', desc: '표준 백분위 비교', d: 'reveal-d1' },
+              { video: '/images/illustrations/e2.webm', title: '발달 마일스톤', desc: '월령별 첫 순간 체크', d: 'reveal-d2' },
+              { video: '/images/illustrations/f4.webm', title: '이유식 가이드', desc: '단계별 식재료·알레르기', d: 'reveal-d3' },
             ].map(f => (
-              <div key={f.title} className={`reveal-scale ${f.delay} p-5 lg:p-7 rounded-2xl bg-[#FAFAFA] border border-[#F0EDE8] text-center`}>
+              <div key={f.title} className={`reveal-scale ${f.d} p-5 lg:p-7 rounded-2xl bg-[#FAFAFA] border border-[#F0EDE8] text-center`}>
                 <V src={f.video} className="w-14 h-14 lg:w-18 lg:h-18 mx-auto mb-3 lg:mb-4" />
                 <h3 className="text-[15px] lg:text-[18px] font-bold text-[#1A1918] mb-1">{f.title}</h3>
                 <p className="text-[13px] lg:text-[15px] text-[#9E9A95]">{f.desc}</p>
@@ -176,11 +194,11 @@ export default function LandingPage() {
           <p className="reveal reveal-d1 text-center text-[14px] lg:text-[16px] text-[#6B6966] mb-12 lg:mb-16">단계마다 딱 필요한 것만, AI가 먼저 챙겨줘요</p>
           <div className="space-y-3 lg:space-y-4">
             {[
-              { bg: 'from-[#FFE0EC] to-[#FFF0F5]', video: '/images/illustrations/onboarding-preparing.webm', label: '아기를 기다리고 있어요', desc: '배란일 · 가임기 알림 · 마음 체크 · AI 건강 코치', delay: '' },
-              { bg: 'from-[#FFE8D0] to-[#FFF8F0]', video: '/images/illustrations/onboarding-pregnant.webm', label: '배 속에 아기가 자라고 있어요', desc: '주차별 태아 성장 · 검진 일정 관리 · AI 맞춤 가이드', delay: 'reveal-d1' },
-              { bg: 'from-[#D5F0E0] to-[#F0FAF4]', video: '/images/illustrations/onboarding-parenting.webm', label: '우리 아이를 키우고 있어요', desc: '수유·수면 기록 · AI 아침 브리핑 · 성장 리포트 · 육아 SOS', delay: 'reveal-d2' },
+              { bg: 'from-[#FFE0EC] to-[#FFF0F5]', video: '/images/illustrations/onboarding-preparing.webm', label: '아기를 기다리고 있어요', desc: '배란일 · 가임기 알림 · 마음 체크 · AI 건강 코치', d: '' },
+              { bg: 'from-[#FFE8D0] to-[#FFF8F0]', video: '/images/illustrations/onboarding-pregnant.webm', label: '배 속에 아기가 자라고 있어요', desc: '주차별 태아 성장 · 검진 일정 관리 · AI 맞춤 가이드', d: 'reveal-d1' },
+              { bg: 'from-[#D5F0E0] to-[#F0FAF4]', video: '/images/illustrations/onboarding-parenting.webm', label: '우리 아이를 키우고 있어요', desc: '수유·수면 기록 · AI 아침 브리핑 · 성장 리포트 · 육아 SOS', d: 'reveal-d2' },
             ].map(m => (
-              <div key={m.label} className={`reveal-scale ${m.delay} bg-gradient-to-r ${m.bg} p-5 lg:p-7 rounded-2xl flex items-center gap-4 lg:gap-6`}>
+              <div key={m.label} className={`reveal-scale ${m.d} bg-gradient-to-r ${m.bg} p-5 lg:p-7 rounded-2xl flex items-center gap-4 lg:gap-6`}>
                 <V src={m.video} className="w-16 h-16 lg:w-20 lg:h-20" />
                 <div>
                   <h3 className="text-[15px] lg:text-[18px] font-bold text-[#1A1918] mb-1">{m.label}</h3>
@@ -199,12 +217,12 @@ export default function LandingPage() {
           <p className="reveal reveal-d1 text-center text-[14px] lg:text-[16px] text-[#6B6966] mb-12 lg:mb-16">육아의 크고 작은 순간들을 함께해요</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
             {[
-              { video: '/images/illustrations/f2.webm', title: '"검진 결과가 무슨 뜻이야?"', desc: '검진결과표 사진 한 장, AI가 쉽게 풀어줘요', delay: '' },
-              { video: '/images/illustrations/t5.webm', title: '"이 이름, 괜찮을까?"', desc: 'AI 추천 · 음양오행 · 한자 획수 분석', delay: 'reveal-d1' },
-              { video: '/images/illustrations/t4.webm', title: '"받을 수 있는 지원금이 있대"', desc: '부모급여·아동수당·보육료 혜택 한눈에', delay: 'reveal-d2' },
-              { video: '/images/illustrations/e1.webm', title: '"예방접종 언제 맞혀야 하지?"', desc: '스케줄 알림 · 완료 체크 · 부작용 안내', delay: 'reveal-d3' },
+              { video: '/images/illustrations/f2.webm', title: '"검진 결과가 무슨 뜻이야?"', desc: '검진결과표 사진 한 장, AI가 쉽게 풀어줘요', d: '' },
+              { video: '/images/illustrations/t5.webm', title: '"이 이름, 괜찮을까?"', desc: 'AI 추천 · 음양오행 · 한자 획수 분석', d: 'reveal-d1' },
+              { video: '/images/illustrations/t4.webm', title: '"받을 수 있는 지원금이 있대"', desc: '부모급여·아동수당·보육료 혜택 한눈에', d: 'reveal-d2' },
+              { video: '/images/illustrations/e1.webm', title: '"예방접종 언제 맞혀야 하지?"', desc: '스케줄 알림 · 완료 체크 · 부작용 안내', d: 'reveal-d3' },
             ].map(h => (
-              <div key={h.title} className={`reveal ${h.delay} flex items-center gap-4 lg:gap-5 p-5 lg:p-6 rounded-2xl border border-[#F0EDE8] bg-white`}>
+              <div key={h.title} className={`reveal ${h.d} flex items-center gap-4 lg:gap-5 p-5 lg:p-6 rounded-2xl border border-[#F0EDE8] bg-white`}>
                 <V src={h.video} className="w-13 h-13 lg:w-16 lg:h-16" />
                 <div>
                   <h3 className="text-[15px] lg:text-[18px] font-bold text-[#1A1918] mb-1">{h.title}</h3>
@@ -256,18 +274,21 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ CTA ━━━ */}
-      <section className="relative overflow-hidden px-6 py-16 sm:py-24 lg:py-32 text-center"
-        style={{ background: 'linear-gradient(180deg, #FFE8D8, #FFD4C4)' }}>
-
-        {/* CTA 배경 블롭 */}
+      <section className="relative px-6 py-16 sm:py-24 lg:py-32 text-center" style={{
+        background: 'linear-gradient(180deg, #FFE8D8, #FFD4C4)',
+        overflow: 'clip',
+      }}>
         <div className="blob-1 pointer-events-none absolute -top-10 -left-10 w-56 h-56 rounded-full opacity-30"
           style={{ background: 'radial-gradient(circle, #FFB8A0 0%, transparent 70%)' }} />
         <div className="blob-2 pointer-events-none absolute -bottom-10 -right-10 w-48 h-48 rounded-full opacity-25"
           style={{ background: 'radial-gradient(circle, #FFDBB5 0%, transparent 70%)' }} />
 
         <div className="max-w-xl mx-auto relative">
-          <div ref={ctaVideoRef} className="parallax-layer reveal-scale rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(232,147,122,0.2)] max-w-[280px] lg:max-w-[360px] mx-auto mb-8 lg:mb-12">
-            <video src="/images/illustrations/hero2.webm" autoPlay loop muted playsInline className="w-full object-cover" />
+          {/* outer div: parallax / inner div: 컨텐츠 */}
+          <div ref={ctaCardRef} className="parallax-layer reveal-scale max-w-[280px] lg:max-w-[360px] mx-auto mb-8 lg:mb-12">
+            <div className="rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(232,147,122,0.2)]">
+              <video src="/images/illustrations/hero2.webm" autoPlay loop muted playsInline className="w-full object-cover" />
+            </div>
           </div>
           <h2 className="reveal text-[22px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3 lg:mb-5 leading-tight">
             오늘도 잘 하고 있어요.<br />도담이 옆에 있을게요.

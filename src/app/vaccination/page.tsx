@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { SyringeIcon } from '@/components/ui/Icons'
 import { shareVaccination } from '@/lib/kakao/share-parenting'
 
 // --- Vaccine Schedule ---
-const SCHEDULE = [
+const DEFAULT_SCHEDULE = [
   { month: 0, id: 'bcg', name: 'BCG (결핵)', desc: '생후 4주 이내', required: true, detail: '부작용: 접종 부위 궤양·딱지 (정상 반응, 2~3개월 소요) | 지연: 생후 4주 이내 권장, 이후에도 접종 가능' },
   { month: 0, id: 'hepb_1', name: 'B형간염 1차', desc: '출생 시', required: true, detail: '부작용: 접종 부위 통증, 미열 | 지연: 출생 후 가능한 빨리 (24시간 이내 권장)' },
   { month: 1, id: 'hepb_2', name: 'B형간염 2차', desc: '생후 1개월', required: true, detail: '부작용: 접종 부위 통증, 미열 | 지연: 1차 접종 후 최소 4주 간격' },
@@ -120,6 +121,7 @@ function hasAnySymptom(check: SymptomCheck): boolean {
 
 // --- Page Component ---
 export default function VaccinationPage() {
+  const schedule = useRemoteContent('vaccination_schedule', DEFAULT_SCHEDULE)
   const [done, setDone] = useState<Record<string, string>>(() => {
     if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_vaccinations') || '{}') } catch { return {} } }
     return {}
@@ -173,7 +175,7 @@ export default function VaccinationPage() {
 
     // If marking as done, prompt for side effect tracking
     if (wasUndone) {
-      const vaccine = SCHEDULE.find(v => v.id === id)
+      const vaccine = schedule.find(v => v.id === id)
       if (vaccine) {
         // Only prompt if not already tracking this vaccine
         const alreadyTracking = seEntries.some(e => e.vaccineId === id && !e.completed)
@@ -222,13 +224,13 @@ export default function VaccinationPage() {
   }, [seEntries])
 
   const doneCount = Object.keys(done).length
-  const totalRequired = SCHEDULE.filter(v => v.required).length
+  const totalRequired = schedule.filter(v => v.required).length
   const activeTrackings = seEntries.filter(e => !e.completed)
   const completedTrackings = seEntries.filter(e => e.completed)
 
   const groups = useMemo(() => {
-    const map = new Map<string, typeof SCHEDULE>()
-    SCHEDULE.forEach(v => {
+    const map = new Map<string, typeof schedule>()
+    schedule.forEach(v => {
       const label = v.month === 0 ? '출생' : v.month < 12 ? `${v.month}개월` : `${Math.floor(v.month / 12)}세 (${v.month}개월)`
       if (!map.has(label)) map.set(label, [])
       map.get(label)!.push(v)
@@ -238,7 +240,7 @@ export default function VaccinationPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
-      <PageHeader title="예방접종" showBack rightAction={<span className="text-[13px] text-[var(--color-primary)] font-semibold">{doneCount}/{SCHEDULE.length}</span>} />
+      <PageHeader title="예방접종" showBack rightAction={<span className="text-[13px] text-[var(--color-primary)] font-semibold">{doneCount}/{schedule.length}</span>} />
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
 
@@ -384,16 +386,16 @@ export default function VaccinationPage() {
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[14px] font-bold text-[#1A1918] flex items-center gap-1"><SyringeIcon className="w-4 h-4" /> 접종 현황</p>
-            <p className="text-[14px] text-[var(--color-primary)] font-semibold">{Math.round((doneCount / SCHEDULE.length) * 100)}%</p>
+            <p className="text-[14px] text-[var(--color-primary)] font-semibold">{Math.round((doneCount / schedule.length) * 100)}%</p>
           </div>
           <div className="w-full h-2 bg-[#E8E4DF] rounded-full">
-            <div className="h-full bg-[var(--color-primary)] rounded-full transition-all" style={{ width: `${(doneCount / SCHEDULE.length) * 100}%` }} />
+            <div className="h-full bg-[var(--color-primary)] rounded-full transition-all" style={{ width: `${(doneCount / schedule.length) * 100}%` }} />
           </div>
           <div className="flex justify-between mt-2">
-            <p className="text-[14px] text-[#6B6966]">필수 {SCHEDULE.filter(v => v.required && done[v.id]).length}/{totalRequired}</p>
-            <p className="text-[14px] text-[#6B6966]">선택 {SCHEDULE.filter(v => !v.required && done[v.id]).length}/{SCHEDULE.filter(v => !v.required).length}</p>
+            <p className="text-[14px] text-[#6B6966]">필수 {schedule.filter(v => v.required && done[v.id]).length}/{totalRequired}</p>
+            <p className="text-[14px] text-[#6B6966]">선택 {schedule.filter(v => !v.required && done[v.id]).length}/{schedule.filter(v => !v.required).length}</p>
           </div>
-          <button onClick={() => shareVaccination(doneCount, SCHEDULE.length)} className="w-full mt-2 text-[12px] text-[var(--color-primary)] font-semibold">카톡 공유</button>
+          <button onClick={() => shareVaccination(doneCount, schedule.length)} className="w-full mt-2 text-[12px] text-[var(--color-primary)] font-semibold">카톡 공유</button>
         </div>
 
         {/* 접종 목록 */}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useRemoteContent } from '@/lib/useRemoteContent'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { shareLetter, sharePositiveTest } from '@/lib/kakao/share'
@@ -34,7 +35,7 @@ function getCycleInfo(lastPeriodStart: string, cycleLength: number) {
   return { ovulationDay, nextPeriod, cycles }
 }
 
-const CHECKLIST = [
+const DEFAULT_CHECKLIST = [
   { id: 'folic', icon: '', title: '엽산 복용', desc: '임신 3개월 전부터' },
   { id: 'checkup', icon: '', title: '산전 건강검진', desc: '혈액·소변·풍진항체' },
   { id: 'dental', icon: '', title: '치과 검진', desc: '임신 중 치료 어려우니 미리' },
@@ -45,7 +46,7 @@ const CHECKLIST = [
   { id: 'stress', icon: '', title: '스트레스 관리', desc: '충분한 수면·명상' },
 ]
 
-const GOV_SUPPORTS = [
+const DEFAULT_GOV_SUPPORTS = [
   { title: '난임부부 시술비 지원', desc: '체외수정 최대 110만원 · 인공수정 최대 30만원', link: 'https://www.gov.kr/portal/service/serviceInfo/SME000000100' },
   { title: '임신 사전건강관리', desc: '보건소 무료 산전검사 · 풍진/빈혈 검사', link: 'https://www.mohw.go.kr/menu.es?mid=a10711020200' },
   { title: '엽산제·철분제 무료', desc: '보건소 등록 시 무료 제공', link: 'https://www.gov.kr/portal/service/serviceInfo/SD0000016094' },
@@ -58,6 +59,8 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 function haptic() { if (navigator.vibrate) navigator.vibrate(20) }
 
 export default function WaitingPage() {
+  const checklist = useRemoteContent('waiting_checklist', DEFAULT_CHECKLIST)
+  const govSupports = useRemoteContent('waiting_gov_supports', DEFAULT_GOV_SUPPORTS)
   const router = useRouter()
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
@@ -196,7 +199,7 @@ export default function WaitingPage() {
     const next = { ...checked, [id]: !checked[id] }; setChecked(next)
     localStorage.setItem('dodam_preparing_checks', JSON.stringify(next))
     const done = Object.values(next).filter(Boolean).length
-    showToast(next[id] ? `체크 완료! (${done}/${CHECKLIST.length})` : '체크 취소')
+    showToast(next[id] ? `체크 완료! (${done}/${checklist.length})` : '체크 취소')
   }
 
   const recordBBT = useCallback((date: string, temp: number) => {
@@ -442,9 +445,9 @@ export default function WaitingPage() {
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex justify-between mb-3">
             <p className="text-[14px] font-bold text-[#1A1918]">준비 체크리스트</p>
-            <p className="text-[13px] text-[#6B6966]">{CHECKLIST.filter((c) => checked[c.id]).length}/{CHECKLIST.length}</p>
+            <p className="text-[13px] text-[#6B6966]">{checklist.filter((c) => checked[c.id]).length}/{checklist.length}</p>
           </div>
-          {CHECKLIST.map((item) => (
+          {checklist.map((item) => (
             <button key={item.id} onClick={() => toggleCheck(item.id)} className="w-full flex items-center gap-3 py-2 rounded-lg active:bg-[var(--color-page-bg)]">
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${checked[item.id] ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'border-[#AEB1B9]'}`}>
                 {checked[item.id] && <span className="text-white text-[14px]">✓</span>}
@@ -556,7 +559,7 @@ export default function WaitingPage() {
         {/* 정부 지원 */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <p className="text-[14px] font-bold text-[#1A1918] mb-3">정부 지원</p>
-          {GOV_SUPPORTS.map((item) => (
+          {govSupports.map((item) => (
             <div key={item.title} className="p-3 bg-[var(--color-page-bg)] rounded-xl mb-2 last:mb-0">
               <p className="text-[13px] font-semibold text-[#1A1918]">{item.title}</p>
               <p className="text-[13px] text-[#6B6966]">{item.desc}</p>
@@ -724,16 +727,19 @@ function WaitingBenefitTabs() {
     { t: '산후도우미 서비스', d: '정부 바우처 산후도우미', u: 'https://www.gov.kr/portal/onestopSvc/happyBirth' },
   ]
 
-  const boxItems = [
-    { t: '베베폼 축하박스', d: '임신/출산 선물 꾸러미', u: 'https://bebeform.co.kr/giftbox/' },
-    { t: '맘큐 하기스 허그박스', d: '기저귀 · 물티슈 · 산모용품', u: 'https://www.momq.co.kr/event/202004180005#hugboxEventTop' },
-    { t: '베베킹 축하박스', d: '매월 200명 선물 증정', u: 'https://bebeking.co.kr/theme/bbk2026/contents/bebebox.php' },
-    { t: '더블하트 더블박스', d: '약 20만원 상당 육아 필수템', u: 'https://m.doubleheart.co.kr/board/event/read.html?no=43417&board_no=8' },
-    { t: '맘스다이어리 맘스팩', d: '임산부 맞춤 샘플 박스', u: 'https://event.momsdiary.co.kr/com_event/momspack/2026/3m/index.html?' },
-    { t: '베베숲 마음박스', d: '임신 · 출산 축하 선물 꾸러미', u: 'https://www.bebesup.co.kr/proc/heartbox' },
-    { t: '페넬로페 더 퍼스트 박스', d: '신생아 첫 선물 박스', u: 'https://pf.kakao.com/_dxfaRxd/103498627' },
-    { t: '맘스팩', d: '매월 임산부 박스 발송', u: 'https://www.momspack.co.kr/' },
+  type FreeBox = { id: string; category: string; name: string; desc: string; link: string; tip: string }
+  const DEFAULT_FREE_BOXES: FreeBox[] = [
+    { id: 'bebeform_p', category: 'pregnancy', name: '베베폼 축하박스', desc: '임신/출산 선물 꾸러미', link: 'https://bebeform.co.kr/giftbox/', tip: '' },
+    { id: 'momq_hug', category: 'pregnancy', name: '맘큐 하기스 허그박스', desc: '기저귀 · 물티슈 · 산모용품', link: 'https://www.momq.co.kr/event/202004180005#hugboxEventTop', tip: '' },
+    { id: 'bebeking_p', category: 'pregnancy', name: '베베킹 축하박스', desc: '매월 200명 선물 증정', link: 'https://bebeking.co.kr/theme/bbk2026/contents/bebebox.php', tip: '' },
+    { id: 'doubleheart', category: 'pregnancy', name: '더블하트 더블박스', desc: '약 20만원 상당 육아 필수템', link: 'https://m.doubleheart.co.kr/board/event/read.html?no=43417&board_no=8', tip: '' },
+    { id: 'momsdiary', category: 'pregnancy', name: '맘스다이어리 맘스팩', desc: '임산부 맞춤 샘플 박스', link: 'https://event.momsdiary.co.kr/com_event/momspack/2026/3m/index.html?', tip: '' },
+    { id: 'bebesup', category: 'pregnancy', name: '베베숲 마음박스', desc: '임신 · 출산 축하 선물 꾸러미', link: 'https://www.bebesup.co.kr/proc/heartbox', tip: '' },
+    { id: 'penelope', category: 'birth', name: '페넬로페 더 퍼스트 박스', desc: '신생아 첫 선물 박스', link: 'https://pf.kakao.com/_dxfaRxd/103498627', tip: '' },
+    { id: 'momspack', category: 'pregnancy', name: '맘스팩', desc: '매월 임산부 박스 발송', link: 'https://www.momspack.co.kr/', tip: '' },
   ]
+  const remoteFreeBoxes = useRemoteContent<FreeBox[]>('free_boxes', DEFAULT_FREE_BOXES)
+  const boxItems = remoteFreeBoxes.map(b => ({ t: b.name, d: b.desc, u: b.link }))
 
   const items = tab === 'money' ? moneyItems : tab === 'health' ? healthItems : boxItems
 
