@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { sendFcmToToken } from '@/lib/push/fcm'
+import { sendFcmToToken } from "@/lib/push/fcm"
+import { sendWebPush, isWebPushSubscription } from "@/lib/push/webpush"
 
 /**
  * GET /api/cron/vaccination
@@ -118,12 +119,9 @@ export async function GET(request: Request) {
 
     // 발송
     for (const t of tokens) {
-      const ok = await sendFcmToToken(t.token, {
-        title,
-        body,
-        url: '/vaccination',
-        tag: 'vaccination',
-      })
+      const ok = isWebPushSubscription(t.token)
+        ? await sendWebPush(t.token, { title, body, url: '/vaccination', tag: 'vaccination' })
+        : await sendFcmToToken(t.token, { title, body, url: '/vaccination', tag: 'vaccination' })
       if (ok) sent++
     }
 

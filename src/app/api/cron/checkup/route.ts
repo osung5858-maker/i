@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { sendFcmToToken } from '@/lib/push/fcm'
+import { sendFcmToToken } from "@/lib/push/fcm"
+import { sendWebPush, isWebPushSubscription } from "@/lib/push/webpush"
 
 /**
  * GET /api/cron/checkup
@@ -89,7 +90,9 @@ export async function GET(request: Request) {
     const body = CHECKUP_NAMES[dueCheckup]
 
     for (const t of tokens) {
-      const ok = await sendFcmToToken(t.token, { title, body, url: '/vaccination', tag: 'checkup' })
+      const ok = isWebPushSubscription(t.token)
+        ? await sendWebPush(t.token, { title, body, url: '/vaccination', tag: 'checkup' })
+        : await sendFcmToToken(t.token, { title, body, url: '/vaccination', tag: 'checkup' })
       if (ok) sent++
     }
 
@@ -149,7 +152,9 @@ export async function GET(request: Request) {
     const body = '이번 주 산부인과 정기검진을 잊지 마세요.'
 
     for (const t of tokens) {
-      const ok = await sendFcmToToken(t.token, { title, body, url: '/pregnant', tag: 'ob_checkup' })
+      const ok = isWebPushSubscription(t.token)
+        ? await sendWebPush(t.token, { title, body, url: '/pregnant', tag: 'ob_checkup' })
+        : await sendFcmToToken(t.token, { title, body, url: '/pregnant', tag: 'ob_checkup' })
       if (ok) sent++
     }
 
