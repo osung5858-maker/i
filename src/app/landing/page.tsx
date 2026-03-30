@@ -53,9 +53,9 @@ export default function LandingPage() {
   }, [])
 
   // ── 스크롤 리빌 ──
-  // root를 스크롤 컨테이너로 지정해야 fixed 레이아웃에서 정확히 동작함
+  // root: null (뷰포트) — fixed 스크롤 컨테이너는 브라우저별로 root로 쓸 때 불안정함
   useEffect(() => {
-    const container = document.getElementById('landing-scroll')
+    const targets = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale')
     const observer = new IntersectionObserver(
       (entries) => entries.forEach(e => {
         if (e.isIntersecting) {
@@ -63,12 +63,16 @@ export default function LandingPage() {
           observer.unobserve(e.target)
         }
       }),
-      { root: container, threshold: 0.1, rootMargin: '0px 0px -60px 0px' }
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
     )
-    document
-      .querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale')
-      .forEach(el => observer.observe(el))
-    return () => observer.disconnect()
+    targets.forEach(el => observer.observe(el))
+
+    // 안전 폴백: 3초 후에도 안 보이는 요소는 강제 표시
+    const fallback = setTimeout(() => {
+      targets.forEach(el => el.classList.add('is-visible'))
+    }, 3000)
+
+    return () => { observer.disconnect(); clearTimeout(fallback) }
   }, [])
 
   return (
@@ -223,7 +227,7 @@ export default function LandingPage() {
               { video: '/images/illustrations/e1.webm', title: '"예방접종 언제 맞혀야 하지?"', desc: '스케줄 알림 · 완료 체크 · 부작용 안내', d: 'reveal-d3' },
             ].map(h => (
               <div key={h.title} className={`reveal ${h.d} flex items-center gap-4 lg:gap-5 p-5 lg:p-6 rounded-2xl border border-[#F0EDE8] bg-white`}>
-                <V src={h.video} className="w-13 h-13 lg:w-16 lg:h-16" />
+                <V src={h.video} className="w-12 h-12 lg:w-16 lg:h-16" />
                 <div>
                   <h3 className="text-[15px] lg:text-[18px] font-bold text-[#1A1918] mb-1">{h.title}</h3>
                   <p className="text-[13px] lg:text-[15px] text-[#6B6966] leading-relaxed">{h.desc}</p>
@@ -294,7 +298,7 @@ export default function LandingPage() {
             오늘도 잘 하고 있어요.<br />도담이 옆에 있을게요.
           </h2>
           <p className="reveal reveal-d1 text-[14px] lg:text-[17px] text-[#6B6966] mb-8 lg:mb-10">가입도, 사용도 무료예요</p>
-          <div className="reveal reveal-d2 flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-3">
             <Link href="/onboarding"
               className="cta-glow w-full max-w-xs lg:max-w-sm px-9 py-4 lg:py-5 rounded-full font-semibold text-white text-center text-[16px] lg:text-[18px] active:scale-95 transition-transform"
               style={{ background: 'linear-gradient(135deg, #E8937A, #D47B62)' }}>
@@ -310,7 +314,7 @@ export default function LandingPage() {
         <div className="max-w-xl mx-auto">
           <p className="reveal text-[13px] lg:text-[15px] text-[#9E9A95] mb-3">앱으로 더 편하게</p>
           <h3 className="reveal reveal-d1 text-[18px] lg:text-[24px] font-bold text-white mb-6 lg:mb-8">도담 앱 다운로드</h3>
-          <div className="reveal reveal-d2 flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4">
             <a href="#" className="inline-flex items-center gap-2.5 px-5 py-3 lg:px-6 lg:py-3.5 rounded-xl bg-white text-[#1A1918] active:scale-95 transition-transform">
               <svg width="20" height="24" viewBox="0 0 20 24" fill="none" className="lg:w-6 lg:h-7">
                 <path d="M16.52 12.88c-.02-2.56 2.08-3.8 2.18-3.86-1.18-1.74-3.02-1.98-3.68-2-1.56-.16-3.06.92-3.86.92-.8 0-2.04-.9-3.36-.88-1.72.02-3.32 1.02-4.2 2.56-1.8 3.12-.46 7.74 1.28 10.28.86 1.24 1.88 2.62 3.22 2.58 1.28-.06 1.78-.84 3.34-.84 1.56 0 2 .84 3.38.82 1.4-.02 2.28-1.26 3.12-2.5.98-1.44 1.38-2.84 1.4-2.9-.02-.02-2.7-1.04-2.72-4.12h-.1zM13.98 4.82c.7-.88 1.18-2.08 1.04-3.3-1.02.04-2.26.68-2.98 1.54-.66.76-1.24 2-1.08 3.16 1.12.08 2.28-.58 3.02-1.4z" fill="currentColor"/>
