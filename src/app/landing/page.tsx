@@ -16,7 +16,7 @@ function useStaggerCards(ref: React.RefObject<HTMLDivElement | null>, delay: num
           obs.disconnect()
         }
       },
-      { threshold: 0.06 }
+      { threshold: 0.18, rootMargin: '0px 0px -60px 0px' }
     )
     obs.observe(section)
     return () => obs.disconnect()
@@ -78,7 +78,7 @@ export default function LandingPage() {
   }, [])
 
   // ── 스크롤 리빌 ──
-  // root: null (뷰포트) — fixed 스크롤 컨테이너는 브라우저별로 root로 쓸 때 불안정함
+  // threshold 0.22 + rootMargin -100px: 요소가 뷰포트 안에 충분히 들어왔을 때만 트리거
   useEffect(() => {
     const targets = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale')
     const observer = new IntersectionObserver(
@@ -88,14 +88,19 @@ export default function LandingPage() {
           observer.unobserve(e.target)
         }
       }),
-      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0.22, rootMargin: '0px 0px -100px 0px' }
     )
     targets.forEach(el => observer.observe(el))
 
-    // 안전 폴백: 3초 후에도 안 보이는 요소는 강제 표시
+    // 폴백: 5초 후 현재 화면 안에 있는 요소만 강제 표시 (화면 밖 요소는 건드리지 않음)
     const fallback = setTimeout(() => {
-      targets.forEach(el => el.classList.add('is-visible'))
-    }, 3000)
+      targets.forEach(el => {
+        const rect = el.getBoundingClientRect()
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          el.classList.add('is-visible')
+        }
+      })
+    }, 5000)
 
     return () => { observer.disconnect(); clearTimeout(fallback) }
   }, [])
