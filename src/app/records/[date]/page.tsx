@@ -47,7 +47,7 @@ export default function RecordDetailPage() {
 
       const { data } = await supabase
         .from('events')
-        .select('*')
+        .select('id, type, start_ts, end_ts, amount_ml, unit, temperature, tags, memo, notes, child_id, recorder_id')
         .eq('child_id', children[0].id)
         .gte('start_ts', start)
         .lte('start_ts', end)

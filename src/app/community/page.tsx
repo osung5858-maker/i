@@ -285,8 +285,8 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
       if (likes) setUserLikes(new Set(likes.map((l: { post_id: string }) => l.post_id)))
 
       const [postsRes, itemsRes] = await Promise.all([
-        supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(30),
-        supabase.from('market_items').select('*').order('created_at', { ascending: false }).limit(30),
+        supabase.from('posts').select('id, user_id, content, like_count, comment_count, created_at').order('created_at', { ascending: false }).limit(30),
+        supabase.from('market_items').select('id, user_id, title, description, price, category, baby_age_months, region, photos, status, chat_count, created_at, transaction_type, exchange_want').order('created_at', { ascending: false }).limit(30),
       ])
       setPosts((postsRes.data as Post[]) || [])
       setItems((itemsRes.data as MarketItem[]) || [])
@@ -365,7 +365,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   // 댓글 로드
   const loadComments = useCallback(async (postId: string) => {
     const { data } = await supabase
-      .from('comments').select('*').eq('post_id', postId)
+      .from('comments').select('id, post_id, user_id, content, created_at').eq('post_id', postId)
       .order('created_at', { ascending: true })
     if (data) setComments((prev) => ({ ...prev, [postId]: data as Comment[] }))
   }, [supabase])
@@ -682,7 +682,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 <div className="flex items-start gap-3 p-4">
                   <div className="w-20 h-20 rounded-xl bg-[var(--color-page-bg)] flex items-center justify-center shrink-0 overflow-hidden">
                     {item.photos && item.photos.length > 0 ? (
-                      <img src={item.photos[0]} alt="" className="w-full h-full object-cover" />
+                      <img src={item.photos[0]} alt="" className="w-full h-full object-cover" loading="lazy" />
                     ) : (
                       <PackageIcon className="w-6 h-6 text-[#9E9A95]" />
                     )}
@@ -722,7 +722,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                   <div className="flex gap-1 px-5 pb-3 overflow-x-auto">
                     {item.photos.map((url: string, i: number) => (
                       <div key={i} className="w-14 h-14 rounded-lg bg-[var(--color-page-bg)] shrink-0 overflow-hidden">
-                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
                       </div>
                     ))}
                   </div>
@@ -875,7 +875,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 <div className="flex gap-2">
                   {mPhotos.map((url, i) => (
                     <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden bg-[var(--color-page-bg)]">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
                       <button
                         onClick={() => setMPhotos((prev) => prev.filter((_, j) => j !== i))}
                         className="absolute top-0.5 right-0.5 w-4 h-4 bg-black/50 rounded-full text-white text-[13px] flex items-center justify-center"

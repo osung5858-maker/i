@@ -184,7 +184,7 @@ export default function AnalyzeCheckupPage() {
           </button>
         ) : (
           <div className="relative">
-            <img src={preview} alt="검진결과표" className="w-full rounded-2xl border border-[#ECECEC] object-contain max-h-80" />
+            <img src={preview} alt="검진결과표" className="w-full rounded-2xl border border-[#ECECEC] object-contain max-h-80" loading="lazy" />
             <button
               onClick={() => { setPreview(null); setFile(null); setResult(null) }}
               className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 text-white text-sm flex items-center justify-center"

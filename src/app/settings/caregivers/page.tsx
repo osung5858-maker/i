@@ -35,7 +35,7 @@ export default function CaregiversPage() {
 
       const { data } = await supabase
         .from('caregivers')
-        .select('*')
+        .select('id, role, accepted_at, user_id')
         .eq('child_id', children[0].id)
 
       if (data) setCaregivers(data as CaregiverRow[])

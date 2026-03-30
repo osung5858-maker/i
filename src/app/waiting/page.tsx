@@ -726,12 +726,13 @@ function WaitingBenefitTabs() {
 
   const boxItems = [
     { t: '베베폼 축하박스', d: '임신/출산 선물 꾸러미', u: 'https://bebeform.co.kr/giftbox/' },
-    { t: '맘큐 하기스 허그박스', d: '기저귀 · 물티슈 · 산모용품', u: 'https://www.momq.co.kr/' },
-    { t: '베베킹 축하박스', d: '매월 200명 선물 증정', u: 'https://www.bebeking.co.kr/' },
-    { t: 'HiPP 힙 축하박스', d: '유기농 분유 샘플 + 육아용품', u: 'https://www.hipp.co.kr/' },
-    { t: '더블하트 더블박스', d: '약 20만원 상당 육아 필수템', u: 'https://m.doubleheart.co.kr/' },
+    { t: '맘큐 하기스 허그박스', d: '기저귀 · 물티슈 · 산모용품', u: 'https://www.momq.co.kr/event/202004180005#hugboxEventTop' },
+    { t: '베베킹 축하박스', d: '매월 200명 선물 증정', u: 'https://bebeking.co.kr/theme/bbk2026/contents/bebebox.php' },
+    { t: '더블하트 더블박스', d: '약 20만원 상당 육아 필수템', u: 'https://m.doubleheart.co.kr/board/event/read.html?no=43417&board_no=8' },
+    { t: '맘스다이어리 맘스팩', d: '임산부 맞춤 샘플 박스', u: 'https://event.momsdiary.co.kr/com_event/momspack/2026/3m/index.html?' },
+    { t: '베베숲 마음박스', d: '임신 · 출산 축하 선물 꾸러미', u: 'https://www.bebesup.co.kr/proc/heartbox' },
+    { t: '페넬로페 더 퍼스트 박스', d: '신생아 첫 선물 박스', u: 'https://pf.kakao.com/_dxfaRxd/103498627' },
     { t: '맘스팩', d: '매월 임산부 박스 발송', u: 'https://www.momspack.co.kr/' },
-    { t: '베페 베이비페어', d: 'COEX — 할인 + 대량 샘플', u: 'https://www.befe.co.kr/' },
   ]
 
   const items = tab === 'money' ? moneyItems : tab === 'health' ? healthItems : boxItems

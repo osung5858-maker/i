@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, memo } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   SunIcon, HeartIcon, ShieldIcon, UsersIcon,
@@ -166,7 +167,7 @@ const RECORD_CATEGORIES: RecordCategory[] = [
   },
 ]
 
-export default function BottomNav() {
+function BottomNavComponent() {
   const pathname = usePathname()
   const [fabOpen, setFabOpen] = useState(false)
   const [mode, setMode] = useState('parenting') // SSR 일관성 — useEffect에서 실제 모드 설정
@@ -713,7 +714,7 @@ export default function BottomNav() {
                         {/* 호흡 글로우 링 */}
                         <div className="absolute inset-[-6px] rounded-full" style={{ animation: 'fabGlow 3s ease-in-out infinite', background: 'radial-gradient(circle, var(--color-primary) 0%, transparent 70%)', opacity: 0.15 }} />
                         {/* 물방울 이미지 */}
-                        <img src="/fab.png" alt="" className="w-[62px] h-[62px] active:scale-90 transition-all duration-200" style={{ filter: 'drop-shadow(0 4px 12px var(--color-fab-shadow))', animation: 'fabBreathe 3s ease-in-out infinite' }} />
+                        <Image src="/fab.png" alt="" width={62} height={62} priority className="active:scale-90 transition-all duration-200" style={{ filter: 'drop-shadow(0 4px 12px var(--color-fab-shadow))', animation: 'fabBreathe 3s ease-in-out infinite' }} />
                         {/* 반짝임 점 */}
                         <div className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-white" style={{ animation: 'fabSparkle 2.5s ease-in-out infinite', boxShadow: '0 0 4px rgba(255,255,255,0.8)' }} />
                       </div>
@@ -824,3 +825,5 @@ function NavTab({ tab, pathname, 'data-guide': dataGuide }: { tab: Tab; pathname
     </Link>
   )
 }
+
+export default memo(BottomNavComponent)

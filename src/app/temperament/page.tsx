@@ -54,7 +54,7 @@ export default function TemperamentPage() {
       if (!user) { router.push('/onboarding'); return }
 
       const { data: children } = await supabase
-        .from('children').select('*').eq('user_id', user.id)
+        .from('children').select('id, name, birthdate, sex, photo_url').eq('user_id', user.id)
         .order('created_at', { ascending: true }).limit(1)
 
       if (!children || children.length === 0) { router.push('/settings/children/add'); return }

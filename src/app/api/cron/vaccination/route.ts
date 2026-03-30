@@ -6,10 +6,9 @@ import { sendWebPush, isWebPushSubscription } from "@/lib/push/webpush"
 /**
  * GET /api/cron/vaccination
  * 매일 09:00 KST (00:00 UTC) 실행
- * 예방접종 7일 이내 아이 → 보호자에게 푸시 발송
+ * N+1 제거: 후보 필터링(인메모리) 후 3개 배치 쿼리로 처리
  */
 
-// 월령 → 접종 이름
 const VACCINE_SCHEDULE: Record<number, string> = {
   0: 'BCG·B형간염 1차',
   1: 'B형간염 2차',
@@ -23,9 +22,7 @@ const VACCINE_SCHEDULE: Record<number, string> = {
   36: 'DTaP 5차·폴리오 4차',
 }
 
-function getVaccineMonths(): number[] {
-  return Object.keys(VACCINE_SCHEDULE).map(Number).sort((a, b) => a - b)
-}
+const vaccineMonths = Object.keys(VACCINE_SCHEDULE).map(Number).sort((a, b) => a - b)
 
 function getAgeMonths(birthdate: string): number {
   const birth = new Date(birthdate)
@@ -40,7 +37,7 @@ function getAgeDays(birthdate: string): number {
 function verifyAuth(request: Request): boolean {
   const auth = request.headers.get('authorization')
   const secret = process.env.CRON_SECRET
-  if (!secret) return false // secret 미설정 시 항상 거부
+  if (!secret) return false
   return auth === `Bearer ${secret}`
 }
 
@@ -54,7 +51,6 @@ export async function GET(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 
-  // 전체 아이 목록 조회
   const { data: children, error } = await supabase
     .from('children')
     .select('id, user_id, name, birthdate')
@@ -63,76 +59,75 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'DB error', detail: error?.message }, { status: 500 })
   }
 
-  const vaccineMonths = getVaccineMonths()
-  let sent = 0
-  let skipped = 0
+  // ── 1. 인메모리 후보 필터 (DB 쿼리 없음) ──
+  type Candidate = typeof children[number] & { nextMonth: number; daysUntil: number }
+  const candidates: Candidate[] = []
 
   for (const child of children) {
     const ageDays = getAgeDays(child.birthdate)
     const ageMonths = getAgeMonths(child.birthdate)
-
-    // 다음 접종 월령 찾기
     const nextMonth = vaccineMonths.find(m => m > ageMonths)
-    if (nextMonth === undefined) continue // 접종 완료
+    if (nextMonth === undefined) continue
+    const daysUntil = (nextMonth * 30) - ageDays
+    if (daysUntil < 0 || daysUntil > 7) continue
+    candidates.push({ ...child, nextMonth, daysUntil })
+  }
 
-    // 다음 접종 D-day 계산 (월령 → 일수 근사)
-    const nextDueDay = nextMonth * 30
-    const daysUntil = nextDueDay - ageDays
+  if (candidates.length === 0) {
+    return NextResponse.json({ ok: true, sent: 0, skipped: children.length, reason: 'no candidates' })
+  }
 
-    // 7일 이내 또는 당일이면 알림
-    if (daysUntil < 0 || daysUntil > 7) { skipped++; continue }
+  const userIds = [...new Set(candidates.map(c => c.user_id))]
+  const today = new Date().toISOString().split('T')[0]
 
-    // 알림 설정 확인
-    const { data: settings } = await supabase
-      .from('notification_settings')
-      .select('enabled, vaccination, dnd_start, dnd_end')
-      .eq('user_id', child.user_id)
-      .single()
+  // ── 2. 배치 쿼리 (N→3개) ──
+  const [settingsRes, sentRes, tokensRes] = await Promise.all([
+    supabase.from('notification_settings').select('user_id, enabled, vaccination').in('user_id', userIds),
+    supabase.from('notification_log').select('user_id').in('user_id', userIds)
+      .eq('type', 'vaccination').gte('sent_at', `${today}T00:00:00Z`),
+    supabase.from('push_tokens').select('user_id, token').in('user_id', userIds),
+  ])
 
+  // ── 3. 룩업맵 구성 ──
+  const settingsMap = new Map((settingsRes.data || []).map(s => [s.user_id, s]))
+  const sentSet = new Set((sentRes.data || []).map(s => s.user_id))
+  const tokensMap = new Map<string, string[]>()
+  for (const t of tokensRes.data || []) {
+    if (!tokensMap.has(t.user_id)) tokensMap.set(t.user_id, [])
+    tokensMap.get(t.user_id)!.push(t.token)
+  }
+
+  let sent = 0
+  let skipped = children.length - candidates.length
+  const logsToInsert: object[] = []
+  const notifiedUsers = new Set<string>()
+
+  for (const child of candidates) {
+    const settings = settingsMap.get(child.user_id)
     if (settings && (!settings.enabled || !settings.vaccination)) { skipped++; continue }
-
-    // 오늘 이미 발송했는지 확인 (중복 방지)
-    const today = new Date().toISOString().split('T')[0]
-    const { data: alreadySent } = await supabase
-      .from('notification_log')
-      .select('id')
-      .eq('user_id', child.user_id)
-      .eq('type', 'vaccination')
-      .gte('sent_at', `${today}T00:00:00Z`)
-      .limit(1)
-
-    if (alreadySent && alreadySent.length > 0) { skipped++; continue }
-
-    // 푸시 토큰 조회
-    const { data: tokens } = await supabase
-      .from('push_tokens')
-      .select('token')
-      .eq('user_id', child.user_id)
-
+    if (sentSet.has(child.user_id) || notifiedUsers.has(child.user_id)) { skipped++; continue }
+    const tokens = tokensMap.get(child.user_id)
     if (!tokens || tokens.length === 0) { skipped++; continue }
 
-    const vaccineName = VACCINE_SCHEDULE[nextMonth]
-    const title = daysUntil === 0
+    const title = child.daysUntil === 0
       ? `${child.name} 예방접종 오늘이에요!`
-      : `${child.name} 예방접종 D-${daysUntil}`
-    const body = `${nextMonth}개월 접종: ${vaccineName}. 가까운 소아과를 예약해보세요.`
+      : `${child.name} 예방접종 D-${child.daysUntil}`
+    const body = `${child.nextMonth}개월 접종: ${VACCINE_SCHEDULE[child.nextMonth]}. 가까운 소아과를 예약해보세요.`
 
-    // 발송
-    for (const t of tokens) {
-      const ok = isWebPushSubscription(t.token)
-        ? await sendWebPush(t.token, { title, body, url: '/vaccination', tag: 'vaccination' })
-        : await sendFcmToToken(t.token, { title, body, url: '/vaccination', tag: 'vaccination' })
+    for (const token of tokens) {
+      const ok = isWebPushSubscription(token)
+        ? await sendWebPush(token, { title, body, url: '/vaccination', tag: 'vaccination' })
+        : await sendFcmToToken(token, { title, body, url: '/vaccination', tag: 'vaccination' })
       if (ok) sent++
     }
 
-    // 이력 저장
-    await supabase.from('notification_log').insert({
-      user_id: child.user_id,
-      type: 'vaccination',
-      title,
-      body,
-      deeplink: '/vaccination',
-    })
+    logsToInsert.push({ user_id: child.user_id, type: 'vaccination', title, body, deeplink: '/vaccination' })
+    notifiedUsers.add(child.user_id)
+  }
+
+  // ── 4. 배치 인서트 ──
+  if (logsToInsert.length > 0) {
+    await supabase.from('notification_log').insert(logsToInsert)
   }
 
   return NextResponse.json({ ok: true, sent, skipped, total: children.length })

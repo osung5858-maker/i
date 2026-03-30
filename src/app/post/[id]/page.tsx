@@ -15,9 +15,9 @@ export default function PublicPostPage() {
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const { data: postData } = await supabase.from('posts').select('*').eq('id', postId).single()
+      const { data: postData } = await supabase.from('posts').select('id, content, like_count, created_at').eq('id', postId).single()
       if (postData) setPost(postData)
-      const { data: commentData } = await supabase.from('comments').select('*').eq('post_id', postId).order('created_at', { ascending: true })
+      const { data: commentData } = await supabase.from('comments').select('id, content, created_at').eq('post_id', postId).order('created_at', { ascending: true })
       if (commentData) setComments(commentData)
       setLoading(false)
     }

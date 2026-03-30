@@ -31,7 +31,7 @@ export default function EditChildPage() {
     async function load() {
       const { data } = await supabase
         .from('children')
-        .select('*')
+        .select('id, name, birthdate, sex, photo_url')
         .eq('id', childId)
         .single()
       if (data) {

@@ -296,7 +296,7 @@ export default function MilestonePage() {
                     {editPhoto.match(/\.(mp4|webm|mov)$/i) ? (
                       <video src={editPhoto} className="w-full h-full object-cover" controls />
                     ) : (
-                      <img src={editPhoto} alt="" className="w-full h-full object-cover" />
+                      <img src={editPhoto} alt="" className="w-full h-full object-cover" loading="lazy" />
                     )}
                     <button onClick={() => setEditPhoto('')} className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full text-white text-[12px] flex items-center justify-center">x</button>
                   </div>

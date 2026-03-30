@@ -181,7 +181,7 @@ export default function DiaryView({ events, childName }: Props) {
       <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
         {photos.map((src, i) => (
           <div key={i} className="relative shrink-0 w-24 h-24">
-            <img src={src} alt="" className="w-full h-full object-cover rounded-xl" />
+            <img src={src} alt="" className="w-full h-full object-cover rounded-xl" loading="lazy" />
             <button onClick={() => removePhoto(i)} className="absolute -top-1 -right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center">
               <span className="text-white text-[14px]"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
             </button>

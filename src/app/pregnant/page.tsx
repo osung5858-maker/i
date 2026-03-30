@@ -38,21 +38,21 @@ const FETAL_DATA = [
 const FREE_BOXES = [
   // 임신 축하박스
   { id: 'bebeform_p', category: 'pregnancy', name: '베베폼 임신축하박스', desc: '임신 선물 꾸러미 (SNS 공유 필요)', link: 'https://bebeform.co.kr/giftbox/', tip: '매월 추첨' },
-  { id: 'bebeking_p', category: 'pregnancy', name: '베베킹 임신축하박스', desc: '매월 200명 선물 증정', link: 'https://www.bebeking.co.kr/', tip: '매월 추첨' },
-  { id: 'momq_hug', category: 'pregnancy', name: '맘큐 하기스 허그박스', desc: '하기스 기저귀 · 물티슈 · 산모용품', link: 'https://www.momq.co.kr/', tip: '배송비 3,500원 · 부부 각각 신청 가능' },
-  { id: 'hipp', category: 'pregnancy', name: 'HiPP 힙 축하박스', desc: '유기농 분유 샘플 + 육아용품', link: 'https://www.hipp.co.kr/', tip: '회원가입 후 신청' },
+  { id: 'bebeking_p', category: 'pregnancy', name: '베베킹 임신축하박스', desc: '매월 200명 선물 증정', link: 'https://bebeking.co.kr/theme/bbk2026/contents/bebebox.php', tip: '매월 추첨' },
+  { id: 'momq_hug', category: 'pregnancy', name: '맘큐 하기스 허그박스', desc: '하기스 기저귀 · 물티슈 · 산모용품', link: 'https://www.momq.co.kr/event/202004180005#hugboxEventTop', tip: '배송비 3,500원 · 부부 각각 신청 가능' },
   { id: 'lovemom', category: 'pregnancy', name: '럽맘박스', desc: '매월 육아용품 박스 (최대 8회)', link: 'https://play.google.com/store/apps/details?id=com.momandbaby.lovemom', tip: '럽맘 앱 설치 후 신청' },
-  { id: 'doubleheart', category: 'pregnancy', name: '더블하트 더블박스', desc: '약 20만원 상당 육아 필수템', link: 'https://m.doubleheart.co.kr/', tip: '회원가입 후 신청' },
-  { id: 'momspack', category: 'pregnancy', name: '맘스팩', desc: '매월 임산부 박스 (태교일기 1일 이상 작성)', link: 'https://www.momspack.co.kr/', tip: '매월 발송' },
-  { id: 'maternity_school', category: 'pregnancy', name: '매터니티스쿨', desc: '매월 100명 추첨 출산선물', link: 'https://www.maternitylove.co.kr/', tip: '매월 추첨' },
+  { id: 'doubleheart', category: 'pregnancy', name: '더블하트 더블박스', desc: '약 20만원 상당 육아 필수템', link: 'https://m.doubleheart.co.kr/board/event/read.html?no=43417&board_no=8', tip: '회원가입 후 신청' },
+  { id: 'momsdiary', category: 'pregnancy', name: '맘스다이어리 맘스팩', desc: '임산부 맞춤 샘플 박스', link: 'https://event.momsdiary.co.kr/com_event/momspack/2026/3m/index.html?', tip: '신청 후 배송' },
+  { id: 'bebesup', category: 'pregnancy', name: '베베숲 마음박스', desc: '임신 · 출산 축하 선물 꾸러미', link: 'https://www.bebesup.co.kr/proc/heartbox', tip: '신청 후 배송' },
+  { id: 'namyang_p', category: 'pregnancy', name: '남양유업 임신축하 샘플', desc: '임산부 맞춤 샘플 증정', link: 'https://shopping.namyangi.com/', tip: '남양아이 가입' },
   // 출산 축하박스 / 분유 샘플
   { id: 'bebeform_b', category: 'birth', name: '베베폼 출산축하박스', desc: '출산 선물 꾸러미', link: 'https://bebeform.co.kr/giftbox/', tip: '출산 후 신청' },
-  { id: 'bebeking_b', category: 'birth', name: '베베킹 출산축하박스', desc: '기저귀 · 물티슈 · 샘플 모음', link: 'https://www.bebeking.co.kr/', tip: '출산 후 신청' },
+  { id: 'bebeking_b', category: 'birth', name: '베베킹 출산축하박스', desc: '기저귀 · 물티슈 · 샘플 모음', link: 'https://bebeking.co.kr/theme/bbk2026/contents/bebebox.php', tip: '출산 후 신청' },
+  { id: 'penelope', category: 'birth', name: '페넬로페 더 퍼스트 박스', desc: '신생아 첫 선물 박스', link: 'https://pf.kakao.com/_dxfaRxd/103498627', tip: '카카오 채널 신청' },
   { id: 'maeil', category: 'birth', name: '매일유업 앱솔루트 샘플', desc: '분유 샘플 + 이유식 샘플', link: 'https://www.maeil.com/', tip: '앱솔루트맘 가입' },
-  { id: 'namyang', category: 'birth', name: '남양유업 임페리얼 샘플', desc: '분유 체험팩', link: 'https://www.namyangi.com/', tip: '남양아이 가입' },
+  { id: 'namyang', category: 'birth', name: '남양유업 임페리얼 샘플', desc: '분유 체험팩', link: 'https://shopping.namyangi.com/', tip: '남양아이 가입' },
   { id: 'ildong', category: 'birth', name: '일동후디스 산양분유 샘플', desc: '산양분유 체험팩', link: 'https://www.foodismall.com/', tip: '후디스몰 가입' },
   { id: 'ivenet', category: 'birth', name: '아이배냇 이유식 샘플', desc: '이유식 · 간식 체험팩', link: 'https://shop.ivenet.co.kr/', tip: '회원가입 후 신청' },
-  { id: 'babyfair', category: 'birth', name: '베페 베이비페어', desc: 'COEX — 할인 + 대량 샘플 수령', link: 'https://www.befe.co.kr/', tip: '사전등록 시 무료입장' },
 ]
 
 // ===== 검진 리마인더 =====

@@ -3,7 +3,15 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   compress: true,
   images: {
-    formats: ['image/webp'],
+    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      { protocol: 'https', hostname: '**.kakaocdn.net' },
+      { protocol: 'https', hostname: '**.supabase.co' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: '**.daumcdn.net' },
+    ],
+    deviceSizes: [390, 430, 768],
+    minimumCacheTTL: 86400,
   },
   async headers() {
     // 보안 헤더 (모든 경로에 적용)
@@ -33,9 +41,9 @@ const nextConfig: NextConfig = {
         value: [
           "default-src 'self'",
           "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://dapi.kakao.com https://t1.daumcdn.net https://pagead2.googlesyndication.com https://www.googletagmanager.com https://va.vercel-scripts.com",
-          "style-src 'self' 'unsafe-inline'",
+          "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
           "img-src 'self' data: blob: https: http:",
-          "font-src 'self' data:",
+          "font-src 'self' data: https://cdn.jsdelivr.net",
           "media-src 'self' blob: data:",
           "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://kapi.kakao.com https://kauth.kakao.com https://dapi.kakao.com https://t1.daumcdn.net https://*.kakao.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.kidsnote.com https://pagead2.googlesyndication.com https://va.vercel-scripts.com",
           "frame-src 'self' https://www.youtube.com https://pagead2.googlesyndication.com",

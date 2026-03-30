@@ -14,7 +14,7 @@ export default function PublicMarketItemPage() {
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const { data } = await supabase.from('market_items').select('*').eq('id', itemId).single()
+      const { data } = await supabase.from('market_items').select('id, title, description, price, status, photos, region, created_at').eq('id', itemId).single()
       if (data) setItem(data)
       setLoading(false)
     }
@@ -58,7 +58,7 @@ export default function PublicMarketItemPage() {
           {item.photos && item.photos.length > 0 && (
             <div className="flex gap-2 mb-3 overflow-x-auto hide-scrollbar">
               {item.photos.map((url: string, i: number) => (
-                <img key={i} src={url} alt="" className="w-40 h-40 rounded-xl object-cover shrink-0" />
+                <img key={i} src={url} alt="" className="w-40 h-40 rounded-xl object-cover shrink-0" loading="lazy" />
               ))}
             </div>
           )}

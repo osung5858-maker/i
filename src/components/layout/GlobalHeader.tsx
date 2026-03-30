@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, memo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { BellIcon, MoonIcon, XIcon } from '@/components/ui/Icons'
@@ -26,7 +26,7 @@ const PROFILE_AVATARS = [
   '/images/illustrations/profile-default4.webm',
 ]
 
-export default function GlobalHeader() {
+function GlobalHeaderComponent() {
   const pathname = usePathname()
   const [mode, setMode] = useState('')
   const [data, setData] = useState<any>(null)
@@ -314,3 +314,5 @@ export default function GlobalHeader() {
     </>
   )
 }
+
+export default memo(GlobalHeaderComponent)

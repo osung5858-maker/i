@@ -152,7 +152,7 @@ export default function PhotoTimelapsePage() {
             <div className="grid grid-cols-3 gap-2">
               {photos.map((photo) => (
                 <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden bg-[#F0EDE8]">
-                  <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                  <img src={photo.url} alt="" className="w-full h-full object-cover" loading="lazy" />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 px-2 py-1">
                     <p className="text-[14px] text-white">{photo.date}</p>
                   </div>
