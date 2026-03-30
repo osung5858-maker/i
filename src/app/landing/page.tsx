@@ -39,7 +39,8 @@ export default function LandingPage() {
   const blobARef     = useRef<HTMLDivElement>(null)  // 바깥 wrapper (JS parallax)
   const blobBRef     = useRef<HTMLDivElement>(null)
   const blobCRef     = useRef<HTMLDivElement>(null)
-  const ctaCardRef   = useRef<HTMLDivElement>(null)
+  const ctaCardRef    = useRef<HTMLDivElement>(null)
+  const ctaSectionRef = useRef<HTMLElement>(null)
   // AI 비교 카드 stagger
   const aiCardsRef   = useRef<HTMLDivElement>(null)
   // 정부지원 카드 stagger
@@ -66,9 +67,11 @@ export default function LandingPage() {
           blobBRef.current.style.transform = `translateY(${sy * 0.08}px)`
         if (blobCRef.current)
           blobCRef.current.style.transform = `translateY(${sy * 0.05}px)`
-        // CTA 영상: 역방향 — 올라오는 느낌
-        if (ctaCardRef.current)
-          ctaCardRef.current.style.transform = `translateY(-${sy * 0.04}px)`
+        // CTA 영상: 섹션 기준 상대 스크롤로 계산 (절대 scrollTop 쓰면 하단에서 과도하게 밀림)
+        if (ctaCardRef.current && ctaSectionRef.current) {
+          const relY = Math.max(0, sy - ctaSectionRef.current.offsetTop)
+          ctaCardRef.current.style.transform = `translateY(-${relY * 0.06}px)`
+        }
         ticking = false
       })
     }
@@ -291,7 +294,7 @@ export default function LandingPage() {
               { video: '/images/illustrations/t4.webm', title: '부모급여', highlight: '월 최대 100만원', desc: '0세 월 100만원 · 1세 월 50만원' },
               { video: '/images/illustrations/h1.webm', title: '첫만남이용권', highlight: '200만원', desc: '출생아 1인당 바우처 지급' },
               { video: '/images/illustrations/e2.webm', title: '아동수당', highlight: '월 10만원', desc: '만 8세 미만 매월 지급' },
-              { video: '/images/illustrations/celebration-hero.webm', title: '출산축하박스', highlight: '지자체별', desc: '서울·경기 등 지역별 축하 선물 패키지' },
+              { video: '/images/illustrations/celebration-hero.webm', title: '출산축하박스', highlight: '무료 지원', desc: '지자체별 출산 선물 꾸러미 · 지역마다 상이' },
               { video: '/images/illustrations/e1.webm', title: '산후조리비', highlight: '최대 200만원', desc: '건강보험 산후조리원 이용 지원' },
             ].map((b) => (
               <div key={b.title}
@@ -309,7 +312,7 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ CTA ━━━ */}
-      <section className="relative px-6 py-16 sm:py-24 lg:py-32 text-center" style={{
+      <section ref={ctaSectionRef} className="relative px-6 py-16 sm:py-24 lg:py-32 text-center" style={{
         background: 'linear-gradient(180deg, #FFE8D8, #FFD4C4)',
         overflow: 'clip',
       }}>
