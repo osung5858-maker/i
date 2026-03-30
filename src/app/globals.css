@@ -250,3 +250,19 @@ input:focus, textarea:focus, select:focus {
 
 /* 패럴럭스 레이어 — JS가 transform 덮어씀 */
 .parallax-layer { will-change: transform; }
+
+/* AI 비교 카드 — 전용 stagger 클래스 (일반 reveal과 분리) */
+.stagger-l {
+  opacity: 0;
+  transform: translateX(-48px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stagger-r {
+  opacity: 0;
+  transform: translateX(48px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stagger-l.is-visible, .stagger-r.is-visible {
+  opacity: 1;
+  transform: none;
+}

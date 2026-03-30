@@ -19,6 +19,8 @@ export default function LandingPage() {
   const blobBRef     = useRef<HTMLDivElement>(null)
   const blobCRef     = useRef<HTMLDivElement>(null)
   const ctaCardRef   = useRef<HTMLDivElement>(null)
+  // AI 비교 카드 stagger
+  const aiCardsRef   = useRef<HTMLDivElement>(null)
 
   // ── 패럴럭스 ──
   useEffect(() => {
@@ -73,6 +75,27 @@ export default function LandingPage() {
     }, 3000)
 
     return () => { observer.disconnect(); clearTimeout(fallback) }
+  }, [])
+
+  // ── AI 비교 카드 전용 stagger ──
+  // 일반 observer와 분리 — 섹션 진입 시 130ms 간격으로 순차 등장
+  useEffect(() => {
+    const section = aiCardsRef.current
+    if (!section) return
+    const cards = Array.from(section.children) as HTMLElement[]
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          cards.forEach((card, i) => {
+            setTimeout(() => card.classList.add('is-visible'), i * 130)
+          })
+          obs.disconnect()
+        }
+      },
+      { threshold: 0.08 }
+    )
+    obs.observe(section)
+    return () => obs.disconnect()
   }, [])
 
   return (
@@ -167,7 +190,7 @@ export default function LandingPage() {
           <p className="reveal reveal-d1 text-center text-[14px] lg:text-[16px] text-[#6B6966] mb-12 lg:mb-16">
             뭘 해야 할지 고민할 필요 없어요. 도담이 먼저 챙겨줄게요.
           </p>
-          <div className="space-y-4 lg:space-y-5">
+          <div ref={aiCardsRef} className="space-y-4 lg:space-y-5">
             {[
               { video: '/images/illustrations/t3.webm', before: '"오늘 뭘 해야 하지?" 앱을 켜도 막막함', after: '아침마다 AI 브리핑으로 오늘의 수유·수면·예방접종 일정을 먼저 알려줘요', dir: 'left' },
               { video: '/images/illustrations/t3.webm', before: '"다음 수유 언제지?" 매번 시간 계산', after: 'AI가 패턴을 분석해서 다음 수유·수면 타이밍을 미리 알려줘요', dir: 'right' },
@@ -176,8 +199,7 @@ export default function LandingPage() {
               { video: '/images/illustrations/h3.webm', before: '"잘 크고 있는 건지..." 수치만 보고 불안', after: '검진표를 찍으면 AI가 해석해주고, 성장 급등기·둔화기를 알려줘요', dir: 'left' },
             ].map((item, i) => (
               <div key={item.before}
-                className={`${item.dir === 'left' ? 'reveal-left' : 'reveal-right'} bg-white rounded-2xl p-5 lg:p-7 border border-[#F0EDE8]`}
-                style={{ transitionDelay: `${i * 60}ms` }}>
+                className={`${item.dir === 'left' ? 'stagger-l' : 'stagger-r'} bg-white rounded-2xl p-5 lg:p-7 border border-[#F0EDE8]`}>
                 <div className="flex items-start gap-4 lg:gap-5">
                   <V src={item.video} className="w-12 h-12 lg:w-16 lg:h-16 mt-0.5" />
                   <div className="flex-1">
