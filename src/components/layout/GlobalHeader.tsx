@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { BellIcon, MoonIcon, XIcon } from '@/components/ui/Icons'
 import { createClient } from '@/lib/supabase/client'
+import { getSecure } from '@/lib/secureStorage'
 
 interface NotificationLog {
   id: string
@@ -36,51 +37,54 @@ export default function GlobalHeader() {
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
-    const m = localStorage.getItem('dodam_mode') || 'parenting'
-    setMode(m)
+    const load = async () => {
+      const m = localStorage.getItem('dodam_mode') || 'parenting'
+      setMode(m)
 
-    const userAvatar = localStorage.getItem('dodam_user_avatar') || ''
-    const userName = localStorage.getItem('dodam_user_name') || ''
+      const userAvatar = localStorage.getItem('dodam_user_avatar') || ''
+      const userName = localStorage.getItem('dodam_user_name') || ''
 
-    if (m === 'parenting') {
-      const name = localStorage.getItem('dodam_child_name') || '도담이'
-      const birthdate = localStorage.getItem('dodam_child_birthdate')
-      const photoUrl = localStorage.getItem('dodam_child_photo') || ''
-      let ageMonths = 0
-      if (birthdate) {
-        const b = new Date(birthdate)
-        const now = new Date()
-        ageMonths = (now.getFullYear() - b.getFullYear()) * 12 + (now.getMonth() - b.getMonth())
+      if (m === 'parenting') {
+        const name = await getSecure('dodam_child_name') || '도담이'
+        const birthdate = await getSecure('dodam_child_birthdate')
+        const photoUrl = localStorage.getItem('dodam_child_photo') || ''
+        let ageMonths = 0
+        if (birthdate) {
+          const b = new Date(birthdate)
+          const now = new Date()
+          ageMonths = (now.getFullYear() - b.getFullYear()) * 12 + (now.getMonth() - b.getMonth())
+        }
+        setData({ name, ageMonths, birthdate, photoUrl, userAvatar, userName })
+        setSelectedAvatar(photoUrl)
+      } else if (m === 'pregnant') {
+        const dueDate = await getSecure('dodam_due_date') || ''
+        let week = 0, daysLeft = 0
+        if (dueDate) {
+          const diff = Math.floor((new Date(dueDate).getTime() - Date.now()) / 86400000)
+          week = Math.max(1, Math.min(42, 40 - Math.floor(diff / 7)))
+          daysLeft = Math.max(0, diff)
+        }
+        const trimester = week <= 13 ? '초기' : week <= 27 ? '중기' : '후기'
+        setData({ week, daysLeft, trimester, userAvatar, userName })
+      } else {
+        const lastPeriod = await getSecure('dodam_last_period')
+        const cycleLength = Number(await getSecure('dodam_cycle_length')) || 28
+        let cycleDay = 0
+        let phase = ''
+        if (lastPeriod) {
+          const daysSince = Math.floor((Date.now() - new Date(lastPeriod).getTime()) / 86400000)
+          cycleDay = (daysSince % cycleLength) + 1
+          const ovDay = cycleLength - 14
+          if (cycleDay <= 5) phase = '생리기'
+          else if (cycleDay <= ovDay - 5) phase = '난포기'
+          else if (cycleDay <= ovDay + 1) phase = '가임기'
+          else if (cycleDay <= ovDay + 3) phase = '배란기'
+          else phase = '황체기'
+        }
+        setData({ cycleDay, phase, userAvatar, userName })
       }
-      setData({ name, ageMonths, photoUrl, userAvatar, userName })
-      setSelectedAvatar(photoUrl)
-    } else if (m === 'pregnant') {
-      const dueDate = localStorage.getItem('dodam_due_date') || ''
-      let week = 0, daysLeft = 0
-      if (dueDate) {
-        const diff = Math.floor((new Date(dueDate).getTime() - Date.now()) / 86400000)
-        week = Math.max(1, Math.min(42, 40 - Math.floor(diff / 7)))
-        daysLeft = Math.max(0, diff)
-      }
-      const trimester = week <= 13 ? '초기' : week <= 27 ? '중기' : '후기'
-      setData({ week, daysLeft, trimester, userAvatar, userName })
-    } else {
-      const lastPeriod = localStorage.getItem('dodam_last_period')
-      const cycleLength = Number(localStorage.getItem('dodam_cycle_length')) || 28
-      let cycleDay = 0
-      let phase = ''
-      if (lastPeriod) {
-        const daysSince = Math.floor((Date.now() - new Date(lastPeriod).getTime()) / 86400000)
-        cycleDay = (daysSince % cycleLength) + 1
-        const ovDay = cycleLength - 14
-        if (cycleDay <= 5) phase = '생리기'
-        else if (cycleDay <= ovDay - 5) phase = '난포기'
-        else if (cycleDay <= ovDay + 1) phase = '가임기'
-        else if (cycleDay <= ovDay + 3) phase = '배란기'
-        else phase = '황체기'
-      }
-      setData({ cycleDay, phase, userAvatar, userName })
     }
+    load()
   }, [pathname])
 
   const loadNotifications = useCallback(async () => {
@@ -96,7 +100,7 @@ export default function GlobalHeader() {
         .limit(20)
       if (data) {
         setNotifications(data as NotificationLog[])
-        setUnreadCount(data.filter(n => !n.clicked_at).length)
+        setUnreadCount(data.filter((n: NotificationLog) => !n.clicked_at).length)
       }
     } catch { /* 오프라인 무시 */ }
   }, [])
@@ -151,9 +155,8 @@ export default function GlobalHeader() {
   }
   // 아이 일수 계산
   const getDaysOld = () => {
-    const birthdate = localStorage.getItem('dodam_child_birthdate')
-    if (!birthdate) return null
-    return Math.floor((Date.now() - new Date(birthdate).getTime()) / 86400000)
+    if (!data?.birthdate) return null
+    return Math.floor((Date.now() - new Date(data.birthdate).getTime()) / 86400000)
   }
 
   return (

@@ -22,6 +22,7 @@ import { savePendingEvent } from '@/lib/offline/db'
 import type { CareEvent, EventType, Child } from '@/types'
 import { useGestureInput, getGestureEnabled } from '@/hooks/useGestureInput'
 import type { User } from '@supabase/supabase-js'
+import { setSecure } from '@/lib/secureStorage'
 
 // Event display constants (module-level to avoid re-creation per render)
 const EVENT_ICON_MAP: Record<string, { Icon: React.FC<{ className?: string }>; bg: string; color: string }> = {
@@ -115,8 +116,8 @@ export default function HomePage() {
       const currentChild = children[0] as Child
       setChild(currentChild)
       // FAB 월령별 구성을 위해 localStorage에 저장
-      localStorage.setItem('dodam_child_birthdate', currentChild.birthdate)
-      localStorage.setItem('dodam_child_name', currentChild.name)
+      await setSecure('dodam_child_birthdate', currentChild.birthdate)
+      await setSecure('dodam_child_name', currentChild.name)
       if (currentChild.photo_url) localStorage.setItem('dodam_child_photo', currentChild.photo_url)
 
       const { start, end } = getTodayRange()

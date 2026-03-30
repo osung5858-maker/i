@@ -13,7 +13,7 @@ import { sendWebPush, isWebPushSubscription } from "@/lib/push/webpush"
 function verifyAuth(request: Request): boolean {
   const auth = request.headers.get('authorization')
   const secret = process.env.CRON_SECRET
-  if (!secret) return true
+  if (!secret) return false
   return auth === `Bearer ${secret}`
 }
 

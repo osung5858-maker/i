@@ -11,6 +11,7 @@ import GlobalToast from '@/components/ui/GlobalToast'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 import ThemeInitializer from '@/components/ThemeInitializer'
 import SplashProvider from '@/components/SplashProvider'
+import SecurityMigrator from '@/components/SecurityMigrator'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dodam.life'),
@@ -135,6 +136,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full bg-[#E8E4DF] flex justify-center">
+        <SecurityMigrator />
         <SplashProvider />
         <KakaoSDK />
         <div className="w-full max-w-[430px] min-h-full flex flex-col relative shadow-[0_0_40px_rgba(0,0,0,0.08)]" style={{ backgroundColor: 'var(--color-page-bg)' }}>

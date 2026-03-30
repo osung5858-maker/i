@@ -40,7 +40,7 @@ function getAgeDays(birthdate: string): number {
 function verifyAuth(request: Request): boolean {
   const auth = request.headers.get('authorization')
   const secret = process.env.CRON_SECRET
-  if (!secret) return true // 로컬 개발 시 패스
+  if (!secret) return false // secret 미설정 시 항상 거부
   return auth === `Bearer ${secret}`
 }
 

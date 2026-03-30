@@ -11,6 +11,7 @@ import IllustVideo from '@/components/ui/IllustVideo'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
+import { setSecure } from '@/lib/secureStorage'
 
 const HospitalGuide = dynamic(() => import('@/components/pregnant/HospitalGuide'), {
   loading: () => <div className="h-32 bg-[#F0EDE8] rounded-xl animate-pulse" />,
@@ -789,7 +790,7 @@ export default function PregnantPage() {
         <input type="date" value={tempDueDate} onChange={(e) => setTempDueDate(e.target.value)}
           className="w-full max-w-xs h-[52px] rounded-xl border border-[#E8E4DF] px-4 text-[15px] text-center" />
         <button
-          onClick={() => { if (tempDueDate) { setDueDate(tempDueDate); localStorage.setItem('dodam_due_date', tempDueDate); setEditingDate(false) } }}
+          onClick={async () => { if (tempDueDate) { setDueDate(tempDueDate); await setSecure('dodam_due_date', tempDueDate); setEditingDate(false) } }}
           disabled={!tempDueDate}
           className={`mt-6 w-full max-w-xs py-3 rounded-xl text-[14px] font-semibold ${tempDueDate ? 'bg-[var(--color-primary)] text-white active:opacity-80' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}
         >

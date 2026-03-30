@@ -8,6 +8,7 @@ import { SparkleIcon, PenIcon } from '@/components/ui/Icons'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
+import { setSecure } from '@/lib/secureStorage'
 
 function addDays(date: Date, days: number): Date {
   const d = new Date(date); d.setDate(d.getDate() + days); return d
@@ -493,11 +494,11 @@ export default function PreparingPage() {
     return 'mom'
   })
 
-  const handleSaveCycleSetup = () => {
+  const handleSaveCycleSetup = async () => {
     if (!tempPeriod) return
     localStorage.setItem('dodam_my_role', myRole)
-    setLastPeriod(tempPeriod); localStorage.setItem('dodam_last_period', tempPeriod)
-    setCycleLength(tempCycleLen); localStorage.setItem('dodam_cycle_length', String(tempCycleLen))
+    setLastPeriod(tempPeriod); await setSecure('dodam_last_period', tempPeriod)
+    setCycleLength(tempCycleLen); await setSecure('dodam_cycle_length', String(tempCycleLen))
     if (tempMotherBirth) { setMotherBirth(tempMotherBirth); localStorage.setItem('dodam_mother_birth', tempMotherBirth) }
     if (tempFatherBirth) { setFatherBirth(tempFatherBirth); localStorage.setItem('dodam_father_birth', tempFatherBirth) }
     setEditingCycle(false)

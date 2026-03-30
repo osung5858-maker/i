@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { PregnantIcon, EnvelopeIcon, CheckCircleIcon, SproutIcon, RainbowIcon } from '@/components/ui/Icons'
 import IllustVideo from '@/components/ui/IllustVideo'
+import { setSecure } from '@/lib/secureStorage'
 
 export default function CelebrationPage() {
   const router = useRouter()
@@ -38,9 +39,9 @@ export default function CelebrationPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (dueDate) {
-      localStorage.setItem('dodam_due_date', dueDate)
+      await setSecure('dodam_due_date', dueDate)
     }
     localStorage.setItem('dodam_mode', 'pregnant')
     router.push('/pregnant')
