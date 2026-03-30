@@ -6,6 +6,16 @@ import { usePathname } from 'next/navigation'
 import { BellIcon, MoonIcon, XIcon } from '@/components/ui/Icons'
 import { createClient } from '@/lib/supabase/client'
 
+interface NotificationLog {
+  id: string
+  type: string
+  title: string
+  body: string | null
+  deeplink: string | null
+  sent_at: string
+  clicked_at: string | null
+}
+
 const NO_HEADER_PATHS = ['/onboarding', '/invite/', '/auth', '/settings', '/post/', '/market-item/', '/privacy', '/terms', '/landing']
 
 const PROFILE_AVATARS = [
@@ -21,6 +31,9 @@ export default function GlobalHeader() {
   const [data, setData] = useState<any>(null)
   const [showAvatarPicker, setShowAvatarPicker] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState('')
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [notifications, setNotifications] = useState<NotificationLog[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
     const m = localStorage.getItem('dodam_mode') || 'parenting'
@@ -69,6 +82,40 @@ export default function GlobalHeader() {
       setData({ cycleDay, phase, userAvatar, userName })
     }
   }, [pathname])
+
+  const loadNotifications = useCallback(async () => {
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase
+        .from('notification_log')
+        .select('id,type,title,body,deeplink,sent_at,clicked_at')
+        .eq('user_id', user.id)
+        .order('sent_at', { ascending: false })
+        .limit(20)
+      if (data) {
+        setNotifications(data as NotificationLog[])
+        setUnreadCount(data.filter(n => !n.clicked_at).length)
+      }
+    } catch { /* 오프라인 무시 */ }
+  }, [])
+
+  const markAllRead = useCallback(async () => {
+    if (unreadCount === 0) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      await supabase
+        .from('notification_log')
+        .update({ clicked_at: new Date().toISOString() })
+        .eq('user_id', user.id)
+        .is('clicked_at', null)
+      setUnreadCount(0)
+      setNotifications(prev => prev.map(n => ({ ...n, clicked_at: n.clicked_at || new Date().toISOString() })))
+    } catch { /* 무시 */ }
+  }, [unreadCount])
 
   const handleAvatarSave = useCallback(async (avatarUrl: string) => {
     setSelectedAvatar(avatarUrl)
@@ -144,9 +191,17 @@ export default function GlobalHeader() {
                 <MoonIcon className="w-3.5 h-3.5 text-white" />
               </Link>
             )}
-            <Link href={mode === 'parenting' ? '/settings' : '/waiting'} className="relative w-8 h-8 rounded-full bg-[#F0EDE8] flex items-center justify-center active:bg-[#ECECEC]">
+            <button
+              onClick={() => { loadNotifications(); setShowNotifications(true); markAllRead() }}
+              className="relative w-8 h-8 rounded-full bg-[#F0EDE8] flex items-center justify-center active:bg-[#ECECEC]"
+            >
               <BellIcon className="w-4 h-4 text-[#212124]" />
-            </Link>
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] bg-[#FF4D4D] rounded-full flex items-center justify-center text-[9px] font-bold text-white px-0.5">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
             <Link href="/settings" className="w-8 h-8 rounded-full overflow-hidden active:opacity-80 shrink-0 bg-[#F0EDE8]">
               {data?.userAvatar ? (
                 <img src={data.userAvatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -159,6 +214,47 @@ export default function GlobalHeader() {
           </div>
         </div>
       </header>
+
+      {/* 알림 내역 바텀시트 */}
+      {showNotifications && (
+        <div className="fixed inset-0 z-[75] bg-black/40" onClick={() => setShowNotifications(false)}>
+          <div
+            className="absolute bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white rounded-t-2xl animate-slideUp max-h-[70vh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-center pt-3 pb-2 shrink-0"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
+            <div className="px-5 pb-3 flex items-center justify-between shrink-0">
+              <p className="text-[15px] font-bold text-[#1A1918]">알림</p>
+              <button onClick={() => setShowNotifications(false)} className="w-8 h-8 rounded-full bg-[#F0EDE8] flex items-center justify-center">
+                <XIcon className="w-4 h-4 text-[#6B6966]" />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 pb-[max(16px,env(safe-area-inset-bottom))]">
+              {notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-[#9E9A95]">
+                  <BellIcon className="w-8 h-8 mb-2 opacity-30" />
+                  <p className="text-[13px]">최근 알림이 없어요</p>
+                </div>
+              ) : (
+                notifications.map(n => (
+                  <div key={n.id} className={`px-5 py-3 border-b border-[#F0EDE8] last:border-0 ${!n.clicked_at ? 'bg-[#FFF8F5]' : ''}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-semibold text-[#1A1918] leading-snug">{n.title}</p>
+                        {n.body && <p className="text-[12px] text-[#6B6966] mt-0.5 leading-snug">{n.body}</p>}
+                      </div>
+                      {!n.clicked_at && <div className="w-1.5 h-1.5 rounded-full bg-[#FF4D4D] shrink-0 mt-1.5" />}
+                    </div>
+                    <p className="text-[11px] text-[#C4BFB9] mt-1">
+                      {new Date(n.sent_at).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 아바타 선택 바텀시트 */}
       {showAvatarPicker && (
