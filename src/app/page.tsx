@@ -14,6 +14,9 @@ import { shareTodayRecord } from '@/lib/kakao/share-parenting'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
 import PushPrompt from '@/components/push/PushPrompt'
+import CareFlowCard from '@/components/care-flow/CareFlowCard'
+import { evaluateCareFlow, scheduleReminder } from '@/lib/care-flow/engine'
+import type { CareAction } from '@/lib/care-flow/engine'
 import { useOfflineSync } from '@/hooks/useOfflineSync'
 import { savePendingEvent } from '@/lib/offline/db'
 import type { CareEvent, EventType, Child } from '@/types'
@@ -85,6 +88,7 @@ export default function HomePage() {
   const [pendingEventId, setPendingEventId] = useState<string | null>(null)
   const { isOnline, pendingCount, syncing } = useOfflineSync()
   const [showGuide, setShowGuide] = useState(false)
+  const [careActions, setCareActions] = useState<CareAction[]>([])
 
   const router = useRouter()
   const supabase = createClient()
@@ -251,6 +255,14 @@ export default function HomePage() {
     return data as CareEvent
   }
 
+  const triggerCareFlow = useCallback((newEvent: CareEvent, currentEvents: CareEvent[]) => {
+    const actions = evaluateCareFlow(newEvent, currentEvents)
+    if (actions.length === 0) return
+    setCareActions(actions)
+    // 리마인더가 있는 액션은 스케줄링
+    actions.filter(a => a.remindAfterMin).forEach(a => scheduleReminder(a))
+  }, [])
+
   // FAB 퀵버튼 이벤트 리스너 (BottomNav에서 dispatch)
   // FAB에서 이미 상세 선택(tags/amount)을 완료한 경우 바텀시트를 건너뛰고 바로 기록
   const handleFabRecord = useCallback(async (detail: Record<string, unknown>) => {
@@ -312,6 +324,10 @@ export default function HomePage() {
         const celsius = (extra.tags as Record<string, unknown>)?.celsius
         const msg = celsius ? `체온 ${celsius}°C 기록 완료!` : `${labelMap[eventType] || eventType} 기록 완료!`
         setToast({ message: msg, undoId: e.id })
+        // 케어 플로우 평가 (체온 이상, 투약, 복합 증상)
+        if (eventType === 'temp' || eventType === 'medication' || eventType === 'poop') {
+          triggerCareFlow(e, events)
+        }
       }
       return
     }
@@ -324,7 +340,9 @@ export default function HomePage() {
       const e = await insertEvent('bath'); if (e) setToast({ message: '목욕 기록 완료!', undoId: e.id }); return
     }
     if (eventType === 'medication' || rawType === 'medication') {
-      const e = await insertEvent('medication'); if (e) setToast({ message: '투약 기록 완료!', undoId: e.id }); return
+      const e = await insertEvent('medication')
+      if (e) { setToast({ message: '투약 기록 완료!', undoId: e.id }); triggerCareFlow(e, events) }
+      return
     }
     if (eventType === 'snack') {
       const e = await insertEvent('snack'); if (e) setToast({ message: '간식 기록 완료!', undoId: e.id }); return
@@ -388,6 +406,7 @@ export default function HomePage() {
     if (e) {
       const msg = celsius >= 38.5 ? `체온 ${celsius}°C 주의` : celsius >= 37.5 ? `체온 ${celsius}°C 미열` : `체온 ${celsius}°C`
       setToast({ message: msg, undoId: e.id })
+      if (celsius >= 37.5) triggerCareFlow(e, events)
     }
   }
 
@@ -471,6 +490,15 @@ export default function HomePage() {
 
           {/* 푸시 알림 동의 (AI 결과 표시 후 자연스럽게) */}
           <PushPrompt show={events.length >= 3} />
+
+          {/* 케어 플로우 — 기록 후 AI 제안/알림 */}
+          {careActions.length > 0 && (
+            <CareFlowCard
+              actions={careActions}
+              onDismiss={(id) => setCareActions(prev => prev.filter(a => a.id !== id))}
+              onRecord={(type) => handleRecord(type as EventType)}
+            />
+          )}
 
           {/* ━━━ 하루 요약 바 ━━━ */}
           {dailySummary && (() => {
