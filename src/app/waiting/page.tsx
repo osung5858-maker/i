@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { useRemoteContent } from '@/lib/useRemoteContent'
+import { getSecure } from '@/lib/secureStorage'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { shareLetter, sharePositiveTest } from '@/lib/kakao/share'
@@ -73,14 +74,14 @@ export default function WaitingPage() {
   // 임신 중 모드일 때는 임신 중 전용 기다림 페이지
   if (appMode === 'pregnant') return <PregnantWaitingPage />
 
-  const [lastPeriod] = useState<string>(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('dodam_last_period') || ''
-    return ''
-  })
-  const [cycleLength] = useState<number>(() => {
-    if (typeof window !== 'undefined') return Number(localStorage.getItem('dodam_cycle_length')) || 28
-    return 28
-  })
+  const [lastPeriod, setLastPeriod] = useState<string>('')
+  const [cycleLength, setCycleLength] = useState<number>(28)
+  useEffect(() => {
+    Promise.all([getSecure('dodam_last_period'), getSecure('dodam_cycle_length')]).then(([lp, cl]) => {
+      if (lp) setLastPeriod(lp)
+      if (cl) setCycleLength(Number(cl) || 28)
+    })
+  }, [])
   const [periodRecords] = useState<Record<string, string>>(() => {
     if (typeof window !== 'undefined') {
       const s = localStorage.getItem('dodam_period_records'); return s ? JSON.parse(s) : {}
@@ -773,13 +774,21 @@ function WaitingBenefitTabs() {
 }
 
 export function PregnantWaitingPage() {
-  const dueDate = typeof window !== 'undefined' ? localStorage.getItem('dodam_due_date') || '' : ''
+  const [dueDate, setDueDate] = useState('')
+  useEffect(() => { getSecure('dodam_due_date').then(v => { if (v) setDueDate(v) }) }, [])
   const currentWeek = (() => {
     if (!dueDate) return 0
-    const diff = Math.floor((new Date(dueDate).getTime() - Date.now()) / 86400000)
+    const ms = new Date(dueDate).getTime()
+    if (isNaN(ms)) return 0
+    const diff = Math.floor((ms - Date.now()) / 86400000)
     return Math.max(1, Math.min(42, 40 - Math.floor(diff / 7)))
   })()
-  const daysLeft = dueDate ? Math.max(0, Math.floor((new Date(dueDate).getTime() - Date.now()) / 86400000)) : 0
+  const daysLeft = (() => {
+    if (!dueDate) return 0
+    const ms = new Date(dueDate).getTime()
+    if (isNaN(ms)) return 0
+    return Math.max(0, Math.floor((ms - Date.now()) / 86400000))
+  })()
   const trimester = currentWeek <= 13 ? '초기' : currentWeek <= 27 ? '중기' : '후기'
 
   return (

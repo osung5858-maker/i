@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { PregnantIcon, EnvelopeIcon, CheckCircleIcon, SproutIcon, RainbowIcon } from '@/components/ui/Icons'
 import IllustVideo from '@/components/ui/IllustVideo'
-import { setSecure } from '@/lib/secureStorage'
+import { setSecure, getSecure } from '@/lib/secureStorage'
 
 export default function CelebrationPage() {
   const router = useRouter()
@@ -13,25 +13,15 @@ export default function CelebrationPage() {
   const [showConfetti, setShowConfetti] = useState(true)
 
   // 준비 여정 데이터
-  const journey = useMemo(() => {
-    if (typeof window === 'undefined') return { letters: 0, days: 0, supplements: 0, checks: 0 }
-
-    const letters = (() => {
-      try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]').length } catch { return 0 }
-    })()
-
-    const lastPeriod = localStorage.getItem('dodam_last_period')
-    const days = lastPeriod ? Math.floor((Date.now() - new Date(lastPeriod).getTime()) / 86400000) : 0
-
-    const appointments = (() => {
-      try { return Object.keys(JSON.parse(localStorage.getItem('dodam_appointments') || '{}')).length } catch { return 0 }
-    })()
-
-    const checks = (() => {
-      try { return Object.values(JSON.parse(localStorage.getItem('dodam_preparing_checks') || '{}')).filter(Boolean).length } catch { return 0 }
-    })()
-
-    return { letters, days, supplements: appointments, checks }
+  const [journey, setJourney] = useState({ letters: 0, days: 0, supplements: 0, checks: 0 })
+  useEffect(() => {
+    const letters = (() => { try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]').length } catch { return 0 } })()
+    const appointments = (() => { try { return Object.keys(JSON.parse(localStorage.getItem('dodam_appointments') || '{}')).length } catch { return 0 } })()
+    const checks = (() => { try { return Object.values(JSON.parse(localStorage.getItem('dodam_preparing_checks') || '{}')).filter(Boolean).length } catch { return 0 } })()
+    getSecure('dodam_last_period').then(lastPeriod => {
+      const days = lastPeriod ? Math.floor((Date.now() - new Date(lastPeriod).getTime()) / 86400000) : 0
+      setJourney({ letters, days, supplements: appointments, checks })
+    })
   }, [])
 
   useEffect(() => {

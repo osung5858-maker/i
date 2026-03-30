@@ -12,7 +12,7 @@ import IllustVideo from '@/components/ui/IllustVideo'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
-import { setSecure } from '@/lib/secureStorage'
+import { setSecure, getSecure } from '@/lib/secureStorage'
 
 const HospitalGuide = dynamic(() => import('@/components/pregnant/HospitalGuide'), {
   loading: () => <div className="h-32 bg-[#F0EDE8] rounded-xl animate-pulse" />,
@@ -41,7 +41,6 @@ const DEFAULT_FREE_BOXES = [
   { id: 'bebeform_p', category: 'pregnancy', name: '베베폼 임신축하박스', desc: '임신 선물 꾸러미 (SNS 공유 필요)', link: 'https://bebeform.co.kr/giftbox/', tip: '매월 추첨' },
   { id: 'bebeking_p', category: 'pregnancy', name: '베베킹 임신축하박스', desc: '매월 200명 선물 증정', link: 'https://bebeking.co.kr/theme/bbk2026/contents/bebebox.php', tip: '매월 추첨' },
   { id: 'momq_hug', category: 'pregnancy', name: '맘큐 하기스 허그박스', desc: '하기스 기저귀 · 물티슈 · 산모용품', link: 'https://www.momq.co.kr/event/202004180005#hugboxEventTop', tip: '배송비 3,500원 · 부부 각각 신청 가능' },
-  { id: 'lovemom', category: 'pregnancy', name: '럽맘박스', desc: '매월 육아용품 박스 (최대 8회)', link: 'https://play.google.com/store/apps/details?id=com.momandbaby.lovemom', tip: '럽맘 앱 설치 후 신청' },
   { id: 'doubleheart', category: 'pregnancy', name: '더블하트 더블박스', desc: '약 20만원 상당 육아 필수템', link: 'https://m.doubleheart.co.kr/board/event/read.html?no=43417&board_no=8', tip: '회원가입 후 신청' },
   { id: 'momsdiary', category: 'pregnancy', name: '맘스다이어리 맘스팩', desc: '임산부 맞춤 샘플 박스', link: 'https://event.momsdiary.co.kr/com_event/momspack/2026/3m/index.html?', tip: '신청 후 배송' },
   { id: 'bebesup', category: 'pregnancy', name: '베베숲 마음박스', desc: '임신 · 출산 축하 선물 꾸러미', link: 'https://www.bebesup.co.kr/proc/heartbox', tip: '신청 후 배송' },
@@ -577,11 +576,11 @@ export default function PregnantPage() {
     }
   }, [])
 
-  const [dueDate, setDueDate] = useState<string>(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('dodam_due_date') || ''
-    return ''
-  })
-  const [editingDate, setEditingDate] = useState(!dueDate)
+  const [dueDate, setDueDate] = useState<string>('')
+  const [editingDate, setEditingDate] = useState(true)
+  useEffect(() => {
+    getSecure('dodam_due_date').then(v => { if (v) { setDueDate(v); setEditingDate(false) } })
+  }, [])
 
   // 건강 기록 (parse once instead of 4x)
   const today = new Date().toISOString().split('T')[0]
@@ -640,13 +639,17 @@ export default function PregnantPage() {
 
   const currentWeek = useMemo(() => {
     if (!dueDate) return 0
-    const diff = Math.floor((new Date(dueDate).getTime() - Date.now()) / 86400000)
+    const ms = new Date(dueDate).getTime()
+    if (isNaN(ms)) return 0
+    const diff = Math.floor((ms - Date.now()) / 86400000)
     return Math.max(1, Math.min(42, 40 - Math.floor(diff / 7)))
   }, [dueDate])
 
   const daysLeft = useMemo(() => {
     if (!dueDate) return 0
-    return Math.max(0, Math.floor((new Date(dueDate).getTime() - Date.now()) / 86400000))
+    const ms = new Date(dueDate).getTime()
+    if (isNaN(ms)) return 0
+    return Math.max(0, Math.floor((ms - Date.now()) / 86400000))
   }, [dueDate])
 
   const currentFetal = useMemo(() => {

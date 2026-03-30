@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getSecure } from '@/lib/secureStorage'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { CrystalBallIcon, DragonIcon, CardIcon, StarIcon, HeartIcon, AlertIcon, LightbulbIcon, RefreshIcon, EnvelopeIcon } from '@/components/ui/Icons'
 import { shareFortune } from '@/lib/kakao/share-parenting'
@@ -14,9 +15,8 @@ export default function FortunePage() {
 
   useEffect(() => {
     const mb = localStorage.getItem('dodam_mother_birth') || ''
-    const dd = localStorage.getItem('dodam_due_date') || ''
     setBirthDate(mb)
-    setDueDate(dd)
+    getSecure('dodam_due_date').then(v => { if (v) setDueDate(v) })
   }, [])
 
   // 바이오리듬 계산 (과학적 23/28/33일 주기)

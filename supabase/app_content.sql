@@ -36,7 +36,6 @@ INSERT INTO app_content (key, data) VALUES ('free_boxes', '[
   {"id":"bebeform_p","category":"pregnancy","name":"베베폼 임신축하박스","desc":"임신 선물 꾸러미 (SNS 공유 필요)","link":"https://bebeform.co.kr/giftbox/","tip":"매월 추첨"},
   {"id":"bebeking_p","category":"pregnancy","name":"베베킹 임신축하박스","desc":"매월 200명 선물 증정","link":"https://bebeking.co.kr/theme/bbk2026/contents/bebebox.php","tip":"매월 추첨"},
   {"id":"momq_hug","category":"pregnancy","name":"맘큐 하기스 허그박스","desc":"하기스 기저귀 · 물티슈 · 산모용품","link":"https://www.momq.co.kr/event/202004180005#hugboxEventTop","tip":"배송비 3,500원 · 부부 각각 신청 가능"},
-  {"id":"lovemom","category":"pregnancy","name":"럽맘박스","desc":"매월 육아용품 박스 (최대 8회)","link":"https://play.google.com/store/apps/details?id=com.momandbaby.lovemom","tip":"럽맘 앱 설치 후 신청"},
   {"id":"doubleheart","category":"pregnancy","name":"더블하트 더블박스","desc":"약 20만원 상당 육아 필수템","link":"https://m.doubleheart.co.kr/board/event/read.html?no=43417&board_no=8","tip":"회원가입 후 신청"},
   {"id":"momsdiary","category":"pregnancy","name":"맘스다이어리 맘스팩","desc":"임산부 맞춤 샘플 박스","link":"https://event.momsdiary.co.kr/com_event/momspack/2026/3m/index.html?","tip":"신청 후 배송"},
   {"id":"bebesup","category":"pregnancy","name":"베베숲 마음박스","desc":"임신 · 출산 축하 선물 꾸러미","link":"https://www.bebesup.co.kr/proc/heartbox","tip":"신청 후 배송"},
@@ -132,7 +131,20 @@ INSERT INTO app_content (key, data) VALUES ('waiting_gov_supports', '[
 ]'::jsonb)
 ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW();
 
--- 7. 커뮤니티 주간 투표
+-- 7. 임신 준비 체크리스트 (waiting)
+INSERT INTO app_content (key, data) VALUES ('waiting_checklist', '[
+  {"id":"folic","title":"엽산 복용","desc":"임신 3개월 전부터"},
+  {"id":"checkup","title":"산전 건강검진","desc":"혈액·소변·풍진항체"},
+  {"id":"dental","title":"치과 검진","desc":"임신 중 치료 어려우니 미리"},
+  {"id":"vaccine","title":"예방접종 확인","desc":"풍진·수두·A형간염"},
+  {"id":"weight","title":"적정 체중","desc":"BMI 18.5~24.9"},
+  {"id":"nosmoking","title":"금연·금주","desc":"3개월 전부터"},
+  {"id":"exercise","title":"규칙적 운동","desc":"주 3회"},
+  {"id":"stress","title":"스트레스 관리","desc":"충분한 수면·명상"}
+]'::jsonb)
+ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW();
+
+-- 8. 커뮤니티 주간 투표 (community)
 INSERT INTO app_content (key, data) VALUES ('community_polls', '[
   {"q":"이유식 첫 메뉴는?","options":["쌀미음","감자","고구마"]},
   {"q":"수면 교육 방법은?","options":["퍼버법","쉬닥법","안 함"]},
@@ -144,7 +156,7 @@ INSERT INTO app_content (key, data) VALUES ('community_polls', '[
 ]'::jsonb)
 ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW();
 
--- 8. 커뮤니티 오늘의 질문
+-- 9. 커뮤니티 오늘의 질문
 INSERT INTO app_content (key, data) VALUES ('community_questions', '[
   "우리 아기 첫 이유식 뭐였어요?",
   "통잠 성공 비결이 있다면?",
@@ -156,7 +168,7 @@ INSERT INTO app_content (key, data) VALUES ('community_questions', '[
 ]'::jsonb)
 ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW();
 
--- 9. 예방접종 일정
+-- 10. 예방접종 일정
 INSERT INTO app_content (key, data) VALUES ('vaccination_schedule', '[
   {"month":0,"id":"bcg","name":"BCG (결핵)","desc":"생후 4주 이내","required":true,"detail":"부작용: 접종 부위 궤양·딱지 (정상 반응, 2~3개월 소요) | 지연: 생후 4주 이내 권장, 이후에도 접종 가능"},
   {"month":0,"id":"hepb_1","name":"B형간염 1차","desc":"출생 시","required":true,"detail":"부작용: 접종 부위 통증, 미열 | 지연: 출생 후 가능한 빨리 (24시간 이내 권장)"},
@@ -193,7 +205,7 @@ INSERT INTO app_content (key, data) VALUES ('vaccination_schedule', '[
 ]'::jsonb)
 ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW();
 
--- 10. 임신 준비 — 검진 항목
+-- 11. 임신 준비 — 검진 항목
 INSERT INTO app_content (key, data) VALUES ('preparing_appointments', '[
   {"id":"basic","title":"기본 혈액검사","priority":"high","desc":"빈혈 · 갑상선 · 간기능 · 혈당 · 혈액형","where":"산부인과 또는 보건소 (무료)","why":"임신 전 몸 상태 확인. 빈혈이 있으면 임신이 어려울 수 있어요"},
   {"id":"rubella","title":"풍진 항체검사","priority":"high","desc":"풍진 면역 여부 확인","where":"산부인과 또는 보건소 (무료)","why":"임신 중 풍진 감염 시 태아 기형 위험. 항체 없으면 접종 후 1개월 피임 필요"},
@@ -206,7 +218,7 @@ INSERT INTO app_content (key, data) VALUES ('preparing_appointments', '[
 ]'::jsonb)
 ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW();
 
--- 11. 임신 준비 — 음식
+-- 12. 임신 준비 — 음식
 INSERT INTO app_content (key, data) VALUES ('preparing_foods', '{
   "good": [
     {"name":"엽산 식품","items":"시금치 · 브로콜리 · 아보카도"},
@@ -222,7 +234,7 @@ INSERT INTO app_content (key, data) VALUES ('preparing_foods', '{
 }'::jsonb)
 ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW();
 
--- 12. 임신 준비 — 스트레스 팁
+-- 13. 임신 준비 — 스트레스 팁
 INSERT INTO app_content (key, data) VALUES ('preparing_stress_tips', '[
   {"title":"4-7-8 호흡법","desc":"4초 들숨 → 7초 멈춤 → 8초 날숨"},
   {"title":"산책 명상","desc":"15분 걷기 + 자연 소리"},

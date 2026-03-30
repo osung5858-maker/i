@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getSecure } from '@/lib/secureStorage'
 import { useRouter } from 'next/navigation'
 import { shareBirth } from '@/lib/kakao/share-parenting'
 import IllustVideo from '@/components/ui/IllustVideo'
@@ -17,7 +18,7 @@ export default function BirthPage() {
   const [letterCount, setLetterCount] = useState(0)
 
   useEffect(() => {
-    setDueDate(localStorage.getItem('dodam_due_date') || '')
+    getSecure('dodam_due_date').then(v => { if (v) setDueDate(v) })
     try { setDiaryCount(JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]').length) } catch { /* */ }
     try { setCheckupCount(Object.values(JSON.parse(localStorage.getItem('dodam_preg_checkups') || '{}')).filter(Boolean).length) } catch { /* */ }
     try { setLetterCount(JSON.parse(localStorage.getItem('dodam_letters') || '[]').length) } catch { /* */ }

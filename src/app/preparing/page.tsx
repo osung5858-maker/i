@@ -9,7 +9,7 @@ import { SparkleIcon, PenIcon } from '@/components/ui/Icons'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
-import { setSecure } from '@/lib/secureStorage'
+import { setSecure, getSecure } from '@/lib/secureStorage'
 
 function addDays(date: Date, days: number): Date {
   const d = new Date(date); d.setDate(d.getDate() + days); return d
@@ -228,6 +228,8 @@ function PreparingMealCard({ phase }: { phase: string }) {
 
 export default function PreparingPage() {
   const apptList = useRemoteContent('preparing_appointments', DEFAULT_APPOINTMENTS)
+  const foodsData = useRemoteContent<{ good: typeof DEFAULT_GOOD_FOODS; bad: typeof DEFAULT_BAD_FOODS }>('preparing_foods', { good: DEFAULT_GOOD_FOODS, bad: DEFAULT_BAD_FOODS })
+  const stressTips = useRemoteContent('preparing_stress_tips', DEFAULT_STRESS_TIPS)
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
   const [showGuide, setShowGuide] = useState(false)
@@ -246,15 +248,15 @@ export default function PreparingPage() {
     }
   }, [])
 
-  const [lastPeriod, setLastPeriod] = useState<string>(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('dodam_last_period') || ''
-    return ''
-  })
-  const [cycleLength, setCycleLength] = useState<number>(() => {
-    if (typeof window !== 'undefined') return Number(localStorage.getItem('dodam_cycle_length')) || 28
-    return 28
-  })
-  const [editingCycle, setEditingCycle] = useState(!lastPeriod)
+  const [lastPeriod, setLastPeriod] = useState<string>('')
+  const [cycleLength, setCycleLength] = useState<number>(28)
+  const [editingCycle, setEditingCycle] = useState(true)
+  useEffect(() => {
+    Promise.all([getSecure('dodam_last_period'), getSecure('dodam_cycle_length')]).then(([lp, cl]) => {
+      if (lp) { setLastPeriod(lp); setEditingCycle(false) }
+      if (cl) setCycleLength(Number(cl) || 28)
+    })
+  }, [])
   const SUPPL_DEFAULT: Record<string, number> = { folic: 0, vitd: 0, iron: 0, omega3: 0 }
   const [supplements, setSupplements] = useState<Record<string, number>>(() => {
     if (typeof window !== 'undefined') {
@@ -787,9 +789,49 @@ export default function PreparingPage() {
             )
           })()}
         </div>
-        {/* 배우자·검사·식단 → 우리 탭으로 이동 완료 */}
+        {/* ━━━ 임신 준비 식품 가이드 ━━━ */}
+        <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
+          <div className="p-3 border-b border-[#E8E4DF]">
+            <p className="text-[14px] font-semibold text-[#1A1918]">임신 준비 식품 가이드</p>
+            <p className="text-[12px] text-[#9E9A95] mt-0.5">좋은 음식 · 주의 음식</p>
+          </div>
+          <div className="grid grid-cols-2 divide-x divide-[#E8E4DF]">
+            <div className="p-3 space-y-2.5">
+              <p className="text-[12px] font-bold text-[#3D9A5F]">권장 식품</p>
+              {(foodsData.good ?? DEFAULT_GOOD_FOODS).map(f => (
+                <div key={f.name}>
+                  <p className="text-[12px] font-semibold text-[#1A1918]">{f.name}</p>
+                  <p className="text-[11px] text-[#6B6966]">{f.items}</p>
+                </div>
+              ))}
+            </div>
+            <div className="p-3 space-y-2.5">
+              <p className="text-[12px] font-bold text-[#D05050]">주의 식품</p>
+              {(foodsData.bad ?? DEFAULT_BAD_FOODS).map(f => (
+                <div key={f.name}>
+                  <p className="text-[12px] font-semibold text-[#1A1918]">{f.name}</p>
+                  <p className="text-[11px] text-[#6B6966]">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-        {/* 스트릭·더보기 섹션 → 우리 탭으로 이동 완료 */}
+        {/* ━━━ 스트레스 관리 팁 ━━━ */}
+        <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
+          <div className="p-3 border-b border-[#E8E4DF]">
+            <p className="text-[14px] font-semibold text-[#1A1918]">마음 챙기기</p>
+            <p className="text-[12px] text-[#9E9A95] mt-0.5">임신 준비 중 스트레스 관리</p>
+          </div>
+          <div className="p-3 grid grid-cols-2 gap-2">
+            {stressTips.map((tip: { title: string; desc: string }) => (
+              <div key={tip.title} className="bg-[var(--color-page-bg)] rounded-xl p-3">
+                <p className="text-[13px] font-semibold text-[#1A1918]">{tip.title}</p>
+                <p className="text-[11px] text-[#6B6966] mt-0.5">{tip.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* 토스트 */}
