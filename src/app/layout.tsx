@@ -13,7 +13,7 @@ import ThemeInitializer from '@/components/ThemeInitializer'
 import SplashProvider from '@/components/SplashProvider'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://dodam.app'),
+  metadataBase: new URL('https://dodam.life'),
   title: {
     default: '도담 · AI 육아 파트너',
     template: '%s | 도담',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     '부모급여', '첫만남이용권', '국민행복카드',
     '도담', 'dodam', '육아 일기', '아기 발달 체크',
   ],
-  authors: [{ name: '도담', url: 'https://dodam.app' }],
+  authors: [{ name: '도담', url: 'https://dodam.life' }],
   creator: '도담',
   publisher: '도담',
   category: 'health',
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
-    url: 'https://dodam.app',
+    url: 'https://dodam.life',
     siteName: '도담 · AI 육아 파트너',
     title: '도담 · AI 육아 파트너',
     description: 'AI가 아이의 리듬을 분석하고, 이유식 추천부터 발달 체크·동네 소아과까지 연결해주는 스마트 육아 앱',
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://dodam.app',
+    canonical: 'https://dodam.life',
   },
   verification: {
     google: '',
@@ -116,7 +116,7 @@ export default function RootLayout({
               operatingSystem: 'Web, iOS, Android',
               offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' },
               aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.8', ratingCount: '1200' },
-              author: { '@type': 'Organization', name: '도담', url: 'https://dodam.app' },
+              author: { '@type': 'Organization', name: '도담', url: 'https://dodam.life' },
               inLanguage: 'ko',
               keywords: '육아앱,아기수유기록,AI육아,이유식추천,임신앱,출산준비,소아과찾기,예방접종',
             }),

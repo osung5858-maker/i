@@ -61,7 +61,7 @@ export default function InvitePage() {
         content: {
           title: '도담 - 함께 기록해요',
           description: '도담에서 아이의 수유, 수면, 기저귀 기록을 함께 볼 수 있어요. 가족으로 참여해주세요!',
-          imageUrl: 'https://dodam.app/og-image.png',
+          imageUrl: 'https://dodam.life/og-image.png',
           link: {
             mobileWebUrl: inviteLink,
             webUrl: inviteLink,

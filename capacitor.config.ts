@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: '도담',
   webDir: 'out',
   server: {
-    url: 'https://dodam.app',
+    url: 'https://dodam.life',
     androidScheme: 'https',
   },
   plugins: {

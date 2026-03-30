@@ -227,7 +227,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
     })
   }
 
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dodam.app'
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dodam.life'
 
   const sharePost = (post: any) => {
     const url = `${SITE_URL}/post/${post.id}`
