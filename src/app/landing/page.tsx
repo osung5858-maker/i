@@ -3,6 +3,27 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 
+// 카드 리스트 전용 stagger: 섹션 진입 시 delay ms 간격으로 순차 is-visible 추가
+function useStaggerCards(ref: React.RefObject<HTMLDivElement | null>, delay: number) {
+  useEffect(() => {
+    const section = ref.current
+    if (!section) return
+    const cards = Array.from(section.children) as HTMLElement[]
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          cards.forEach((card, i) => setTimeout(() => card.classList.add('is-visible'), i * delay))
+          obs.disconnect()
+        }
+      },
+      { threshold: 0.06 }
+    )
+    obs.observe(section)
+    return () => obs.disconnect()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+}
+
 function V({ src, className = 'w-12 h-12' }: { src: string; className?: string }) {
   return (
     <div className={`rounded-full overflow-hidden shrink-0 ${className}`}
@@ -21,6 +42,8 @@ export default function LandingPage() {
   const ctaCardRef   = useRef<HTMLDivElement>(null)
   // AI 비교 카드 stagger
   const aiCardsRef   = useRef<HTMLDivElement>(null)
+  // 정부지원 카드 stagger
+  const govCardsRef  = useRef<HTMLDivElement>(null)
 
   // ── 패럴럭스 ──
   useEffect(() => {
@@ -77,26 +100,8 @@ export default function LandingPage() {
     return () => { observer.disconnect(); clearTimeout(fallback) }
   }, [])
 
-  // ── AI 비교 카드 전용 stagger ──
-  // 일반 observer와 분리 — 섹션 진입 시 130ms 간격으로 순차 등장
-  useEffect(() => {
-    const section = aiCardsRef.current
-    if (!section) return
-    const cards = Array.from(section.children) as HTMLElement[]
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          cards.forEach((card, i) => {
-            setTimeout(() => card.classList.add('is-visible'), i * 130)
-          })
-          obs.disconnect()
-        }
-      },
-      { threshold: 0.08 }
-    )
-    obs.observe(section)
-    return () => obs.disconnect()
-  }, [])
+  useStaggerCards(aiCardsRef, 130)
+  useStaggerCards(govCardsRef, 110)
 
   return (
     <div className="w-full min-h-[100dvh]">
@@ -276,17 +281,16 @@ export default function LandingPage() {
               도담에서 내가 받을 수 있는 혜택을 알려드려요
             </p>
           </div>
-          <div className="space-y-3 lg:space-y-4">
+          <div ref={govCardsRef} className="space-y-3 lg:space-y-4">
             {[
               { video: '/images/illustrations/t4.webm', title: '부모급여', highlight: '월 최대 100만원', desc: '0세 월 100만원 · 1세 월 50만원' },
               { video: '/images/illustrations/h1.webm', title: '첫만남이용권', highlight: '200만원', desc: '출생아 1인당 바우처 지급' },
               { video: '/images/illustrations/e2.webm', title: '아동수당', highlight: '월 10만원', desc: '만 8세 미만 매월 지급' },
               { video: '/images/illustrations/celebration-hero.webm', title: '출산축하박스', highlight: '지자체별', desc: '서울·경기 등 지역별 축하 선물 패키지' },
               { video: '/images/illustrations/e1.webm', title: '산후조리비', highlight: '최대 200만원', desc: '건강보험 산후조리원 이용 지원' },
-            ].map((b, i) => (
+            ].map((b) => (
               <div key={b.title}
-                className="reveal-left bg-white p-5 lg:p-7 rounded-2xl flex items-center gap-4 lg:gap-5 shadow-sm"
-                style={{ transitionDelay: `${i * 70}ms` }}>
+                className="stagger-l bg-white p-5 lg:p-7 rounded-2xl flex items-center gap-4 lg:gap-5 shadow-sm">
                 <V src={b.video} className="w-12 h-12 lg:w-16 lg:h-16" />
                 <div className="flex-1">
                   <h3 className="text-[15px] lg:text-[18px] font-bold text-[#1A1918]">{b.title}</h3>
@@ -310,9 +314,9 @@ export default function LandingPage() {
           style={{ background: 'radial-gradient(circle, #FFDBB5 0%, transparent 70%)' }} />
 
         <div className="max-w-xl mx-auto relative">
-          {/* outer div: parallax / inner div: 컨텐츠 */}
-          <div ref={ctaCardRef} className="parallax-layer reveal-scale max-w-[280px] lg:max-w-[360px] mx-auto mb-8 lg:mb-12">
-            <div className="rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(232,147,122,0.2)]">
+          {/* outer: parallax ref만 / inner: reveal 애니메이션 (분리 — JS transform 충돌 방지) */}
+          <div ref={ctaCardRef} className="parallax-layer max-w-[280px] lg:max-w-[360px] mx-auto mb-8 lg:mb-12">
+            <div className="reveal-scale rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(232,147,122,0.2)]">
               <video src="/images/illustrations/hero2.webm" autoPlay loop muted playsInline className="w-full object-cover" />
             </div>
           </div>
