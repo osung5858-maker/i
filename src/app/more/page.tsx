@@ -44,7 +44,6 @@ const MENUS: Record<string, { label: string; items: MenuItem[] }[]> = {
     ]},
     { label: '나', items: [
       { href: '/mental-check', icon: 'heart', title: '마음 체크', desc: '스트레스 자가검사' },
-      { href: '/fortune', icon: 'compass', title: '오늘의 운세', desc: '바이오리듬 · 별자리' },
       { href: '/settings/caregivers/invite', icon: 'users', title: '배우자 초대', desc: '함께 준비해요' },
     ]},
     { label: '', items: [
@@ -60,7 +59,6 @@ const MENUS: Record<string, { label: string; items: MenuItem[] }[]> = {
     ]},
     { label: '나', items: [
       { href: '/mental-check', icon: 'heart', title: '마음 체크', desc: '산후우울증 자가검사' },
-      { href: '/fortune', icon: 'compass', title: '오늘의 운세', desc: '바이오리듬 · 별자리' },
       { href: '/settings/caregivers/invite', icon: 'mail', title: '가족 초대', desc: '카카오톡으로 초대' },
     ]},
     { label: '', items: [
@@ -71,15 +69,14 @@ const MENUS: Record<string, { label: string; items: MenuItem[] }[]> = {
   parenting: [
     { label: '긴급', items: [
       { href: '/emergency', icon: 'siren', iconColor: '#D05050', title: '응급 모드', desc: '소아과 · 어린이병원 · 응급실', highlight: true },
-      { href: '/troubleshoot', icon: 'sparkles', title: '이럴 땐 어떡하죠?', desc: 'AI 상황별 대응 가이드' },
+      { href: '/troubleshoot', icon: 'sparkles', title: '육아 SOS', desc: 'AI 증상별 체크리스트' },
     ]},
     { label: '도구', items: [
-      { href: '/feed-timer', icon: 'timer', title: '수유 타이머', desc: '좌우 교대 · 시간 측정' },
-      { href: '/babyfood', icon: 'clipboard', title: '이유식 가이드', desc: '단계별 식재료 · 알레르기' },
-      { href: '/lullaby', icon: 'moon', title: '자장가 · 동요', desc: '수면 도우미 125곡' },
+      { href: '/babyfood', icon: 'clipboard', title: '이유식 가이드', desc: '단계별 식재료 · 알레르기 체크' },
       { href: '/vaccination', icon: 'syringe', title: '예방접종', desc: '스케줄 · 부작용 · 완료 체크' },
+      { href: '/lullaby', icon: 'moon', title: '자장가 · 동요', desc: '수면 도우미 125곡' },
+      { href: '/milestone', icon: 'baby', title: '첫 순간들', desc: '뒤집기 · 첫 걸음 · 첫 단어' },
       { href: '/growth/analyze', icon: 'scan', title: '검진표 AI 분석', desc: '사진 찍으면 AI가 해석' },
-      { href: '/name', icon: 'sparkles', title: '이름 분석', desc: '음양오행 · 삼원수리' },
     ]},
     { label: '정보 · 혜택', items: [
       { href: '/gov-support', icon: 'landmark', title: '정부 지원 혜택', desc: '부모급여 · 아동수당 · 보육료' },
@@ -87,7 +84,6 @@ const MENUS: Record<string, { label: string; items: MenuItem[] }[]> = {
     ]},
     { label: '나', items: [
       { href: '/mental-check', icon: 'heart', title: '마음 체크', desc: '산후우울증 자가검사 (EPDS)' },
-      { href: '/fortune', icon: 'compass', title: '오늘의 운세', desc: '바이오리듬 · 별자리' },
       { href: '/settings/caregivers/invite', icon: 'mail', title: '가족 초대', desc: '카카오톡으로 초대' },
     ]},
     { label: '', items: [
@@ -112,7 +108,7 @@ export default function MorePage() {
         {groups.map((group, gi) => (
           <div key={group.label || gi}>
             {/* 두 번째 그룹 뒤에 네이티브 광고 1개 */}
-            {gi === 2 && <AdSlot provider="kakao" />}
+            {gi === 2 && <AdSlot />}
             {group.items.length > 0 && (
               <>
                 <div className="bg-white rounded-xl border border-[#D5D0CA] shadow-sm overflow-hidden">

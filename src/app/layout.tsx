@@ -122,13 +122,13 @@ export default function RootLayout({
             }),
           }}
         />
-        {/* Google AdSense — 실제 배포 시 ca-pub-XXXX를 교체 */}
+        {/* Google AdSense 반려 — 재승인 시 아래 주석 해제
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7884114322521157"
           crossOrigin="anonymous"
           strategy="lazyOnload"
-        />
+        /> */}
         <Script
           src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false&libraries=services`}
           strategy="afterInteractive"

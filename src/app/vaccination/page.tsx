@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import Link from 'next/link'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { SyringeIcon } from '@/components/ui/Icons'
 import { shareVaccination } from '@/lib/kakao/share-parenting'
 
+// --- Vaccine Schedule ---
 const SCHEDULE = [
   { month: 0, id: 'bcg', name: 'BCG (결핵)', desc: '생후 4주 이내', required: true, detail: '부작용: 접종 부위 궤양·딱지 (정상 반응, 2~3개월 소요) | 지연: 생후 4주 이내 권장, 이후에도 접종 가능' },
   { month: 0, id: 'hepb_1', name: 'B형간염 1차', desc: '출생 시', required: true, detail: '부작용: 접종 부위 통증, 미열 | 지연: 출생 후 가능한 빨리 (24시간 이내 권장)' },
@@ -40,6 +42,83 @@ const SCHEDULE = [
   { month: 48, id: 'mmr_2', name: 'MMR 2차', desc: '만 4~6세', required: true, detail: '부작용: 접종 후 발열·발진 가능 (1차보다 경미) | 지연: 만 4세 이후 취학 전까지' },
 ]
 
+// --- Side Effects Types ---
+interface SymptomCheck {
+  time: string
+  fever: boolean
+  fussy: boolean
+  swelling: boolean
+  appetite: boolean
+  rash: boolean
+  vomit: boolean
+  notes: string
+}
+
+interface SideEffectEntry {
+  vaccineId: string
+  vaccineName: string
+  startDate: string // ISO string
+  symptoms: SymptomCheck[]
+  completed: boolean
+}
+
+const SE_STORAGE_KEY = 'dodam_vax_sideeffects'
+const SE_TIME_SLOTS = ['2시간', '6시간', '12시간', '24시간', '48시간']
+const SE_HOUR_MAP: Record<string, number> = { '2시간': 2, '6시간': 6, '12시간': 12, '24시간': 24, '48시간': 48 }
+const SE_SYMPTOM_LABELS: { key: keyof Omit<SymptomCheck, 'time' | 'notes'>; label: string }[] = [
+  { key: 'fever', label: '발열' },
+  { key: 'fussy', label: '보챔' },
+  { key: 'swelling', label: '접종부위 부기' },
+  { key: 'appetite', label: '식욕감소' },
+  { key: 'rash', label: '발진' },
+  { key: 'vomit', label: '구토' },
+]
+
+function createSEEntry(vaccineId: string, vaccineName: string): SideEffectEntry {
+  return {
+    vaccineId,
+    vaccineName,
+    startDate: new Date().toISOString(),
+    completed: false,
+    symptoms: SE_TIME_SLOTS.map(time => ({
+      time,
+      fever: false,
+      fussy: false,
+      swelling: false,
+      appetite: false,
+      rash: false,
+      vomit: false,
+      notes: '',
+    })),
+  }
+}
+
+function loadSE(): SideEffectEntry[] {
+  if (typeof window === 'undefined') return []
+  try { return JSON.parse(localStorage.getItem(SE_STORAGE_KEY) || '[]') } catch { return [] }
+}
+
+function saveSE(data: SideEffectEntry[]) {
+  localStorage.setItem(SE_STORAGE_KEY, JSON.stringify(data))
+}
+
+function getElapsedHours(startDate: string): number {
+  return (Date.now() - new Date(startDate).getTime()) / 3600000
+}
+
+function getNextCheckTime(entry: SideEffectEntry): string | null {
+  const elapsed = getElapsedHours(entry.startDate)
+  for (const slot of SE_TIME_SLOTS) {
+    if (SE_HOUR_MAP[slot] > elapsed) return slot
+  }
+  return null
+}
+
+function hasAnySymptom(check: SymptomCheck): boolean {
+  return check.fever || check.fussy || check.swelling || check.appetite || check.rash || check.vomit
+}
+
+// --- Page Component ---
 export default function VaccinationPage() {
   const [done, setDone] = useState<Record<string, string>>(() => {
     if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_vaccinations') || '{}') } catch { return {} } }
@@ -48,8 +127,12 @@ export default function VaccinationPage() {
   const [ageMonths, setAgeMonths] = useState(0)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
+  // Side effects state
+  const [seEntries, setSEEntries] = useState<SideEffectEntry[]>([])
+  const [showSEPrompt, setShowSEPrompt] = useState<{ id: string; name: string } | null>(null)
+  const [expandedSE, setExpandedSE] = useState<string | null>(null)
+
   useEffect(() => {
-    // 아이 생년월일에서 월령 계산 (포커스 시 갱신)
     const calcAge = () => {
       const child = localStorage.getItem('dodam_child_birthdate')
       if (child) {
@@ -63,16 +146,86 @@ export default function VaccinationPage() {
     return () => window.removeEventListener('focus', calcAge)
   }, [])
 
+  // Load side effects
+  useEffect(() => {
+    const loaded = loadSE()
+    // Auto-complete entries past 48h
+    const updated = loaded.map(e => {
+      if (!e.completed && getElapsedHours(e.startDate) >= 48) {
+        return { ...e, completed: true }
+      }
+      return e
+    })
+    setSEEntries(updated)
+    saveSE(updated)
+  }, [])
+
   const toggleDone = (id: string) => {
     const next = { ...done }
-    if (next[id]) delete next[id]; else next[id] = new Date().toISOString().split('T')[0]
-    setDone(next); localStorage.setItem('dodam_vaccinations', JSON.stringify(next))
+    const wasUndone = !next[id]
+    if (next[id]) {
+      delete next[id]
+    } else {
+      next[id] = new Date().toISOString().split('T')[0]
+    }
+    setDone(next)
+    localStorage.setItem('dodam_vaccinations', JSON.stringify(next))
+
+    // If marking as done, prompt for side effect tracking
+    if (wasUndone) {
+      const vaccine = SCHEDULE.find(v => v.id === id)
+      if (vaccine) {
+        // Only prompt if not already tracking this vaccine
+        const alreadyTracking = seEntries.some(e => e.vaccineId === id && !e.completed)
+        if (!alreadyTracking) {
+          setShowSEPrompt({ id, name: vaccine.name })
+        }
+      }
+    }
   }
+
+  const startSETracking = useCallback((vaccineId: string, vaccineName: string) => {
+    const entry = createSEEntry(vaccineId, vaccineName)
+    const next = [entry, ...seEntries]
+    setSEEntries(next)
+    saveSE(next)
+    setShowSEPrompt(null)
+    setExpandedSE(vaccineId)
+  }, [seEntries])
+
+  const toggleSESymptom = useCallback((vaccineId: string, slotIndex: number, symptomKey: keyof Omit<SymptomCheck, 'time' | 'notes'>) => {
+    const next = seEntries.map(e => {
+      if (e.vaccineId !== vaccineId) return e
+      const symptoms = [...e.symptoms]
+      symptoms[slotIndex] = { ...symptoms[slotIndex], [symptomKey]: !symptoms[slotIndex][symptomKey] }
+      return { ...e, symptoms }
+    })
+    setSEEntries(next)
+    saveSE(next)
+  }, [seEntries])
+
+  const updateSENotes = useCallback((vaccineId: string, slotIndex: number, notes: string) => {
+    const next = seEntries.map(e => {
+      if (e.vaccineId !== vaccineId) return e
+      const symptoms = [...e.symptoms]
+      symptoms[slotIndex] = { ...symptoms[slotIndex], notes }
+      return { ...e, symptoms }
+    })
+    setSEEntries(next)
+    saveSE(next)
+  }, [seEntries])
+
+  const deleteSE = useCallback((vaccineId: string) => {
+    const next = seEntries.filter(e => e.vaccineId !== vaccineId)
+    setSEEntries(next)
+    saveSE(next)
+  }, [seEntries])
 
   const doneCount = Object.keys(done).length
   const totalRequired = SCHEDULE.filter(v => v.required).length
+  const activeTrackings = seEntries.filter(e => !e.completed)
+  const completedTrackings = seEntries.filter(e => e.completed)
 
-  // 그룹핑
   const groups = useMemo(() => {
     const map = new Map<string, typeof SCHEDULE>()
     SCHEDULE.forEach(v => {
@@ -88,6 +241,145 @@ export default function VaccinationPage() {
       <PageHeader title="예방접종" showBack rightAction={<span className="text-[13px] text-[var(--color-primary)] font-semibold">{doneCount}/{SCHEDULE.length}</span>} />
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
+
+        {/* Active side effect tracking cards */}
+        {activeTrackings.map(entry => {
+          const elapsed = getElapsedHours(entry.startDate)
+          const elapsedStr = elapsed < 1 ? `${Math.round(elapsed * 60)}분` : `${Math.round(elapsed)}시간`
+          const nextCheck = getNextCheckTime(entry)
+          const isExpanded = expandedSE === entry.vaccineId
+          // Find the current/next slot index
+          const currentSlotIdx = SE_TIME_SLOTS.findIndex(t => SE_HOUR_MAP[t] > elapsed)
+
+          return (
+            <div key={entry.vaccineId} className="bg-white rounded-xl border-2 border-[var(--color-primary)] border-opacity-40 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] animate-pulse" />
+                  <div>
+                    <p className="text-[14px] font-bold text-[#1A1918]">{entry.vaccineName} 부작용 관찰 중</p>
+                    <p className="text-[12px] text-[#6B6966]">경과: {elapsedStr} {nextCheck ? `· 다음 체크: ${nextCheck}` : '· 곧 완료'}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setExpandedSE(isExpanded ? null : entry.vaccineId)}
+                  className="text-[12px] text-[var(--color-primary)] font-semibold px-2 py-1"
+                >
+                  {isExpanded ? '접기' : '기록'}
+                </button>
+              </div>
+
+              {/* Quick status dots */}
+              <div className="flex gap-1.5">
+                {entry.symptoms.map((s, i) => {
+                  const slotHours = SE_HOUR_MAP[s.time]
+                  const isPast = elapsed >= slotHours
+                  const isCurrent = currentSlotIdx === i
+                  const hasSx = hasAnySymptom(s)
+                  return (
+                    <button
+                      key={s.time}
+                      onClick={() => setExpandedSE(entry.vaccineId)}
+                      className={`flex-1 py-1.5 rounded text-center text-[11px] font-medium border transition-all ${
+                        isCurrent
+                          ? 'border-[var(--color-primary)] bg-[var(--color-primary-bg)] text-[var(--color-primary)]'
+                          : isPast && hasSx
+                            ? 'border-[#FDE8E8] bg-[#FDE8E8] text-[#D05050]'
+                            : isPast
+                              ? 'border-[#E8F5E9] bg-[#E8F5E9] text-[#4CAF50]'
+                              : 'border-[#E8E4DF] bg-[#F5F3F0] text-[#9E9A95]'
+                      }`}
+                    >
+                      {s.time}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Expanded symptom entry */}
+              {isExpanded && (
+                <div className="space-y-3">
+                  {entry.symptoms.map((s, i) => {
+                    const slotHours = SE_HOUR_MAP[s.time]
+                    const isAccessible = elapsed >= slotHours - 1 // Allow recording slightly early
+                    return (
+                      <div key={s.time} className={`rounded-lg p-3 space-y-2 ${isAccessible ? 'bg-[var(--color-page-bg)]' : 'bg-[#F5F3F0] opacity-50'}`}>
+                        <p className="text-[13px] font-semibold text-[#1A1918]">{s.time} 후</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {SE_SYMPTOM_LABELS.map(({ key, label }) => (
+                            <button
+                              key={key}
+                              disabled={!isAccessible}
+                              onClick={() => toggleSESymptom(entry.vaccineId, i, key)}
+                              className={`px-2.5 py-1.5 rounded-full text-[12px] font-medium border transition-all ${
+                                s[key]
+                                  ? 'bg-[#FDE8E8] border-[#D05050] text-[#D05050]'
+                                  : 'bg-white border-[#E8E4DF] text-[#6B6966]'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                        {isAccessible && (
+                          <input
+                            type="text"
+                            placeholder="메모 (선택)"
+                            value={s.notes}
+                            onChange={(e) => updateSENotes(entry.vaccineId, i, e.target.value)}
+                            className="w-full px-3 py-2 bg-white border border-[#E8E4DF] rounded-lg text-[12px] text-[#1A1918] placeholder:text-[#9E9A95]"
+                          />
+                        )}
+                      </div>
+                    )
+                  })}
+                  <div className="flex gap-2">
+                    <Link
+                      href="/emergency"
+                      className="flex-1 py-2.5 text-center bg-[#FDE8E8] text-[#D05050] rounded-lg text-[13px] font-semibold"
+                    >
+                      걱정되면 소아과 찾기 &rarr;
+                    </Link>
+                    <button
+                      onClick={() => deleteSE(entry.vaccineId)}
+                      className="px-4 py-2.5 text-[#9E9A95] rounded-lg text-[13px] border border-[#E8E4DF]"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        {/* Completed side effect summaries */}
+        {completedTrackings.length > 0 && (
+          <div className="space-y-2">
+            {completedTrackings.map(entry => {
+              const totalSymptoms = entry.symptoms.reduce((sum, s) => sum + (hasAnySymptom(s) ? 1 : 0), 0)
+              return (
+                <div key={entry.vaccineId} className="bg-white rounded-xl border border-[#E8E4DF] p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[13px] font-semibold text-[#1A1918]">{entry.vaccineName} 관찰 완료</p>
+                      <p className="text-[11px] text-[#6B6966]">
+                        {totalSymptoms === 0 ? '48시간 동안 부작용 없음' : `${totalSymptoms}개 시점에서 증상 기록됨`}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[12px] font-semibold ${totalSymptoms === 0 ? 'text-[#4CAF50]' : 'text-[#D08068]'}`}>
+                        {totalSymptoms === 0 ? '양호' : '확인'}
+                      </span>
+                      <button onClick={() => deleteSE(entry.vaccineId)} className="text-[11px] text-[#9E9A95]">삭제</button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
         {/* 프로그레스 */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex items-center justify-between mb-2">
@@ -153,6 +445,35 @@ export default function VaccinationPage() {
           <a href="https://nip.kdca.go.kr" target="_blank" rel="noopener noreferrer" className="text-[14px] text-[#6B6966]">질병관리청 예방접종 도우미 →</a>
         </div>
       </div>
+
+      {/* Side effect prompt toast */}
+      {showSEPrompt && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowSEPrompt(null)}>
+          <div className="absolute inset-0 bg-black/30" />
+          <div
+            className="relative w-full max-w-[430px] bg-white rounded-t-2xl p-5 pb-8"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-10 h-1 bg-[#E8E4DF] rounded-full mx-auto mb-4" />
+            <p className="text-[15px] font-bold text-[#1A1918] mb-2">{showSEPrompt.name} 접종 완료!</p>
+            <p className="text-[13px] text-[#6B6966] mb-4">48시간 동안 부작용을 관찰하면서 기록할까요?</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => startSETracking(showSEPrompt.id, showSEPrompt.name)}
+                className="flex-1 py-3 bg-[var(--color-primary)] text-white rounded-xl text-[14px] font-semibold"
+              >
+                부작용 관찰 시작
+              </button>
+              <button
+                onClick={() => setShowSEPrompt(null)}
+                className="px-6 py-3 bg-[var(--color-page-bg)] text-[#6B6966] rounded-xl text-[14px]"
+              >
+                괜찮아요
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

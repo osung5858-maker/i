@@ -242,7 +242,9 @@ export default function WaitingPage() {
             <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-5 text-center">
               {isWaiting ? (
                 <>
-                  <SparkleIcon className="w-8 h-8 mx-auto mb-2 text-[#C4913E]" />
+                  <div className="w-32 h-32 mx-auto mb-3 rounded-2xl overflow-hidden">
+                    <video src="/images/illustrations/waiting-implant.webm" autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                  </div>
                   <p className="text-[18px] font-bold text-[#1A1918]">착상을 기다리는 중</p>
                   <p className="text-[24px] font-bold text-[var(--color-primary)] mt-1">D+{dpo}</p>
                   <div className="w-full h-2 bg-[#E8E4DF] rounded-full mt-3 mb-2">
@@ -257,13 +259,17 @@ export default function WaitingPage() {
                 </>
               ) : isFertile ? (
                 <>
-                  <SparkleIcon className="w-8 h-8 mx-auto mb-2 text-[#C4913E]" />
+                  <div className="w-32 h-32 mx-auto mb-3 rounded-2xl overflow-hidden">
+                    <video src="/images/illustrations/waiting-fertile.webm" autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                  </div>
                   <p className="text-[18px] font-bold text-[var(--color-primary)]">지금 가임기예요</p>
                   <p className="text-[14px] text-[#6B6966] mt-2">가장 좋은 시기. 도담하게 준비하고 있어요</p>
                 </>
               ) : (
                 <>
-                  <MoonIcon className="w-8 h-8 mx-auto mb-2 text-[#6B6966]" />
+                  <div className="w-32 h-32 mx-auto mb-3 rounded-2xl overflow-hidden">
+                    <video src="/images/illustrations/waiting-rest.webm" autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                  </div>
                   <p className="text-[18px] font-bold text-[#1A1918]">다음 기회까지</p>
                   <p className="text-[24px] font-bold text-[var(--color-primary)] mt-1">{daysToNext}일</p>
                   <p className="text-[14px] text-[#6B6966] mt-2">지금은 몸과 마음을 돌보는 시간이에요</p>

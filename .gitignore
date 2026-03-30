@@ -49,3 +49,4 @@ next-env.d.ts
 android/app/build/
 android/.gradle/
 android/build/
+android/dodam-97480-firebase-adminsdk-*.json

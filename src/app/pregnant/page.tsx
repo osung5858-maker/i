@@ -9,6 +9,7 @@ import BabyIllust from '@/components/pregnant/BabyIllust'
 import { SparkleIcon, PenIcon, StethoscopeIcon, ClipboardIcon, SyringeIcon, HospitalIcon, ShieldIcon, CheckCircleIcon, ActivityIcon, PregnantIcon, WarningIcon, BabyIcon, HeartFilledIcon, ExternalLinkIcon, WaterGlassIcon, WalkIcon, VitaminIcon, StretchIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon } from '@/components/ui/Icons'
 import IllustVideo from '@/components/ui/IllustVideo'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
+import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
 
 const HospitalGuide = dynamic(() => import('@/components/pregnant/HospitalGuide'), {
@@ -910,7 +911,12 @@ export default function PregnantPage() {
         {currentWeek > 0 && <HospitalGuide week={currentWeek} />}
 
         {/* ━━━ 임산부 식단 추천 ━━━ */}
+        <div data-guide="meal-card">
         <AIMealCard mode="pregnant" value={currentWeek} />
+        </div>
+
+        {/* 푸시 알림 동의 */}
+        <PushPrompt message="검진일과 주차 변경을 알려드릴까요?" />
 
         {/* ━━━ 2. 오늘 할 일 ━━━ */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
@@ -939,25 +945,30 @@ export default function PregnantPage() {
             const key = `dodam_preg_daily_${today}`
             const saved = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem(key) || '{}') : {}
             const items = [
-              { id: 'water', Icon: WaterGlassIcon, label: '물 8잔', desc: '수분 섭취' },
-              { id: 'walk', Icon: WalkIcon, label: '30분 걷기', desc: '가벼운 산책' },
-              { id: 'folic', Icon: VitaminIcon, label: '영양제', desc: '엽산·철분·비타민D' },
-              { id: 'stretch', Icon: StretchIcon, label: '스트레칭', desc: '5분 혈액순환' },
+              { id: 'water', Icon: WaterGlassIcon, label: '물', desc: '수분 섭취', max: 8, unit: '잔' },
+              { id: 'walk', Icon: WalkIcon, label: '걷기', desc: '가벼운 산책', max: 1, unit: '' },
+              { id: 'folic', Icon: VitaminIcon, label: '영양제', desc: '엽산·철분·비타민D', max: 1, unit: '' },
+              { id: 'stretch', Icon: StretchIcon, label: '스트레칭', desc: '5분 혈액순환', max: 1, unit: '' },
             ]
             return (
               <div data-guide="daily-check" className="grid grid-cols-4 gap-1.5 mb-3">
                 {items.map(it => {
-                  const done = saved[it.id]
+                  const count = typeof saved[it.id] === 'number' ? saved[it.id] : (saved[it.id] ? 1 : 0)
+                  const done = count >= it.max
                   return (
                     <button key={it.id} onClick={() => {
-                      const next = { ...saved, [it.id]: !done }
+                      const nextVal = count >= it.max ? 0 : count + 1
+                      const next = { ...saved, [it.id]: nextVal }
                       localStorage.setItem(key, JSON.stringify(next))
-                      showToast(next[it.id] ? `${it.label} 완료!` : '취소')
-                      // force re-render
+                      if (nextVal === 0) showToast(`${it.label} 초기화`)
+                      else if (it.max > 1) showToast(`${it.label} ${nextVal}/${it.max}${it.unit}`)
+                      else showToast(`${it.label} 완료!`)
                       setFetalMove(f => f)
-                    }} className={`py-2.5 rounded-xl flex flex-col items-center justify-center ${done ? 'bg-[#E8F5EE] ring-1 ring-[var(--color-primary)]/30' : 'bg-[var(--color-page-bg)]'}`}>
+                    }} className={`py-2.5 rounded-xl flex flex-col items-center justify-center ${done ? 'bg-[#E8F5EE] ring-1 ring-[var(--color-primary)]/30' : count > 0 ? 'bg-[#F0F9F4]' : 'bg-[var(--color-page-bg)]'}`}>
                       <div className="mb-1">{done ? <CheckCircleIcon className="w-5 h-5 text-[var(--color-primary)]" /> : <it.Icon className="w-5 h-5 text-[#9E9A95]" />}</div>
-                      <p className="text-[11px] text-[#4A4744] font-medium leading-tight">{it.label}</p>
+                      <p className="text-[11px] text-[#4A4744] font-medium leading-tight">
+                        {it.max > 1 ? `${it.label} ${count}/${it.max}` : it.label}
+                      </p>
                     </button>
                   )
                 })}
@@ -1129,7 +1140,7 @@ export default function PregnantPage() {
 
         {/* ━━━ 검진 기록 CTA ━━━ */}
         {Object.keys(checkupDone).length === 0 && (
-          <div className="bg-gradient-to-r from-[#FFF8F0] to-[#F0FAF4] rounded-xl border border-[#E8E4DF] p-4 flex items-center gap-3">
+          <div data-guide="checkup-record" className="bg-gradient-to-r from-[#FFF8F0] to-[#F0FAF4] rounded-xl border border-[#E8E4DF] p-4 flex items-center gap-3">
             <StethoscopeIcon className="w-6 h-6 text-[var(--color-primary)] shrink-0" />
             <div className="flex-1">
               <p className="text-[13px] font-bold text-[#1A1918]">첫 검진 기록을 남겨보세요</p>

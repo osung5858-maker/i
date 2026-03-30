@@ -25,6 +25,8 @@ interface Comment {
   created_at: string
 }
 
+type TransactionType = 'sell' | 'share' | 'exchange'
+
 interface MarketItem {
   id: string
   user_id: string
@@ -38,6 +40,8 @@ interface MarketItem {
   status: string
   chat_count: number
   created_at: string
+  transaction_type?: TransactionType
+  exchange_want?: string
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -54,6 +58,26 @@ const CONDITION_LABELS: Record<string, string> = {
   like_new: '거의 새것',
   good: '상태 좋음',
   used: '사용감 있음',
+}
+
+const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
+  sell: '판매',
+  share: '나눔',
+  exchange: '교환',
+}
+
+const AGE_FILTER_OPTIONS = [
+  { key: 'all', label: '전체' },
+  { key: '0~3', label: '0~3개월' },
+  { key: '3~6', label: '3~6개월' },
+  { key: '6~12', label: '6~12개월' },
+  { key: '12+', label: '12개월+' },
+]
+
+function getDodamDays(): number {
+  if (typeof window === 'undefined') return 0
+  const entries = (() => { try { return JSON.parse(localStorage.getItem('dodam_journey_entries') || '[]') } catch { return [] } })()
+  return Math.max(entries.length, 1)
 }
 
 const MAX_PHOTOS = 5
@@ -181,10 +205,13 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   })
   const [mPhotos, setMPhotos] = useState<string[]>([])
   const [mCondition, setMCondition] = useState('good')
+  const [mTransType, setMTransType] = useState<TransactionType>('sell')
+  const [mExchangeWant, setMExchangeWant] = useState('')
 
   // 장터 필터
   const [filterCat, setFilterCat] = useState<string>('all')
   const [filterPrice, setFilterPrice] = useState<string>('all')
+  const [filterAge, setFilterAge] = useState<string>('all')
   const [uploading, setUploading] = useState(false)
 
   const router = useRouter()
@@ -299,19 +326,23 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   const handleMarketPost = useCallback(async () => {
     if (!mTitle.trim() || !userId || posting) return
     setPosting(true)
-    const { data, error } = await supabase.from('market_items').insert({
+    const insertData: Record<string, unknown> = {
       user_id: userId, title: mTitle.trim(), description: mDesc.trim(),
-      price: mPrice, category: mCategory, baby_age_months: mAge, region: mRegion || '미설정',
+      price: mTransType === 'share' ? 0 : mTransType === 'exchange' ? 0 : mPrice,
+      category: mCategory, baby_age_months: mAge, region: mRegion || '미설정',
       photos: mPhotos, condition: mCondition,
-    }).select().single()
+      transaction_type: mTransType,
+      exchange_want: mTransType === 'exchange' ? mExchangeWant.trim() : null,
+    }
+    const { data, error } = await supabase.from('market_items').insert(insertData).select().single()
     if (error) {
       window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '등록에 실패했어요. 다시 시도해주세요.' } }))
       setPosting(false)
       return
     }
     if (data) setItems((prev) => [data as MarketItem, ...prev])
-    setMTitle(''); setMDesc(''); setMPrice(0); setMPhotos([]); setMarketOpen(false); setPosting(false)
-  }, [mTitle, mDesc, mPrice, mCategory, mAge, mRegion, userId, posting, supabase])
+    setMTitle(''); setMDesc(''); setMPrice(0); setMPhotos([]); setMTransType('sell'); setMExchangeWant(''); setMarketOpen(false); setPosting(false)
+  }, [mTitle, mDesc, mPrice, mCategory, mAge, mRegion, mTransType, mExchangeWant, userId, posting, supabase])
 
   const toggleLike = useCallback(async (postId: string) => {
     if (!userId) return
@@ -489,7 +520,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 </div>
               ) : posts.map((post, pi) => (
                 <div key={post.id}>
-                {pi === 3 && posts.length > 5 && <AdSlot provider="kakao" className="mb-2" />}
+                {pi === 3 && posts.length > 5 && <AdSlot className="mb-2" />}
                 <div className="bg-white rounded-xl p-4 border border-[#E8E4DF]">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -589,6 +620,15 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
         {/* ===== 도담장터 탭 ===== */}
         {tab === 'market' && (
           <div className="mt-3 space-y-2">
+            {/* 월령 필터 칩 */}
+            <div className="flex gap-1.5 overflow-x-auto hide-scrollbar pb-1">
+              {AGE_FILTER_OPTIONS.map((opt) => (
+                <button key={opt.key} onClick={() => setFilterAge(opt.key)}
+                  className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-colors ${filterAge === opt.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white border border-[#E8E4DF] text-[#6B6966]'}`}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
             {/* 필터 바 */}
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               <select
@@ -611,31 +651,32 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 <option value="over50k">5만원 이상</option>
               </select>
             </div>
-            {items
-              .filter((i) => filterCat === 'all' || i.category === filterCat)
-              .filter((i) => {
-                if (filterPrice === 'all') return true
-                if (filterPrice === 'free') return i.price === 0
-                if (filterPrice === 'under10k') return i.price > 0 && i.price <= 10000
-                if (filterPrice === 'under50k') return i.price > 0 && i.price <= 50000
-                return i.price > 50000
-              })
-              .length === 0 ? (
+            {(() => {
+              const filtered = items
+                .filter((i) => filterCat === 'all' || i.category === filterCat)
+                .filter((i) => {
+                  if (filterPrice === 'all') return true
+                  if (filterPrice === 'free') return i.price === 0
+                  if (filterPrice === 'under10k') return i.price > 0 && i.price <= 10000
+                  if (filterPrice === 'under50k') return i.price > 0 && i.price <= 50000
+                  return i.price > 50000
+                })
+                .filter((i) => {
+                  if (filterAge === 'all') return true
+                  const age = i.baby_age_months || ''
+                  if (filterAge === '0~3') return age.startsWith('0') || age === '0~3' || age === '0~6'
+                  if (filterAge === '3~6') return age === '3~6' || age === '0~6'
+                  if (filterAge === '6~12') return age === '6~12'
+                  if (filterAge === '12+') return age === '12~24' || age === '24+' || age === '12+'
+                  return true
+                })
+              return filtered.length === 0 ? (
               <div className="bg-white rounded-xl p-8 border border-[#E8E4DF] text-center">
                 <span className="block mb-2"><GiftIcon className="w-7 h-7 mx-auto text-[#9E9A95]" /></span>
                 <p className="text-[13px] text-[#6B6966]">아직 등록된 물품이 없어요</p>
                 <p className="text-[13px] text-[#9E9A95] mt-1">쓰지 않는 육아용품을 등록해보세요!</p>
               </div>
-            ) : items
-              .filter((i) => filterCat === 'all' || i.category === filterCat)
-              .filter((i) => {
-                if (filterPrice === 'all') return true
-                if (filterPrice === 'free') return i.price === 0
-                if (filterPrice === 'under10k') return i.price > 0 && i.price <= 10000
-                if (filterPrice === 'under50k') return i.price > 0 && i.price <= 50000
-                return i.price > 50000
-              })
-              .map((item) => (
+            ) : filtered.map((item) => (
               <div key={item.id} className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
                 {/* 썸네일 + 기본 정보 */}
                 <div className="flex items-start gap-3 p-4">
@@ -743,7 +784,8 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                   <button onClick={() => shareMarketItem(item)} className="py-2.5 px-3 text-[13px] text-[#6B6966] border-l border-[#E8E4DF]">공유</button>
                 </div>
               </div>
-            ))}
+            ))
+            })()}
           </div>
         )}
       </div>

@@ -13,20 +13,26 @@ const EVENT_CONFIG: Record<string, {
     icon: BottleIcon,
     bg: 'bg-[#FFF0E6]',
     iconColor: 'text-[var(--color-primary)]',
-    label: (e) => `수유${e.amount_ml ? ` ${e.amount_ml}ml` : ''}`,
+    label: (e) => {
+      const side = e.tags?.side as string | undefined
+      const prefix = side === 'left' ? '모유(왼)' : side === 'right' ? '모유(오)' : '수유'
+      return `${prefix}${e.amount_ml ? ` ${e.amount_ml}ml` : ''}${e.end_ts ? ` ${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` : ''}`
+    },
   },
   sleep: {
     icon: MoonIcon,
     bg: 'bg-[#EEF0FF]',
     iconColor: 'text-[#5B6DFF]',
     label: (e) => {
+      const sleepType = e.tags?.sleepType as string | undefined
+      const prefix = sleepType === 'nap' ? '낮잠' : sleepType === 'night' ? '밤잠' : '수면'
       if (e.end_ts) {
         const mins = Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)
         const h = Math.floor(mins / 60)
         const m = mins % 60
-        return `수면 ${h ? `${h}시간 ` : ''}${m}분`
+        return `${prefix} ${h ? `${h}시간 ` : ''}${m}분`
       }
-      return '수면 중...'
+      return `${prefix} 중...`
     },
   },
   poop: {
@@ -103,7 +109,10 @@ const EVENT_CONFIG: Record<string, {
     icon: PillIcon,
     bg: 'bg-[#FFECDB]',
     iconColor: 'text-[#C4783E]',
-    label: () => '투약',
+    label: (e) => {
+      const medicine = e.tags?.medicine as string | undefined
+      return medicine ? `투약 · ${medicine}` : '투약'
+    },
   },
 }
 

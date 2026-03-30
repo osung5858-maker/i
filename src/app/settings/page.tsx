@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { ChevronRightIcon, UsersIcon } from '@/components/ui/Icons'
+import { ChevronRightIcon, UsersIcon, BellIcon } from '@/components/ui/Icons'
+import { loadNotificationSettings, saveNotificationSettings, type NotificationSettings } from '@/lib/push/config'
+import { subscribePush, unsubscribePush, isPushSubscribed } from '@/lib/push/subscribe'
 // child avatars are .webm video files
 import ThemeSelector from '@/components/settings/ThemeSelector'
 import type { User } from '@supabase/supabase-js'
@@ -35,6 +37,35 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     window.location.href = '/onboarding'
+  }
+
+  // 알림 설정
+  const [notiSettings, setNotiSettings] = useState<NotificationSettings>(loadNotificationSettings())
+  const [pushActive, setPushActive] = useState(false)
+
+  useEffect(() => {
+    isPushSubscribed().then(setPushActive)
+  }, [])
+
+  const toggleNoti = async (key: keyof NotificationSettings) => {
+    if (key === 'enabled') {
+      const newVal = !notiSettings.enabled
+      if (newVal) {
+        const ok = await subscribePush()
+        setPushActive(ok)
+        if (!ok) return // 권한 거부
+      } else {
+        await unsubscribePush()
+        setPushActive(false)
+      }
+      const next = { ...notiSettings, enabled: newVal }
+      setNotiSettings(next)
+      saveNotificationSettings(next)
+    } else {
+      const next = { ...notiSettings, [key]: !notiSettings[key] }
+      setNotiSettings(next)
+      saveNotificationSettings(next)
+    }
   }
 
   const [deleteStep, setDeleteStep] = useState(0) // 0: 닫힘, 1~5: 탈퇴 플로우
@@ -179,6 +210,76 @@ export default function SettingsPage() {
               }`} />
             </button>
           </div>
+        </div>
+
+        {/* 알림 설정 */}
+        <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
+          <div className="px-5 pt-3 pb-2">
+            <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">알림</p>
+          </div>
+
+          {/* 마스터 토글 */}
+          <div className="flex items-center justify-between px-4 py-3.5 border-t border-[#E8E4DF]">
+            <div className="flex items-center gap-2.5">
+              <BellIcon className="w-4 h-4 text-[var(--color-primary)]" />
+              <div>
+                <p className="text-sm font-semibold text-[#0A0B0D]">푸시 알림</p>
+                <p className="text-xs text-[#9B9B9B]">{pushActive ? '활성화됨' : '비활성'}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => toggleNoti('enabled')}
+              className={`w-12 h-7 rounded-full transition-colors relative ${notiSettings.enabled && pushActive ? 'bg-[var(--color-primary)]' : 'bg-[#D1D5DB]'}`}
+            >
+              <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-transform shadow-sm ${notiSettings.enabled && pushActive ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
+          {notiSettings.enabled && (
+            <>
+              {[
+                { key: 'predictFeed' as const, label: '수유 예측 알림', desc: 'AI 예측 시간 10분 전' },
+                { key: 'predictSleep' as const, label: '수면 예측 알림', desc: '낮잠/밤잠 시간 알림' },
+                { key: 'vaccination' as const, label: '접종 · 검진', desc: '예방접종, 영유아검진 리마인더' },
+                { key: 'dailyEncourage' as const, label: '기록 격려', desc: '매일 저녁 기록 격려 메시지' },
+                { key: 'aiInsight' as const, label: 'AI 인사이트', desc: '매일 오전 돌봄 분석 리포트' },
+              ].map(item => (
+                <div key={item.key} className="flex items-center justify-between px-4 py-3 border-t border-[#E8E4DF]">
+                  <div>
+                    <p className="text-sm text-[#0A0B0D]">{item.label}</p>
+                    <p className="text-xs text-[#9B9B9B]">{item.desc}</p>
+                  </div>
+                  <button
+                    onClick={() => toggleNoti(item.key)}
+                    className={`w-11 h-6 rounded-full transition-colors relative ${notiSettings[item.key] ? 'bg-[var(--color-primary)]' : 'bg-[#D1D5DB]'}`}
+                  >
+                    <div className={`w-4.5 h-4.5 bg-white rounded-full absolute top-[3px] transition-transform shadow-sm ${notiSettings[item.key] ? 'translate-x-[22px]' : 'translate-x-[3px]'}`} />
+                  </button>
+                </div>
+              ))}
+
+              {/* 방해 금지 시간 */}
+              <div className="px-4 py-3 border-t border-[#E8E4DF]">
+                <p className="text-sm text-[#0A0B0D] mb-2">방해 금지 시간</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="time"
+                    value={notiSettings.dndStart}
+                    onChange={e => { const next = { ...notiSettings, dndStart: e.target.value }; setNotiSettings(next); saveNotificationSettings(next) }}
+                    className="flex-1 h-9 px-2 rounded-lg border border-[#E8E4DF] text-[13px] text-center"
+                  />
+                  <span className="text-[13px] text-[#9B9B9B]">~</span>
+                  <input
+                    type="time"
+                    value={notiSettings.dndEnd}
+                    onChange={e => { const next = { ...notiSettings, dndEnd: e.target.value }; setNotiSettings(next); saveNotificationSettings(next) }}
+                    className="flex-1 h-9 px-2 rounded-lg border border-[#E8E4DF] text-[13px] text-center"
+                  />
+                </div>
+                <p className="text-xs text-[#9B9B9B] mt-1">이 시간에는 알림을 보내지 않아요</p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* 서비스 */}

@@ -37,9 +37,9 @@ export const DEFAULT_RATE_LIMIT: RateLimitConfig = {
   windowMs: 60_000,
 }
 
-/** AI API용 설정: 분당 10회 */
+/** AI API용 설정: 분당 30회 */
 export const AI_RATE_LIMIT: RateLimitConfig = {
-  limit: 10,
+  limit: 30,
   windowMs: 60_000,
 }
 

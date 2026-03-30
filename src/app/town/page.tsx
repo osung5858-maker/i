@@ -63,6 +63,7 @@ const MAP_CATEGORIES: Record<string, { label: string; query: string }[]> = {
   parenting: [
     { label: '소아과', query: '소아과' },
     { label: '응급소아과', query: '응급소아과' },
+    { label: '산후조리원', query: '산후조리원' },
     { label: '키즈카페', query: '키즈카페' },
     { label: '문화센터', query: '문화센터' },
     { label: '놀이터', query: '어린이놀이터' },
@@ -105,7 +106,7 @@ export default function TownPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[var(--color-page-bg)]">
-      <div className="max-w-lg mx-auto w-full pt-3">
+      <div className="sticky top-12 z-30 bg-[var(--color-page-bg)] pt-3 pb-0 max-w-lg mx-auto w-full">
         <div className="max-w-lg mx-auto w-full">
           <div className="flex px-5 gap-2 bg-[#F0EDE8] mx-5 p-1 rounded-xl mb-3">
             {[
@@ -453,7 +454,7 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
           places.map((p, i) => (
             <div key={p.id}>
               <PlaceCard place={p} stats={reviewStats[p.id]} />
-              {i === 2 && places.length > 4 && <AdSlot provider="kakao" className="mt-2" />}
+              {i === 2 && places.length > 4 && <AdSlot className="mt-2" />}
             </div>
           ))
         )}

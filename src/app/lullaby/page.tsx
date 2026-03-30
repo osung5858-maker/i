@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { MoonIcon } from '@/components/ui/Icons'
 
-type Category = 'lullaby' | 'nursery' | 'nature'
+type Category = 'lullaby' | 'nursery' | 'nature' | 'whitenoise'
 
 interface Track {
   id: string
@@ -164,12 +164,139 @@ const NATURE_TRACKS: Track[] = [
   { id: 'w10', title: '뱃속 소리 (자궁음)', category: 'nature', duration: '∞', youtubeId: 'u0gk2Hn6dLA', avgSleepMin: 8, isRecommended: true },
 ]
 
-const TRACKS: Track[] = [...LULLABY_TRACKS, ...NURSERY_TRACKS, ...NATURE_TRACKS]
+// 백색소음 8종 (Web Audio API로 로컬 생성)
+const WHITE_NOISE_TRACKS: Track[] = [
+  { id: 'wn1', title: '자궁 속 소리', category: 'whitenoise', duration: '∞' },
+  { id: 'wn2', title: '빗소리', category: 'whitenoise', duration: '∞' },
+  { id: 'wn3', title: '파도 소리', category: 'whitenoise', duration: '∞' },
+  { id: 'wn4', title: '청소기 소리', category: 'whitenoise', duration: '∞' },
+  { id: 'wn5', title: '선풍기 소리', category: 'whitenoise', duration: '∞' },
+  { id: 'wn6', title: '심장 소리', category: 'whitenoise', duration: '∞' },
+  { id: 'wn7', title: '드라이어 소리', category: 'whitenoise', duration: '∞' },
+  { id: 'wn8', title: '세탁기 소리', category: 'whitenoise', duration: '∞' },
+]
+
+const TRACKS: Track[] = [...LULLABY_TRACKS, ...NURSERY_TRACKS, ...NATURE_TRACKS, ...WHITE_NOISE_TRACKS]
 
 const CATEGORY_LABELS: Record<Category, string> = {
   lullaby: '자장가',
   nursery: '동요',
   nature: '자연음',
+  whitenoise: '백색소음',
+}
+
+// ─── Web Audio API white noise generator ───
+type NoiseType = 'womb' | 'rain' | 'wave' | 'vacuum' | 'fan' | 'heartbeat' | 'dryer' | 'washer'
+
+const NOISE_MAP: Record<string, NoiseType> = {
+  wn1: 'womb', wn2: 'rain', wn3: 'wave', wn4: 'vacuum',
+  wn5: 'fan', wn6: 'heartbeat', wn7: 'dryer', wn8: 'washer',
+}
+
+function createWhiteNoiseNode(ctx: AudioContext, type: NoiseType): AudioNode {
+  const bufferSize = ctx.sampleRate * 2
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+  const data = buffer.getChannelData(0)
+
+  // Generate base noise
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1
+  }
+
+  const source = ctx.createBufferSource()
+  source.buffer = buffer
+  source.loop = true
+
+  const filter = ctx.createBiquadFilter()
+  const gain = ctx.createGain()
+  gain.gain.value = 0.5
+
+  switch (type) {
+    case 'womb':
+      // Deep brown noise — low rumble
+      filter.type = 'lowpass'
+      filter.frequency.value = 150
+      filter.Q.value = 1
+      gain.gain.value = 0.7
+      break
+    case 'rain':
+      // Pink-ish noise, mid frequencies
+      filter.type = 'bandpass'
+      filter.frequency.value = 2000
+      filter.Q.value = 0.5
+      gain.gain.value = 0.4
+      break
+    case 'wave':
+      // Slow modulated low noise
+      filter.type = 'lowpass'
+      filter.frequency.value = 400
+      filter.Q.value = 0.7
+      gain.gain.value = 0.5
+      // Add LFO for wave effect
+      const lfo = ctx.createOscillator()
+      const lfoGain = ctx.createGain()
+      lfo.frequency.value = 0.1
+      lfoGain.gain.value = 200
+      lfo.connect(lfoGain)
+      lfoGain.connect(filter.frequency)
+      lfo.start()
+      break
+    case 'vacuum':
+      // Harsh high-frequency noise
+      filter.type = 'highpass'
+      filter.frequency.value = 800
+      filter.Q.value = 0.3
+      gain.gain.value = 0.35
+      break
+    case 'fan':
+      // Steady mid-low hum
+      filter.type = 'bandpass'
+      filter.frequency.value = 300
+      filter.Q.value = 0.8
+      gain.gain.value = 0.45
+      break
+    case 'heartbeat': {
+      // Deep rhythmic pulse — brown noise + pulse
+      filter.type = 'lowpass'
+      filter.frequency.value = 120
+      filter.Q.value = 2
+      gain.gain.value = 0.6
+      const pulse = ctx.createOscillator()
+      const pulseGain = ctx.createGain()
+      pulse.frequency.value = 1.2 // ~72 BPM
+      pulseGain.gain.value = 80
+      pulse.connect(pulseGain)
+      pulseGain.connect(filter.frequency)
+      pulse.start()
+      break
+    }
+    case 'dryer':
+      // Warm mid noise with slight rumble
+      filter.type = 'bandpass'
+      filter.frequency.value = 500
+      filter.Q.value = 0.6
+      gain.gain.value = 0.4
+      break
+    case 'washer':
+      // Cyclic low rumble
+      filter.type = 'lowpass'
+      filter.frequency.value = 250
+      filter.Q.value = 0.5
+      gain.gain.value = 0.5
+      const washLfo = ctx.createOscillator()
+      const washGain = ctx.createGain()
+      washLfo.frequency.value = 0.05
+      washGain.gain.value = 150
+      washLfo.connect(washGain)
+      washGain.connect(filter.frequency)
+      washLfo.start()
+      break
+  }
+
+  source.connect(filter)
+  filter.connect(gain)
+  source.start()
+  return gain
 }
 
 type TimerOption = 30 | 60 | 0
@@ -180,9 +307,43 @@ export default function LullabyPage() {
   const [timer, setTimer] = useState<TimerOption>(30)
   const [timerLeft, setTimerLeft] = useState<number | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // White noise Web Audio refs
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const noiseNodeRef = useRef<AudioNode | null>(null)
 
   const filtered = TRACKS.filter((t) => t.category === category)
   const currentTrack = TRACKS.find((t) => t.id === playing)
+
+  // Stop white noise helper
+  const stopWhiteNoise = useCallback(() => {
+    if (audioCtxRef.current) {
+      audioCtxRef.current.close().catch(() => {})
+      audioCtxRef.current = null
+      noiseNodeRef.current = null
+    }
+  }, [])
+
+  // Start white noise helper
+  const startWhiteNoise = useCallback((trackId: string) => {
+    stopWhiteNoise()
+    const noiseType = NOISE_MAP[trackId]
+    if (!noiseType) return
+    const ctx = new AudioContext()
+    audioCtxRef.current = ctx
+    const node = createWhiteNoiseNode(ctx, noiseType)
+    node.connect(ctx.destination)
+    noiseNodeRef.current = node
+  }, [stopWhiteNoise])
+
+  // Clean up white noise when playing changes
+  useEffect(() => {
+    if (!playing || !NOISE_MAP[playing]) {
+      stopWhiteNoise()
+    }
+  }, [playing, stopWhiteNoise])
+
+  // Cleanup on unmount
+  useEffect(() => { return () => { stopWhiteNoise() } }, [stopWhiteNoise])
 
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current)
@@ -240,10 +401,17 @@ export default function LullabyPage() {
     if (playing === trackId) {
       setPlaying(null)
       setTimerLeft(null)
+      stopWhiteNoise()
     } else {
+      // If switching to white noise, start audio
+      if (NOISE_MAP[trackId]) {
+        startWhiteNoise(trackId)
+      } else {
+        stopWhiteNoise()
+      }
       setPlaying(trackId)
     }
-  }, [playing])
+  }, [playing, startWhiteNoise, stopWhiteNoise])
 
   const getYouTubeEmbedUrl = (track: Track): string | null => {
     if (track.youtubeId) {
@@ -291,7 +459,7 @@ export default function LullabyPage() {
           <div className="mx-5 mt-4 text-center">
             <MoonIcon className="w-8 h-8 mx-auto mb-2 text-[var(--color-primary)]" />
             <p className="text-[16px] font-bold text-[#1A1918]">자장가 · 동요</p>
-            <p className="text-[14px] text-[#9E9A95] mt-1">자장가 {LULLABY_TRACKS.length}곡 · 동요 {NURSERY_TRACKS.length}곡 · 자연음 {NATURE_TRACKS.length}곡</p>
+            <p className="text-[14px] text-[#9E9A95] mt-1">자장가 {LULLABY_TRACKS.length}곡 · 동요 {NURSERY_TRACKS.length}곡 · 자연음 {NATURE_TRACKS.length}곡 · 백색소음 {WHITE_NOISE_TRACKS.length}종</p>
             <div className="mt-3 px-4 py-2 bg-[var(--color-accent-bg)] rounded-lg inline-block">
               <p className="text-[13px] text-[#6B6966]">아래에서 곡을 선택해서 재생해보세요</p>
             </div>
@@ -300,7 +468,7 @@ export default function LullabyPage() {
 
         {/* Category tabs */}
         <div className="flex gap-2 px-5 mt-4">
-          {(['lullaby', 'nursery', 'nature'] as Category[]).map((cat) => (
+          {(['lullaby', 'nursery', 'nature', 'whitenoise'] as Category[]).map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}

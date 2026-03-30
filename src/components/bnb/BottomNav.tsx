@@ -61,8 +61,7 @@ function buildCategories(ageMonths: number): RecordCategory[] {
     )
   }
   if (ageMonths < 13) { // 분유
-    eatItems.push({ type: 'feed', label: '분유',
-      step3: [{ label: '60', value: 60, unit: 'ml' }, { label: '90', value: 90, unit: 'ml' }, { label: '120', value: 120, unit: 'ml' }, { label: '150', value: 150, unit: 'ml' }, { label: '180', value: 180, unit: 'ml' }] })
+    eatItems.push({ type: 'feed', label: '분유', isSlider: true })
   }
   if (ageMonths >= 5) { // 이유식 5개월+
     eatItems.push({ type: 'babyfood', label: ageMonths < 7 ? '이유식(미음)' : ageMonths < 10 ? '이유식(죽)' : '이유식',
@@ -80,7 +79,7 @@ function buildCategories(ageMonths: number): RecordCategory[] {
   if (ageMonths < 7) { // 유축 초기만
     eatItems.push({ type: 'pump', label: '유축', isDuration: true })
   }
-  cats.push({ key: 'eat', label: '먹기', color: 'var(--color-primary)', items: eatItems })
+  cats.push({ key: 'eat', label: '수유', color: 'var(--color-primary)', items: eatItems })
 
   // 잠 — 시간대 자동 분기 (20시~7시: 밤잠, 나머지: 낮잠)
   const hour = new Date().getHours()
@@ -102,10 +101,9 @@ function buildCategories(ageMonths: number): RecordCategory[] {
   // 건강 — 항상
   cats.push({ key: 'health', label: '건강', color: '#D08068',
     items: [
-      { type: 'temp', label: '체온',
-        step3: [{ label: '36.5', value: 36.5, unit: '°C' }, { label: '37.0', value: 37.0, unit: '°C' }, { label: '37.5', value: 37.5, unit: '°C' }, { label: '38.0', value: 38.0, unit: '°C' }, { label: '38.5', value: 38.5, unit: '°C' }] },
+      { type: 'temp', label: '체온', isSlider: true },
       { type: 'bath', label: '목욕', isDuration: true },
-      { type: 'medication', label: '투약' },
+      { type: 'medication', label: '투약', hasMemo: true },
     ] })
 
   return cats
@@ -118,6 +116,8 @@ interface RecordItem {
   tags?: Record<string, string>
   baseType?: string
   isDuration?: boolean
+  isSlider?: boolean
+  hasMemo?: boolean
 }
 
 interface ActiveSession {
@@ -133,7 +133,7 @@ interface RecordCategory {
 }
 
 const RECORD_CATEGORIES: RecordCategory[] = [
-  { key: 'eat', label: '먹기', color: 'var(--color-primary)',
+  { key: 'eat', label: '수유', color: 'var(--color-primary)',
     items: [
       { type: 'breast_left', label: '모유(왼)', baseType: 'feed', tags: { side: 'left' }, isDuration: true },
       { type: 'breast_right', label: '모유(오)', baseType: 'feed', tags: { side: 'right' }, isDuration: true },
@@ -159,10 +159,9 @@ const RECORD_CATEGORIES: RecordCategory[] = [
   },
   { key: 'health', label: '건강', color: '#D08068',
     items: [
-      { type: 'temp', label: '체온',
-        step3: [{ label: '36.5', value: 36.5, unit: '°C' }, { label: '37.0', value: 37.0, unit: '°C' }, { label: '37.5', value: 37.5, unit: '°C' }, { label: '38.0', value: 38.0, unit: '°C' }, { label: '38.5', value: 38.5, unit: '°C' }] },
+      { type: 'temp', label: '체온', isSlider: true },
       { type: 'bath', label: '목욕', isDuration: true },
-      { type: 'medication', label: '투약' },
+      { type: 'medication', label: '투약', hasMemo: true },
     ]
   },
 ]
@@ -206,37 +205,49 @@ export default function BottomNav() {
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<string | null>(null) // 3단계: 용량 선택
+  const [tempSlider, setTempSlider] = useState<string | null>(null) // 슬라이더 열린 아이템 타입
+  const [tempValue, setTempValue] = useState(36.5)
+  const [feedValue, setFeedValue] = useState(120)
+  const [memoItem, setMemoItem] = useState<string | null>(null) // 투약 메모
+  const [memoText, setMemoText] = useState('')
   const fabStyle = 'B' as const // B안 확정
 
   const handleQuickRecord = useCallback(async (type: string, extra?: Record<string, unknown>) => {
     if (navigator.vibrate) navigator.vibrate(30)
 
-    // 직접 DB 저장 (어떤 페이지에서든 동작)
-    try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const children = await supabase.from('children').select('id').eq('user_id', user.id).limit(1)
-        const childId = children.data?.[0]?.id
-        if (childId) {
-          await supabase.from('events').insert({
-            child_id: childId,
-            recorder_id: user.id,
-            type,
-            start_ts: new Date().toISOString(),
-            tags: extra?.tags || undefined,
-            amount_ml: extra?.amount_ml || undefined,
-            source: 'quick_button',
-          })
-        }
-      }
-    } catch { /* 오프라인 폴백 */ }
+    // 이벤트 dispatch → page.tsx가 마운트되어 있으면 DB 저장 + UI 업데이트 처리
+    const event = new CustomEvent('dodam-record', { detail: { type, ...extra, _handled: false } })
+    window.dispatchEvent(event)
 
-    // 이벤트도 dispatch (page.tsx가 열려있으면 UI 업데이트)
-    window.dispatchEvent(new CustomEvent('dodam-record', { detail: { type, ...extra } }))
+    // page.tsx가 없는 페이지(추억/동네/우리 등)에서는 직접 DB 저장
+    if (!(event.detail as any)._handled) {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const children = await supabase.from('children').select('id').eq('user_id', user.id).limit(1)
+          const childId = children.data?.[0]?.id
+          if (childId) {
+            await supabase.from('events').insert({
+              child_id: childId,
+              recorder_id: user.id,
+              type,
+              start_ts: new Date().toISOString(),
+              tags: extra?.tags || undefined,
+              amount_ml: extra?.amount_ml || undefined,
+              source: 'quick_button',
+            })
+          }
+        }
+      } catch { /* 오프라인 폴백 */ }
+    }
+
     setFabOpen(false)
     setSelectedCategory(null)
     setSelectedItem(null)
+    setTempSlider(null)
+    setMemoItem(null)
+    setMemoText('')
   }, [])
 
   // ===== Duration-based session state =====
@@ -284,6 +295,7 @@ export default function BottomNav() {
     setFabOpen(false)
     setSelectedCategory(null)
     setSelectedItem(null)
+    setTempSlider(null)
     if (navigator.vibrate) navigator.vibrate(30)
   }, [])
 
@@ -296,38 +308,41 @@ export default function BottomNav() {
     const endTs = new Date().toISOString()
     const mins = Math.round((Date.now() - activeSession.startTs) / 60000)
 
-    // 직접 DB 저장 (어떤 페이지에서든 동작)
-    try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const children = await supabase.from('children').select('id').eq('user_id', user.id).limit(1)
-        const childId = children.data?.[0]?.id
-        if (childId) {
-          await supabase.from('events').insert({
-            child_id: childId,
-            recorder_id: user.id,
-            type: recordType,
-            start_ts: startTs,
-            end_ts: endTs,
-            tags: activeSession.tags || undefined,
-            source: 'quick_button',
-          })
-        }
-      }
-    } catch { /* 오프라인 시 이벤트로 폴백 */ }
-
-    // 이벤트도 dispatch (page.tsx가 열려있으면 UI 업데이트)
-    const detail: Record<string, unknown> = { type: recordType, start_ts: startTs, end_ts: endTs }
+    // 이벤트 dispatch → page.tsx가 마운트되어 있으면 DB 저장 + UI 업데이트 처리
+    const detail: Record<string, unknown> = { type: recordType, start_ts: startTs, end_ts: endTs, _handled: false }
     if (activeSession.tags) detail.tags = activeSession.tags
-    window.dispatchEvent(new CustomEvent('dodam-record', { detail }))
+    const event = new CustomEvent('dodam-record', { detail })
+    window.dispatchEvent(event)
+
+    // page.tsx가 없는 페이지에서는 직접 DB 저장
+    if (!(event.detail as any)._handled) {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const children = await supabase.from('children').select('id').eq('user_id', user.id).limit(1)
+          const childId = children.data?.[0]?.id
+          if (childId) {
+            await supabase.from('events').insert({
+              child_id: childId,
+              recorder_id: user.id,
+              type: recordType,
+              start_ts: startTs,
+              end_ts: endTs,
+              tags: activeSession.tags || undefined,
+              source: 'quick_button',
+            })
+          }
+        }
+      } catch { /* 오프라인 폴백 */ }
+    }
 
     localStorage.removeItem('dodam_active_session')
     setActiveSession(null)
 
-    // 토스트 표시용 이벤트 (page.tsx 외에서도 토스트 표시)
-    const labels: Record<string, string> = { bath: '목욕', sleep: '수면', pump: '유축', nap: '낮잠', night_sleep: '밤잠' }
-    const label = labels[recordType] || recordType
+    // 토스트 표시
+    const labels: Record<string, string> = { feed: '수유', bath: '목욕', sleep: '수면', pump: '유축' }
+    const label = labels[recordType] || activeSession.label
     window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${label} ${mins}분 기록 완료!` } }))
   }, [activeSession])
 
@@ -392,6 +407,133 @@ export default function BottomNav() {
             </>
           )
         }
+        // 슬라이더 카드 UI (체온 / 분유 공용)
+        if (tempSlider) {
+          const isTemp = tempSlider === 'temp'
+          const isFeed = tempSlider === 'feed'
+
+          // 체온 설정
+          const isHigh = tempValue >= 37.5
+          const isDanger = tempValue >= 38.5
+          const tempColor = isDanger ? '#EF4444' : isHigh ? '#F59E0B' : '#10B981'
+
+          // 분유 설정
+          const feedColor = 'var(--color-primary)'
+
+          return (
+            <>
+              <div className="fixed inset-0 z-[60] bg-black/50" onClick={() => { setFabOpen(false); setSelectedCategory(null); setTempSlider(null) }} />
+              <div className="fixed z-[70] bottom-[80px] left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-[390px]">
+                <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.25)] p-5" style={{ animation: 'fabItemPop 0.25s both cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+
+                  {isTemp && (
+                    <>
+                      <div className="text-center mb-4">
+                        <span className="text-[42px] font-bold tabular-nums" style={{ color: tempColor }}>{tempValue.toFixed(1)}</span>
+                        <span className="text-[18px] font-medium text-[#9E9A95] ml-1">°C</span>
+                        {isDanger && <p className="text-[12px] font-bold text-red-500 mt-1">고열 주의</p>}
+                        {isHigh && !isDanger && <p className="text-[12px] font-bold text-amber-500 mt-1">미열</p>}
+                      </div>
+                      <div className="px-1 mb-4">
+                        <input type="range" min={35.0} max={42.0} step={0.1} value={tempValue}
+                          onChange={(e) => setTempValue(parseFloat(e.target.value))}
+                          className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                          style={{ background: `linear-gradient(to right, #10B981 0%, #10B981 ${((37.5 - 35) / 7) * 100}%, #F59E0B ${((37.5 - 35) / 7) * 100}%, #F59E0B ${((38.5 - 35) / 7) * 100}%, #EF4444 ${((38.5 - 35) / 7) * 100}%, #EF4444 100%)` }}
+                        />
+                        <div className="flex justify-between text-[10px] text-[#9E9A95] mt-1 px-0.5">
+                          <span>35.0</span><span>36.5</span><span>37.5</span><span>38.5</span><span>42.0</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5 mb-4">
+                        {[36.5, 37.0, 37.5, 38.0, 38.5].map((v) => (
+                          <button key={v} onClick={() => setTempValue(v)}
+                            className="flex-1 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95"
+                            style={{ backgroundColor: tempValue === v ? tempColor : '#F5F3F0', color: tempValue === v ? 'white' : '#6B6966' }}>
+                            {v.toFixed(1)}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-[14px] font-medium text-[#6B6966] bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
+                        <button onClick={() => { handleQuickRecord('temp', { tags: { celsius: tempValue } }); setTempSlider(null) }}
+                          className="flex-[2] py-3 rounded-xl text-[14px] font-bold text-white active:scale-95 transition-transform" style={{ background: tempColor }}>
+                          {tempValue.toFixed(1)}°C 기록
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {isFeed && (
+                    <>
+                      <div className="text-center mb-4">
+                        <span className="text-[42px] font-bold tabular-nums" style={{ color: feedColor }}>{feedValue}</span>
+                        <span className="text-[18px] font-medium text-[#9E9A95] ml-1">ml</span>
+                      </div>
+                      <div className="px-1 mb-4">
+                        <input type="range" min={10} max={300} step={10} value={feedValue}
+                          onChange={(e) => setFeedValue(parseInt(e.target.value))}
+                          className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                          style={{ background: `linear-gradient(to right, var(--color-primary) ${((feedValue - 10) / 290) * 100}%, #E8E4DF ${((feedValue - 10) / 290) * 100}%)` }}
+                        />
+                        <div className="flex justify-between text-[10px] text-[#9E9A95] mt-1 px-0.5">
+                          <span>10</span><span>100</span><span>200</span><span>300ml</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5 mb-4">
+                        {[60, 90, 120, 150, 180, 240].map((v) => (
+                          <button key={v} onClick={() => setFeedValue(v)}
+                            className="flex-1 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95"
+                            style={{ backgroundColor: feedValue === v ? 'var(--color-primary)' : '#F5F3F0', color: feedValue === v ? 'white' : '#6B6966' }}>
+                            {v}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-[14px] font-medium text-[#6B6966] bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
+                        <button onClick={() => { handleQuickRecord('feed', { amount_ml: feedValue }); setTempSlider(null) }}
+                          className="flex-[2] py-3 rounded-xl text-[14px] font-bold text-white active:scale-95 transition-transform" style={{ background: 'var(--color-primary)' }}>
+                          분유 {feedValue}ml 기록
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                </div>
+              </div>
+            </>
+          )
+        }
+
+        // 투약 메모 UI
+        if (memoItem) {
+          return (
+            <>
+              <div className="fixed inset-0 z-[60] bg-black/50" onClick={() => { setFabOpen(false); setSelectedCategory(null); setMemoItem(null); setMemoText('') }} />
+              <div className="fixed z-[70] bottom-[80px] left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-[390px]">
+                <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.25)] p-5" style={{ animation: 'fabItemPop 0.25s both cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+                  <p className="text-[15px] font-bold text-[#1A1918] mb-3">투약 기록</p>
+                  <input
+                    type="text" placeholder="약 이름 (선택)" value={memoText}
+                    onChange={(e) => setMemoText(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-[#E8E4DF] bg-[#FAFAF8] text-[14px] text-[#1A1918] placeholder-[#C4C0BB] focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-4"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={() => { setMemoItem(null); setMemoText('') }} className="flex-1 py-3 rounded-xl text-[14px] font-medium text-[#6B6966] bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
+                    <button onClick={() => {
+                      const extra: Record<string, unknown> = memoText.trim() ? { tags: { medicine: memoText.trim() } } : {}
+                      handleQuickRecord('medication', extra)
+                      setMemoItem(null); setMemoText('')
+                    }} className="flex-[2] py-3 rounded-xl text-[14px] font-bold text-white active:scale-95 transition-transform" style={{ background: '#D08068' }}>
+                      투약 기록
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )
+        }
+
         // 3단계: 프리셋 선택 (반원형 유지)
         if (selectedItem) {
           const item = DYNAMIC_CATEGORIES.flatMap(c => c.items).find(i => i.type === selectedItem)
@@ -454,9 +596,15 @@ export default function BottomNav() {
                       style={{ left: pos.x - 28, top: pos.y - 28, animation: `fabItemPop 0.2s ${i * 0.03}s both cubic-bezier(0.34, 1.56, 0.64, 1)` }}>
                       <button onClick={() => {
                         if (item.isDuration) {
-                          startSession(item, cat.color) // duration → start session
+                          startSession(item, cat.color)
+                        } else if (item.isSlider) {
+                          setTempSlider(item.type)
+                          if (item.type === 'temp') setTempValue(36.5)
+                          if (item.type === 'feed') setFeedValue(120)
+                        } else if (item.hasMemo) {
+                          setMemoItem(item.type); setMemoText('')
                         } else if (item.step3) {
-                          setSelectedItem(item.type) // 3단계로
+                          setSelectedItem(item.type)
                         } else {
                           const recordType = item.baseType || item.type
                           const extra: Record<string, unknown> = {}
@@ -509,76 +657,71 @@ export default function BottomNav() {
         <div className="flex items-center h-[62px] rounded-[36px] bg-white/95 backdrop-blur-lg border border-[#E8E4DF]/60 p-1" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
           {mode === 'preparing' || mode === 'pregnant' ? (
             tabs.map((tab) => (
-              <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more' }[tab.href]} />
+              <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more', '/waiting': 'nav-waiting' }[tab.href]} />
             ))
           ) : (
             <>
               {tabs.slice(0, 2).map((tab) => (
-                <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more' }[tab.href]} />
+                <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more', '/waiting': 'nav-waiting' }[tab.href]} />
               ))}
 
-              {/* FAB 영역 스페이서 */}
-              <div className="flex-1" />
+              {/* 중앙 FAB (물방울 — pill 위로 돌출) */}
+              <div data-guide="fab" className="flex-1 flex items-center justify-center relative">
+                {activeSession ? (
+                  <button
+                    onClick={endSession}
+                    className="absolute -top-14 flex flex-col items-center justify-center transition-transform duration-200 active:scale-95"
+                  >
+                    <div
+                      className="w-[66px] h-[66px] rounded-full flex flex-col items-center justify-center shadow-[0_6px_24px_rgba(0,0,0,0.3)]"
+                      style={{
+                        background: activeSession.color,
+                        animation: 'fabSessionPulse 2s ease-in-out infinite',
+                      }}
+                    >
+                      <span className="text-white text-[15px] font-bold tabular-nums leading-tight">
+                        {formatElapsed(elapsed)}
+                      </span>
+                      <span className="text-white/90 text-[9px] font-semibold leading-tight">종료</span>
+                    </div>
+                    <span className="text-[10px] mt-0.5 font-medium whitespace-nowrap" style={{ color: activeSession.color }}>
+                      {activeSession.label}
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setFabOpen((v) => !v)}
+                    className={`absolute -top-12 flex flex-col items-center justify-center transition-transform duration-200 ${fabOpen ? 'scale-95' : ''}`}
+                  >
+                    {fabOpen ? (
+                      <div className="w-[62px] h-[62px] rounded-full flex items-center justify-center active:scale-90 transition-all duration-200 bg-[#212124] shadow-[0_6px_20px_rgba(0,0,0,0.35)]">
+                        <XIcon className="w-7 h-7 text-white" />
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        {/* 호흡 글로우 링 */}
+                        <div className="absolute inset-[-6px] rounded-full" style={{ animation: 'fabGlow 3s ease-in-out infinite', background: 'radial-gradient(circle, var(--color-primary) 0%, transparent 70%)', opacity: 0.15 }} />
+                        {/* 물방울 이미지 */}
+                        <img src="/fab.png" alt="" className="w-[62px] h-[62px] active:scale-90 transition-all duration-200" style={{ filter: 'drop-shadow(0 4px 12px var(--color-fab-shadow))', animation: 'fabBreathe 3s ease-in-out infinite' }} />
+                        {/* 반짝임 점 */}
+                        <div className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-white" style={{ animation: 'fabSparkle 2.5s ease-in-out infinite', boxShadow: '0 0 4px rgba(255,255,255,0.8)' }} />
+                      </div>
+                    )}
+                    <span className={`text-[10px] mt-0.5 font-medium ${fabOpen ? 'text-[#212124]' : 'text-[var(--color-primary)]'}`}>
+                      기록
+                    </span>
+                  </button>
+                )}
+              </div>
 
               {tabs.slice(2).map((tab) => (
-                <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more' }[tab.href]} />
+                <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more', '/waiting': 'nav-waiting' }[tab.href]} />
               ))}
             </>
           )}
         </div>
       </nav>
 
-      {/* FAB 버튼 — nav 외부 독립 배치 (모바일 터치 안정성) */}
-      {mode !== 'preparing' && mode !== 'pregnant' && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[68] pointer-events-none pt-3 pr-5 pb-[max(20px,env(safe-area-inset-bottom))] pl-5">
-          <div className="h-[62px] flex items-center justify-center">
-            <div data-guide="fab" className="relative pointer-events-auto">
-              {activeSession ? (
-                <button
-                  onClick={endSession}
-                  className="absolute -top-14 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center transition-transform duration-200 active:scale-95"
-                >
-                  <div
-                    className="w-[66px] h-[66px] rounded-full flex flex-col items-center justify-center shadow-[0_6px_24px_rgba(0,0,0,0.3)]"
-                    style={{
-                      background: activeSession.color,
-                      animation: 'fabSessionPulse 2s ease-in-out infinite',
-                    }}
-                  >
-                    <span className="text-white text-[15px] font-bold tabular-nums leading-tight">
-                      {formatElapsed(elapsed)}
-                    </span>
-                    <span className="text-white/90 text-[9px] font-semibold leading-tight">종료</span>
-                  </div>
-                  <span className="text-[10px] mt-0.5 font-medium whitespace-nowrap" style={{ color: activeSession.color }}>
-                    {activeSession.label}
-                  </span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => setFabOpen((v) => !v)}
-                  className={`absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center transition-transform duration-200 ${fabOpen ? 'scale-95' : ''}`}
-                >
-                  {fabOpen ? (
-                    <div className="w-[62px] h-[62px] rounded-full flex items-center justify-center active:scale-90 transition-all duration-200 bg-[#212124] shadow-[0_6px_20px_rgba(0,0,0,0.35)]">
-                      <XIcon className="w-7 h-7 text-white" />
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <div className="absolute inset-[-6px] rounded-full" style={{ animation: 'fabGlow 3s ease-in-out infinite', background: 'radial-gradient(circle, var(--color-primary) 0%, transparent 70%)', opacity: 0.15 }} />
-                      <img src="/fab.png" alt="" className="w-[62px] h-[62px] active:scale-90 transition-all duration-200" style={{ filter: 'drop-shadow(0 4px 12px var(--color-fab-shadow))', animation: 'fabBreathe 3s ease-in-out infinite' }} />
-                      <div className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-white" style={{ animation: 'fabSparkle 2.5s ease-in-out infinite', boxShadow: '0 0 4px rgba(255,255,255,0.8)' }} />
-                    </div>
-                  )}
-                  <span className={`text-[10px] mt-0.5 font-medium ${fabOpen ? 'text-[#212124]' : 'text-[var(--color-primary)]'}`}>
-                    기록
-                  </span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 애니메이션 keyframes */}
       <style jsx global>{`

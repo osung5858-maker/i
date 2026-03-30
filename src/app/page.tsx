@@ -13,6 +13,7 @@ import { createClient } from '@/lib/supabase/client'
 import { shareTodayRecord } from '@/lib/kakao/share-parenting'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
+import PushPrompt from '@/components/push/PushPrompt'
 import { useOfflineSync } from '@/hooks/useOfflineSync'
 import { savePendingEvent } from '@/lib/offline/db'
 import type { CareEvent, EventType, Child } from '@/types'
@@ -36,6 +37,17 @@ const EVENT_ICON_MAP: Record<string, { Icon: React.FC<{ className?: string }>; b
 }
 const EVENT_ICON_DEFAULT = { Icon: NoteIcon, bg: 'bg-[#F0EDE8]', color: 'text-[#9E9A95]' }
 const EVENT_LABELS: Record<string, string> = { feed: '수유', sleep: '수면', poop: '대변', pee: '소변', temp: '체온', memo: '메모', bath: '목욕', pump: '유축', babyfood: '이유식', snack: '간식', toddler_meal: '유아식', medication: '투약' }
+function getEventLabel(e: { type: string; tags?: Record<string, unknown> | null }): string {
+  if (e.type === 'feed' && e.tags?.side === 'left') return '모유(왼)'
+  if (e.type === 'feed' && e.tags?.side === 'right') return '모유(오)'
+  if (e.type === 'sleep' && e.tags?.sleepType === 'nap') return '낮잠'
+  if (e.type === 'sleep' && e.tags?.sleepType === 'night') return '밤잠'
+  if (e.type === 'poop' && e.tags?.status === 'normal') return '대변 정상'
+  if (e.type === 'poop' && e.tags?.status === 'soft') return '대변 묽음'
+  if (e.type === 'poop' && e.tags?.status === 'hard') return '대변 단단'
+  if (e.type === 'medication' && e.tags?.medicine) return `투약 · ${e.tags.medicine}`
+  return EVENT_LABELS[e.type] || e.type
+}
 const NEXT_VACCINES: Record<number, string> = { 0: 'BCG', 1: 'B형간염 2차', 2: 'DTaP 1차', 4: 'DTaP 2차', 6: 'DTaP 3차', 12: 'MMR', 15: '수두', 24: '일본뇌염' }
 
 function getAgeMonths(birthdate: string): number {
@@ -331,6 +343,7 @@ export default function HomePage() {
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail
+      if (detail) detail._handled = true // BottomNav에게 page.tsx가 처리함을 알림 (이중 저장 방지)
       if (detail?.type) handleFabRecord(detail)
     }
     window.addEventListener('dodam-record', handler)
@@ -456,6 +469,9 @@ export default function HomePage() {
           />
           </div>
 
+          {/* 푸시 알림 동의 (AI 결과 표시 후 자연스럽게) */}
+          <PushPrompt show={events.length >= 3} />
+
           {/* ━━━ 하루 요약 바 ━━━ */}
           {dailySummary && (() => {
             const { totalFeedMl, feedCount, napMin, nightMin } = dailySummary
@@ -496,7 +512,7 @@ export default function HomePage() {
                   const detail = e.amount_ml ? `${e.amount_ml}ml` :
                     e.end_ts ? `${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` :
                     e.tags?.celsius ? `${e.tags.celsius}°C` :
-                    e.tags?.status ? ({ normal: '정상', watery: '묽음', hard: '단단' }[e.tags.status as string] || '') : ''
+                    e.tags?.status ? ({ normal: '정상', soft: '묽음', hard: '단단' }[e.tags.status as string] || '') : ''
                   const isAlert = e.type === 'temp' && Number(e.tags?.celsius) >= 37.5
 
                   return (
@@ -505,7 +521,7 @@ export default function HomePage() {
                       <div className={`w-7 h-7 rounded-full ${iconInfo.bg} flex items-center justify-center shrink-0`}>
                         <iconInfo.Icon className={`w-3.5 h-3.5 ${iconInfo.color}`} />
                       </div>
-                      <span className="text-[13px] font-semibold text-[#1A1918]">{EVENT_LABELS[e.type]}</span>
+                      <span className="text-[13px] font-semibold text-[#1A1918]">{getEventLabel(e)}</span>
                       {detail && <span className={`text-[12px] font-medium ${isAlert ? 'text-red-500' : 'text-[var(--color-primary)]'}`}>{detail}</span>}
                       {isAlert && <span className="text-[10px] bg-red-50 text-red-500 px-1 py-0.5 rounded font-bold">주의</span>}
                     </div>
@@ -747,7 +763,7 @@ function KidsnoteCard({ ageMonths }: { ageMonths: number }) {
               ))}
             </div>
             <p className="text-[14px] text-[#9E9A95] text-center mt-1.5">
-              {reports[0]?.created ? new Date(reports[0].created).toLocaleDateString('ko-KR') : ''} · {reports[0]?.author || ''}
+              {reports[0]?.created ? new Date(reports[0].created).toLocaleDateString('ko-KR') : ''}
             </p>
           </>
         )
@@ -826,7 +842,7 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
             </span>
           )}
         </div>
-        <button onClick={onShare} className="text-[14px] text-[var(--color-primary)]">카톡 공유</button>
+        <button data-guide="share-btn" onClick={onShare} className="text-[14px] text-[var(--color-primary)]">카톡 공유</button>
       </div>
 
       {/* 오늘 요약 */}

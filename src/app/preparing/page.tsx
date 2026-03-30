@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
 import { SparkleIcon, PenIcon } from '@/components/ui/Icons'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
+import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
 
 function addDays(date: Date, days: number): Date {
@@ -451,18 +452,18 @@ export default function PreparingPage() {
 
   // 핸들러
   const SUPPL_NAMES: Record<string, string> = { folic: '엽산', vitd: '비타민D', iron: '철분', omega3: '오메가3' }
-  const SUPPL_MAX = 4 // 하루 최대 복용 횟수
+  const SUPPL_MAX = 1 // 하루 1회 토글
   const toggleSupplement = (key: string) => {
     const today = new Date().toISOString().split('T')[0]
     const current = supplements[key] || 0
-    const nextVal = current >= SUPPL_MAX ? 0 : current + 1 // 0→1→2→3→4→0 순환
+    const nextVal = current >= SUPPL_MAX ? 0 : 1 // 0↔1 토글
     const next = { ...supplements, [key]: nextVal }
     setSupplements(next); localStorage.setItem(`dodam_suppl_${today}`, JSON.stringify(next))
     const totalDone = Object.values(next).reduce((s, v) => s + v, 0)
     saveHistory('suppl', totalDone)
     const name = SUPPL_NAMES[key] || key
-    if (nextVal === 0) showToast(`${name} 초기화`)
-    else showToast(`${name} ${nextVal}/${SUPPL_MAX}회 복용!`)
+    if (nextVal === 0) showToast(`${name} 취소`)
+    else showToast(`${name} 복용 완료!`)
   }
   const saveMood = (mood: string) => {
     const today = new Date().toISOString().split('T')[0]
@@ -713,6 +714,9 @@ export default function PreparingPage() {
 
         {/* ━━━ 임신 준비 식단 추천 ━━━ */}
         <AIMealCard mode="preparing" value={0} phase={getCyclePhase()} />
+
+        {/* 푸시 알림 동의 */}
+        <PushPrompt message="배란일과 엽산 리마인더를 받아볼까요?" />
 
         {/* ━━━ 3. 상태 카드 2열 ━━━ */}
         <div className="grid grid-cols-2 gap-2">

@@ -102,6 +102,56 @@ function staleWhileRevalidate(request, cacheName) {
   })
 }
 
+// ===== 푸시 알림 =====
+
+self.addEventListener('push', (event) => {
+  const defaultData = { title: '도담', body: '알림이 도착했어요', url: '/' }
+  let data = defaultData
+
+  try {
+    if (event.data) {
+      data = { ...defaultData, ...event.data.json() }
+    }
+  } catch {
+    // JSON 파싱 실패 시 기본값
+  }
+
+  const options = {
+    body: data.body,
+    icon: '/icon-192.png',
+    badge: '/favicon-32x32.png',
+    tag: data.tag || 'dodam-notification',
+    data: { url: data.url || '/' },
+    vibrate: [100, 50, 100],
+    actions: data.actions || [],
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  )
+})
+
+// 알림 클릭 → 딥링크
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+
+  const url = event.notification.data?.url || '/'
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      // 이미 열린 탭이 있으면 포커스
+      for (const client of clients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(url)
+          return client.focus()
+        }
+      }
+      // 없으면 새 탭
+      return self.clients.openWindow(url)
+    })
+  )
+})
+
 // 정적 에셋 판별
 function isStaticAsset(pathname) {
   return /\.(js|css|png|jpg|jpeg|gif|webp|svg|ico|woff2?|ttf|eot)(\?.*)?$/.test(

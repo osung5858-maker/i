@@ -94,28 +94,32 @@ export default function GlobalHeader() {
   const homeHref = mode === 'parenting' ? '/' : mode === 'pregnant' ? '/pregnant' : '/preparing'
   const isNight = new Date().getHours() >= 20 || new Date().getHours() < 6
 
+  // 시간대별 인사
+  const getGreeting = () => {
+    const h = new Date().getHours()
+    if (h < 6) return '새벽이에요, 힘내세요'
+    if (h < 12) return '좋은 아침이에요'
+    if (h < 18) return '오후도 도담하게'
+    return '오늘도 수고했어요'
+  }
+  // 아이 일수 계산
+  const getDaysOld = () => {
+    const birthdate = localStorage.getItem('dodam_child_birthdate')
+    if (!birthdate) return null
+    return Math.floor((Date.now() - new Date(birthdate).getTime()) / 86400000)
+  }
+
   return (
     <>
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
         <div className="flex items-center justify-between h-12 px-5 max-w-lg mx-auto w-full">
-          {/* 좌측: 아이 프로필 사진 + 이름/정보 */}
+          {/* 좌측: 이름/정보 */}
           <div className="flex items-center gap-2.5">
-            <button
-              data-guide="profile"
-              onClick={() => setShowAvatarPicker(true)}
-              className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-[#F0EDE8] active:scale-95 transition-transform ring-2 ring-[var(--color-primary)]/20"
-            >
-              {data?.photoUrl ? (
-                <video src={data.photoUrl} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-              ) : (
-                <video src={PROFILE_AVATARS[0]} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-              )}
-            </button>
             <Link href={homeHref} className="active:opacity-70">
               {mode === 'parenting' && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[15px] font-bold text-[#212124]">{data.name}</span>
-                  <span className="text-[13px] text-[#9E9A95]">{data.ageMonths}개월</span>
+                <div className="flex flex-col">
+                  <span className="text-[11px] text-[#9E9A95] leading-tight">{getGreeting()}</span>
+                  <span className="text-[15px] font-bold text-[#212124] leading-tight">{data.name} 오늘 {getDaysOld() ?? 0}일째</span>
                 </div>
               )}
               {mode === 'pregnant' && (
@@ -145,7 +149,7 @@ export default function GlobalHeader() {
             </Link>
             <Link href="/settings" className="w-8 h-8 rounded-full overflow-hidden active:opacity-80 shrink-0 bg-[#F0EDE8]">
               {data?.userAvatar ? (
-                <img src={data.userAvatar} alt="" className="w-full h-full object-cover" />
+                <img src={data.userAvatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <span className="text-[#6B6966] text-[13px] font-bold">{data?.userName?.charAt(0) || '나'}</span>

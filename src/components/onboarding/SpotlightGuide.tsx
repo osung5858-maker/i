@@ -14,86 +14,176 @@ interface GuideStep {
 
 const GUIDE_STEPS: Record<string, GuideStep[]> = {
   parenting: [
+    // 1. 핵심: FAB 기록
     {
       target: '[data-guide="fab"]',
       title: '여기를 눌러 기록해요',
-      desc: '수유 · 수면 · 기저귀 — 원탭으로 간편하게',
+      desc: '수유 · 수면 · 기저귀 · 체온\n가운데 버튼 하나로 모든 기록을 시작해요',
       position: 'top',
     },
+    // 2. FAB 상세: 시간 기록
+    {
+      target: '[data-guide="fab"]',
+      title: '모유/수면은 시작 → 종료',
+      desc: '탭하면 타이머가 시작되고\n다시 탭하면 종료돼요. 시간이 자동 기록!',
+      position: 'top',
+    },
+    // 3. AI 인사이트
     {
       target: '[data-guide="ai-card"]',
-      title: 'AI가 분석해줘요',
-      desc: '기록이 쌓이면 수유/수면 리듬을 알려드려요',
+      title: 'AI가 리듬을 분석해요',
+      desc: '기록이 3건 이상 쌓이면\n다음 수유/수면 시간을 예측해줘요',
       position: 'bottom',
     },
+    // 4. 카톡 공유
+    {
+      target: '[data-guide="share-btn"]',
+      title: '오늘 기록을 카톡으로 공유',
+      desc: '배우자나 가족에게\n오늘의 돌봄 기록을 한번에 보내요',
+      position: 'bottom',
+    },
+    // 5. 동네
     {
       target: '[data-guide="nav-town"]',
-      title: '동네 소아과 찾기',
-      desc: '급할 때 가까운 소아과를 바로 검색해요',
+      title: '급할 때 — 동네 소아과',
+      desc: '지금 문 연 가까운 소아과를\n지도에서 바로 찾을 수 있어요',
       position: 'top',
     },
+    // 6. 추억 탭
     {
       target: '[data-guide="nav-record"]',
-      title: '성장 기록',
-      desc: '키 · 몸무게 · 발달 체크를 모아볼 수 있어요',
+      title: '성장 기록 · 사진 타임랩스',
+      desc: '키/몸무게 기록, 발달 체크,\n매월 사진으로 성장 영상도 만들어요',
       position: 'top',
     },
+    // 7. 우리 탭
+    {
+      target: '[data-guide="nav-more"]',
+      title: '더 많은 기능이 여기에',
+      desc: '예방접종 · 이유식 가이드 · 자장가\n검진표 AI 분석 · 정부 혜택까지',
+      position: 'top',
+    },
+    // 8. 프로필
     {
       target: '[data-guide="profile"]',
-      title: '프로필 사진을 바꿔보세요',
+      title: '프로필 사진을 골라보세요',
+      desc: '탭하면 귀여운 아바타 4종 중\n마음에 드는 걸 선택할 수 있어요',
+      position: 'bottom',
+    },
+    // 9. 흔들기
+    {
+      target: '[data-guide="fab"]',
+      title: '급할 땐 흔들어보세요!',
+      desc: '핸드폰을 흔들면 바로\n응급 소아과 검색 화면이 열려요',
+      position: 'top',
+    },
+  ],
+  pregnant: [
+    // 1. 태아 발달
+    {
+      target: '[data-guide="fetal-card"]',
+      title: '우리 아이 이만큼 자랐어요',
+      desc: '매주 태아 크기를 과일로 비교하고\n발달 상황과 주의사항을 알려드려요',
+      position: 'bottom',
+    },
+    // 2. 검진 기록
+    {
+      target: '[data-guide="checkup-record"]',
+      title: '검진 기록을 남겨보세요',
+      desc: '초음파 사진, 아기 체중, 의사 소견을\n날짜별로 기록하고 모아볼 수 있어요',
+      position: 'bottom',
+    },
+    // 3. 일일 체크리스트
+    {
+      target: '[data-guide="daily-check"]',
+      title: '매일 4가지만 챙겨요',
+      desc: '물 8잔 · 30분 산책 · 영양제 · 스트레칭\n탭하면 완료 표시돼요',
+      position: 'bottom',
+    },
+    // 4. 기분 기록
+    {
+      target: '[data-guide="mood"]',
+      title: '오늘 기분은 어때요?',
+      desc: '기분을 기록하면 AI가\n오늘의 컨디션에 맞는 조언을 해줘요',
+      position: 'bottom',
+    },
+    // 5. AI 식단
+    {
+      target: '[data-guide="meal-card"]',
+      title: 'AI 맞춤 식단 추천',
+      desc: '주차별 필요 영양소에 맞춰\n아침·점심·저녁 식단을 추천해요',
+      position: 'bottom',
+    },
+    // 6. 동네
+    {
+      target: '[data-guide="nav-town"]',
+      title: '동네 산부인과 · 산후조리원',
+      desc: '가까운 병원과 조리원을\n지도에서 바로 찾아볼 수 있어요',
+      position: 'top',
+    },
+    // 7. 기다림 탭
+    {
+      target: '[data-guide="nav-waiting"]',
+      title: '아이에게 편지를 써보세요',
+      desc: '기다림 탭에서 태교 편지를 쓰면\n태어난 후 함께 읽을 수 있어요',
+      position: 'top',
+    },
+    // 8. 우리 탭
+    {
+      target: '[data-guide="nav-more"]',
+      title: '정부 혜택 · 이름 짓기',
+      desc: '맘편한임신 통합신청, AI 이름 추천,\n출산 가방 체크리스트까지',
+      position: 'top',
+    },
+    // 9. 프로필
+    {
+      target: '[data-guide="profile"]',
+      title: '프로필 사진을 골라보세요',
       desc: '탭하면 귀여운 아바타를 선택할 수 있어요',
       position: 'bottom',
     },
   ],
-  pregnant: [
-    {
-      target: '[data-guide="fetal-card"]',
-      title: '우리 아이 이만큼 자랐어요',
-      desc: '매주 태아 크기와 발달 상황을 알려드려요',
-      position: 'bottom',
-    },
-    {
-      target: '[data-guide="daily-check"]',
-      title: '매일 챙기기',
-      desc: '물 · 산책 · 영양제 — 탭해서 완료 표시',
-      position: 'bottom',
-    },
-    {
-      target: '[data-guide="mood"]',
-      title: '오늘 기분은 어때요?',
-      desc: '기분을 기록하면 AI가 맞춤 조언을 해요',
-      position: 'bottom',
-    },
-    {
-      target: '[data-guide="nav-town"]',
-      title: '동네 산부인과 찾기',
-      desc: '가까운 병원을 지도에서 바로 검색해요',
-      position: 'top',
-    },
-  ],
   preparing: [
+    // 1. 주기 설정
     {
       target: '[data-guide="cycle-setup"]',
       title: '주기를 설정해요',
-      desc: '마지막 생리일을 입력하면 배란일을 계산해요',
+      desc: '마지막 생리일과 주기 길이를 입력하면\n배란일 · 가임기를 자동 계산해요',
       position: 'bottom',
     },
+    // 2. 임신 확률
+    {
+      target: '[data-guide="ai-briefing"]',
+      title: '오늘의 임신 확률',
+      desc: '주기 데이터를 분석해서\n오늘 임신 가능성을 알려줘요',
+      position: 'bottom',
+    },
+    // 3. 영양제 체크
     {
       target: '[data-guide="supplements"]',
       title: '엽산 챙기셨나요?',
-      desc: '매일 영양제 복용을 체크할 수 있어요',
+      desc: '엽산 · 비타민D · 철분 · 오메가3\n매일 복용 여부를 체크해요',
       position: 'bottom',
     },
+    // 4. AI 브리핑
     {
       target: '[data-guide="ai-briefing"]',
-      title: 'AI 브리핑',
-      desc: '오늘의 임신 확률과 컨디션 팁을 알려줘요',
+      title: 'AI 브리핑 받아보세요',
+      desc: '주기 · 영양제 데이터를 종합해서\n오늘의 맞춤 조언과 식단을 추천해요',
       position: 'bottom',
     },
+    // 7. 동네
+    {
+      target: '[data-guide="nav-town"]',
+      title: '동네 산부인과 찾기',
+      desc: '난임 클리닉, 산부인과를\n지도에서 바로 찾아볼 수 있어요',
+      position: 'top',
+    },
+    // 8. 우리 탭
     {
       target: '[data-guide="nav-more"]',
-      title: '더 많은 기능',
-      desc: '이름 짓기 · 운세 · 정부 혜택 정보도 있어요',
+      title: '태명 짓기 · 정부 혜택',
+      desc: 'AI 태명 추천, 난임 시술비 지원,\n임신 준비 가이드까지',
       position: 'top',
     },
   ],
