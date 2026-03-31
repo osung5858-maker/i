@@ -12,7 +12,7 @@ import {
   HeartFilledIcon, ActivityIcon, PenIcon, ChartIcon,
   MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon,
   WaterGlassIcon, WalkIcon, StretchIcon,
-  CheckCircleIcon, BanIcon, RunnerIcon,
+  CheckCircleIcon, BanIcon, RunnerIcon, MusicIcon,
   VitaminIcon, BrainIcon, WarningIcon,
 } from '@/components/ui/Icons'
 import { autoBackup, restoreLocalData } from '@/lib/storage/backup'
@@ -150,18 +150,17 @@ function buildPreparingCategories(): RecordCategory[] {
       { type: 'prep_iron',   label: '철분',    color: '#10B981' },
       { type: 'prep_omega3', label: '오메가3', color: '#10B981' },
     ]},
-    // 운동 — 모두 타이머
+    // 운동 — 타이머 기반 활동 전반
     { key: 'prep_exercise', label: '운동', color: '#F59E0B', items: [
-      { type: 'prep_walk',    label: '산책', color: '#F59E0B', isDuration: true },
-      { type: 'prep_yoga',    label: '요가', color: '#F59E0B', isDuration: true },
-      { type: 'prep_swim',    label: '수영', color: '#F59E0B', isDuration: true },
-      { type: 'prep_workout', label: '근력', color: '#F59E0B', isDuration: true },
+      { type: 'prep_walk',     label: '걷기',     color: '#F59E0B', isDuration: true },
+      { type: 'prep_stretch',  label: '스트레칭', color: '#F59E0B', isDuration: true },
+      { type: 'prep_breath',   label: '심호흡',   color: '#F59E0B', isDuration: true },
+      { type: 'prep_meditate', label: '명상',     color: '#F59E0B', isDuration: true },
+      { type: 'prep_music',    label: '음악감상', color: '#F59E0B', isDuration: true },
     ]},
-    // 마음챙김 — 명상/호흡 타이머, 감사일기 폼
-    { key: 'prep_mind', label: '마음챙김', color: '#A78BFA', items: [
-      { type: 'prep_meditate', label: '명상',     color: '#A78BFA', isDuration: true },
-      { type: 'prep_breath',   label: '호흡',     color: '#A78BFA', isDuration: true },
-      { type: 'prep_journal',  label: '감사일기', color: '#A78BFA' },
+    // 기다림 일기 — 바로 폼 오픈
+    { key: 'prep_diary', label: '기다림 일기', color: '#A78BFA', items: [
+      { type: 'prep_journal', label: '기다림 일기', color: '#A78BFA' },
     ]},
     // 기분 — 오늘의 감정 빠른 기록 (pregnant 기분과 동일 패턴)
     { key: 'prep_mood', label: '기분', color: '#F472B6', items: [
@@ -494,7 +493,7 @@ function BottomNavComponent() {
                             k === 'today'         ? <BookOpenIcon className="w-8 h-8" /> :
                             k === 'prep_suppl'    ? <PillIcon className="w-8 h-8" /> :
                             k === 'prep_exercise' ? <RunnerIcon className="w-8 h-8" /> :
-                            k === 'prep_mind'     ? <MoonIcon className="w-8 h-8" /> :
+                            k === 'prep_diary'    ? <BookOpenIcon className="w-8 h-8" /> :
                             k === 'prep_mood'     ? <MoodHappyIcon className="w-8 h-8" /> :
                             <NoteIcon className="w-8 h-8" />
                           return <span style={{ color: cat.color }}>{node}</span>
@@ -771,12 +770,12 @@ function BottomNavComponent() {
                             t === 'preg_diary' ? <PenIcon className="w-7 h-7" /> :
                             t === 'prep_folic' || t === 'prep_iron' ? <PillIcon className="w-7 h-7" /> :
                             t === 'prep_vitd' || t === 'prep_omega3' ? <VitaminIcon className="w-7 h-7" /> :
-                            t === 'prep_walk' ? <WalkIcon className="w-7 h-7" /> :
-                            t === 'prep_yoga' ? <StretchIcon className="w-7 h-7" /> :
-                            t === 'prep_swim' || t === 'prep_workout' ? <RunnerIcon className="w-7 h-7" /> :
-                            t === 'prep_meditate' ? <BrainIcon className="w-7 h-7" /> :
-                            t === 'prep_breath' ? <SunIcon className="w-7 h-7" /> :
-                            t === 'prep_journal' ? <PenIcon className="w-7 h-7" /> :
+                            t === 'prep_walk'     ? <WalkIcon className="w-7 h-7" /> :
+                            t === 'prep_stretch'  ? <StretchIcon className="w-7 h-7" /> :
+                            t === 'prep_breath'   ? <ActivityIcon className="w-7 h-7" /> :
+                            t === 'prep_meditate' ? <MoonIcon className="w-7 h-7" /> :
+                            t === 'prep_music'    ? <MusicIcon className="w-7 h-7" /> :
+                            t === 'prep_journal'  ? <BookOpenIcon className="w-7 h-7" /> :
                             t === 'prep_mood_excited' ? <MoodHappyIcon className="w-7 h-7" /> :
                             t === 'prep_mood_calm' ? <MoodCalmIcon className="w-7 h-7" /> :
                             t === 'prep_mood_anxious' ? <MoodAnxiousIcon className="w-7 h-7" /> :

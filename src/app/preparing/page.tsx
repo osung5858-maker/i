@@ -5,7 +5,9 @@ import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
-import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, HeartFilledIcon, RunnerIcon, CheckCircleIcon, MoonIcon, WaterGlassIcon, StretchIcon } from '@/components/ui/Icons'
+import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, HeartFilledIcon, MoonIcon, WaterGlassIcon, StretchIcon, VitaminIcon, MusicIcon, BookOpenIcon } from '@/components/ui/Icons'
+import TodayRecordSection from '@/components/ui/TodayRecordSection'
+import type { RecordTile, RecordChip } from '@/components/ui/TodayRecordSection'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
@@ -303,8 +305,8 @@ export default function PreparingPage() {
       })
       const LABELS: Record<string, string> = {
         prep_folic: '엽산', prep_vitd: '비타민D', prep_iron: '철분', prep_omega3: '오메가3',
-        prep_walk: '산책', prep_yoga: '요가', prep_swim: '수영', prep_workout: '근력',
-        prep_meditate: '명상', prep_breath: '호흡',
+        prep_walk: '걷기', prep_stretch: '스트레칭', prep_breath: '심호흡',
+        prep_meditate: '명상', prep_music: '음악감상',
       }
       showToast(`${LABELS[recordKey] || detail.label || '기록'} 완료!`)
     }
@@ -672,39 +674,35 @@ export default function PreparingPage() {
         {(() => {
           const PREP_CFG: Record<string, { label: string; Icon: React.FC<{ className?: string }>; color: string }> = {
             prep_folic:      { label: '엽산',    Icon: PillIcon,     color: '#10B981' },
-            prep_vitd:       { label: '비타민D', Icon: PillIcon,     color: '#10B981' },
+            prep_vitd:       { label: '비타민D', Icon: VitaminIcon,  color: '#10B981' },
             prep_iron:       { label: '철분',    Icon: PillIcon,     color: '#10B981' },
-            prep_omega3:     { label: '오메가3', Icon: PillIcon,     color: '#10B981' },
-            prep_walk:       { label: '산책',    Icon: WalkIcon,     color: '#F59E0B' },
-            prep_yoga:       { label: '요가',    Icon: StretchIcon,  color: '#F59E0B' },
-            prep_swim:       { label: '수영',    Icon: ActivityIcon, color: '#F59E0B' },
-            prep_workout:    { label: '근력',    Icon: RunnerIcon,   color: '#F59E0B' },
-            prep_meditate:   { label: '명상',    Icon: MoonIcon,     color: '#A78BFA' },
-            prep_breath:     { label: '호흡',    Icon: ActivityIcon, color: '#A78BFA' },
+            prep_omega3:     { label: '오메가3', Icon: VitaminIcon,  color: '#10B981' },
+            prep_walk:       { label: '걷기',     Icon: WalkIcon,     color: '#F59E0B' },
+            prep_stretch:    { label: '스트레칭', Icon: StretchIcon,  color: '#F59E0B' },
+            prep_breath:     { label: '심호흡',   Icon: ActivityIcon, color: '#F59E0B' },
+            prep_meditate:   { label: '명상',     Icon: MoonIcon,     color: '#F59E0B' },
+            prep_music:      { label: '음악감상', Icon: MusicIcon,    color: '#F59E0B' },
           }
+          const MOOD_LABELS: Record<string, string> = {
+            happy: '행복', calm: '평온', anxious: '불안', tired: '피곤', sad: '슬픔',
+          }
+          const exerciseKeys = ['prep_walk', 'prep_stretch', 'prep_breath', 'prep_meditate', 'prep_music']
+          const exerciseCount = prepTodayDone.filter(k => exerciseKeys.includes(k)).length
+          const tiles: RecordTile[] = [
+            { label: '기분', value: todayMood ? (MOOD_LABELS[todayMood] ?? todayMood) : '-', color: todayMood ? '#FF8FAB' : '#9E9A95' },
+            { label: '영양제', value: `${supplCount}개`, color: supplCount > 0 ? '#10B981' : '#9E9A95' },
+            { label: '운동', value: `${exerciseCount}회`, color: exerciseCount > 0 ? '#F59E0B' : '#9E9A95' },
+          ]
+          const chips: RecordChip[] = prepTodayDone
+            .map(type => PREP_CFG[type] ? { key: type, ...PREP_CFG[type] } : null)
+            .filter(Boolean) as RecordChip[]
           return (
-            <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[14px] font-bold text-[#1A1918]">오늘 기록 <span className="text-[#9E9A95] font-normal">{prepTodayDone.length}건</span></p>
-                <CheckCircleIcon className="w-4 h-4 text-[#9E9A95]" />
-              </div>
-              {prepTodayDone.length === 0 ? (
-                <p className="text-[13px] text-[#9E9A95] text-center py-3">영양제, 운동, 마음챙김을 기록해보세요</p>
-              ) : (
-                <div className="flex flex-wrap gap-1.5">
-                  {prepTodayDone.map(type => {
-                    const cfg = PREP_CFG[type]
-                    if (!cfg) return null
-                    return (
-                      <span key={type} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold" style={{ background: cfg.color + '18', color: cfg.color }}>
-                        <cfg.Icon className="w-3.5 h-3.5" />
-                        {cfg.label}
-                      </span>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
+            <TodayRecordSection
+              count={prepTodayDone.length}
+              tiles={tiles}
+              chips={chips}
+              emptyMessage="영양제, 운동, 마음챙김을 기록해보세요"
+            />
           )
         })()}
 
@@ -892,18 +890,18 @@ export default function PreparingPage() {
 
       {showGuide && <SpotlightGuide mode="preparing" onComplete={() => { localStorage.setItem('dodam_guide_preparing', '1'); setShowGuide(false) }} />}
 
-      {/* 감사일기 시트 */}
+      {/* 기다림 일기 시트 */}
       {journalSheetOpen && (
         <div className="fixed inset-0 z-[200] flex flex-col justify-end" onClick={() => setJournalSheetOpen(false)}>
           <div className="bg-white rounded-t-3xl p-5 max-h-[80dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <p className="text-[16px] font-bold text-[#1A1918]">감사일기</p>
+              <p className="text-[16px] font-bold text-[#1A1918]">기다림 일기</p>
               <button onClick={() => setJournalSheetOpen(false)} className="text-[#9E9A95] text-[14px]">닫기</button>
             </div>
-            <p className="text-[13px] text-[#6B6966] mb-3">오늘 감사한 것 3가지를 적어보세요</p>
-            {(['오늘 좋았던 순간은?', '감사한 사람이 있나요?', '작은 행복 하나'] as const).map((placeholder, i) => (
+            <p className="text-[13px] text-[#6B6966] mb-3">오늘 마음을 자유롭게 기록해요</p>
+            {(['오늘 어떤 하루였나요?', '아기에게 하고 싶은 말', '나에게 하고 싶은 말'] as const).map((placeholder, i) => (
               <div key={i} className="mb-2">
-                <p className="text-[12px] font-semibold text-[#A78BFA] mb-1">{i + 1}번째</p>
+                <p className="text-[12px] font-semibold text-[#A78BFA] mb-1">{i + 1}</p>
                 <textarea
                   value={journalTexts[i] || ''}
                   onChange={e => {
@@ -920,7 +918,7 @@ export default function PreparingPage() {
             <button onClick={() => {
               try { localStorage.setItem(`dodam_prep_journal_${today}`, JSON.stringify(journalTexts)) } catch {}
               setJournalSheetOpen(false)
-              showToast('감사일기 저장됐어요')
+              showToast('기다림 일기 저장됐어요 🌱')
             }} className="w-full mt-2 py-3 rounded-xl text-[14px] font-bold text-white" style={{ background: '#A78BFA' }}>
               저장
             </button>
