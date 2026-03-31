@@ -493,21 +493,21 @@ function BottomNavComponent() {
                         else setSelectedCategory(cat.key)
                       }} className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.25)] active:scale-90 transition-transform bg-white">
                         {(() => {
-                          const iconMap: Record<string, React.ReactNode> = {
-                            eat: <BottleIcon className="w-8 h-8" />,
-                            sleep: <MoonIcon className="w-8 h-8" />,
-                            diaper: <DiaperIcon className="w-8 h-8" />,
-                            health: <HospitalIcon className="w-8 h-8" />,
-                            more: <NoteIcon className="w-8 h-8" />,
-                            mood: <HeartFilledIcon className="w-8 h-8" />,
-                            fetal: <ActivityIcon className="w-8 h-8" />,
-                            diary: <BookOpenIcon className="w-8 h-8" />,
-                            prep_suppl:    <PillIcon className="w-8 h-8" />,
-                            prep_exercise: <RunnerIcon className="w-8 h-8" />,
-                            prep_mind:     <MoonIcon className="w-8 h-8" />,
-                            prep_mood:     <MoodHappyIcon className="w-8 h-8" />,
-                          }
-                          return <span style={{ color: cat.color }}>{iconMap[cat.key] || <NoteIcon className="w-8 h-8" />}</span>
+                          const k = cat.key
+                          const node =
+                            k === 'eat'           ? <BottleIcon className="w-8 h-8" /> :
+                            k === 'sleep'         ? <MoonIcon className="w-8 h-8" /> :
+                            k === 'diaper'        ? <DiaperIcon className="w-8 h-8" /> :
+                            k === 'health'        ? <HospitalIcon className="w-8 h-8" /> :
+                            k === 'mood'          ? <HeartFilledIcon className="w-8 h-8" /> :
+                            k === 'fetal'         ? <ActivityIcon className="w-8 h-8" /> :
+                            k === 'today'         ? <BookOpenIcon className="w-8 h-8" /> :
+                            k === 'prep_suppl'    ? <PillIcon className="w-8 h-8" /> :
+                            k === 'prep_exercise' ? <RunnerIcon className="w-8 h-8" /> :
+                            k === 'prep_mind'     ? <MoonIcon className="w-8 h-8" /> :
+                            k === 'prep_mood'     ? <MoodHappyIcon className="w-8 h-8" /> :
+                            <NoteIcon className="w-8 h-8" />
+                          return <span style={{ color: cat.color }}>{node}</span>
                         })()}
                       </button>
                       <span className="text-[12px] font-bold text-white whitespace-nowrap bg-black/50 px-2 py-0.5 rounded-full">{cat.label}</span>
