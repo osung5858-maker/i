@@ -1003,6 +1003,40 @@ export default function PregnantPage() {
                 )}
               </div>
 
+              {/* 오늘 요약 칩 */}
+              {(mood || fetalMove > 0 || weight > 0 || edema) && (
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {mood && (() => {
+                    const mc = MOOD_CONFIG[mood]
+                    if (!mc) return null
+                    return (
+                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold" style={{ background: mc.color + '22', color: mc.color }}>
+                        <mc.Icon className="w-3.5 h-3.5" />
+                        {mc.label}
+                      </span>
+                    )
+                  })()}
+                  {fetalMove > 0 && (
+                    <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#90C8A822] text-[#5BA882]">
+                      <ActivityIcon className="w-3.5 h-3.5" />
+                      태동 {fetalMove}회
+                    </span>
+                  )}
+                  {weight > 0 && (
+                    <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#D0806822] text-[#D08068]">
+                      <ChartIcon className="w-3.5 h-3.5" />
+                      {weight}kg
+                    </span>
+                  )}
+                  {edema && edema !== 'none' && (
+                    <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#4A90D922] text-[#4A90D9]">
+                      <DropletIcon className="w-3.5 h-3.5" />
+                      부종 {edema === 'mild' ? '약함' : '심함'}
+                    </span>
+                  )}
+                </div>
+              )}
+
               {pregTodayEvents.length === 0 ? (
                 <div className="py-5 text-center">
                   <p className="text-[13px] text-[#9E9A95]">아래 기록 버튼으로</p>
