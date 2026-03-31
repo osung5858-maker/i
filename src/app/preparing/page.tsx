@@ -5,7 +5,7 @@ import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
-import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, HeartFilledIcon, MoonIcon, WaterGlassIcon, StretchIcon, VitaminIcon, MusicIcon, BookOpenIcon } from '@/components/ui/Icons'
+import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, HeartFilledIcon, MoonIcon, WaterGlassIcon, StretchIcon, VitaminIcon, MusicIcon, BookOpenIcon, CompassIcon } from '@/components/ui/Icons'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import type { RecordTile } from '@/components/ui/TodayRecordSection'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
@@ -676,16 +676,16 @@ export default function PreparingPage() {
 
         {/* ━━━ 오늘 기록 (FAB) ━━━ */}
         {(() => {
-          const PREP_CFG: Record<string, { label: string; Icon: React.FC<{ className?: string }>; color: string }> = {
-            prep_folic:      { label: '엽산',    Icon: PillIcon,     color: '#10B981' },
-            prep_vitd:       { label: '비타민D', Icon: VitaminIcon,  color: '#10B981' },
-            prep_iron:       { label: '철분',    Icon: PillIcon,     color: '#10B981' },
-            prep_omega3:     { label: '오메가3', Icon: VitaminIcon,  color: '#10B981' },
-            prep_walk:       { label: '걷기',     Icon: WalkIcon,     color: '#F59E0B' },
-            prep_stretch:    { label: '스트레칭', Icon: StretchIcon,  color: '#F59E0B' },
-            prep_breath:     { label: '심호흡',   Icon: ActivityIcon, color: '#F59E0B' },
-            prep_meditate:   { label: '명상',     Icon: MoonIcon,     color: '#F59E0B' },
-            prep_music:      { label: '음악감상', Icon: MusicIcon,    color: '#F59E0B' },
+          const PREP_CFG: Record<string, { label: string; Icon: React.FC<{ className?: string }>; color: string; bg: string }> = {
+            prep_folic:      { label: '엽산',    Icon: PillIcon,     color: '#10B981', bg: '#E8F5EF' },
+            prep_vitd:       { label: '비타민D', Icon: VitaminIcon,  color: '#10B981', bg: '#E8F5EF' },
+            prep_iron:       { label: '철분',    Icon: PillIcon,     color: '#10B981', bg: '#E8F5EF' },
+            prep_omega3:     { label: '오메가3', Icon: VitaminIcon,  color: '#10B981', bg: '#E8F5EF' },
+            prep_walk:       { label: '걷기',     Icon: WalkIcon,     color: '#F59E0B', bg: '#FEF3E0' },
+            prep_stretch:    { label: '스트레칭', Icon: StretchIcon,  color: '#F59E0B', bg: '#FEF3E0' },
+            prep_breath:     { label: '심호흡',   Icon: ActivityIcon, color: '#F59E0B', bg: '#FEF3E0' },
+            prep_meditate:   { label: '명상',     Icon: MoonIcon,     color: '#8B5CF6', bg: '#EDE9FF' },
+            prep_music:      { label: '음악감상', Icon: MusicIcon,    color: '#F472B6', bg: '#FFE4F2' },
           }
           const MOOD_LABELS: Record<string, string> = {
             happy: '행복', calm: '평온', anxious: '불안', tired: '피곤', sad: '슬픔',
@@ -704,7 +704,7 @@ export default function PreparingPage() {
                 if (!cfg) return null
                 return (
                   <div key={type} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.color + '22' }}>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.bg }}>
                       <cfg.Icon className="w-3.5 h-3.5" style={{ color: cfg.color }} />
                     </div>
                     <span className="text-[13px] font-semibold text-[#1A1918]">{cfg.label}</span>
@@ -908,6 +908,24 @@ export default function PreparingPage() {
       {showGuide && <SpotlightGuide mode="preparing" onComplete={() => { localStorage.setItem('dodam_guide_preparing', '1'); setShowGuide(false) }} />}
 
       {/* 기다림 일기 시트 */}
+      {/* 재미 콘텐츠 */}
+      <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 mx-5 mb-4">
+        <div className="grid grid-cols-3 gap-2">
+          <Link href="/fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+            <ActivityIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+            <p className="text-[12px] font-semibold text-[#1A1918]">바이오리듬</p>
+          </Link>
+          <Link href="/fortune?tab=zodiac" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+            <CompassIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+            <p className="text-[12px] font-semibold text-[#1A1918]">띠 · 별자리</p>
+          </Link>
+          <Link href="/fortune?tab=fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+            <SparkleIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+            <p className="text-[12px] font-semibold text-[#1A1918]">오늘의 운세</p>
+          </Link>
+        </div>
+      </div>
+
       {journalSheetOpen && (
         <div className="fixed inset-0 z-[200] flex flex-col justify-end" onClick={() => setJournalSheetOpen(false)}>
           <div className="bg-white rounded-t-3xl p-5 max-h-[80dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>

@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { getSecure } from '@/lib/secureStorage'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { CrystalBallIcon, DragonIcon, CardIcon, StarIcon, HeartIcon, AlertIcon, LightbulbIcon, RefreshIcon } from '@/components/ui/Icons'
 import { shareFortune } from '@/lib/kakao/share-parenting'
 
-export default function FortunePage() {
+function FortuneContent() {
+  const searchParams = useSearchParams()
   const [tab, setTab] = useState<'biorhythm' | 'zodiac' | 'fortune'>('biorhythm')
   const [birthDate, setBirthDate] = useState('')
   const [dueDate, setDueDate] = useState('')
@@ -15,6 +17,8 @@ export default function FortunePage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    const t = searchParams.get('tab')
+    if (t === 'zodiac' || t === 'fortune' || t === 'biorhythm') setTab(t)
     const mb = localStorage.getItem('dodam_mother_birth') || ''
     setBirthDate(mb)
     setMode(localStorage.getItem('dodam_mode') || '')
@@ -366,5 +370,13 @@ export default function FortunePage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function FortunePage() {
+  return (
+    <Suspense fallback={<div className="min-h-[100dvh] bg-[var(--color-page-bg)]" />}>
+      <FortuneContent />
+    </Suspense>
   )
 }

@@ -812,29 +812,28 @@ export function PregnantWaitingPage() {
         {/* 정부 지원 · 혜택 — 3탭 */}
         <WaitingBenefitTabs />
 
-        {/* 재미 콘텐츠 */}
-        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <p className="text-[13px] font-bold text-[#1A1918] mb-2">재미</p>
-          <div className="grid grid-cols-3 gap-2">
-            <Link href="/fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
-              <ActivityIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-              <p className="text-[14px] font-semibold text-[#1A1918]">바이오리듬</p>
-            </Link>
-            <Link href="/fortune?tab=zodiac" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
-              <CompassIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-              <p className="text-[14px] font-semibold text-[#1A1918]">띠 · 별자리</p>
-            </Link>
-            <Link href="/fortune?tab=fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
-              <SparkleIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-              <p className="text-[14px] font-semibold text-[#1A1918]">오늘의 운세</p>
-            </Link>
-          </div>
-        </div>
-
         {/* 마음 체크 */}
         <Link href="/mental-check" className="block bg-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-3 text-center active:opacity-80">
           <p className="text-[14px] text-[var(--color-primary)] font-semibold">마음 체크 — 오늘 기분은 어때요?</p>
         </Link>
+
+        {/* 재미 콘텐츠 */}
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
+          <div className="grid grid-cols-3 gap-2">
+            <Link href="/fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+              <ActivityIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+              <p className="text-[12px] font-semibold text-[#1A1918]">바이오리듬</p>
+            </Link>
+            <Link href="/fortune?tab=zodiac" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+              <CompassIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+              <p className="text-[12px] font-semibold text-[#1A1918]">띠 · 별자리</p>
+            </Link>
+            <Link href="/fortune?tab=fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+              <SparkleIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+              <p className="text-[12px] font-semibold text-[#1A1918]">오늘의 운세</p>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   )

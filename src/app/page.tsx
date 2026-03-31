@@ -571,9 +571,11 @@ export default function HomePage() {
           {/* AI 식단 추천 (풀 너비) */}
           <AIMealCard mode="parenting" value={ageMonths} />
 
+          {/* 키즈노트 — 조건부 노출 */}
+          <KidsnoteCard ageMonths={ageMonths} />
+
           {/* 재미 콘텐츠 */}
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[13px] font-bold text-[#1A1918] mb-2">재미</p>
             <div className="grid grid-cols-3 gap-2">
               <Link href="/fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
                 <ActivityIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
@@ -589,9 +591,6 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-
-          {/* 키즈노트 — 조건부 노출 */}
-          <KidsnoteCard ageMonths={ageMonths} />
 
         </div>
       </div>

@@ -7,7 +7,9 @@ import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { shareFetalSize, shareDday } from '@/lib/kakao/share-pregnant'
 import BabyIllust from '@/components/pregnant/BabyIllust'
-import { SparkleIcon, PenIcon, StethoscopeIcon, ClipboardIcon, SyringeIcon, HospitalIcon, ShieldIcon, CheckCircleIcon, ActivityIcon, PregnantIcon, WarningIcon, BabyIcon, HeartFilledIcon, ExternalLinkIcon, WaterGlassIcon, WalkIcon, VitaminIcon, StretchIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon, ChartIcon, DropletIcon } from '@/components/ui/Icons'
+import { SparkleIcon, PenIcon, StethoscopeIcon, ClipboardIcon, SyringeIcon, HospitalIcon, ShieldIcon, CheckCircleIcon, ActivityIcon, PregnantIcon, WarningIcon, BabyIcon, HeartFilledIcon, ExternalLinkIcon, WaterGlassIcon, WalkIcon, VitaminIcon, StretchIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon, ChartIcon, DropletIcon, CompassIcon } from '@/components/ui/Icons'
+import TodayRecordSection from '@/components/ui/TodayRecordSection'
+import type { RecordTile } from '@/components/ui/TodayRecordSection'
 import IllustVideo from '@/components/ui/IllustVideo'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
@@ -1010,7 +1012,7 @@ export default function PregnantPage() {
         {/* 푸시 알림 동의 */}
         <PushPrompt message="검진일과 주차 변경을 알려드릴까요?" />
 
-        {/* ━━━ 2. 오늘 기록 타임라인 ━━━ */}
+        {/* ━━━ 2. 오늘 기록 ━━━ */}
         {(() => {
           const MOOD_CONFIG: Record<string, { label: string; Icon: React.FC<any>; color: string }> = {
             happy:   { label: '행복', Icon: MoodHappyIcon,   color: '#FF8FAB' },
@@ -1019,110 +1021,71 @@ export default function PregnantPage() {
             sick:    { label: '입덧', Icon: MoodSickIcon,    color: '#B8A0D4' },
             tired:   { label: '피곤', Icon: MoodTiredIcon,   color: '#8EB4D4' },
           }
-          const getEventConfig = (type: string, data: any): { label: string; Icon: React.FC<any>; color: string } => {
-            if (type === 'preg_mood') return MOOD_CONFIG[data.tags?.mood] || { label: '기분', Icon: HeartFilledIcon, color: '#FF8FAB' }
-            if (type === 'preg_fetal_move') return { label: '태동 기록', Icon: ActivityIcon, color: '#90C8A8' }
-            if (type === 'preg_weight') return { label: `체중 ${data.tags?.kg}kg`, Icon: ChartIcon, color: '#D08068' }
+          const getEventChip = (type: string, data: any): { label: string; Icon: React.FC<any>; color: string; bg: string } => {
+            if (type === 'preg_mood') { const m = MOOD_CONFIG[data.tags?.mood]; return m ? { ...m, bg: '#FFE8F4' } : { label: '기분', Icon: HeartFilledIcon, color: '#FF8FAB', bg: '#FFE8F4' } }
+            if (type === 'preg_fetal_move') return { label: '태동', Icon: ActivityIcon, color: '#5BA882', bg: '#E8F5EF' }
+            if (type === 'preg_weight') return { label: `${data.tags?.kg}kg`, Icon: ChartIcon, color: '#D08068', bg: '#FCE4DC' }
             if (type === 'preg_edema') {
               const lvl = data.tags?.level
-              return { label: lvl === 'none' ? '부종 없음' : lvl === 'mild' ? '부종 약함' : '부종 심함', Icon: DropletIcon, color: '#4A90D9' }
+              return { label: lvl === 'none' ? '부종 없음' : lvl === 'mild' ? '부종 약함' : '부종 심함', Icon: DropletIcon, color: '#4A90D9', bg: '#E6F0FA' }
             }
-            if (type === 'preg_water') return { label: '물 마시기', Icon: DropletIcon, color: '#3B82F6' }
-            if (type === 'preg_walk') {
-              const mins = data.end_ts ? Math.round((new Date(data.end_ts).getTime() - new Date(data.start_ts).getTime()) / 60000) : null
-              return { label: mins ? `걷기 ${mins}분` : '걷기', Icon: ActivityIcon, color: '#10B981' }
-            }
+            if (type === 'preg_water') return { label: '수분', Icon: DropletIcon, color: '#3B82F6', bg: '#E6EFFF' }
+            if (type === 'preg_walk') return { label: '걷기', Icon: WalkIcon, color: '#10B981', bg: '#E8F5EF' }
             if (type === 'preg_suppl') {
               const names: Record<string, string> = { folic: '엽산', iron: '철분', dha: 'DHA', calcium: '칼슘', multi: '종합비타민', etc: '영양제' }
-              return { label: names[data.tags?.subtype] || '영양제', Icon: VitaminIcon, color: '#F59E0B' }
+              return { label: names[data.tags?.subtype] || '영양제', Icon: VitaminIcon, color: '#F59E0B', bg: '#FEF3E0' }
             }
-            if (type === 'preg_stretch') {
-              const mins = data.end_ts ? Math.round((new Date(data.end_ts).getTime() - new Date(data.start_ts).getTime()) / 60000) : null
-              return { label: mins ? `스트레칭 ${mins}분` : '스트레칭', Icon: ActivityIcon, color: '#8B5CF6' }
-            }
-            return { label: type, Icon: PenIcon, color: '#9E9A95' }
+            if (type === 'preg_stretch') return { label: '스트레칭', Icon: ActivityIcon, color: '#8B5CF6', bg: '#EDE9FF' }
+            return { label: type, Icon: PenIcon, color: '#9E9A95', bg: '#F0EDE8' }
           }
-          return (
-            <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[14px] font-bold text-[#1A1918]">오늘 기록 <span className="text-[#9E9A95] font-normal">{pregTodayEvents.length}건</span></p>
-                {pregTodayEvents.length > 0 && (
-                  <button className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</button>
-                )}
-              </div>
-
-              {/* 오늘 요약 타일 */}
-              {(() => {
-                const moodMc = mood ? MOOD_CONFIG[mood] : null
-                const tiles = [
-                  {
-                    label: '기분',
-                    value: moodMc ? moodMc.label : '-',
-                    color: moodMc ? moodMc.color : '#9E9A95',
-                  },
-                  {
-                    label: '태동',
-                    value: fetalMove > 0 ? `${fetalMove}회` : '0회',
-                    color: fetalMove > 0 ? '#5BA882' : '#9E9A95',
-                  },
-                  {
-                    label: '체중',
-                    value: weight > 0 ? `${weight}kg` : '-',
-                    color: weight > 0 ? '#D08068' : '#9E9A95',
-                  },
-                ]
+          const moodMc = mood ? MOOD_CONFIG[mood] : null
+          const tiles: RecordTile[] = [
+            { label: '기분', value: moodMc ? moodMc.label : '-', color: moodMc ? moodMc.color : '#9E9A95' },
+            { label: '태동', value: fetalMove > 0 ? `${fetalMove}회` : '0회', color: fetalMove > 0 ? '#5BA882' : '#9E9A95' },
+            { label: '체중', value: weight > 0 ? `${weight}kg` : '-', color: weight > 0 ? '#D08068' : '#9E9A95' },
+          ]
+          const eventList = pregTodayEvents.length > 0 ? (
+            <div className="max-h-[200px] overflow-y-auto hide-scrollbar">
+              {pregTodayEvents.map((ev) => {
+                const cfg = getEventChip(ev.type, ev.data)
                 return (
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    {tiles.map((t) => (
-                      <div key={t.label} className="bg-[#F8F6F3] rounded-xl py-2.5 px-2 text-center">
-                        <p className="text-[11px] text-[#9E9A95] mb-0.5">{t.label}</p>
-                        <p className="text-[15px] font-bold" style={{ color: t.color }}>{t.value}</p>
-                      </div>
-                    ))}
+                  <div key={ev.id} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
+                    <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{ev.timeStr}</span>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.bg }}>
+                      <cfg.Icon className="w-3.5 h-3.5" style={{ color: cfg.color }} />
+                    </div>
+                    <span className="text-[13px] font-semibold text-[#1A1918]">{cfg.label}</span>
                   </div>
                 )
-              })()}
-
-              {pregTodayEvents.length === 0 ? (
-                <div className="py-5 text-center">
-                  <p className="text-[13px] text-[#9E9A95]">아래 기록 버튼으로</p>
-                  <p className="text-[13px] text-[#9E9A95]">오늘의 첫 기록을 남겨보세요</p>
+              })}
+            </div>
+          ) : null
+          const footer = (
+            <>
+              {eventList}
+              <button onClick={() => setDiarySheetOpen(true)} className={`w-full flex items-center gap-3 bg-[var(--color-page-bg)] rounded-xl p-3 active:bg-[#F0EDE8] ${eventList ? 'mt-3' : ''}`}>
+                <PenIcon className="w-5 h-5 text-[#6B6966]" />
+                <div className="flex-1 text-left">
+                  <p className="text-[13px] font-bold text-[#1A1918]">태교일기 쓰기</p>
+                  <p className="text-[12px] text-[#9E9A95]">{diaries.length > 0 ? `최근: ${new Date(diaries[0].date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}` : '오늘의 첫 일기를 남겨보세요'}</p>
                 </div>
-              ) : (
-                <div className="max-h-[220px] overflow-y-auto hide-scrollbar mb-3">
-                  {pregTodayEvents.map((ev) => {
-                    const cfg = getEventConfig(ev.type, ev.data)
-                    return (
-                      <div key={ev.id} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
-                        <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{ev.timeStr}</span>
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.color + '22' }}>
-                          <cfg.Icon className="w-3.5 h-3.5" style={{ color: cfg.color }} />
-                        </div>
-                        <span className="text-[13px] font-semibold text-[#1A1918]">{cfg.label}</span>
-                      </div>
-                    )
-                  })}
+                <span className="text-[#9E9A95]">→</span>
+              </button>
+              {diaries.length > 0 && (
+                <div className="mt-2 p-2.5 bg-[var(--color-page-bg)] rounded-lg border border-[#E8E4DF]">
+                  <p className="text-[13px] text-[#1A1918] line-clamp-2">{diaries[0].text}</p>
+                  {diaries[0].comment && <p className="text-[12px] text-[var(--color-primary)] mt-1 italic">{diaries[0].comment}</p>}
                 </div>
               )}
-
-              {/* 태교일기 CTA */}
-              <div className={pregTodayEvents.length > 0 ? 'mt-2 pt-3 border-t border-[#E8E4DF]' : ''}>
-                <button onClick={() => setDiarySheetOpen(true)} className="w-full flex items-center gap-3 bg-[var(--color-page-bg)] rounded-xl p-3 active:bg-[#F0EDE8]">
-                  <PenIcon className="w-5 h-5 text-[#6B6966]" />
-                  <div className="flex-1 text-left">
-                    <p className="text-[13px] font-bold text-[#1A1918]">태교일기 쓰기</p>
-                    <p className="text-[12px] text-[#9E9A95]">{diaries.length > 0 ? `최근: ${new Date(diaries[0].date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}` : '오늘의 첫 일기를 남겨보세요'}</p>
-                  </div>
-                  <span className="text-[#9E9A95]">→</span>
-                </button>
-                {diaries.length > 0 && (
-                  <div className="mt-2 p-2.5 bg-white rounded-lg border border-[#E8E4DF]">
-                    <p className="text-[13px] text-[#1A1918] line-clamp-2">{diaries[0].text}</p>
-                    {diaries[0].comment && <p className="text-[12px] text-[var(--color-primary)] mt-1 italic">{diaries[0].comment}</p>}
-                  </div>
-                )}
-              </div>
-            </div>
+            </>
+          )
+          return (
+            <TodayRecordSection
+              count={pregTodayEvents.length}
+              tiles={tiles}
+              emptyMessage="아래 버튼으로 오늘의 첫 기록을 남겨보세요"
+              footer={footer}
+            />
           )
         })()}
 
@@ -1302,6 +1265,24 @@ export default function PregnantPage() {
             <p className="text-[13px] font-semibold text-[#1A1918]">혜택 · 축하박스 · 출산 가방 더보기</p>
           </button>
         )}
+
+        {/* 재미 콘텐츠 */}
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
+          <div className="grid grid-cols-3 gap-2">
+            <Link href="/fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+              <ActivityIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+              <p className="text-[12px] font-semibold text-[#1A1918]">바이오리듬</p>
+            </Link>
+            <Link href="/fortune?tab=zodiac" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+              <CompassIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+              <p className="text-[12px] font-semibold text-[#1A1918]">띠 · 별자리</p>
+            </Link>
+            <Link href="/fortune?tab=fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+              <SparkleIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+              <p className="text-[12px] font-semibold text-[#1A1918]">오늘의 운세</p>
+            </Link>
+          </div>
+        </div>
 
       </div>
 
