@@ -184,6 +184,7 @@ export default function KidsnotePage() {
   const loadAlbums = async (cookie: string, childId: number) => {
     setLoadingAlbums(true); setAlbumProgress(0); setAlbumTotal(0); setAlbums([])
     try {
+      const seenIds = new Set<string>()
       let all: any[] = []; let nextCursor: string | null = null; let hasMore = true
       while (hasMore) {
         const r: Response = await fetch('/api/kidsnote', {
@@ -191,16 +192,20 @@ export default function KidsnotePage() {
           body: JSON.stringify({ action: 'albums', sessionCookie: cookie, childId, cursor: nextCursor }),
         })
         const d: { results?: any[]; count?: number; next?: string | null } = await r.json()
-        const items = d.results || []
+        const items = (d.results || []).filter((item: any) => {
+          if (seenIds.has(String(item.id))) return false
+          seenIds.add(String(item.id)); return true
+        })
         const total = d.count || 0
         all = [...all, ...items]
         setAlbums([...all]); setAlbumTotal(total || all.length)
         setAlbumProgress(total ? Math.min(100, Math.round((all.length / total) * 100)) : 100)
-        nextCursor = d.next || null
-        hasMore = !!nextCursor && items.length > 0
+        const newCursor = d.next || null
+        // 커서가 변하지 않으면 무한루프 방지
+        hasMore = !!newCursor && newCursor !== nextCursor && items.length > 0
+        nextCursor = newCursor
       }
       setAlbumProgress(100)
-      // 캐시 저장
       localStorage.setItem('kn_cache_albums', JSON.stringify(all))
     } catch { /* */ }
     setLoadingAlbums(false)
@@ -209,6 +214,7 @@ export default function KidsnotePage() {
   const loadReports = async (cookie: string, childId: number) => {
     setLoadingReports(true); setReportProgress(0); setReportTotal(0); setReports([])
     try {
+      const seenIds = new Set<string>()
       let all: any[] = []; let nextCursor: string | null = null; let hasMore = true
       while (hasMore) {
         const r: Response = await fetch('/api/kidsnote', {
@@ -216,16 +222,19 @@ export default function KidsnotePage() {
           body: JSON.stringify({ action: 'reports', sessionCookie: cookie, childId, cursor: nextCursor }),
         })
         const d: { results?: any[]; count?: number; next?: string | null } = await r.json()
-        const items = d.results || []
+        const items = (d.results || []).filter((item: any) => {
+          if (seenIds.has(String(item.id))) return false
+          seenIds.add(String(item.id)); return true
+        })
         const total = d.count || 0
         all = [...all, ...items]
         setReports([...all]); setReportTotal(total || all.length)
         setReportProgress(total ? Math.min(100, Math.round((all.length / total) * 100)) : 100)
-        nextCursor = d.next || null
-        hasMore = !!nextCursor && items.length > 0
+        const newCursor = d.next || null
+        hasMore = !!newCursor && newCursor !== nextCursor && items.length > 0
+        nextCursor = newCursor
       }
       setReportProgress(100)
-      // 캐시 저장
       localStorage.setItem('kn_cache_reports', JSON.stringify(all))
     } catch { /* */ }
     setLoadingReports(false)

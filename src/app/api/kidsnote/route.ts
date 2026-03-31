@@ -85,17 +85,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ children })
     }
 
+    // cursor가 전체 URL인지 토큰인지 판별해서 URL 구성
+    function buildPageUrl(base: string, cursor: string | undefined) {
+      if (!cursor) return base
+      // kidsnote API는 next를 전체 URL로 반환할 수 있음
+      if (cursor.startsWith('http')) return cursor
+      return `${base}?cursor=${cursor}&page_size=20`
+    }
+
     // === 앨범 ===
     if (action === 'albums') {
       if (!sessionCookie || !childId) return NextResponse.json({ error: '파라미터 부족' }, { status: 400 })
-      const url = cursor
-        ? `${KN_BASE}/v1_2/children/${childId}/albums?cursor=${cursor}&page_size=20`
-        : `${KN_BASE}/v1_2/children/${childId}/albums?page_size=20`
+      const baseUrl = `${KN_BASE}/v1_2/children/${childId}/albums?page_size=20`
+      const url = buildPageUrl(baseUrl, cursor)
       const res = await fetch(url, { headers: { Cookie: sessionCookie } })
       const data = await res.json()
+      // next에서 cursor 토큰만 추출 (중복 방지)
+      const nextCursor = data.next
+        ? (data.next.startsWith('http') ? data.next : data.next)
+        : null
       return NextResponse.json({
         count: data.count || 0,
-        next: data.next || null,
+        next: nextCursor,
         results: (data.results || []).map(normalizeItem),
       })
     }
@@ -103,14 +114,16 @@ export async function POST(request: NextRequest) {
     // === 알림장 ===
     if (action === 'reports') {
       if (!sessionCookie || !childId) return NextResponse.json({ error: '파라미터 부족' }, { status: 400 })
-      const url = cursor
-        ? `${KN_BASE}/v1_2/children/${childId}/reports?cursor=${cursor}&page_size=20`
-        : `${KN_BASE}/v1_2/children/${childId}/reports?page_size=20`
+      const baseUrl = `${KN_BASE}/v1_2/children/${childId}/reports?page_size=20`
+      const url = buildPageUrl(baseUrl, cursor)
       const res = await fetch(url, { headers: { Cookie: sessionCookie } })
       const data = await res.json()
+      const nextCursor = data.next
+        ? (data.next.startsWith('http') ? data.next : data.next)
+        : null
       return NextResponse.json({
         count: data.count || 0,
-        next: data.next || null,
+        next: nextCursor,
         results: (data.results || []).map(normalizeItem),
       })
     }
