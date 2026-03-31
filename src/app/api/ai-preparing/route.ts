@@ -150,6 +150,7 @@ JSON만 출력하세요.`
 
 JSON 형식으로 출력:
 {
+  "dishTitle": "오늘 식단 대표 음식명 (예: 두부조림 정식)",
   "breakfast": {"menu": "아침 메뉴명", "reason": "이유 1줄"},
   "lunch": {"menu": "점심 메뉴명", "reason": "이유 1줄"},
   "dinner": {"menu": "저녁 메뉴명", "reason": "이유 1줄"},

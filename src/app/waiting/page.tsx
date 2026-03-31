@@ -595,10 +595,6 @@ const WEEK_GUIDE = [
 ]
 
 function VerticalFetalGuide({ currentWeek }: { currentWeek: number }) {
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const currentRef = useRef<HTMLDivElement>(null)
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
-
   const currentIdx = useMemo(() => {
     const idx = WEEK_GUIDE.findIndex(g => {
       const [start, end] = g.w.split('~').map(Number)
@@ -607,86 +603,58 @@ function VerticalFetalGuide({ currentWeek }: { currentWeek: number }) {
     return idx === -1 ? 0 : idx
   }, [currentWeek])
 
-  // 초기 스크롤: 현재 단계를 가운데로
-  useEffect(() => {
-    setTimeout(() => {
-      currentRef.current?.scrollIntoView({ behavior: 'auto', block: 'center' })
-    }, 50)
-  }, [currentIdx])
+  const [selectedIdx, setSelectedIdx] = useState(currentIdx)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 
-  const handleTap = (i: number) => {
-    if (i === currentIdx) return // 현재 단계는 항상 열려있음
-    setExpandedIdx(prev => prev === i ? null : i)
-  }
+  // currentIdx가 바뀌면 selectedIdx도 동기화
+  useEffect(() => { setSelectedIdx(currentIdx) }, [currentIdx])
+
+  // 선택된 항목으로 스크롤
+  useEffect(() => {
+    const el = itemRefs.current[selectedIdx]
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [selectedIdx])
 
   return (
     <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
-      <p className="text-[14px] font-bold text-[#1A1918] px-4 pt-4 pb-2">주차별 발달 가이드</p>
-
-      {/* 상하 그라데이션 */}
+      <p className="text-[14px] font-bold text-[#1A1918] px-4 pt-4 pb-3">주차별 발달 가이드</p>
       <div className="relative">
+        {/* 스크롤 상단/하단 그라데이션 페이드 */}
         <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none" />
-
-        <div
-          ref={scrollRef}
-          className="overflow-y-auto px-4 py-2 space-y-2"
-          style={{ maxHeight: '400px' }}
-        >
-          {WEEK_GUIDE.map((g, i) => {
-            const dist = Math.abs(i - currentIdx)
-            const isCurrent = i === currentIdx
-            const isAdjacent = dist === 1
-            const isFar = dist >= 2
-            const isExpanded = expandedIdx === i
-
-            // 확장된 항목은 인접 단계처럼 보이도록
-            const effectiveOpacity = isCurrent ? 1 : isExpanded ? 1 : isAdjacent ? 0.85 : 0.5
-            const effectiveScale = isCurrent ? 1 : isExpanded ? 1 : isAdjacent ? 0.97 : 0.93
-            const showDetail = isCurrent || isExpanded
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none" />
+        <div ref={scrollRef} className="px-4 pb-4 space-y-2 max-h-[420px] overflow-y-auto">
+          {WEEK_GUIDE.map((item, idx) => {
+            const { w, size, name, baby, mom, check } = item
+            const isSelected = idx === selectedIdx
+            const isCurrent = idx === currentIdx
 
             return (
               <div
-                key={g.w}
-                ref={isCurrent ? currentRef : undefined}
+                key={w}
+                ref={el => { itemRefs.current[idx] = el }}
+                onClick={() => setSelectedIdx(idx)}
                 className="transition-all duration-300 cursor-pointer"
-                style={{
-                  opacity: effectiveOpacity,
-                  transform: `scale(${effectiveScale})`,
-                  transformOrigin: 'center',
-                }}
-                onClick={() => handleTap(i)}
+                style={{ opacity: isSelected ? 1 : Math.max(0.4, 1 - Math.abs(idx - selectedIdx) * 0.2) }}
               >
-                <div className={`p-3 rounded-xl transition-all ${
-                  isCurrent
-                    ? 'bg-[#E8F5EE] ring-2 ring-[var(--color-primary)]/30'
-                    : isExpanded
-                      ? 'bg-[#F5F3F0] ring-1 ring-[#D5D0CA]'
-                      : 'bg-[#FAFAFA]'
-                }`}>
+                <div className={`p-3 rounded-xl ${isSelected ? 'bg-[#E8F5EE] ring-2 ring-[var(--color-primary)]/30' : 'bg-[#FAFAFA]'}`}>
                   <div className="flex items-center gap-2.5">
-                    <IllustVideo src={g.size} variant="icon" className={`shrink-0 transition-all duration-300 ${isCurrent || isExpanded ? 'w-16 h-16' : isAdjacent ? 'w-12 h-12' : 'w-8 h-8'}`} />
+                    <IllustVideo src={size} variant="icon" className={`shrink-0 transition-all duration-300 ${isSelected ? 'w-16 h-16' : 'w-10 h-10'}`} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span className={`font-bold ${isCurrent ? 'text-[13px] text-[var(--color-primary)]' : 'text-[12px] text-[#6B6966]'}`}>
-                          {g.w}주 · {g.name}
+                        <span className={`font-bold ${isSelected ? 'text-[13px] text-[var(--color-primary)]' : 'text-[12px] text-[#6B6966]'}`}>
+                          {w}주 · {name}
                         </span>
                         {isCurrent && <span className="text-[9px] bg-[var(--color-primary)] text-white px-1.5 py-0.5 rounded-full font-bold">지금</span>}
-                        {!isCurrent && !isExpanded && (isFar) && <span className="text-[10px] text-[#9E9A95]">탭하여 보기</span>}
                       </div>
-
-                      {/* 상세 정보: 현재 단계 또는 확장된 항목 */}
-                      {showDetail && (
+                      {isSelected ? (
                         <div className="mt-1.5">
-                          <p className="text-[12px] text-[#4A4744]">아기: {g.baby}</p>
-                          <p className="text-[12px] text-[#6B6966]">엄마: {g.mom}</p>
-                          <p className="text-[12px] text-[var(--color-primary)] font-medium">체크: {g.check}</p>
+                          <p className="text-[12px] text-[#4A4744]">아기: {baby}</p>
+                          <p className="text-[12px] text-[#6B6966]">엄마: {mom}</p>
+                          <p className="text-[12px] text-[var(--color-primary)] font-medium">체크: {check}</p>
                         </div>
-                      )}
-
-                      {/* 인접 단계(확장 안 됨): 아기 정보만 */}
-                      {!showDetail && isAdjacent && (
-                        <p className="text-[11px] text-[#9E9A95] mt-0.5">{g.baby}</p>
+                      ) : (
+                        <p className="text-[11px] text-[#9E9A95] mt-0.5 truncate">{baby}</p>
                       )}
                     </div>
                   </div>
@@ -740,7 +708,7 @@ function WaitingBenefitTabs() {
     { id: 'momspack', category: 'pregnancy', name: '맘스팩', desc: '매월 임산부 박스 발송', link: 'https://www.momspack.co.kr/', tip: '' },
   ]
   const remoteFreeBoxes = useRemoteContent<FreeBox[]>('free_boxes', DEFAULT_FREE_BOXES)
-  const boxItems = remoteFreeBoxes.map(b => ({ t: b.name, d: b.desc, u: b.link }))
+  const boxItems = remoteFreeBoxes.filter(b => b.category !== 'birth').map(b => ({ t: b.name, d: b.desc, u: b.link }))
 
   const items = tab === 'money' ? moneyItems : tab === 'health' ? healthItems : boxItems
 

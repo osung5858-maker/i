@@ -10,12 +10,14 @@ export default function FortunePage() {
   const [tab, setTab] = useState<'biorhythm' | 'zodiac' | 'fortune'>('biorhythm')
   const [birthDate, setBirthDate] = useState('')
   const [dueDate, setDueDate] = useState('')
+  const [mode, setMode] = useState('')
   const [fortuneResult, setFortuneResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const mb = localStorage.getItem('dodam_mother_birth') || ''
     setBirthDate(mb)
+    setMode(localStorage.getItem('dodam_mode') || '')
     getSecure('dodam_due_date').then(v => { if (v) setDueDate(v) })
   }, [])
 
@@ -206,8 +208,8 @@ export default function FortunePage() {
                   <p className="text-[13px] text-[#1A1918] leading-relaxed">{fortuneResult.todayLuck}</p>
                 </div>
 
-                {/* 아이 메시지 */}
-                {fortuneResult.babyMessage && (
+                {/* 아이 메시지 — pregnant 모드일 때만 노출 */}
+                {mode === 'pregnant' && fortuneResult.babyMessage && (
                   <div className="bg-[#FFF8F3] rounded-xl border border-[#FFDDC8]/30 p-4 text-center">
                     <span className="block mb-1"><EnvelopeIcon className="w-5 h-5 mx-auto text-[#D08068]" /></span>
                     <p className="text-[13px] text-[#1A1918] italic leading-relaxed">"{fortuneResult.babyMessage}"</p>

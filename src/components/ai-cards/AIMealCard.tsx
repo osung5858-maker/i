@@ -13,6 +13,7 @@ interface Props {
 
 interface MealItem { menu: string; ingredients?: string; reason?: string }
 interface MealData {
+  dishTitle?: string
   breakfast?: MealItem; lunch?: MealItem; dinner?: MealItem; snack?: MealItem
   newFood?: string; keyNutrient?: string; avoid?: string; tip?: string
 }
@@ -119,7 +120,7 @@ export default function AIMealCard({ mode, value, phase }: Props) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <p className="text-[13px] font-bold text-[#1A1918]">AI 오늘의 식단</p>
+            <p className="text-[13px] font-bold text-[#1A1918]">{meal?.dishTitle || 'AI 오늘의 식단'}</p>
             <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold">AI</span>
           </div>
           <p className="text-[12px] text-[#6B6966] truncate mt-0.5">{meals.map(m => m.data?.menu?.split(',')[0]).join(' · ')}</p>
