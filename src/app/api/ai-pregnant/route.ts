@@ -131,6 +131,7 @@ JSON만 출력.`
 JSON으로 출력:
 {
   "dishTitle": "오늘 식단 대표 음식명 (예: 된장찌개 정식)",
+  "cuisine": "한식/중식/양식/일식/분식 중 하나",
   "breakfast": {"menu": "아침 메뉴", "reason": "이유 1줄"},
   "lunch": {"menu": "점심 메뉴", "reason": "이유 1줄"},
   "dinner": {"menu": "저녁 메뉴", "reason": "이유 1줄"},

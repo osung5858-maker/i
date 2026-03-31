@@ -14,6 +14,7 @@ interface Props {
 interface MealItem { menu: string; ingredients?: string; reason?: string }
 interface MealData {
   dishTitle?: string
+  cuisine?: string
   breakfast?: MealItem; lunch?: MealItem; dinner?: MealItem; snack?: MealItem
   newFood?: string; keyNutrient?: string; avoid?: string; tip?: string
 }
@@ -119,9 +120,10 @@ export default function AIMealCard({ mode, value, phase }: Props) {
           <SparkleIcon className="w-4 h-4 text-[var(--color-primary)]" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <p className="text-[13px] font-bold text-[#1A1918]">{meal?.dishTitle || 'AI 오늘의 식단'}</p>
             <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold">AI</span>
+            {meal?.cuisine && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#F0EDE8] text-[#6B6966] font-medium">{meal.cuisine}</span>}
           </div>
           <p className="text-[12px] text-[#6B6966] truncate mt-0.5">{meals.map(m => m.data?.menu?.split(',')[0]).join(' · ')}</p>
         </div>

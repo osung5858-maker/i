@@ -136,6 +136,7 @@ JSON만 출력. 긴 문장 절대 금지.`
 JSON으로 출력:
 {
   "dishTitle": "오늘 식단 대표 음식명 (예: 소고기 미음)",
+  "cuisine": "한식/중식/양식/일식/분식 중 하나",
   "stage": "${stage}",
   "breakfast": {"menu": "아침 메뉴", "ingredients": "재료 나열"},
   "lunch": {"menu": "점심 메뉴", "ingredients": "재료 나열"},
