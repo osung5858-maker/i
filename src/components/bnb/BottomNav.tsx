@@ -9,7 +9,8 @@ import {
   PlusIcon, XIcon, BookOpenIcon, MenuIcon, BottleIcon, MoonIcon, PoopIcon, ThermometerIcon,
   DropletIcon, PillIcon, BreastfeedIcon, BowlIcon, DiaperIcon, HospitalIcon,
   NoteIcon, ArrowLeftIcon, CookieIcon, RiceIcon, PumpIcon, BathIcon, NapIcon, NightIcon,
-  HeartFilledIcon, ActivityIcon, MusicIcon, PenIcon,
+  HeartFilledIcon, ActivityIcon, PenIcon, ChartIcon,
+  MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon,
 } from '@/components/ui/Icons'
 import { autoBackup, restoreLocalData } from '@/lib/storage/backup'
 import { createClient } from '@/lib/supabase/client'
@@ -435,7 +436,7 @@ function BottomNavComponent() {
                             more: <NoteIcon className="w-8 h-8" />,
                             mood: <HeartFilledIcon className="w-8 h-8" />,
                             fetal: <ActivityIcon className="w-8 h-8" />,
-                            diary: <MusicIcon className="w-8 h-8" />,
+                            diary: <BookOpenIcon className="w-8 h-8" />,
                           }
                           return <span style={{ color: cat.color }}>{iconMap[cat.key] || <NoteIcon className="w-8 h-8" />}</span>
                         })()}
@@ -711,13 +712,13 @@ function BottomNavComponent() {
                             note: <NoteIcon className="w-7 h-7" />,
                           }
                           const pregIconMap: Record<string, React.ReactNode> = {
-                            preg_mood_happy: <HeartFilledIcon className="w-7 h-7" />,
-                            preg_mood_calm: <HeartFilledIcon className="w-7 h-7" />,
-                            preg_mood_anxious: <HeartFilledIcon className="w-7 h-7" />,
-                            preg_mood_sick: <HeartFilledIcon className="w-7 h-7" />,
-                            preg_mood_tired: <HeartFilledIcon className="w-7 h-7" />,
+                            preg_mood_happy: <MoodHappyIcon className="w-7 h-7" />,
+                            preg_mood_calm: <MoodCalmIcon className="w-7 h-7" />,
+                            preg_mood_anxious: <MoodAnxiousIcon className="w-7 h-7" />,
+                            preg_mood_sick: <MoodSickIcon className="w-7 h-7" />,
+                            preg_mood_tired: <MoodTiredIcon className="w-7 h-7" />,
                             preg_fetal_move: <ActivityIcon className="w-7 h-7" />,
-                            preg_weight: <ThermometerIcon className="w-7 h-7" />,
+                            preg_weight: <ChartIcon className="w-7 h-7" />,
                             preg_edema_none: <DropletIcon className="w-7 h-7" />,
                             preg_edema_mild: <DropletIcon className="w-7 h-7" />,
                             preg_edema_severe: <DropletIcon className="w-7 h-7" />,
