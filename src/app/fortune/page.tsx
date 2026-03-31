@@ -186,7 +186,8 @@ export default function FortunePage() {
                     <div className="flex-1 flex flex-col items-center gap-1">
                       {animalFile && (
                         <video src={`/images/illustrations/${animalFile}.webm`} autoPlay loop muted playsInline
-                          className="w-20 h-20 object-contain" />
+                          className="w-20 h-20 object-contain"
+                          style={{ maskImage: 'radial-gradient(circle, black 55%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 80%)' }} />
                       )}
                       <p className="text-[15px] font-bold text-[#1A1918]">{animal}띠</p>
                       <p className="text-[11px] text-[#9E9A95]">{birthParts[0]}년생</p>
@@ -196,7 +197,8 @@ export default function FortunePage() {
                     <div className="flex-1 flex flex-col items-center gap-1">
                       {starFile && (
                         <video src={`/images/illustrations/${starFile}.webm`} autoPlay loop muted playsInline
-                          className="w-20 h-20 object-contain" />
+                          className="w-20 h-20 object-contain"
+                          style={{ maskImage: 'radial-gradient(circle, black 55%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 80%)' }} />
                       )}
                       <p className="text-[15px] font-bold text-[#1A1918]">{constellation}</p>
                       <p className="text-[11px] text-[#9E9A95]">{birthParts[1]}/{birthParts[2]}</p>
@@ -221,7 +223,8 @@ export default function FortunePage() {
                     <div className="flex-1 flex flex-col items-center gap-1">
                       {animalFile && (
                         <video src={`/images/illustrations/${animalFile}.webm`} autoPlay loop muted playsInline
-                          className="w-20 h-20 object-contain" />
+                          className="w-20 h-20 object-contain"
+                          style={{ maskImage: 'radial-gradient(circle, black 55%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 80%)' }} />
                       )}
                       <p className="text-[15px] font-bold text-[#1A1918]">{animal}띠</p>
                       <p className="text-[11px] text-[#9E9A95]">{due.getFullYear()}년생 예정</p>
@@ -231,7 +234,8 @@ export default function FortunePage() {
                     <div className="flex-1 flex flex-col items-center gap-1">
                       {starFile && (
                         <video src={`/images/illustrations/${starFile}.webm`} autoPlay loop muted playsInline
-                          className="w-20 h-20 object-contain" />
+                          className="w-20 h-20 object-contain"
+                          style={{ maskImage: 'radial-gradient(circle, black 55%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 80%)' }} />
                       )}
                       <p className="text-[15px] font-bold text-[#1A1918]">{constellation}</p>
                       <p className="text-[11px] text-[#9E9A95]">출산 예정일 기준</p>
