@@ -71,19 +71,7 @@ function buildCategories(ageMonths: number): RecordCategory[] {
     eatItems.push({ type: 'feed', label: '분유',
       step3: [{ label: '60', value: 60, unit: 'ml' }, { label: '90', value: 90, unit: 'ml' }, { label: '120', value: 120, unit: 'ml' }, { label: '150', value: 150, unit: 'ml' }, { label: '180', value: 180, unit: 'ml' }] })
   }
-  if (ageMonths >= 5) { // 이유식 5개월+
-    eatItems.push({ type: 'babyfood', label: ageMonths < 7 ? '이유식(미음)' : ageMonths < 10 ? '이유식(죽)' : '이유식',
-      step3: ageMonths < 7
-        ? [{ label: '쌀미음', value: 'rice' }, { label: '감자', value: 'potato' }, { label: '고구마', value: 'sweet_potato' }]
-        : [{ label: '야채죽', value: 'veggie' }, { label: '고기죽', value: 'meat' }, { label: '생선죽', value: 'fish' }, { label: '과일', value: 'fruit' }, { label: '기타', value: 'etc' }]
-    })
-  }
-  if (ageMonths >= 10) { // 간식 10개월+
-    eatItems.push({ type: 'snack', label: '간식' })
-  }
-  if (ageMonths >= 13) { // 유아식 13개월+
-    eatItems.push({ type: 'toddler_meal', label: '유아식' })
-  }
+
   if (ageMonths < 7) { // 유축 초기만
     eatItems.push({ type: 'pump', label: '유축', isDuration: true })
   }
