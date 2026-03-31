@@ -1009,16 +1009,16 @@ export default function PregnantPage() {
                   <p className="text-[13px] text-[#9E9A95]">오늘의 첫 기록을 남겨보세요</p>
                 </div>
               ) : (
-                <div className="space-y-1 mb-3">
+                <div className="max-h-[220px] overflow-y-auto hide-scrollbar mb-3">
                   {pregTodayEvents.map((ev) => {
                     const cfg = getEventConfig(ev.type, ev.data)
                     return (
-                      <div key={ev.id} className="flex items-center gap-3 py-1.5 border-b border-[#F5F3F0] last:border-0">
-                        <span className="text-[11px] text-[#9E9A95] shrink-0 w-10 tabular-nums">{ev.timeStr}</span>
+                      <div key={ev.id} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
+                        <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{ev.timeStr}</span>
                         <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.color + '22' }}>
-                          <cfg.Icon className="w-4 h-4" style={{ color: cfg.color }} />
+                          <cfg.Icon className="w-3.5 h-3.5" style={{ color: cfg.color }} />
                         </div>
-                        <p className="text-[13px] text-[#1A1918]">{cfg.label}</p>
+                        <span className="text-[13px] font-semibold text-[#1A1918]">{cfg.label}</span>
                       </div>
                     )
                   })}
