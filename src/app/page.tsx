@@ -495,11 +495,7 @@ export default function HomePage() {
 
           {/* ━━━ 2. 오늘 기록 ━━━ */}
           {(() => {
-            const tiles: RecordTile[] = [
-              { label: '수유', value: `${todayFeedCount}회`, color: todayFeedCount > 0 ? 'var(--color-primary)' : '#9E9A95' },
-              { label: '수면', value: `${todaySleepCount}회`, color: todaySleepCount > 0 ? '#7B6DB0' : '#9E9A95' },
-              { label: '대변', value: `${todayPoopCount}회`, color: todayPoopCount > 0 ? '#C4913E' : '#9E9A95' },
-            ]
+            const tiles: RecordTile[] = []
             const eventList = events.length > 0 ? (
               <>
                 <Link href={`/records/${new Date().toISOString().split('T')[0]}`} className="flex justify-end mb-2">
