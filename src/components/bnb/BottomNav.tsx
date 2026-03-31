@@ -647,12 +647,6 @@ function BottomNavComponent() {
                       </div>
                     )
                   })}
-                  {/* 뒤로 */}
-                  <div className="absolute" style={{ left: -16, top: -24 }}>
-                    <button onClick={() => setSelectedItem(null)} className="w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center active:scale-90">
-                      <ArrowLeftIcon className="w-4 h-4 text-[#6B6966]" />
-                    </button>
-                  </div>
                 </div>
               </div>
             </>
@@ -733,12 +727,6 @@ function BottomNavComponent() {
                     </div>
                   )
                 })}
-                {/* 뒤로 */}
-                <div className="absolute" style={{ left: -20, top: -30 }}>
-                  <button onClick={() => setSelectedCategory(null)} className="w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center active:scale-90">
-                    <ArrowLeftIcon className="w-4 h-4 text-[#6B6966]" />
-                  </button>
-                </div>
               </div>
             </div>
           </>
@@ -783,12 +771,20 @@ function BottomNavComponent() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => setFabOpen((v) => !v)}
+                    onClick={() => {
+                      if (memoItem) { setMemoItem(null); setMemoText('') }
+                      else if (tempSlider) setTempSlider(null)
+                      else if (selectedItem) setSelectedItem(null)
+                      else if (selectedCategory) setSelectedCategory(null)
+                      else setFabOpen(v => !v)
+                    }}
                     className={`absolute -top-12 flex flex-col items-center justify-center transition-transform duration-200 ${fabOpen ? 'scale-95' : ''}`}
                   >
                     {fabOpen ? (
                       <div className="w-[62px] h-[62px] rounded-full flex items-center justify-center active:scale-90 transition-all duration-200 bg-[#212124] shadow-[0_6px_20px_rgba(0,0,0,0.35)]">
-                        <XIcon className="w-7 h-7 text-white" />
+                        {(selectedCategory || selectedItem || tempSlider || memoItem)
+                          ? <ArrowLeftIcon className="w-7 h-7 text-white" />
+                          : <XIcon className="w-7 h-7 text-white" />}
                       </div>
                     ) : (
                       <div className="relative">
