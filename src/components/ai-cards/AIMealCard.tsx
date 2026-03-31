@@ -164,10 +164,11 @@ export default function AIMealCard({ mode, value, phase }: Props) {
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: MEAL_COLOR[m.key] }} />
                   <span className="text-[10px] font-semibold text-[#9E9A95]">{m.key}</span>
                 </div>
-                {/* 내용 — 고정 3줄 */}
+                {/* 내용 — 2줄 고정 */}
                 <div className="flex-1 min-w-0">
-                  {/* 줄 1: 뱃지 */}
-                  <div className="flex items-center gap-1 h-[16px]">
+                  {/* 줄 1: 메뉴명 + 뱃지들 */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-[13px] font-semibold text-[#1A1918] leading-snug">{m.data!.menu}</p>
                     {cuisine && (
                       <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold text-[#6B6966] leading-none" style={{ backgroundColor: cuisine.bg }}>
                         {cuisine.label}
@@ -179,10 +180,8 @@ export default function AIMealCard({ mode, value, phase }: Props) {
                       </span>
                     )}
                   </div>
-                  {/* 줄 2: 밥/메뉴 이름 */}
-                  <p className="text-[13px] font-semibold text-[#1A1918] leading-snug truncate">{m.data!.menu}</p>
-                  {/* 줄 3: 반찬/재료 */}
-                  <p className="text-[11px] text-[#9E9A95] leading-snug truncate">
+                  {/* 줄 2: 반찬/재료 */}
+                  <p className="text-[11px] text-[#9E9A95] leading-snug truncate mt-0.5">
                     {sides.length > 0 ? sides.join(' · ') : (m.data!.ingredients || '')}
                   </p>
                 </div>
