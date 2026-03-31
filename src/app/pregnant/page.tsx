@@ -49,10 +49,6 @@ const DEFAULT_FREE_BOXES = [
   { id: 'bebeform_b', category: 'birth', name: '베베폼 출산축하박스', desc: '출산 선물 꾸러미', link: 'https://bebeform.co.kr/giftbox/', tip: '출산 후 신청' },
   { id: 'bebeking_b', category: 'birth', name: '베베킹 출산축하박스', desc: '기저귀 · 물티슈 · 샘플 모음', link: 'https://bebeking.co.kr/theme/bbk2026/contents/bebebox.php', tip: '출산 후 신청' },
   { id: 'penelope', category: 'birth', name: '페넬로페 더 퍼스트 박스', desc: '신생아 첫 선물 박스', link: 'https://pf.kakao.com/_dxfaRxd/103498627', tip: '카카오 채널 신청' },
-  { id: 'maeil', category: 'birth', name: '매일유업 앱솔루트 샘플', desc: '분유 샘플 + 이유식 샘플', link: 'https://www.maeil.com/', tip: '앱솔루트맘 가입' },
-  { id: 'namyang', category: 'birth', name: '남양유업 임페리얼 샘플', desc: '분유 체험팩', link: 'https://shopping.namyangi.com/', tip: '남양아이 가입' },
-  { id: 'ildong', category: 'birth', name: '일동후디스 산양분유 샘플', desc: '산양분유 체험팩', link: 'https://www.foodismall.com/', tip: '후디스몰 가입' },
-  { id: 'ivenet', category: 'birth', name: '아이배냇 이유식 샘플', desc: '이유식 · 간식 체험팩', link: 'https://shop.ivenet.co.kr/', tip: '회원가입 후 신청' },
 ]
 
 // ===== 검진 리마인더 =====
