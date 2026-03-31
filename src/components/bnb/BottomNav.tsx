@@ -115,11 +115,11 @@ function buildCategories(ageMonths: number): RecordCategory[] {
 function buildPregnantCategories(): RecordCategory[] {
   return [
     { key: 'mood', label: '기분', color: '#FF8FAB', items: [
-      { type: 'preg_mood_happy', label: '행복', baseType: 'preg_mood', tags: { mood: 'happy' } },
-      { type: 'preg_mood_calm', label: '평온', baseType: 'preg_mood', tags: { mood: 'calm' } },
-      { type: 'preg_mood_anxious', label: '불안', baseType: 'preg_mood', tags: { mood: 'anxious' } },
-      { type: 'preg_mood_sick', label: '입덧', baseType: 'preg_mood', tags: { mood: 'sick' } },
-      { type: 'preg_mood_tired', label: '피곤', baseType: 'preg_mood', tags: { mood: 'tired' } },
+      { type: 'preg_mood_happy',   label: '행복', baseType: 'preg_mood', tags: { mood: 'happy'   }, color: '#FF8FAB' },
+      { type: 'preg_mood_calm',    label: '평온', baseType: 'preg_mood', tags: { mood: 'calm'    }, color: '#90C8A8' },
+      { type: 'preg_mood_anxious', label: '불안', baseType: 'preg_mood', tags: { mood: 'anxious' }, color: '#FFC078' },
+      { type: 'preg_mood_sick',    label: '입덧', baseType: 'preg_mood', tags: { mood: 'sick'    }, color: '#B8A0D4' },
+      { type: 'preg_mood_tired',   label: '피곤', baseType: 'preg_mood', tags: { mood: 'tired'   }, color: '#8EB4D4' },
     ]},
     { key: 'fetal', label: '태동', color: '#90C8A8', items: [
       { type: 'preg_fetal_move', label: '태동 +1' },
@@ -145,6 +145,7 @@ interface RecordItem {
   isDuration?: boolean
   isSlider?: boolean
   hasMemo?: boolean
+  color?: string  // 아이템별 개별 색상 (카테고리 색상 override)
 }
 
 interface ActiveSession {
@@ -724,7 +725,8 @@ function BottomNavComponent() {
                             preg_edema_severe: <DropletIcon className="w-7 h-7" />,
                             preg_diary: <PenIcon className="w-7 h-7" />,
                           }
-                          return <span style={{ color: cat.color }}>{pregIconMap[item.type] || itemIconMap[item.type] || <NoteIcon className="w-7 h-7" />}</span>
+                          const itemColor = item.color || cat.color
+                          return <span style={{ color: itemColor }}>{pregIconMap[item.type] || itemIconMap[item.type] || <NoteIcon className="w-7 h-7" />}</span>
                         })()}
                       </button>
                       <span className="text-[12px] font-bold text-white whitespace-nowrap bg-black/50 px-2 py-0.5 rounded-full">{item.label}</span>

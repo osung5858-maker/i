@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { shareFetalSize, shareDday } from '@/lib/kakao/share-pregnant'
 import BabyIllust from '@/components/pregnant/BabyIllust'
-import { SparkleIcon, PenIcon, StethoscopeIcon, ClipboardIcon, SyringeIcon, HospitalIcon, ShieldIcon, CheckCircleIcon, ActivityIcon, PregnantIcon, WarningIcon, BabyIcon, HeartFilledIcon, ExternalLinkIcon, WaterGlassIcon, WalkIcon, VitaminIcon, StretchIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon } from '@/components/ui/Icons'
+import { SparkleIcon, PenIcon, StethoscopeIcon, ClipboardIcon, SyringeIcon, HospitalIcon, ShieldIcon, CheckCircleIcon, ActivityIcon, PregnantIcon, WarningIcon, BabyIcon, HeartFilledIcon, ExternalLinkIcon, WaterGlassIcon, WalkIcon, VitaminIcon, StretchIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon, ChartIcon, DropletIcon } from '@/components/ui/Icons'
 import IllustVideo from '@/components/ui/IllustVideo'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
@@ -977,11 +977,22 @@ export default function PregnantPage() {
 
         {/* ━━━ 2. 오늘 기록 타임라인 ━━━ */}
         {(() => {
-          const PREG_EVENT_LABELS: Record<string, (d: any) => string> = {
-            preg_mood: (d) => ({ happy: '기분 좋음 😊', calm: '평온함 😌', anxious: '불안함 😰', sick: '입덧 🤢', tired: '피곤함 😫' } as Record<string, string>)[d.tags?.mood] || '기분 기록',
-            preg_fetal_move: () => '태동 기록',
-            preg_weight: (d) => `체중 ${d.tags?.kg}kg 기록`,
-            preg_edema: (d) => ({ none: '부종 없음 💧', mild: '부종 약함', severe: '부종 심함 ⚠️' } as Record<string, string>)[d.tags?.level] || '부종 기록',
+          const MOOD_CONFIG: Record<string, { label: string; Icon: React.FC<any>; color: string }> = {
+            happy:   { label: '행복', Icon: MoodHappyIcon,   color: '#FF8FAB' },
+            calm:    { label: '평온', Icon: MoodCalmIcon,    color: '#90C8A8' },
+            anxious: { label: '불안', Icon: MoodAnxiousIcon, color: '#FFC078' },
+            sick:    { label: '입덧', Icon: MoodSickIcon,    color: '#B8A0D4' },
+            tired:   { label: '피곤', Icon: MoodTiredIcon,   color: '#8EB4D4' },
+          }
+          const getEventConfig = (type: string, data: any): { label: string; Icon: React.FC<any>; color: string } => {
+            if (type === 'preg_mood') return MOOD_CONFIG[data.tags?.mood] || { label: '기분', Icon: HeartFilledIcon, color: '#FF8FAB' }
+            if (type === 'preg_fetal_move') return { label: '태동 기록', Icon: ActivityIcon, color: '#90C8A8' }
+            if (type === 'preg_weight') return { label: `체중 ${data.tags?.kg}kg`, Icon: ChartIcon, color: '#D08068' }
+            if (type === 'preg_edema') {
+              const lvl = data.tags?.level
+              return { label: lvl === 'none' ? '부종 없음' : lvl === 'mild' ? '부종 약함' : '부종 심함', Icon: DropletIcon, color: '#4A90D9' }
+            }
+            return { label: type, Icon: PenIcon, color: '#9E9A95' }
           }
           return (
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
@@ -999,12 +1010,18 @@ export default function PregnantPage() {
                 </div>
               ) : (
                 <div className="space-y-1 mb-3">
-                  {pregTodayEvents.map((ev) => (
-                    <div key={ev.id} className="flex items-center gap-3 py-1.5 border-b border-[#F5F3F0] last:border-0">
-                      <span className="text-[11px] text-[#9E9A95] shrink-0 w-10 tabular-nums">{ev.timeStr}</span>
-                      <p className="text-[13px] text-[#1A1918]">{PREG_EVENT_LABELS[ev.type]?.(ev.data) || ev.type}</p>
-                    </div>
-                  ))}
+                  {pregTodayEvents.map((ev) => {
+                    const cfg = getEventConfig(ev.type, ev.data)
+                    return (
+                      <div key={ev.id} className="flex items-center gap-3 py-1.5 border-b border-[#F5F3F0] last:border-0">
+                        <span className="text-[11px] text-[#9E9A95] shrink-0 w-10 tabular-nums">{ev.timeStr}</span>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.color + '22' }}>
+                          <cfg.Icon className="w-4 h-4" style={{ color: cfg.color }} />
+                        </div>
+                        <p className="text-[13px] text-[#1A1918]">{cfg.label}</p>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
 
