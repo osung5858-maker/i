@@ -956,10 +956,10 @@ export default function PregnantPage() {
               <p className="text-[14px] text-[var(--color-primary)]">{currentWeek}주 · D-{daysLeft}</p>
             </div>
             <div className="w-full h-2 bg-white/50 rounded-full">
-              <div className="h-full bg-[var(--color-primary)] rounded-full transition-all" style={{ width: `${(currentWeek / 40) * 100}%` }} />
+              <div className="h-full bg-[var(--color-primary)] rounded-full transition-all" style={{ width: `${Math.min(100, (currentWeek / 40) * 100)}%` }} />
             </div>
             <p className="text-[13px] text-[#9E9A95] mt-1 text-center">
-              {Math.round((currentWeek / 40) * 100)}% 완료 · 아이를 만나는 날까지 {daysLeft}일
+              {Math.min(100, Math.round((currentWeek / 40) * 100))}% 완료 · 아이를 만나는 날까지 {daysLeft}일
             </p>
           </div>
         </div>
