@@ -830,6 +830,29 @@ export default function PregnantPage() {
         showToast(`체중 ${kg}kg 기록!`)
       } else if (detail.type === 'preg_edema' && detail.tags?.level) {
         saveEdema(detail.tags.level)
+      } else if (detail.type === 'preg_water') {
+        const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
+        const prev = all[today]?.water || 0
+        all[today] = { ...all[today], water: prev + 1 }
+        localStorage.setItem('dodam_preg_health', JSON.stringify(all))
+        showToast(`물 마시기 ${prev + 1}잔 기록!`)
+      } else if (detail.type === 'preg_walk') {
+        if (detail.end_ts) {
+          const mins = Math.round((new Date(detail.end_ts).getTime() - new Date(detail.start_ts).getTime()) / 60000)
+          showToast(`걷기 ${mins}분 기록!`)
+        } else {
+          showToast('걷기 시작!')
+        }
+      } else if (detail.type === 'preg_suppl' && detail.tags?.subtype) {
+        const suppleNames: Record<string, string> = { folic: '엽산', iron: '철분', dha: 'DHA', calcium: '칼슘', multi: '종합비타민', etc: '영양제' }
+        showToast(`${suppleNames[detail.tags.subtype] || '영양제'} 복용 기록!`)
+      } else if (detail.type === 'preg_stretch') {
+        if (detail.end_ts) {
+          const mins = Math.round((new Date(detail.end_ts).getTime() - new Date(detail.start_ts).getTime()) / 60000)
+          showToast(`스트레칭 ${mins}분 기록!`)
+        } else {
+          showToast('스트레칭 시작!')
+        }
       }
     }
     window.addEventListener('dodam-record', handler)

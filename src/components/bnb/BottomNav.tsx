@@ -134,9 +134,18 @@ function buildPregnantCategories(): RecordCategory[] {
     ]},
     { key: 'today', label: '오늘 챙기기', color: '#10B981', items: [
       { type: 'preg_water',   label: '물 마시기',  color: '#3B82F6' },
-      { type: 'preg_walk',    label: '걷기',       color: '#10B981' },
-      { type: 'preg_suppl',   label: '영양제',     color: '#F59E0B' },
-      { type: 'preg_stretch', label: '스트레칭',   color: '#8B5CF6' },
+      { type: 'preg_walk',    label: '걷기',       color: '#10B981', isDuration: true },
+      { type: 'preg_suppl',   label: '영양제',     color: '#F59E0B',
+        step3: [
+          { label: '엽산', value: 'folic' },
+          { label: '철분', value: 'iron' },
+          { label: 'DHA', value: 'dha' },
+          { label: '칼슘', value: 'calcium' },
+          { label: '종합', value: 'multi' },
+          { label: '기타', value: 'etc' },
+        ]
+      },
+      { type: 'preg_stretch', label: '스트레칭',   color: '#8B5CF6', isDuration: true },
     ]},
   ]
 }
@@ -271,6 +280,16 @@ function BottomNavComponent() {
     const event = new CustomEvent('dodam-record', { detail: { type, ...extra, _handled: false } })
     window.dispatchEvent(event)
 
+    // preg_ 타입: page 밖에서 기록 시 localStorage 폴백 저장
+    if (!(event.detail as any)._handled && type.startsWith('preg_')) {
+      try {
+        const today = new Date().toISOString().split('T')[0]
+        const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
+        const stored = JSON.parse(localStorage.getItem(`dodam_preg_events_${today}`) || '[]')
+        stored.unshift({ id: Date.now(), type, data: { type, ...extra }, timeStr })
+        localStorage.setItem(`dodam_preg_events_${today}`, JSON.stringify(stored))
+      } catch { /* */ }
+    }
     // page.tsx가 없는 페이지(추억/동네/우리 등)에서는 직접 DB 저장
     if (!(event.detail as any)._handled && !type.startsWith('preg_')) {
       try {
