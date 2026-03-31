@@ -36,8 +36,8 @@ export async function POST(request: Request) {
   if (!GEMINI_API_KEY) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
 
   const ip = getClientIP(request)
-  const { allowed } = checkRateLimit(`food-check:${ip}`, AI_RATE_LIMIT)
-  if (!allowed) return NextResponse.json({ error: '잠시 후 다시 시도해주세요.' }, { status: 429 })
+  const { limited } = checkRateLimit(`food-check:${ip}`, AI_RATE_LIMIT)
+  if (limited) return NextResponse.json({ error: '잠시 후 다시 시도해주세요.' }, { status: 429 })
 
   const body = await request.json()
   const { food, mode } = body
@@ -52,9 +52,10 @@ export async function POST(request: Request) {
     ? '임신 중인 산모'
     : mode === 'preparing'
     ? '임신을 준비 중인 여성'
-    : '일반인'
+    : '영유아를 키우는 부모'
 
-  const prompt = `당신은 산부인과 전문의입니다. ${context}가 "${safeFood}"을(를) 먹어도 되는지 알려주세요.
+  const doctor = mode === 'parenting' ? '소아과·영양 전문의' : '산부인과 전문의'
+  const prompt = `당신은 ${doctor}입니다. ${context}가 "${safeFood}"을(를) 먹어도 되는지 알려주세요.
 
 JSON으로만 출력:
 {

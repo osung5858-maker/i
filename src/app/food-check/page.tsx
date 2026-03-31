@@ -185,7 +185,9 @@ export default function FoodCheckPage() {
             <div className="flex flex-wrap gap-2">
               {(mode === 'pregnant'
                 ? ['회·초밥', '커피', '삼겹살', '참치캔', '치즈', '꿀', '아이스크림', '라면', '매운 음식', '홍삼']
-                : ['카페인', '술', '엽산 음식', '철분 음식', '생선', '콩류', '견과류', '시금치', '두부', '아보카도']
+                : mode === 'preparing'
+                ? ['카페인', '술', '엽산 음식', '철분 음식', '생선', '콩류', '견과류', '시금치', '두부', '아보카도']
+                : ['꿀', '생우유', '견과류', '달걀', '새우·갑각류', '땅콩', '밀가루', '이유식 재료', '돼지고기', '소고기']
               ).map(food => (
                 <button key={food} onClick={() => { setInput(food); check(food) }}
                   className="px-3 py-1.5 rounded-full bg-white border border-[#E8E4DF] text-[13px] text-[#4A4744] active:bg-[#F5F3F0] transition-colors">

@@ -72,7 +72,7 @@ export default function FortunePage() {
       '염소자리': 'capricorn', '물병자리': 'aquarius', '물고기자리': 'pisces',
       '양자리': 'aries', '황소자리': 'taurus', '쌍둥이자리': 'gemini',
       '게자리': 'cancer', '사자자리': 'leo', '처녀자리': 'virgo',
-      '천칭자리': 'libra', '전갈자리': 'Scorpio', '궁수자리': 'sagittarius',
+      '천칭자리': 'libra', '전갈자리': 'scorpio', '궁수자리': 'sagittarius',
     }
     return map[name] || null
   }
