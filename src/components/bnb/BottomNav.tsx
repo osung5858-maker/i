@@ -13,6 +13,7 @@ import {
   MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon,
   WaterGlassIcon, WalkIcon, StretchIcon,
   CheckCircleIcon, BanIcon, RunnerIcon,
+  VitaminIcon, BrainIcon, WarningIcon,
 } from '@/components/ui/Icons'
 import { autoBackup, restoreLocalData } from '@/lib/storage/backup'
 import { createClient } from '@/lib/supabase/client'
@@ -50,8 +51,9 @@ function getAgeMonths(): number {
   const childBirth = localStorage.getItem('dodam_child_birthdate')
   if (!childBirth) return 6 // 기본값
   const birth = new Date(childBirth)
+  if (isNaN(birth.getTime())) return 6 // 잘못된 날짜 형식 → 기본값
   const now = new Date()
-  return (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
+  return Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth()))
 }
 
 function buildCategories(ageMonths: number): RecordCategory[] {
@@ -777,15 +779,15 @@ function BottomNavComponent() {
                             t === 'preg_mood_tired' ? <MoodTiredIcon className="w-7 h-7" /> :
                             t === 'preg_fetal_move' ? <ActivityIcon className="w-7 h-7" /> :
                             t === 'preg_weight' ? <ChartIcon className="w-7 h-7" /> :
-                            t === 'preg_edema_none' || t === 'preg_edema_mild' || t === 'preg_edema_severe' ? <DropletIcon className="w-7 h-7" /> :
+                            t === 'preg_edema_none' || t === 'preg_edema_mild' || t === 'preg_edema_severe' ? <WarningIcon className="w-7 h-7" /> :
                             t === 'preg_diary' ? <PenIcon className="w-7 h-7" /> :
-                            t === 'prep_folic' || t === 'prep_vitd' || t === 'prep_iron' || t === 'prep_omega3' ? <PillIcon className="w-7 h-7" /> :
+                            t === 'prep_folic' || t === 'prep_iron' ? <PillIcon className="w-7 h-7" /> :
+                            t === 'prep_vitd' || t === 'prep_omega3' ? <VitaminIcon className="w-7 h-7" /> :
                             t === 'prep_walk' ? <WalkIcon className="w-7 h-7" /> :
                             t === 'prep_yoga' ? <StretchIcon className="w-7 h-7" /> :
-                            t === 'prep_swim' ? <DropletIcon className="w-7 h-7" /> :
-                            t === 'prep_workout' ? <RunnerIcon className="w-7 h-7" /> :
-                            t === 'prep_meditate' ? <MoonIcon className="w-7 h-7" /> :
-                            t === 'prep_breath' ? <ActivityIcon className="w-7 h-7" /> :
+                            t === 'prep_swim' || t === 'prep_workout' ? <RunnerIcon className="w-7 h-7" /> :
+                            t === 'prep_meditate' ? <BrainIcon className="w-7 h-7" /> :
+                            t === 'prep_breath' ? <SunIcon className="w-7 h-7" /> :
                             t === 'prep_journal' ? <PenIcon className="w-7 h-7" /> :
                             t === 'prep_mood_excited' ? <MoodHappyIcon className="w-7 h-7" /> :
                             t === 'prep_mood_calm' ? <MoodCalmIcon className="w-7 h-7" /> :
