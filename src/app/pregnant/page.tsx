@@ -995,6 +995,18 @@ export default function PregnantPage() {
         <AIMealCard mode="pregnant" value={currentWeek} />
         </div>
 
+        {/* 음식 물어보기 */}
+        <a href="/food-check" className="flex items-center gap-3 bg-white rounded-xl border border-[#E8E4DF] p-3.5 active:bg-[#F5F3F0]">
+          <div className="w-9 h-9 rounded-full bg-[#FFF8F3] flex items-center justify-center shrink-0">
+            <span className="text-[18px]">🍽️</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-[13px] font-bold text-[#1A1918]">이 음식 먹어도 되나요?</p>
+            <p className="text-[12px] text-[#9E9A95] mt-0.5">임신 중 음식 안전 AI 확인</p>
+          </div>
+          <span className="text-[#9E9A95] text-[16px]">→</span>
+        </a>
+
         {/* 푸시 알림 동의 */}
         <PushPrompt message="검진일과 주차 변경을 알려드릴까요?" />
 

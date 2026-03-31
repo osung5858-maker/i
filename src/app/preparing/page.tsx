@@ -5,7 +5,7 @@ import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
-import { SparkleIcon, PenIcon } from '@/components/ui/Icons'
+import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, HeartFilledIcon, RunnerIcon, CheckCircleIcon } from '@/components/ui/Icons'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
@@ -62,6 +62,8 @@ const DEFAULT_STRESS_TIPS = [
   { icon: '', title: '음악 테라피', desc: '편안한 음악 20분' },
 ]
 
+const CURRENT_YEAR = 2026
+
 // ===== 생년월일 선택 (년/월/일) =====
 function BirthDatePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const parts = value ? value.split('-') : ['', '', '']
@@ -80,7 +82,7 @@ function BirthDatePicker({ value, onChange }: { value: string; onChange: (v: str
     <div className="flex gap-2">
       <select value={year} onChange={e => update(e.target.value, month, day)} className="flex-[2] h-11 rounded-xl border border-[#E8E4DF] px-2 text-[13px] bg-white">
         <option value="">년</option>
-        {Array.from({ length: 40 }, (_, i) => new Date().getFullYear() - 20 - i).map(y => (
+        {Array.from({ length: 40 }, (_, i) => CURRENT_YEAR - 20 - i).map(y => (
           <option key={y} value={String(y)}>{y}</option>
         ))}
       </select>
@@ -258,37 +260,10 @@ export default function PreparingPage() {
     })
   }, [])
   const SUPPL_DEFAULT: Record<string, number> = { folic: 0, vitd: 0, iron: 0, omega3: 0 }
-  const [supplements, setSupplements] = useState<Record<string, number>>(() => {
-    if (typeof window !== 'undefined') {
-      const today = new Date().toISOString().split('T')[0]
-      const s = localStorage.getItem(`dodam_suppl_${today}`)
-      if (s) {
-        const parsed = JSON.parse(s)
-        const migrated: Record<string, number> = { ...SUPPL_DEFAULT }
-        for (const [k, v] of Object.entries(parsed)) {
-          migrated[k] = typeof v === 'boolean' ? (v ? 1 : 0) : (v as number)
-        }
-        return migrated
-      }
-      return { ...SUPPL_DEFAULT }
-    }
-    return { ...SUPPL_DEFAULT }
-  })
-  const [todayMood, setTodayMood] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      const today = new Date().toISOString().split('T')[0]
-      return localStorage.getItem(`dodam_mood_${today}`) || ''
-    }
-    return ''
-  })
-  const [motherBirth, setMotherBirth] = useState<string>(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('dodam_mother_birth') || ''
-    return ''
-  })
-  const [fatherBirth, setFatherBirth] = useState<string>(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('dodam_father_birth') || ''
-    return ''
-  })
+  const [supplements, setSupplements] = useState<Record<string, number>>({ ...SUPPL_DEFAULT })
+  const [todayMood, setTodayMood] = useState<string>('')
+  const [motherBirth, setMotherBirth] = useState<string>('')
+  const [fatherBirth, setFatherBirth] = useState<string>('')
   const calcAge = (birth: string) => {
     if (!birth) return 0
     const b = new Date(birth)
@@ -299,18 +274,34 @@ export default function PreparingPage() {
   }
   const motherAge = calcAge(motherBirth)
   const fatherAge = calcAge(fatherBirth)
-  const [partnerChecks, setPartnerChecks] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('dodam_partner_checks'); return s ? JSON.parse(s) : {}
+  const [partnerChecks, setPartnerChecks] = useState<Record<string, boolean>>({})
+  const [appointments, setAppointments] = useState<Record<string, string>>({})
+  const today = new Date().toISOString().split('T')[0]
+
+  // 임신 준비 FAB 오늘 기록
+  const [prepTodayDone, setPrepTodayDone] = useState<string[]>([])
+  useEffect(() => {
+    const key = `dodam_prep_done_${today}`
+    try { setPrepTodayDone(JSON.parse(localStorage.getItem(key) || '[]')) } catch {}
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as any
+      if (!detail.type?.startsWith('prep_')) return
+      detail._handled = true
+      setPrepTodayDone(prev => {
+        if (prev.includes(detail.type)) return prev
+        const updated = [...prev, detail.type]
+        try { localStorage.setItem(key, JSON.stringify(updated)) } catch {}
+        return updated
+      })
+      const labels: Record<string, string> = {
+        prep_folic: '엽산 복용', prep_exercise: '운동', prep_checkup: '검진 예약', prep_no_alcohol: '금주',
+        prep_breath: '호흡 명상', prep_journal: '감사일기', prep_walk: '산책', prep_partner: '파트너 대화',
+      }
+      showToast(`${labels[detail.type] || '기록'} 완료!`)
     }
-    return {}
-  })
-  const [appointments, setAppointments] = useState<Record<string, string>>(() => {
-    if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('dodam_appointments'); return s ? JSON.parse(s) : {}
-    }
-    return {}
-  })
+    window.addEventListener('dodam-record', handler)
+    return () => window.removeEventListener('dodam-record', handler)
+  }, [today]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 접기 상태
   const [moreOpen, setMoreOpen] = useState(false)
@@ -341,7 +332,6 @@ export default function PreparingPage() {
 
   // AI 브리핑 (하루 1회 캐시)
   const [aiError, setAiError] = useState<string | null>(null)
-  const today = new Date().toISOString().split('T')[0]
 
   const fetchAIBriefing = async (force = false) => {
     if (!cycle) return
@@ -493,10 +483,33 @@ export default function PreparingPage() {
   const [tempCycleLen, setTempCycleLen] = useState(cycleLength)
   const [tempMotherBirth, setTempMotherBirth] = useState(motherBirth)
   const [tempFatherBirth, setTempFatherBirth] = useState(fatherBirth)
-  const [myRole, setMyRole] = useState<'mom' | 'dad'>(() => {
-    if (typeof window !== 'undefined') return (localStorage.getItem('dodam_my_role') as 'mom' | 'dad') || 'mom'
-    return 'mom'
-  })
+  const [myRole, setMyRole] = useState<'mom' | 'dad'>('mom')
+  useEffect(() => {
+    const todayKey = new Date().toISOString().split('T')[0]
+    const supplRaw = localStorage.getItem(`dodam_suppl_${todayKey}`)
+    if (supplRaw) {
+      try {
+        const parsed = JSON.parse(supplRaw)
+        const migrated: Record<string, number> = { folic: 0, vitd: 0, iron: 0, omega3: 0 }
+        for (const [k, v] of Object.entries(parsed)) {
+          migrated[k] = typeof v === 'boolean' ? (v ? 1 : 0) : (v as number)
+        }
+        setSupplements(migrated)
+      } catch { /* */ }
+    }
+    const mood = localStorage.getItem(`dodam_mood_${todayKey}`)
+    if (mood) setTodayMood(mood)
+    const mb = localStorage.getItem('dodam_mother_birth')
+    if (mb) { setMotherBirth(mb); setTempMotherBirth(mb) }
+    const fb = localStorage.getItem('dodam_father_birth')
+    if (fb) { setFatherBirth(fb); setTempFatherBirth(fb) }
+    const pc = localStorage.getItem('dodam_partner_checks')
+    if (pc) { try { setPartnerChecks(JSON.parse(pc)) } catch { /* */ } }
+    const ap = localStorage.getItem('dodam_appointments')
+    if (ap) { try { setAppointments(JSON.parse(ap)) } catch { /* */ } }
+    const role = localStorage.getItem('dodam_my_role') as 'mom' | 'dad' | null
+    if (role) setMyRole(role)
+  }, [])
 
   const handleSaveCycleSetup = async () => {
     if (!tempPeriod) return
@@ -540,7 +553,7 @@ export default function PreparingPage() {
 
           {/* 내 생년월일 */}
           <div className="mb-5">
-            <p className="text-[14px] font-semibold text-[#6B6966] mb-1">내 생년월일 {myAge > 0 && <span className="text-[var(--color-primary)] font-bold">{myAge}세</span>}</p>
+            <p className="text-[14px] font-semibold text-[#6B6966] mb-1">내 생년월일 {myAge > 0 ? <span className="text-[var(--color-primary)] font-bold">{myAge}세</span> : null}</p>
             <BirthDatePicker value={myBirth} onChange={setMyBirth} />
           </div>
 
@@ -646,6 +659,44 @@ export default function PreparingPage() {
           </div>
         )}
 
+        {/* ━━━ 오늘 기록 (FAB) ━━━ */}
+        {(() => {
+          const PREP_CFG: Record<string, { label: string; Icon: React.FC<{ className?: string }>; color: string }> = {
+            prep_folic:      { label: '엽산 복용',   Icon: PillIcon,       color: '#6366F1' },
+            prep_exercise:   { label: '운동',        Icon: RunnerIcon,     color: '#6366F1' },
+            prep_checkup:    { label: '검진 예약',   Icon: HospitalIcon,   color: '#6366F1' },
+            prep_no_alcohol: { label: '금주',        Icon: BanIcon,        color: '#6366F1' },
+            prep_breath:     { label: '호흡 명상',   Icon: ActivityIcon,   color: '#FF8FAB' },
+            prep_journal:    { label: '감사일기',    Icon: PenIcon,        color: '#FF8FAB' },
+            prep_walk:       { label: '산책',        Icon: WalkIcon,       color: '#FF8FAB' },
+            prep_partner:    { label: '파트너 대화', Icon: HeartFilledIcon, color: '#FF8FAB' },
+          }
+          return (
+            <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[14px] font-bold text-[#1A1918]">오늘 기록 <span className="text-[#9E9A95] font-normal">{prepTodayDone.length}건</span></p>
+                <CheckCircleIcon className="w-4 h-4 text-[#9E9A95]" />
+              </div>
+              {prepTodayDone.length === 0 ? (
+                <p className="text-[13px] text-[#9E9A95] text-center py-3">아래 버튼으로 오늘 할일과 마음챙김을 기록해보세요</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {prepTodayDone.map(type => {
+                    const cfg = PREP_CFG[type]
+                    if (!cfg) return null
+                    return (
+                      <span key={type} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold" style={{ background: cfg.color + '18', color: cfg.color }}>
+                        <cfg.Icon className="w-3.5 h-3.5" />
+                        {cfg.label}
+                      </span>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
         {/* ━━━ 능동적 제안 카드 ━━━ */}
         {(() => {
           const suggestions: { icon: string; text: string; action?: string; href?: string }[] = []
@@ -720,6 +771,18 @@ export default function PreparingPage() {
         {/* ━━━ 임신 준비 식단 추천 ━━━ */}
         <AIMealCard mode="preparing" value={0} phase={getCyclePhase()} />
 
+        {/* 음식 물어보기 */}
+        <a href="/food-check" className="flex items-center gap-3 bg-white rounded-xl border border-[#E8E4DF] p-3.5 active:bg-[#F5F3F0]">
+          <div className="w-9 h-9 rounded-full bg-[#FFF8F3] flex items-center justify-center shrink-0">
+            <span className="text-[18px]">🍽️</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-[13px] font-bold text-[#1A1918]">이 음식 먹어도 되나요?</p>
+            <p className="text-[12px] text-[#9E9A95] mt-0.5">임신 준비 중 음식 안전 AI 확인</p>
+          </div>
+          <span className="text-[#9E9A95] text-[16px]">→</span>
+        </a>
+
         {/* 푸시 알림 동의 */}
         <PushPrompt message="배란일과 엽산 리마인더를 받아볼까요?" />
 
@@ -790,32 +853,7 @@ export default function PreparingPage() {
           })()}
         </div>
         {/* ━━━ 임신 준비 식품 가이드 ━━━ */}
-        <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
-          <div className="p-3 border-b border-[#E8E4DF]">
-            <p className="text-[14px] font-semibold text-[#1A1918]">임신 준비 식품 가이드</p>
-            <p className="text-[12px] text-[#9E9A95] mt-0.5">좋은 음식 · 주의 음식</p>
-          </div>
-          <div className="grid grid-cols-2 divide-x divide-[#E8E4DF]">
-            <div className="p-3 space-y-2.5">
-              <p className="text-[12px] font-bold text-[#3D9A5F]">권장 식품</p>
-              {(foodsData.good ?? DEFAULT_GOOD_FOODS).map(f => (
-                <div key={f.name}>
-                  <p className="text-[12px] font-semibold text-[#1A1918]">{f.name}</p>
-                  <p className="text-[11px] text-[#6B6966]">{f.items}</p>
-                </div>
-              ))}
-            </div>
-            <div className="p-3 space-y-2.5">
-              <p className="text-[12px] font-bold text-[#D05050]">주의 식품</p>
-              {(foodsData.bad ?? DEFAULT_BAD_FOODS).map(f => (
-                <div key={f.name}>
-                  <p className="text-[12px] font-semibold text-[#1A1918]">{f.name}</p>
-                  <p className="text-[11px] text-[#6B6966]">{f.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <FoodGuideCard goodFoods={foodsData.good ?? DEFAULT_GOOD_FOODS} badFoods={foodsData.bad ?? DEFAULT_BAD_FOODS} />
 
         {/* ━━━ 스트레스 관리 팁 ━━━ */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
@@ -842,6 +880,45 @@ export default function PreparingPage() {
       )}
 
       {showGuide && <SpotlightGuide mode="preparing" onComplete={() => { localStorage.setItem('dodam_guide_preparing', '1'); setShowGuide(false) }} />}
+    </div>
+  )
+}
+
+function FoodGuideCard({ goodFoods, badFoods }: {
+  goodFoods: { name: string; items: string }[]
+  badFoods: { name: string; desc: string }[]
+}) {
+  const [tab, setTab] = useState<'good' | 'bad'>('good')
+  return (
+    <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
+      <div className="flex border-b border-[#E8E4DF]">
+        <button onClick={() => setTab('good')}
+          className={`flex-1 py-2.5 text-[12px] font-semibold relative transition-colors ${tab === 'good' ? 'text-[#3D9A5F]' : 'text-[#9E9A95]'}`}>
+          권장 식품
+          {tab === 'good' && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#3D9A5F] rounded-full" />}
+        </button>
+        <button onClick={() => setTab('bad')}
+          className={`flex-1 py-2.5 text-[12px] font-semibold relative transition-colors ${tab === 'bad' ? 'text-[#D05050]' : 'text-[#9E9A95]'}`}>
+          주의 식품
+          {tab === 'bad' && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#D05050] rounded-full" />}
+        </button>
+      </div>
+      <div className="p-3 grid grid-cols-2 gap-2">
+        {tab === 'good'
+          ? goodFoods.map(f => (
+            <div key={f.name} className="bg-[#F0FAF4] rounded-xl px-3 py-2.5">
+              <p className="text-[12px] font-bold text-[#3D9A5F]">{f.name}</p>
+              <p className="text-[11px] text-[#6B6966] mt-0.5 leading-tight">{f.items}</p>
+            </div>
+          ))
+          : badFoods.map(f => (
+            <div key={f.name} className="bg-[#FDF2F2] rounded-xl px-3 py-2.5">
+              <p className="text-[12px] font-bold text-[#D05050]">{f.name}</p>
+              <p className="text-[11px] text-[#6B6966] mt-0.5 leading-tight">{f.desc}</p>
+            </div>
+          ))
+        }
+      </div>
     </div>
   )
 }
