@@ -26,7 +26,7 @@ function ImageViewer({ images, startIndex, onClose }: { images: { original: stri
       </div>
       <div className="flex-1 flex items-center justify-center px-2"
         onClick={e => e.stopPropagation()} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-        <img src={`/api/kidsnote/image?url=${encodeURIComponent(images[idx].original)}`} alt="" className="max-w-full max-h-[80vh] object-contain rounded-lg select-none" draggable={false} />
+        <img src={images[idx].original} alt="" className="max-w-full max-h-[80vh] object-contain rounded-lg select-none" draggable={false} />
       </div>
       {images.length > 1 && (
         <>
@@ -61,8 +61,8 @@ export default function KidsnotePage() {
   const [reportProgress, setReportProgress] = useState(0)
   const [albumTotal, setAlbumTotal] = useState(0)
   const [reportTotal, setReportTotal] = useState(0)
-  // 키즈노트 이미지는 프록시를 통해야 표시됨
-  const proxyImg = (url: string) => `/api/kidsnote/image?url=${encodeURIComponent(url)}`
+  // API가 이미 /api/kidsnote/image?url=... 로 변환해서 내려줌 — 재가공 불필요
+  const proxyImg = (url: string) => url
 
   const [error, setError] = useState<string | null>(null)
   const [agreed, setAgreed] = useState(() => {
