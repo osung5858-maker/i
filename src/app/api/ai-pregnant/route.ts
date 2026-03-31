@@ -141,7 +141,7 @@ JSON으로 출력:
 }
 한국 가정식 위주. JSON만 출력.`
 
-      const { text: mealText, error: mealErr } = await callGemini(prompt, 400)
+      const { text: mealText, error: mealErr } = await callGemini(prompt, 600)
       if (!mealText) return NextResponse.json({ error: mealErr || 'AI failed' }, { status: 500 })
       try {
         const match = mealText.match(/\{[\s\S]*\}/)
