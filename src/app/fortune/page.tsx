@@ -40,6 +40,16 @@ export default function FortunePage() {
     return animals[year % 12]
   }
 
+  // 띠 → 파일명
+  const getAnimalFile = (animal: string) => {
+    const map: Record<string, string> = {
+      '쥐': 'rat', '소': 'ox', '호랑이': 'tiger', '토끼': 'rabbit',
+      '용': 'dragon', '뱀': 'snake', '말': 'horse', '양': 'goat',
+      '원숭이': 'monkey', '닭': 'rooster', '개': 'dog', '돼지': 'pig',
+    }
+    return map[animal] || null
+  }
+
   // 별자리 계산
   const getConstellation = (month: number, day: number) => {
     const signs = [
@@ -54,6 +64,17 @@ export default function FortunePage() {
       if (month < sign.end[0] || (month === sign.end[0] && day <= sign.end[1])) return sign.name
     }
     return '염소자리'
+  }
+
+  // 별자리 → 파일명
+  const getConstellationFile = (name: string) => {
+    const map: Record<string, string> = {
+      '염소자리': 'capricorn', '물병자리': 'aquarius', '물고기자리': 'pisces',
+      '양자리': 'aries', '황소자리': 'taurus', '쌍둥이자리': 'gemini',
+      '게자리': 'cancer', '사자자리': 'leo', '처녀자리': 'virgo',
+      '천칭자리': 'libra', '전갈자리': 'Scorpio', '궁수자리': 'sagittarius',
+    }
+    return map[name] || null
   }
 
   // AI 운세 (Gemini 직접 호출)
@@ -152,21 +173,70 @@ export default function FortunePage() {
         {tab === 'zodiac' && birthDate && (
           <div className="space-y-3">
             {/* 엄마 */}
-            <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-4 text-center">
-              <p className="text-[13px] font-bold text-[#1A1918] mb-2">엄마의 띠 · 별자리</p>
-              <p className="text-[16px] font-bold mb-1">{getZodiacAnimal(birthParts[0])}띠</p>
-              <p className="text-[13px] text-[#6B6966] mt-1">{getConstellation(birthParts[1], birthParts[2])}</p>
-            </div>
+            {(() => {
+              const animal = getZodiacAnimal(birthParts[0])
+              const constellation = getConstellation(birthParts[1], birthParts[2])
+              const animalFile = getAnimalFile(animal)
+              const starFile = getConstellationFile(constellation)
+              return (
+                <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-4">
+                  <p className="text-[13px] font-bold text-[#1A1918] mb-3 text-center">엄마의 띠 · 별자리</p>
+                  <div className="flex gap-3">
+                    {/* 띠 */}
+                    <div className="flex-1 flex flex-col items-center gap-1">
+                      {animalFile && (
+                        <video src={`/images/illustrations/${animalFile}.webm`} autoPlay loop muted playsInline
+                          className="w-20 h-20 object-contain" />
+                      )}
+                      <p className="text-[15px] font-bold text-[#1A1918]">{animal}띠</p>
+                      <p className="text-[11px] text-[#9E9A95]">{birthParts[0]}년생</p>
+                    </div>
+                    <div className="w-px bg-[#E8E4DF]" />
+                    {/* 별자리 */}
+                    <div className="flex-1 flex flex-col items-center gap-1">
+                      {starFile && (
+                        <video src={`/images/illustrations/${starFile}.webm`} autoPlay loop muted playsInline
+                          className="w-20 h-20 object-contain" />
+                      )}
+                      <p className="text-[15px] font-bold text-[#1A1918]">{constellation}</p>
+                      <p className="text-[11px] text-[#9E9A95]">{birthParts[1]}/{birthParts[2]}</p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
 
             {/* 아이 */}
             {dueDate && (() => {
               const due = new Date(dueDate)
+              const animal = getZodiacAnimal(due.getFullYear())
+              const constellation = getConstellation(due.getMonth() + 1, due.getDate())
+              const animalFile = getAnimalFile(animal)
+              const starFile = getConstellationFile(constellation)
               return (
-                <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)]/50 p-4 text-center">
-                  <p className="text-[13px] font-bold text-[#1A1918] mb-2">아이 예상 띠 · 별자리</p>
-                  <p className="text-[16px] font-bold mb-1">{getZodiacAnimal(due.getFullYear())}띠</p>
-                  <p className="text-[13px] text-[#6B6966] mt-1">{getConstellation(due.getMonth() + 1, due.getDate())}</p>
-                  <p className="text-[14px] text-[#9E9A95] mt-2">출산 예정일 기준</p>
+                <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)]/50 p-4">
+                  <p className="text-[13px] font-bold text-[#1A1918] mb-3 text-center">아이 예상 띠 · 별자리</p>
+                  <div className="flex gap-3">
+                    {/* 띠 */}
+                    <div className="flex-1 flex flex-col items-center gap-1">
+                      {animalFile && (
+                        <video src={`/images/illustrations/${animalFile}.webm`} autoPlay loop muted playsInline
+                          className="w-20 h-20 object-contain" />
+                      )}
+                      <p className="text-[15px] font-bold text-[#1A1918]">{animal}띠</p>
+                      <p className="text-[11px] text-[#9E9A95]">{due.getFullYear()}년생 예정</p>
+                    </div>
+                    <div className="w-px bg-[#E8E4DF]" />
+                    {/* 별자리 */}
+                    <div className="flex-1 flex flex-col items-center gap-1">
+                      {starFile && (
+                        <video src={`/images/illustrations/${starFile}.webm`} autoPlay loop muted playsInline
+                          className="w-20 h-20 object-contain" />
+                      )}
+                      <p className="text-[15px] font-bold text-[#1A1918]">{constellation}</p>
+                      <p className="text-[11px] text-[#9E9A95]">출산 예정일 기준</p>
+                    </div>
+                  </div>
                 </div>
               )
             })()}
