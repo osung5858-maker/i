@@ -146,6 +146,24 @@ export default function MorePage() {
             )}
           </div>
         ))}
+
+        {/* 재미 콘텐츠 */}
+        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
+          <div className="grid grid-cols-3 gap-2">
+            <Link href="/fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+              <span className="flex justify-center mb-1 text-[#6B6966]"><Icon name="timer" className="w-5 h-5" /></span>
+              <p className="text-[12px] font-semibold text-[#1A1918]">바이오리듬</p>
+            </Link>
+            <Link href="/fortune?tab=zodiac" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+              <span className="flex justify-center mb-1 text-[#6B6966]"><Icon name="compass" className="w-5 h-5" /></span>
+              <p className="text-[12px] font-semibold text-[#1A1918]">띠 · 별자리</p>
+            </Link>
+            <Link href="/fortune?tab=fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+              <span className="flex justify-center mb-1 text-[#6B6966]"><Icon name="sparkles" className="w-5 h-5" /></span>
+              <p className="text-[12px] font-semibold text-[#1A1918]">오늘의 운세</p>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   )
