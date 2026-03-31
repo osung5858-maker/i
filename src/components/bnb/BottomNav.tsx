@@ -11,6 +11,7 @@ import {
   NoteIcon, ArrowLeftIcon, CookieIcon, RiceIcon, PumpIcon, BathIcon, NapIcon, NightIcon,
   HeartFilledIcon, ActivityIcon, PenIcon, ChartIcon,
   MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon,
+  WaterGlassIcon, WalkIcon, StretchIcon,
 } from '@/components/ui/Icons'
 import { autoBackup, restoreLocalData } from '@/lib/storage/backup'
 import { createClient } from '@/lib/supabase/client'
@@ -130,8 +131,11 @@ function buildPregnantCategories(): RecordCategory[] {
       { type: 'preg_edema_mild', label: '부종 약함', baseType: 'preg_edema', tags: { level: 'mild' } },
       { type: 'preg_edema_severe', label: '부종 심함', baseType: 'preg_edema', tags: { level: 'severe' } },
     ]},
-    { key: 'diary', label: '태교일기', color: '#6366F1', items: [
-      { type: 'preg_diary', label: '일기 쓰기' },
+    { key: 'today', label: '오늘 챙기기', color: '#10B981', items: [
+      { type: 'preg_water',   label: '물 마시기',  color: '#3B82F6' },
+      { type: 'preg_walk',    label: '걷기',       color: '#10B981' },
+      { type: 'preg_suppl',   label: '영양제',     color: '#F59E0B' },
+      { type: 'preg_stretch', label: '스트레칭',   color: '#8B5CF6' },
     ]},
   ]
 }
@@ -437,7 +441,7 @@ function BottomNavComponent() {
                             more: <NoteIcon className="w-8 h-8" />,
                             mood: <HeartFilledIcon className="w-8 h-8" />,
                             fetal: <ActivityIcon className="w-8 h-8" />,
-                            diary: <BookOpenIcon className="w-8 h-8" />,
+                            today: <WaterGlassIcon className="w-8 h-8" />,
                           }
                           return <span style={{ color: cat.color }}>{iconMap[cat.key] || <NoteIcon className="w-8 h-8" />}</span>
                         })()}
@@ -717,7 +721,10 @@ function BottomNavComponent() {
                             preg_edema_none: <DropletIcon className="w-7 h-7" />,
                             preg_edema_mild: <DropletIcon className="w-7 h-7" />,
                             preg_edema_severe: <DropletIcon className="w-7 h-7" />,
-                            preg_diary: <PenIcon className="w-7 h-7" />,
+                            preg_water:   <WaterGlassIcon className="w-7 h-7" />,
+                            preg_walk:    <WalkIcon className="w-7 h-7" />,
+                            preg_suppl:   <PillIcon className="w-7 h-7" />,
+                            preg_stretch: <StretchIcon className="w-7 h-7" />,
                           }
                           const itemColor = item.color || cat.color
                           return <span style={{ color: itemColor }}>{pregIconMap[item.type] || itemIconMap[item.type] || <NoteIcon className="w-7 h-7" />}</span>
