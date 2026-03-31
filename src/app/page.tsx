@@ -371,8 +371,9 @@ export default function HomePage() {
     return () => window.removeEventListener('dodam-record', handler)
   }, [handleFabRecord])
 
-  // 제스처 입력
-  const gestureEnabled = typeof window !== 'undefined' ? getGestureEnabled() : false
+  // 제스처 입력 — 클라이언트에서만 활성화 (hydration mismatch 방지)
+  const [gestureEnabled, setGestureEnabled] = useState(false)
+  useEffect(() => { setGestureEnabled(getGestureEnabled()) }, [])
   const { lastGesture, showFeedback } = useGestureInput({
     enabled: gestureEnabled,
     onGesture: handleRecord,

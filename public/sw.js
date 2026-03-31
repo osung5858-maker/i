@@ -34,6 +34,9 @@ self.addEventListener('fetch', (event) => {
   // POST 등 비-GET 요청은 무시
   if (request.method !== 'GET') return
 
+  // chrome-extension:// 등 캐시 불가 스킴 무시
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return
+
   // API / 외부 서비스: Network First + 캐시 폴백
   if (
     url.pathname.startsWith('/api/') ||
