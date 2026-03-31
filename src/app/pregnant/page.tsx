@@ -796,7 +796,7 @@ const [diarySaving, setDiarySaving] = useState(false)
             </>
           )
           const headerRight = (
-            <Link href="/record">
+            <Link href={`/preg-records/${today}`}>
               <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
             </Link>
           )
