@@ -366,7 +366,8 @@ export default function PreparingPage() {
         body: JSON.stringify({
           type: 'daily', cycleDay: cycle.cycleDay, cycleLength, phase: getCyclePhase(),
           motherAge, fatherAge, mood: todayMood,
-          supplements: Object.values(supplements).filter(Boolean).length,
+          supplements: supplCount,
+          exercise: prepTodayDone.filter(k => ['prep_walk', 'prep_stretch', 'prep_breath', 'prep_meditate', 'prep_music'].includes(k)),
           partnerChecks: Object.values(partnerChecks).filter(Boolean).length,
           sleep: todayHealth?.sleep, steps: todayHealth?.steps, stress: todayHealth?.stress,
         }),
@@ -630,6 +631,28 @@ export default function PreparingPage() {
                 </div>
               ) : null}
             </div>
+
+            {/* 오늘 요약 */}
+            {(() => {
+              const MOOD_LABELS: Record<string, string> = { happy: '행복', calm: '평온', anxious: '불안', tired: '피곤', sad: '슬픔' }
+              const exerciseCount = prepTodayDone.filter(k => ['prep_walk', 'prep_stretch', 'prep_breath', 'prep_meditate', 'prep_music'].includes(k)).length
+              return (
+                <div className="flex gap-2 mb-3">
+                  {[
+                    { label: '기분', value: todayMood ? (MOOD_LABELS[todayMood] ?? todayMood) : '-', Icon: HeartFilledIcon, color: '#FF8FAB' },
+                    { label: '영양제', value: `${supplCount}개`, Icon: PillIcon, color: '#10B981' },
+                    { label: '운동', value: `${exerciseCount}회`, Icon: WalkIcon, color: '#F59E0B' },
+                  ].map(s => (
+                    <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center">
+                      <p className="text-[14px] font-bold flex items-center justify-center gap-1" style={{ color: s.color }}>
+                        <s.Icon className="w-4 h-4" /> {s.value}
+                      </p>
+                      <p className="text-[13px] text-[#9E9A95]">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
 
             {aiError && (
               <div className="bg-[#FFF0E6] rounded-lg p-2 mb-2">

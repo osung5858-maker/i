@@ -651,6 +651,27 @@ const [diarySaving, setDiarySaving] = useState(false)
             </div>
           </div>
 
+          {/* 오늘 요약 */}
+          {(() => {
+            const MOOD_LABELS: Record<string, string> = { happy: '행복', calm: '평온', anxious: '불안', sick: '입덧', tired: '피곤' }
+            return (
+              <div className="flex gap-2 mb-3">
+                {[
+                  { label: '기분', value: mood ? (MOOD_LABELS[mood] ?? mood) : '-', Icon: MoodHappyIcon, color: '#FF8FAB' },
+                  { label: '태동', value: fetalMove > 0 ? `${fetalMove}회` : '0회', Icon: ActivityIcon, color: '#5BA882' },
+                  { label: '체중', value: weight > 0 ? `${weight}kg` : '-', Icon: ChartIcon, color: '#D08068' },
+                ].map(s => (
+                  <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center">
+                    <p className="text-[14px] font-bold flex items-center justify-center gap-1" style={{ color: s.color }}>
+                      <s.Icon className="w-4 h-4" /> {s.value}
+                    </p>
+                    <p className="text-[13px] text-[#9E9A95]">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
+
           {/* AI 브리핑 — 요약 + 펼치기 */}
           {aiLoading ? (
             <div className="py-3">
