@@ -120,7 +120,7 @@ JSON만 출력.`
     // === 임신 중 식단 추천 ===
     if (type === 'meal') {
       const { week } = body
-      const mealCacheKey = `preg-meal-${week}-${new Date().toISOString().split('T')[0]}`
+      const mealCacheKey = `preg-meal-v2-${week}-${new Date().toISOString().split('T')[0]}`
       const mealCached = getCachedResponse(mealCacheKey)
       if (mealCached) return NextResponse.json(mealCached)
 
@@ -130,12 +130,12 @@ JSON만 출력.`
 
 JSON으로 출력:
 {
-  "dishTitle": "오늘 식단 대표 음식명 (예: 된장찌개 정식)",
-  "cuisine": "한식/중식/양식/일식/분식 중 하나",
-  "breakfast": {"menu": "아침 메뉴", "reason": "이유 1줄"},
-  "lunch": {"menu": "점심 메뉴", "reason": "이유 1줄"},
-  "dinner": {"menu": "저녁 메뉴", "reason": "이유 1줄"},
-  "snack": {"menu": "간식", "reason": "이유 1줄"},
+  "dishTitle": "점심 대표 요리명만 짧게 (예: 된장찌개, 제육볶음)",
+  "cuisine": "한식 또는 양식 또는 중식 또는 일식 중 하나만",
+  "breakfast": {"menu": "요리명만 짧게 (예: 잡곡밥과 된장국)", "reason": "이유 1줄"},
+  "lunch": {"menu": "요리명만 짧게 (예: 제육볶음 정식)", "reason": "이유 1줄"},
+  "dinner": {"menu": "요리명만 짧게 (예: 연어구이와 현미밥)", "reason": "이유 1줄"},
+  "snack": {"menu": "요리명만 짧게 (예: 두유와 견과류)", "reason": "이유 1줄"},
   "keyNutrient": "이 주차에 중요한 영양소",
   "avoid": "이 주차에 특히 주의할 것"
 }

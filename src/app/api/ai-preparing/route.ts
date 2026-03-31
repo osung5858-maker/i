@@ -141,7 +141,7 @@ JSON만 출력하세요.`
     // === 주기별 식단 추천 ===
     if (type === 'meal') {
       const { phase, cycleDay } = body
-      const mealCacheKey = `prep-meal-${phase}-${new Date().toISOString().split('T')[0]}`
+      const mealCacheKey = `prep-meal-v2-${phase}-${new Date().toISOString().split('T')[0]}`
       const mealCached = getCachedResponse(mealCacheKey)
       if (mealCached) return NextResponse.json(mealCached)
 
@@ -150,12 +150,12 @@ JSON만 출력하세요.`
 
 JSON 형식으로 출력:
 {
-  "dishTitle": "오늘 식단 대표 음식명 (예: 두부조림 정식)",
-  "cuisine": "한식/중식/양식/일식/분식 중 하나",
-  "breakfast": {"menu": "아침 메뉴명", "reason": "이유 1줄"},
-  "lunch": {"menu": "점심 메뉴명", "reason": "이유 1줄"},
-  "dinner": {"menu": "저녁 메뉴명", "reason": "이유 1줄"},
-  "snack": {"menu": "간식", "reason": "이유 1줄"},
+  "dishTitle": "점심 대표 요리명만 짧게 (예: 두부조림, 비빔밥)",
+  "cuisine": "한식 또는 양식 또는 중식 또는 일식 중 하나만",
+  "breakfast": {"menu": "요리명만 짧게 (예: 잡곡밥과 미역국)", "reason": "이유 1줄"},
+  "lunch": {"menu": "요리명만 짧게 (예: 비빔밥 정식)", "reason": "이유 1줄"},
+  "dinner": {"menu": "요리명만 짧게 (예: 고등어구이와 현미밥)", "reason": "이유 1줄"},
+  "snack": {"menu": "요리명만 짧게 (예: 두유와 견과류)", "reason": "이유 1줄"},
   "keyNutrient": "이 단계에 가장 중요한 영양소",
   "avoid": "이 단계에 특히 피할 것"
 }

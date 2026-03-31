@@ -36,7 +36,7 @@ function getApiConfig(mode: string, value: number, phase?: string) {
 
 function getCacheKey(mode: string, value: number, phase?: string) {
   const d = new Date().toISOString().split('T')[0]
-  return mode === 'parenting' ? `dodam_meal_${value}_${d}` : mode === 'pregnant' ? `dodam_preg_meal_${value}_${d}` : `dodam_prep_meal_${phase}_${d}`
+  return mode === 'parenting' ? `dodam_meal_v2_${value}_${d}` : mode === 'pregnant' ? `dodam_preg_meal_v2_${value}_${d}` : `dodam_prep_meal_v2_${phase}_${d}`
 }
 
 function getRestaurantQuery(menuText: string, mode: string): string {

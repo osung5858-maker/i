@@ -135,12 +135,12 @@ JSON만 출력. 긴 문장 절대 금지.`
 
 JSON으로 출력:
 {
-  "dishTitle": "오늘 식단 대표 음식명 (예: 소고기 미음)",
-  "cuisine": "한식/중식/양식/일식/분식 중 하나",
+  "dishTitle": "점심 대표 요리명만 짧게 (예: 소고기 미음, 닭죽)",
+  "cuisine": "한식 또는 양식 또는 중식 중 하나만",
   "stage": "${stage}",
-  "breakfast": {"menu": "아침 메뉴", "ingredients": "재료 나열"},
-  "lunch": {"menu": "점심 메뉴", "ingredients": "재료 나열"},
-  "snack": {"menu": "간식", "ingredients": "재료 나열"},
+  "breakfast": {"menu": "요리명만 짧게 (예: 쌀미음)", "ingredients": "핵심 재료 2-3가지만"},
+  "lunch": {"menu": "요리명만 짧게 (예: 소고기 야채죽)", "ingredients": "핵심 재료 2-3가지만"},
+  "snack": {"menu": "요리명만 짧게 (예: 고구마 퓨레)", "ingredients": "핵심 재료 2-3가지만"},
   "newFood": "이번 주 도전할 새 식재료 1가지",
   "avoid": "이 월령에 피해야 할 것",
   "tip": "이유식 팁 1문장"
