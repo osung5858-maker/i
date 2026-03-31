@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { shareFetalSize, shareDday } from '@/lib/kakao/share-pregnant'
 import BabyIllust from '@/components/pregnant/BabyIllust'
-import { SparkleIcon, PenIcon, StethoscopeIcon, ClipboardIcon, SyringeIcon, HospitalIcon, ShieldIcon, CheckCircleIcon, ActivityIcon, PregnantIcon, WarningIcon, BabyIcon, HeartFilledIcon, ExternalLinkIcon, WaterGlassIcon, WalkIcon, VitaminIcon, StretchIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon, ChartIcon, DropletIcon, CompassIcon } from '@/components/ui/Icons'
+import { SparkleIcon, PenIcon, StethoscopeIcon, ClipboardIcon, ActivityIcon, HeartFilledIcon, ExternalLinkIcon, WalkIcon, VitaminIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon, ChartIcon, DropletIcon, CompassIcon } from '@/components/ui/Icons'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import type { RecordTile } from '@/components/ui/TodayRecordSection'
 import IllustVideo from '@/components/ui/IllustVideo'
@@ -18,9 +18,6 @@ import { setSecure, getSecure } from '@/lib/secureStorage'
 
 const HospitalGuide = dynamic(() => import('@/components/pregnant/HospitalGuide'), {
   loading: () => <div className="h-32 bg-[#F0EDE8] rounded-xl animate-pulse" />,
-})
-const FetalCarousel = dynamic(() => import('@/components/pregnant/FetalCarousel'), {
-  loading: () => <div className="h-24 bg-[#F0EDE8] rounded-xl animate-pulse" />,
 })
 
 // ===== 태아 데이터 =====
@@ -119,15 +116,6 @@ function getSeasonalBag(): { season: string; items: string[] } | null {
   if (month >= 11 || month <= 2) return SEASONAL_BAG.winter
   return null
 }
-
-// ===== 감정 =====
-const MOODS: { emoji: string; color: string; key: string; label: string; Icon: React.FC<{ className?: string }> }[] = [
-  { emoji: '', color: '#FF8FAB', key: 'happy', label: '행복', Icon: MoodHappyIcon },
-  { emoji: '', color: '#90C8A8', key: 'calm', label: '평온', Icon: MoodCalmIcon },
-  { emoji: '', color: '#FFC078', key: 'anxious', label: '불안', Icon: MoodAnxiousIcon },
-  { emoji: '', color: '#B8A0D4', key: 'sick', label: '입덧', Icon: MoodSickIcon },
-  { emoji: '', color: '#8EB4D4', key: 'tired', label: '피곤', Icon: MoodTiredIcon },
-]
 
 // ===== 검진 기록 =====
 function CheckupRecord({ currentWeek }: { currentWeek: number }) {
@@ -1079,56 +1067,21 @@ export default function PregnantPage() {
               )}
             </>
           )
+          const headerRight = (
+            <Link href="/health">
+              <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
+            </Link>
+          )
           return (
             <TodayRecordSection
               count={pregTodayEvents.length}
               tiles={tiles}
               emptyMessage="아래 버튼으로 오늘의 첫 기록을 남겨보세요"
+              headerRight={headerRight}
               footer={footer}
             />
           )
         })()}
-
-        {/* ━━━ 오늘 챙기기 ━━━ */}
-        {(() => {
-          const key = `dodam_preg_daily_${today}`
-          const saved = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem(key) || '{}') : {}
-          const items = [
-            { id: 'water', Icon: WaterGlassIcon, label: '물', max: 8, unit: '잔' },
-            { id: 'walk', Icon: WalkIcon, label: '걷기', max: 1, unit: '' },
-            { id: 'folic', Icon: VitaminIcon, label: '영양제', max: 1, unit: '' },
-            { id: 'stretch', Icon: StretchIcon, label: '스트레칭', max: 1, unit: '' },
-          ]
-          return (
-            <div data-guide="daily-check" className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-              <p className="text-[14px] font-bold text-[#1A1918] mb-2">오늘 챙기기</p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {items.map(it => {
-                  const count = typeof saved[it.id] === 'number' ? saved[it.id] : (saved[it.id] ? 1 : 0)
-                  const done = count >= it.max
-                  return (
-                    <button key={it.id} onClick={() => {
-                      const nextVal = count >= it.max ? 0 : count + 1
-                      const next = { ...saved, [it.id]: nextVal }
-                      localStorage.setItem(key, JSON.stringify(next))
-                      if (nextVal === 0) showToast(`${it.label} 초기화`)
-                      else if (it.max > 1) showToast(`${it.label} ${nextVal}/${it.max}${it.unit}`)
-                      else showToast(`${it.label} 완료!`)
-                      setFetalMove(f => f)
-                    }} className={`py-2.5 rounded-xl flex flex-col items-center justify-center ${done ? 'bg-[#E8F5EE] ring-1 ring-[var(--color-primary)]/30' : count > 0 ? 'bg-[#F0F9F4]' : 'bg-[var(--color-page-bg)]'}`}>
-                      <div className="mb-1">{done ? <CheckCircleIcon className="w-5 h-5 text-[var(--color-primary)]" /> : <it.Icon className="w-5 h-5 text-[#9E9A95]" />}</div>
-                      <p className="text-[11px] text-[#4A4744] font-medium leading-tight">
-                        {it.max > 1 ? `${it.label} ${count}/${it.max}` : it.label}
-                      </p>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })()}
-
-        {/* 검진 기록 · 식단 추천 → 성장 탭/우리 탭으로 이동 완료 */}
 
         {/* ━━━ 3. 상태 카드 — 주차별 동적 ━━━ */}
         {(() => {

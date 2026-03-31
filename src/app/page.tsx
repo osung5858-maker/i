@@ -496,40 +496,41 @@ export default function HomePage() {
           {/* ━━━ 2. 오늘 기록 ━━━ */}
           {(() => {
             const tiles: RecordTile[] = []
+            const headerRight = events.length > 0 ? (
+              <Link href={`/records/${new Date().toISOString().split('T')[0]}`}>
+                <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
+              </Link>
+            ) : null
             const eventList = events.length > 0 ? (
-              <>
-                <Link href={`/records/${new Date().toISOString().split('T')[0]}`} className="flex justify-end mb-2">
-                  <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
-                </Link>
-                <div className="max-h-[200px] overflow-y-auto hide-scrollbar">
-                  {events.slice(0, 10).map((e) => {
-                    const time = new Date(e.start_ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
-                    const iconInfo = EVENT_ICON_MAP[e.type] || EVENT_ICON_DEFAULT
-                    const detail = e.amount_ml ? `${e.amount_ml}ml` :
-                      e.end_ts ? `${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` :
-                      e.tags?.celsius ? `${e.tags.celsius}°C` :
-                      e.tags?.status ? ({ normal: '정상', soft: '묽음', hard: '단단' }[e.tags.status as string] || '') : ''
-                    const isAlert = e.type === 'temp' && Number(e.tags?.celsius) >= 37.5
-                    return (
-                      <div key={e.id} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
-                        <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{time}</span>
-                        <div className={`w-7 h-7 rounded-full ${iconInfo.bg} flex items-center justify-center shrink-0`}>
-                          <iconInfo.Icon className={`w-3.5 h-3.5 ${iconInfo.color}`} />
-                        </div>
-                        <span className="text-[13px] font-semibold text-[#1A1918]">{getEventLabel(e)}</span>
-                        {detail && <span className={`text-[12px] font-medium ${isAlert ? 'text-red-500' : 'text-[var(--color-primary)]'}`}>{detail}</span>}
-                        {isAlert && <span className="text-[10px] bg-red-50 text-red-500 px-1 py-0.5 rounded font-bold">주의</span>}
+              <div className="max-h-[200px] overflow-y-auto hide-scrollbar">
+                {events.slice(0, 10).map((e) => {
+                  const time = new Date(e.start_ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
+                  const iconInfo = EVENT_ICON_MAP[e.type] || EVENT_ICON_DEFAULT
+                  const detail = e.amount_ml ? `${e.amount_ml}ml` :
+                    e.end_ts ? `${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` :
+                    e.tags?.celsius ? `${e.tags.celsius}°C` :
+                    e.tags?.status ? ({ normal: '정상', soft: '묽음', hard: '단단' }[e.tags.status as string] || '') : ''
+                  const isAlert = e.type === 'temp' && Number(e.tags?.celsius) >= 37.5
+                  return (
+                    <div key={e.id} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
+                      <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{time}</span>
+                      <div className={`w-7 h-7 rounded-full ${iconInfo.bg} flex items-center justify-center shrink-0`}>
+                        <iconInfo.Icon className={`w-3.5 h-3.5 ${iconInfo.color}`} />
                       </div>
-                    )
-                  })}
-                </div>
-              </>
+                      <span className="text-[13px] font-semibold text-[#1A1918]">{getEventLabel(e)}</span>
+                      {detail && <span className={`text-[12px] font-medium ${isAlert ? 'text-red-500' : 'text-[var(--color-primary)]'}`}>{detail}</span>}
+                      {isAlert && <span className="text-[10px] bg-red-50 text-red-500 px-1 py-0.5 rounded font-bold">주의</span>}
+                    </div>
+                  )
+                })}
+              </div>
             ) : null
             return (
               <TodayRecordSection
                 count={events.length}
                 tiles={tiles}
                 emptyMessage="아직 기록이 없어요. 펜 버튼으로 첫 기록을 남겨보세요!"
+                headerRight={headerRight}
                 footer={eventList}
               />
             )

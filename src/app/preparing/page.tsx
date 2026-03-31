@@ -605,10 +605,7 @@ export default function PreparingPage() {
   }
 
   const supplKeys = ['prep_folic', 'prep_vitd', 'prep_iron', 'prep_omega3']
-  const supplCount = Math.max(
-    Object.values(supplements).reduce((s, v) => s + (v > 0 ? 1 : 0), 0),
-    prepTodayDone.filter(k => supplKeys.includes(k)).length,
-  )
+  const supplCount = prepTodayDone.filter(k => supplKeys.includes(k)).length
   const partnerCount = Object.values(partnerChecks).filter(Boolean).length
   const apptCount = apptList.filter(a => appointments[a.id]).length
   const dpo = cycle ? Math.floor((Date.now() - cycle.ovulationDay.getTime()) / 86400000) : -99
@@ -713,11 +710,17 @@ export default function PreparingPage() {
               })}
             </div>
           ) : null
+          const headerRight = (
+            <Link href="/health">
+              <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
+            </Link>
+          )
           return (
             <TodayRecordSection
               count={prepTodayDone.length}
               tiles={tiles}
               emptyMessage="영양제, 운동, 기다림 일기를 기록해보세요"
+              headerRight={headerRight}
               footer={eventList}
             />
           )
@@ -750,49 +753,6 @@ export default function PreparingPage() {
             </div>
           )
         })()}
-
-        {/* ━━━ 2. 오늘 할 일 ━━━ */}
-        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <p className="text-[14px] font-bold text-[#1A1918] mb-3">오늘 할 일</p>
-
-          {/* 영양제 — 탭할 때마다 1회씩 채워짐 (최대 4회) */}
-          <div data-guide="supplements" className="grid grid-cols-4 gap-1.5 mb-3">
-            {[
-              { key: 'folic', name: '엽산' },
-              { key: 'vitd', name: '비타민D' },
-              { key: 'iron', name: '철분' },
-              { key: 'omega3', name: '오메가3' },
-            ].map((s) => {
-              const count = supplements[s.key] || 0
-              const done = count >= SUPPL_MAX
-              const pct = (count / SUPPL_MAX) * 100
-              return (
-                <button key={s.key} onClick={() => toggleSupplement(s.key)}
-                  className={`relative rounded-xl overflow-hidden active:scale-95 transition-transform ${done ? 'border-2 border-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border border-[#E8E4DF]'}`}>
-                  {/* 채우기 프로그레스 (완료 아닐 때만) */}
-                  {!done && (
-                    <div
-                      className="absolute bottom-0 left-0 right-0 bg-[var(--color-primary)]/15 transition-all duration-300"
-                      style={{ height: `${pct}%` }}
-                    />
-                  )}
-                  <div className="relative py-2.5 text-center">
-                    <p className={`text-[12px] font-semibold ${done ? 'text-[var(--color-primary)]' : count > 0 ? 'text-[#1A1918]' : 'text-[#6B6966]'}`}>
-                      {done ? '✓ ' : ''}{s.name}
-                    </p>
-                    {/* 도트 인디케이터 */}
-                    <div className="flex justify-center gap-1 mt-1">
-                      {Array.from({ length: SUPPL_MAX }).map((_, i) => (
-                        <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i < count ? 'bg-[var(--color-primary)]' : 'bg-[#D5D0CA]'}`} />
-                      ))}
-                    </div>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-
-        </div>
 
         {/* ━━━ 임신 준비 식단 추천 ━━━ */}
         <AIMealCard mode="preparing" value={0} phase={getCyclePhase()} />
