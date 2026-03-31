@@ -138,14 +138,14 @@ JSON으로 출력:
   "dishTitle": "점심 대표 요리명만 짧게 (예: 소고기 미음, 닭죽)",
   "cuisine": "한식 또는 양식 또는 중식 중 하나만",
   "stage": "${stage}",
-  "breakfast": {"menu": "요리명만 짧게 (예: 쌀미음)", "ingredients": "핵심 재료 2-3가지만"},
-  "lunch": {"menu": "요리명만 짧게 (예: 소고기 야채죽)", "ingredients": "핵심 재료 2-3가지만"},
-  "snack": {"menu": "요리명만 짧게 (예: 고구마 퓨레)", "ingredients": "핵심 재료 2-3가지만"},
+  "breakfast": {"menu": "요리명만 짧게 (예: 쌀미음)", "sides": ["핵심재료1", "핵심재료2"], "calories": 숫자, "ingredients": "핵심 재료 2-3가지만"},
+  "lunch": {"menu": "요리명만 짧게 (예: 소고기 야채죽)", "sides": ["핵심재료1", "핵심재료2"], "calories": 숫자, "ingredients": "핵심 재료 2-3가지만"},
+  "snack": {"menu": "요리명만 짧게 (예: 고구마 퓨레)", "sides": ["핵심재료1"], "calories": 숫자, "ingredients": "핵심 재료 2-3가지만"},
   "newFood": "이번 주 도전할 새 식재료 1가지",
   "avoid": "이 월령에 피해야 할 것",
   "tip": "이유식 팁 1문장"
 }
-한국 가정 이유식 위주. JSON만 출력.`
+한국 가정 이유식 위주. calories는 해당 끼니 예상 칼로리(kcal, 숫자만). JSON만 출력.`
 
       const { text, error } = await callGemini(prompt, 700)
       if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })

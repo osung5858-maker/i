@@ -11,7 +11,7 @@ interface Props {
   phase?: string
 }
 
-interface MealItem { menu: string; ingredients?: string; reason?: string }
+interface MealItem { menu: string; sides?: string[]; calories?: number; ingredients?: string; reason?: string }
 interface MealData {
   dishTitle?: string
   cuisine?: string
@@ -19,7 +19,7 @@ interface MealData {
   newFood?: string; keyNutrient?: string; avoid?: string; tip?: string
 }
 
-const MEAL_EMOJI: Record<string, string> = { '아침': '🌅', '점심': '☀️', '저녁': '🌙', '간식': '🍪' }
+const MEAL_COLOR: Record<string, string> = { '아침': '#F5A96A', '점심': '#6AB0E8', '저녁': '#8B7EC8', '간식': '#7DC49A' }
 
 function getLabel(mode: string, value: number, phase?: string) {
   if (mode === 'parenting') return value < 6 ? '초기 이유식' : value < 8 ? '중기 이유식' : value < 10 ? '후기 이유식' : '완료기 식단'
@@ -37,6 +37,27 @@ function getApiConfig(mode: string, value: number, phase?: string) {
 function getCacheKey(mode: string, value: number, phase?: string) {
   const d = new Date().toISOString().split('T')[0]
   return mode === 'parenting' ? `dodam_meal_v2_${value}_${d}` : mode === 'pregnant' ? `dodam_preg_meal_v2_${value}_${d}` : `dodam_prep_meal_v2_${phase}_${d}`
+}
+
+const CUISINE_MAP: [RegExp, string, string][] = [
+  [/중화|짜장|짬뽕|마파|탕수|팔보채|고추잡채|중식|깐풍|라조|유산슬/, '중식', '#FFF0E0'],
+  [/파스타|리조또|피자|스테이크|라자냐|뇨끼|크림|알프레도|오믈렛|양식|오일파스타|그라탱/, '양식', '#F0F0FF'],
+  [/스시|초밥|우동|라멘|소바|돈카츠|돈까스|오야코|규동|일식|미소|데리야키|텐동|가라아게/, '일식', '#F5F0FF'],
+  [/쌀국수|포|반미|팟타이|그린커리|똠얌|동남아|태국|베트남/, '동남아', '#F0FFF4'],
+  [/떡볶이|순대|어묵|튀김|분식|라볶이|김밥/, '분식', '#FFF5F0'],
+  [/토스트|샌드위치|베이글|크루아상|빵|베이커리/, '베이커리', '#FDFAF0'],
+  [/죽|미음|호박죽|전복죽|쇠고기죽|흰죽/, '죽', '#F0FFF9'],
+  [/샐러드|그릭|시저|퀴노아/, '샐러드', '#F0FFF4'],
+  [/카레/, '카레', '#FFFAF0'],
+]
+
+function detectCuisine(menuText: string): { label: string; bg: string } | null {
+  const t = menuText
+  for (const [pattern, label, bg] of CUISINE_MAP) {
+    if (pattern.test(t)) return { label, bg }
+  }
+  if (/국|탕|찌개|구이|볶음|나물|비빔|갈비|삼겹|된장|간장|쌈|밥|김치|제육|불고기|잡채|해장|순두부|곰탕|설렁탕|도가니|추어|육개장|해물|낙지|오징어|조개|조림|찜/.test(t)) return { label: '한식', bg: '#FFF0F5' }
+  return null
 }
 
 function getRestaurantQuery(menuText: string, mode: string): string {
@@ -125,43 +146,63 @@ export default function AIMealCard({ mode, value, phase }: Props) {
             <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold">AI</span>
             {meal?.cuisine && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#F0EDE8] text-[#6B6966] font-medium">{meal.cuisine}</span>}
           </div>
-          <p className="text-[12px] text-[#6B6966] truncate mt-0.5">{meals.map(m => m.data?.menu?.split(',')[0]).join(' · ')}</p>
+          <p className="text-[12px] text-[#6B6966] mt-0.5">{meals.length}끼 맞춤 구성 · 탭해서 확인</p>
         </div>
         <span className="text-[11px] text-[#9E9A95] shrink-0">{expanded ? '접기' : '펼치기'}</span>
       </button>
 
       {expanded && (
-        <div className="p-3.5 pt-0 space-y-2">
-          {/* 끼니별 카드 */}
-          {meals.map(m => (
-            <div key={m.key} className="rounded-xl bg-[#FAFAFA] border border-[#F0EDE8] p-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-1.5">
-                  <SparkleIcon className="w-3 h-3 text-[var(--color-primary)]" />
-                  <p className="text-[11px] font-bold text-[var(--color-primary)] tracking-wider">{m.key}</p>
+        <div className="px-3.5 pb-3.5 pt-1 space-y-0">
+          {/* 끼니별 행 — 3줄 고정 */}
+          {meals.map((m, i) => {
+            const cuisine = detectCuisine(m.data!.menu)
+            const sides = m.data!.sides || []
+            return (
+              <div key={m.key} className={`flex items-center gap-3 py-2.5 ${i < meals.length - 1 ? 'border-b border-[#F0EDE8]' : ''}`}>
+                {/* 끼니 라벨 */}
+                <div className="w-10 shrink-0 flex flex-col items-center gap-0.5">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: MEAL_COLOR[m.key] }} />
+                  <span className="text-[10px] font-semibold text-[#9E9A95]">{m.key}</span>
                 </div>
-                <Link href={`/map?q=${encodeURIComponent(getRestaurantQuery(m.data!.menu, mode))}`} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F0F4FF] active:bg-[#D5DFEF]">
-                  <MapPinIcon className="w-2.5 h-2.5 text-[#4A6FA5]" />
-                  <span className="text-[10px] text-[#4A6FA5] font-medium">식당찾기</span>
+                {/* 내용 — 고정 3줄 */}
+                <div className="flex-1 min-w-0">
+                  {/* 줄 1: 뱃지 */}
+                  <div className="flex items-center gap-1 h-[16px]">
+                    {cuisine && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold text-[#6B6966] leading-none" style={{ backgroundColor: cuisine.bg }}>
+                        {cuisine.label}
+                      </span>
+                    )}
+                    {m.data!.calories && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold text-[#9E9A95] bg-[#F0EDE8] leading-none">
+                        {m.data!.calories}kcal
+                      </span>
+                    )}
+                  </div>
+                  {/* 줄 2: 밥/메뉴 이름 */}
+                  <p className="text-[13px] font-semibold text-[#1A1918] leading-snug truncate">{m.data!.menu}</p>
+                  {/* 줄 3: 반찬/재료 */}
+                  <p className="text-[11px] text-[#9E9A95] leading-snug truncate">
+                    {sides.length > 0 ? sides.join(' · ') : (m.data!.ingredients || '')}
+                  </p>
+                </div>
+                <Link href={`/map?q=${encodeURIComponent(getRestaurantQuery(m.data!.menu, mode))}`} className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-[#F0F4FF] active:bg-[#D5DFEF]">
+                  <MapPinIcon className="w-3.5 h-3.5 text-[#4A6FA5]" />
                 </Link>
               </div>
-              <p className="text-[14px] font-semibold text-[#1A1918] leading-snug">{m.data!.menu}</p>
-              <p className="text-[11px] text-[#6B6966] mt-1 leading-relaxed">{m.data!.ingredients || m.data!.reason}</p>
-            </div>
-          ))}
+            )
+          })}
 
-          {/* 영양 정보 */}
-          {(meal?.keyNutrient || meal?.newFood || meal?.avoid) && (
-            <div className="rounded-xl bg-[#F0F9F4] border border-[#D5E8DC] p-3 space-y-1">
-              {meal?.keyNutrient && <p className="text-[11px] text-[#2D7A4A] font-medium">핵심 영양소 · {meal.keyNutrient}</p>}
-              {meal?.newFood && <p className="text-[11px] text-[#2D7A4A]">이번 주 새 식재료 · {meal.newFood}</p>}
-              {meal?.avoid && <p className="text-[11px] text-[#D08068]">주의 · {meal.avoid}</p>}
+          {/* 영양/주의 한 줄 */}
+          {(meal?.keyNutrient || meal?.avoid) && (
+            <div className="flex gap-2 pt-2 flex-wrap">
+              {meal?.keyNutrient && <span className="text-[10px] text-[#2D7A4A] bg-[#F0F9F4] px-2 py-1 rounded-full">{meal.keyNutrient}</span>}
+              {meal?.avoid && <span className="text-[10px] text-[#D08068] bg-[#FDF2F2] px-2 py-1 rounded-full">⚠ {meal.avoid}</span>}
             </div>
           )}
-          {meal?.tip && <p className="text-[11px] text-[#9E9A95] px-1">{meal.tip}</p>}
 
           {/* 액션 */}
-          <div className="flex gap-1.5 pt-1">
+          <div className="flex gap-1.5 pt-3">
             <button onClick={fetchMeal} className="flex-1 py-2 text-[11px] text-[#6B6966] font-medium bg-[#F5F3F0] rounded-lg active:bg-[#E8E4DF]">다른 식단</button>
             <button onClick={() => shareMealPlan(value, meal?.breakfast?.menu || '', meal?.lunch?.menu || '', meal?.snack?.menu || '')} className="flex-1 py-2 text-[11px] text-[var(--color-primary)] font-semibold bg-[#FFF0E6] rounded-lg active:bg-[#FFE0CC]">카톡 공유</button>
             {mode === 'parenting' && (

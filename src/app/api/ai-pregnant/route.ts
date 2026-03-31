@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     // === 주차별 데일리 케어 ===
     if (type === 'daily') {
       const { week, trimester, daysLeft, weight, bloodPressure, fetalMovement, mood, sleep } = body
-      const cacheKey = `preg-daily-${week}-${mood || 'none'}`
+      const cacheKey = `preg-daily-${week}-${mood || 'none'}-${fetalMovement || 0}`
       const cached = getCachedResponse(cacheKey)
       if (cached) return NextResponse.json(cached)
 
@@ -120,26 +120,27 @@ JSON만 출력.`
     // === 임신 중 식단 추천 ===
     if (type === 'meal') {
       const { week } = body
-      const mealCacheKey = `preg-meal-v2-${week}-${new Date().toISOString().split('T')[0]}`
+      const mealCacheKey = `preg-meal-v3-${week}-${new Date().toISOString().split('T')[0]}`
       const mealCached = getCachedResponse(mealCacheKey)
       if (mealCached) return NextResponse.json(mealCached)
 
       const prompt = `임신 ${week}주차 예비맘을 위한 오늘의 식단을 추천해주세요.
 임산부가 피해야 할 음식(날생선, 생고기, 알코올, 고카페인)은 절대 추천하지 마세요.
 엽산, 철분, 칼슘, DHA가 풍부한 음식 위주로.
+각 끼니는 반드시 밥 1가지 + 국/찌개 1가지 + 반찬 3가지 이상으로 구성하세요.
 
 JSON으로 출력:
 {
-  "dishTitle": "점심 대표 요리명만 짧게 (예: 된장찌개, 제육볶음)",
+  "dishTitle": "점심 대표 요리명만 짧게 (예: 된장찌개 한상)",
   "cuisine": "한식 또는 양식 또는 중식 또는 일식 중 하나만",
-  "breakfast": {"menu": "요리명만 짧게 (예: 잡곡밥과 된장국)", "reason": "이유 1줄"},
-  "lunch": {"menu": "요리명만 짧게 (예: 제육볶음 정식)", "reason": "이유 1줄"},
-  "dinner": {"menu": "요리명만 짧게 (예: 연어구이와 현미밥)", "reason": "이유 1줄"},
-  "snack": {"menu": "요리명만 짧게 (예: 두유와 견과류)", "reason": "이유 1줄"},
+  "breakfast": {"menu": "밥 이름 (예: 잡곡밥)", "sides": ["국/찌개", "반찬1", "반찬2", "반찬3"], "calories": 숫자, "reason": "이유 1줄"},
+  "lunch": {"menu": "밥 이름 (예: 현미밥)", "sides": ["국/찌개", "반찬1", "반찬2", "반찬3"], "calories": 숫자, "reason": "이유 1줄"},
+  "dinner": {"menu": "밥 이름 (예: 잡곡밥)", "sides": ["국/찌개", "반찬1", "반찬2", "반찬3"], "calories": 숫자, "reason": "이유 1줄"},
+  "snack": {"menu": "간식명 (예: 두유)", "sides": ["견과류", "과일"], "calories": 숫자, "reason": "이유 1줄"},
   "keyNutrient": "이 주차에 중요한 영양소",
   "avoid": "이 주차에 특히 주의할 것"
 }
-한국 가정식 위주. JSON만 출력.`
+한국 가정식 위주. calories는 해당 끼니 예상 총칼로리(kcal, 숫자만). JSON만 출력.`
 
       const { text: mealText, error: mealErr } = await callGemini(prompt, 600)
       if (!mealText) return NextResponse.json({ error: mealErr || 'AI failed' }, { status: 500 })
