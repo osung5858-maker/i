@@ -418,17 +418,6 @@ export default function HomePage() {
     todayPoopCount: events.filter((e) => e.type === 'poop').length,
   }), [events])
 
-  const dailySummary = useMemo(() => {
-    if (events.length === 0) return null
-    const totalFeedMl = events.filter(e => e.type === 'feed').reduce((s, e) => s + (e.amount_ml || 0), 0)
-    const feedCount = events.filter(e => e.type === 'feed').length
-    const sleepEvents = events.filter(e => e.type === 'sleep' && e.end_ts)
-    const napMin = sleepEvents.filter(e => e.tags?.sleepType === 'nap' || (!e.tags?.sleepType && new Date(e.start_ts).getHours() >= 6 && new Date(e.start_ts).getHours() < 20))
-      .reduce((s, e) => s + (new Date(e.end_ts!).getTime() - new Date(e.start_ts).getTime()) / 60000, 0)
-    const nightMin = sleepEvents.filter(e => e.tags?.sleepType === 'night' || (!e.tags?.sleepType && (new Date(e.start_ts).getHours() >= 20 || new Date(e.start_ts).getHours() < 6)))
-      .reduce((s, e) => s + (new Date(e.end_ts!).getTime() - new Date(e.start_ts).getTime()) / 60000, 0)
-    return { totalFeedMl, feedCount, napMin, nightMin }
-  }, [events])
 
   if (loading) {
     return (
@@ -501,27 +490,6 @@ export default function HomePage() {
             />
           )}
 
-          {/* ━━━ 하루 요약 바 ━━━ */}
-          {dailySummary && (() => {
-            const { totalFeedMl, feedCount, napMin, nightMin } = dailySummary
-            const fmtMin = (m: number) => m >= 60 ? `${Math.floor(m/60)}시간 ${Math.round(m%60)}분` : `${Math.round(m)}분`
-            return (
-              <div className="flex gap-2">
-                <div className="flex-1 bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
-                  <p className="text-[11px] text-[#9E9A95]">밤잠</p>
-                  <p className="text-[14px] font-bold text-[#6366F1]">{nightMin > 0 ? fmtMin(nightMin) : '-'}</p>
-                </div>
-                <div className="flex-1 bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
-                  <p className="text-[11px] text-[#9E9A95]">낮잠</p>
-                  <p className="text-[14px] font-bold text-[#F59E0B]">{napMin > 0 ? fmtMin(napMin) : '-'}</p>
-                </div>
-                <div className="flex-1 bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
-                  <p className="text-[11px] text-[#9E9A95]">수유 {feedCount}회</p>
-                  <p className="text-[14px] font-bold text-[var(--color-primary)]">{totalFeedMl > 0 ? `${totalFeedMl}ml` : `${feedCount}회`}</p>
-                </div>
-              </div>
-            )
-          })()}
 
           {/* ━━━ 2. 최근 기록 ━━━ */}
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">

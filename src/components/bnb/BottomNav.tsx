@@ -468,7 +468,7 @@ function BottomNavComponent() {
                             more: <NoteIcon className="w-8 h-8" />,
                             mood: <HeartFilledIcon className="w-8 h-8" />,
                             fetal: <ActivityIcon className="w-8 h-8" />,
-                            today: <WaterGlassIcon className="w-8 h-8" />,
+                            diary: <BookOpenIcon className="w-8 h-8" />,
                           }
                           return <span style={{ color: cat.color }}>{iconMap[cat.key] || <NoteIcon className="w-8 h-8" />}</span>
                         })()}
@@ -717,45 +717,33 @@ function BottomNavComponent() {
                         }
                       }} className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.25)] active:scale-90 transition-transform bg-white">
                         {(() => {
-                          const itemIconMap: Record<string, React.ReactNode> = {
-                            breast_left: <BreastfeedIcon className="w-7 h-7" />,
-                            breast_right: <BreastfeedIcon className="w-7 h-7" />,
-                            feed: <BottleIcon className="w-7 h-7" />,
-                            babyfood: <BowlIcon className="w-7 h-7" />,
-                            snack: <CookieIcon className="w-7 h-7" />,
-                            toddler_meal: <RiceIcon className="w-7 h-7" />,
-                            pump: <PumpIcon className="w-7 h-7" />,
-                            night_sleep: <NightIcon className="w-7 h-7" />,
-                            nap: <NapIcon className="w-7 h-7" />,
-                            sleep: <MoonIcon className="w-7 h-7" />,
-                            pee: <DropletIcon className="w-7 h-7" />,
-                            poop_normal: <PoopIcon className="w-7 h-7" />,
-                            poop_soft: <PoopIcon className="w-7 h-7" />,
-                            poop_hard: <PoopIcon className="w-7 h-7" />,
-                            temp: <ThermometerIcon className="w-7 h-7" />,
-                            bath: <BathIcon className="w-7 h-7" />,
-                            medication: <PillIcon className="w-7 h-7" />,
-                            memo: <PillIcon className="w-7 h-7" />,
-                            note: <NoteIcon className="w-7 h-7" />,
-                          }
-                          const pregIconMap: Record<string, React.ReactNode> = {
-                            preg_mood_happy: <MoodHappyIcon className="w-7 h-7" />,
-                            preg_mood_calm: <MoodCalmIcon className="w-7 h-7" />,
-                            preg_mood_anxious: <MoodAnxiousIcon className="w-7 h-7" />,
-                            preg_mood_sick: <MoodSickIcon className="w-7 h-7" />,
-                            preg_mood_tired: <MoodTiredIcon className="w-7 h-7" />,
-                            preg_fetal_move: <ActivityIcon className="w-7 h-7" />,
-                            preg_weight: <ChartIcon className="w-7 h-7" />,
-                            preg_edema_none: <DropletIcon className="w-7 h-7" />,
-                            preg_edema_mild: <DropletIcon className="w-7 h-7" />,
-                            preg_edema_severe: <DropletIcon className="w-7 h-7" />,
-                            preg_water:   <WaterGlassIcon className="w-7 h-7" />,
-                            preg_walk:    <WalkIcon className="w-7 h-7" />,
-                            preg_suppl:   <PillIcon className="w-7 h-7" />,
-                            preg_stretch: <StretchIcon className="w-7 h-7" />,
-                          }
-                          const itemColor = item.color || cat.color
-                          return <span style={{ color: itemColor }}>{pregIconMap[item.type] || itemIconMap[item.type] || <NoteIcon className="w-7 h-7" />}</span>
+                          const t = item.type
+                          const node =
+                            t === 'breast_left' || t === 'breast_right' ? <BreastfeedIcon className="w-7 h-7" /> :
+                            t === 'feed' ? <BottleIcon className="w-7 h-7" /> :
+                            t === 'babyfood' ? <BowlIcon className="w-7 h-7" /> :
+                            t === 'snack' ? <CookieIcon className="w-7 h-7" /> :
+                            t === 'toddler_meal' ? <RiceIcon className="w-7 h-7" /> :
+                            t === 'pump' ? <PumpIcon className="w-7 h-7" /> :
+                            t === 'night_sleep' ? <NightIcon className="w-7 h-7" /> :
+                            t === 'nap' ? <NapIcon className="w-7 h-7" /> :
+                            t === 'sleep' ? <MoonIcon className="w-7 h-7" /> :
+                            t === 'pee' ? <DropletIcon className="w-7 h-7" /> :
+                            t === 'poop_normal' || t === 'poop_soft' || t === 'poop_hard' ? <PoopIcon className="w-7 h-7" /> :
+                            t === 'temp' ? <ThermometerIcon className="w-7 h-7" /> :
+                            t === 'bath' ? <BathIcon className="w-7 h-7" /> :
+                            t === 'medication' ? <PillIcon className="w-7 h-7" /> :
+                            t === 'preg_mood_happy' ? <MoodHappyIcon className="w-7 h-7" /> :
+                            t === 'preg_mood_calm' ? <MoodCalmIcon className="w-7 h-7" /> :
+                            t === 'preg_mood_anxious' ? <MoodAnxiousIcon className="w-7 h-7" /> :
+                            t === 'preg_mood_sick' ? <MoodSickIcon className="w-7 h-7" /> :
+                            t === 'preg_mood_tired' ? <MoodTiredIcon className="w-7 h-7" /> :
+                            t === 'preg_fetal_move' ? <ActivityIcon className="w-7 h-7" /> :
+                            t === 'preg_weight' ? <ChartIcon className="w-7 h-7" /> :
+                            t === 'preg_edema_none' || t === 'preg_edema_mild' || t === 'preg_edema_severe' ? <DropletIcon className="w-7 h-7" /> :
+                            t === 'preg_diary' ? <PenIcon className="w-7 h-7" /> :
+                            <NoteIcon className="w-7 h-7" />
+                          return <span style={{ color: item.color || cat.color }}>{node}</span>
                         })()}
                       </button>
                       <span className="text-[12px] font-bold text-white whitespace-nowrap bg-black/50 px-2 py-0.5 rounded-full">{item.label}</span>
