@@ -280,6 +280,8 @@ export default function PreparingPage() {
 
   // 임신 준비 FAB 오늘 기록
   const [prepTodayDone, setPrepTodayDone] = useState<string[]>([])
+  const [journalSheetOpen, setJournalSheetOpen] = useState(false)
+  const [journalTexts, setJournalTexts] = useState<string[]>(['', '', ''])
   useEffect(() => {
     const key = `dodam_prep_done_${today}`
     try { setPrepTodayDone(JSON.parse(localStorage.getItem(key) || '[]')) } catch {}
@@ -287,19 +289,24 @@ export default function PreparingPage() {
       const detail = (e as CustomEvent).detail as any
       if (!detail.type?.startsWith('prep_')) return
       detail._handled = true
+      // 감사일기 → 폼 열기
+      if (detail.type === 'prep_journal') { setJournalSheetOpen(true); return }
+      // 기분 기록 → todayMood 업데이트
+      if (detail.type === 'prep_mood') { saveMood(detail.tags?.mood); return }
+      // 나머지 (영양제, 운동, 명상, 호흡) → 완료 목록에 추가
+      const recordKey = detail.type
       setPrepTodayDone(prev => {
-        if (prev.includes(detail.type)) return prev
-        const updated = [...prev, detail.type]
+        if (prev.includes(recordKey)) return prev
+        const updated = [...prev, recordKey]
         try { localStorage.setItem(key, JSON.stringify(updated)) } catch {}
         return updated
       })
-      const labels: Record<string, string> = {
+      const LABELS: Record<string, string> = {
         prep_folic: '엽산', prep_vitd: '비타민D', prep_iron: '철분', prep_omega3: '오메가3',
         prep_walk: '산책', prep_yoga: '요가', prep_swim: '수영', prep_workout: '근력',
-        prep_breath: '명상', prep_journal: '감사일기', prep_partner: '파트너 대화',
-        prep_no_alcohol: '금주', prep_no_smoke: '금연', prep_sleep: '숙면', prep_water: '수분',
+        prep_meditate: '명상', prep_breath: '호흡',
       }
-      showToast(`${labels[detail.type] || '기록'} 완료!`)
+      showToast(`${LABELS[recordKey] || detail.label || '기록'} 완료!`)
     }
     window.addEventListener('dodam-record', handler)
     return () => window.removeEventListener('dodam-record', handler)
@@ -664,21 +671,16 @@ export default function PreparingPage() {
         {/* ━━━ 오늘 기록 (FAB) ━━━ */}
         {(() => {
           const PREP_CFG: Record<string, { label: string; Icon: React.FC<{ className?: string }>; color: string }> = {
-            prep_folic:      { label: '엽산',        Icon: PillIcon,        color: '#10B981' },
-            prep_vitd:       { label: '비타민D',     Icon: PillIcon,        color: '#10B981' },
-            prep_iron:       { label: '철분',        Icon: PillIcon,        color: '#10B981' },
-            prep_omega3:     { label: '오메가3',     Icon: PillIcon,        color: '#10B981' },
-            prep_walk:       { label: '산책',        Icon: WalkIcon,        color: '#F59E0B' },
-            prep_yoga:       { label: '요가',        Icon: RunnerIcon,      color: '#F59E0B' },
-            prep_swim:       { label: '수영',        Icon: RunnerIcon,      color: '#F59E0B' },
-            prep_workout:    { label: '근력',        Icon: RunnerIcon,      color: '#F59E0B' },
-            prep_breath:     { label: '명상',        Icon: ActivityIcon,    color: '#FF8FAB' },
-            prep_journal:    { label: '감사일기',    Icon: PenIcon,         color: '#FF8FAB' },
-            prep_partner:    { label: '파트너 대화', Icon: HeartFilledIcon, color: '#FF8FAB' },
-            prep_no_alcohol: { label: '금주',        Icon: BanIcon,         color: '#6366F1' },
-            prep_no_smoke:   { label: '금연',        Icon: BanIcon,         color: '#6366F1' },
-            prep_sleep:      { label: '숙면',        Icon: MoonIcon,        color: '#6366F1' },
-            prep_water:      { label: '수분',        Icon: WaterGlassIcon,  color: '#6366F1' },
+            prep_folic:      { label: '엽산',    Icon: PillIcon,     color: '#10B981' },
+            prep_vitd:       { label: '비타민D', Icon: PillIcon,     color: '#10B981' },
+            prep_iron:       { label: '철분',    Icon: PillIcon,     color: '#10B981' },
+            prep_omega3:     { label: '오메가3', Icon: PillIcon,     color: '#10B981' },
+            prep_walk:       { label: '산책',    Icon: WalkIcon,     color: '#F59E0B' },
+            prep_yoga:       { label: '요가',    Icon: StretchIcon,  color: '#F59E0B' },
+            prep_swim:       { label: '수영',    Icon: ActivityIcon, color: '#F59E0B' },
+            prep_workout:    { label: '근력',    Icon: RunnerIcon,   color: '#F59E0B' },
+            prep_meditate:   { label: '명상',    Icon: MoonIcon,     color: '#A78BFA' },
+            prep_breath:     { label: '호흡',    Icon: ActivityIcon, color: '#A78BFA' },
           }
           return (
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
@@ -889,6 +891,42 @@ export default function PreparingPage() {
       )}
 
       {showGuide && <SpotlightGuide mode="preparing" onComplete={() => { localStorage.setItem('dodam_guide_preparing', '1'); setShowGuide(false) }} />}
+
+      {/* 감사일기 시트 */}
+      {journalSheetOpen && (
+        <div className="fixed inset-0 z-[200] flex flex-col justify-end" onClick={() => setJournalSheetOpen(false)}>
+          <div className="bg-white rounded-t-3xl p-5 max-h-[80dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[16px] font-bold text-[#1A1918]">감사일기</p>
+              <button onClick={() => setJournalSheetOpen(false)} className="text-[#9E9A95] text-[14px]">닫기</button>
+            </div>
+            <p className="text-[13px] text-[#6B6966] mb-3">오늘 감사한 것 3가지를 적어보세요</p>
+            {(['오늘 좋았던 순간은?', '감사한 사람이 있나요?', '작은 행복 하나'] as const).map((placeholder, i) => (
+              <div key={i} className="mb-2">
+                <p className="text-[12px] font-semibold text-[#A78BFA] mb-1">{i + 1}번째</p>
+                <textarea
+                  value={journalTexts[i] || ''}
+                  onChange={e => {
+                    const next = [...journalTexts]
+                    next[i] = e.target.value
+                    setJournalTexts(next)
+                  }}
+                  placeholder={placeholder}
+                  rows={2}
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#E8E4DF] bg-[#FAFAF8] text-[14px] text-[#1A1918] placeholder-[#C4C0BB] resize-none focus:outline-none focus:border-[#A78BFA]"
+                />
+              </div>
+            ))}
+            <button onClick={() => {
+              try { localStorage.setItem(`dodam_prep_journal_${today}`, JSON.stringify(journalTexts)) } catch {}
+              setJournalSheetOpen(false)
+              showToast('감사일기 저장됐어요')
+            }} className="w-full mt-2 py-3 rounded-xl text-[14px] font-bold text-white" style={{ background: '#A78BFA' }}>
+              저장
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -153,28 +153,32 @@ function buildPregnantCategories(): RecordCategory[] {
 
 function buildPreparingCategories(): RecordCategory[] {
   return [
+    // 영양제 — 탭 하나로 즉시 기록
     { key: 'prep_suppl', label: '영양제', color: '#10B981', items: [
       { type: 'prep_folic',  label: '엽산',    color: '#10B981' },
       { type: 'prep_vitd',   label: '비타민D', color: '#10B981' },
       { type: 'prep_iron',   label: '철분',    color: '#10B981' },
       { type: 'prep_omega3', label: '오메가3', color: '#10B981' },
     ]},
+    // 운동 — 모두 타이머
     { key: 'prep_exercise', label: '운동', color: '#F59E0B', items: [
-      { type: 'prep_walk',    label: '산책',   color: '#F59E0B' },
-      { type: 'prep_yoga',    label: '요가',   color: '#F59E0B' },
-      { type: 'prep_swim',    label: '수영',   color: '#F59E0B' },
-      { type: 'prep_workout', label: '근력',   color: '#F59E0B' },
+      { type: 'prep_walk',    label: '산책', color: '#F59E0B', isDuration: true },
+      { type: 'prep_yoga',    label: '요가', color: '#F59E0B', isDuration: true },
+      { type: 'prep_swim',    label: '수영', color: '#F59E0B', isDuration: true },
+      { type: 'prep_workout', label: '근력', color: '#F59E0B', isDuration: true },
     ]},
-    { key: 'prep_mind', label: '마음챙김', color: '#FF8FAB', items: [
-      { type: 'prep_breath',  label: '명상',        color: '#FF8FAB' },
-      { type: 'prep_journal', label: '감사일기',    color: '#FF8FAB' },
-      { type: 'prep_partner', label: '파트너 대화', color: '#FF8FAB' },
+    // 마음챙김 — 명상/호흡 타이머, 감사일기 폼
+    { key: 'prep_mind', label: '마음챙김', color: '#A78BFA', items: [
+      { type: 'prep_meditate', label: '명상',     color: '#A78BFA', isDuration: true },
+      { type: 'prep_breath',   label: '호흡',     color: '#A78BFA', isDuration: true },
+      { type: 'prep_journal',  label: '감사일기', color: '#A78BFA' },
     ]},
-    { key: 'prep_habit', label: '생활습관', color: '#6366F1', items: [
-      { type: 'prep_no_alcohol', label: '금주',   color: '#6366F1' },
-      { type: 'prep_no_smoke',   label: '금연',   color: '#6366F1' },
-      { type: 'prep_sleep',      label: '숙면',   color: '#6366F1' },
-      { type: 'prep_water',      label: '수분',   color: '#6366F1' },
+    // 기분 — 오늘의 감정 빠른 기록 (pregnant 기분과 동일 패턴)
+    { key: 'prep_mood', label: '기분', color: '#F472B6', items: [
+      { type: 'prep_mood_excited', label: '설렘', baseType: 'prep_mood', tags: { mood: 'excited' }, color: '#FF8FAB' },
+      { type: 'prep_mood_calm',    label: '평온', baseType: 'prep_mood', tags: { mood: 'calm'    }, color: '#90C8A8' },
+      { type: 'prep_mood_anxious', label: '걱정', baseType: 'prep_mood', tags: { mood: 'anxious' }, color: '#FFC078' },
+      { type: 'prep_mood_tired',   label: '피곤', baseType: 'prep_mood', tags: { mood: 'tired'   }, color: '#8EB4D4' },
     ]},
   ]
 }
@@ -414,8 +418,8 @@ function BottomNavComponent() {
     const event = new CustomEvent('dodam-record', { detail })
     window.dispatchEvent(event)
 
-    // page.tsx가 없는 페이지에서는 직접 DB 저장
-    if (!(event.detail as any)._handled) {
+    // page.tsx가 없는 페이지에서는 직접 DB 저장 (preg_/prep_ 타입은 DB 저장 없음)
+    if (!(event.detail as any)._handled && !recordType.startsWith('preg_') && !recordType.startsWith('prep_')) {
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -500,8 +504,8 @@ function BottomNavComponent() {
                             diary: <BookOpenIcon className="w-8 h-8" />,
                             prep_suppl:    <PillIcon className="w-8 h-8" />,
                             prep_exercise: <RunnerIcon className="w-8 h-8" />,
-                            prep_mind:     <HeartFilledIcon className="w-8 h-8" />,
-                            prep_habit:    <CheckCircleIcon className="w-8 h-8" />,
+                            prep_mind:     <MoonIcon className="w-8 h-8" />,
+                            prep_mood:     <MoodHappyIcon className="w-8 h-8" />,
                           }
                           return <span style={{ color: cat.color }}>{iconMap[cat.key] || <NoteIcon className="w-8 h-8" />}</span>
                         })()}
@@ -777,13 +781,16 @@ function BottomNavComponent() {
                             t === 'preg_diary' ? <PenIcon className="w-7 h-7" /> :
                             t === 'prep_folic' || t === 'prep_vitd' || t === 'prep_iron' || t === 'prep_omega3' ? <PillIcon className="w-7 h-7" /> :
                             t === 'prep_walk' ? <WalkIcon className="w-7 h-7" /> :
-                            t === 'prep_yoga' || t === 'prep_swim' || t === 'prep_workout' ? <RunnerIcon className="w-7 h-7" /> :
+                            t === 'prep_yoga' ? <StretchIcon className="w-7 h-7" /> :
+                            t === 'prep_swim' ? <DropletIcon className="w-7 h-7" /> :
+                            t === 'prep_workout' ? <RunnerIcon className="w-7 h-7" /> :
+                            t === 'prep_meditate' ? <MoonIcon className="w-7 h-7" /> :
                             t === 'prep_breath' ? <ActivityIcon className="w-7 h-7" /> :
                             t === 'prep_journal' ? <PenIcon className="w-7 h-7" /> :
-                            t === 'prep_partner' ? <HeartFilledIcon className="w-7 h-7" /> :
-                            t === 'prep_no_alcohol' || t === 'prep_no_smoke' ? <BanIcon className="w-7 h-7" /> :
-                            t === 'prep_sleep' ? <MoonIcon className="w-7 h-7" /> :
-                            t === 'prep_water' ? <WaterGlassIcon className="w-7 h-7" /> :
+                            t === 'prep_mood_excited' ? <MoodHappyIcon className="w-7 h-7" /> :
+                            t === 'prep_mood_calm' ? <MoodCalmIcon className="w-7 h-7" /> :
+                            t === 'prep_mood_anxious' ? <MoodAnxiousIcon className="w-7 h-7" /> :
+                            t === 'prep_mood_tired' ? <MoodTiredIcon className="w-7 h-7" /> :
                             <NoteIcon className="w-7 h-7" />
                           return <span style={{ color: item.color || cat.color }}>{node}</span>
                         })()}
