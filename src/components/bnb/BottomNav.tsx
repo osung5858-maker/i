@@ -12,8 +12,8 @@ import {
   HeartFilledIcon, ActivityIcon, PenIcon, ChartIcon,
   MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon,
   WaterGlassIcon, WalkIcon, StretchIcon,
-  CheckCircleIcon, BanIcon, RunnerIcon, MusicIcon,
-  VitaminIcon, BrainIcon, WarningIcon,
+  CheckCircleIcon, BanIcon, FireIcon, MusicIcon,
+  VitaminIcon, BrainIcon, WarningIcon, CapsuleIcon,
 } from '@/components/ui/Icons'
 import { autoBackup, restoreLocalData } from '@/lib/storage/backup'
 import { createClient } from '@/lib/supabase/client'
@@ -491,8 +491,8 @@ function BottomNavComponent() {
                             k === 'mood'          ? <HeartFilledIcon className="w-8 h-8" /> :
                             k === 'fetal'         ? <ActivityIcon className="w-8 h-8" /> :
                             k === 'today'         ? <BookOpenIcon className="w-8 h-8" /> :
-                            k === 'prep_suppl'    ? <PillIcon className="w-8 h-8" /> :
-                            k === 'prep_exercise' ? <RunnerIcon className="w-8 h-8" /> :
+                            k === 'prep_suppl'    ? <CapsuleIcon className="w-8 h-8" /> :
+                            k === 'prep_exercise' ? <FireIcon className="w-8 h-8" /> :
                             k === 'prep_diary'    ? <BookOpenIcon className="w-8 h-8" /> :
                             k === 'prep_mood'     ? <MoodHappyIcon className="w-8 h-8" /> :
                             <NoteIcon className="w-8 h-8" />

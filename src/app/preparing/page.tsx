@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
 import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, HeartFilledIcon, MoonIcon, WaterGlassIcon, StretchIcon, VitaminIcon, MusicIcon, BookOpenIcon } from '@/components/ui/Icons'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
-import type { RecordTile, RecordChip } from '@/components/ui/TodayRecordSection'
+import type { RecordTile } from '@/components/ui/TodayRecordSection'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
@@ -604,7 +604,11 @@ export default function PreparingPage() {
     )
   }
 
-  const supplCount = Object.values(supplements).reduce((s, v) => s + (v > 0 ? 1 : 0), 0)
+  const supplKeys = ['prep_folic', 'prep_vitd', 'prep_iron', 'prep_omega3']
+  const supplCount = Math.max(
+    Object.values(supplements).reduce((s, v) => s + (v > 0 ? 1 : 0), 0),
+    prepTodayDone.filter(k => supplKeys.includes(k)).length,
+  )
   const partnerCount = Object.values(partnerChecks).filter(Boolean).length
   const apptCount = apptList.filter(a => appointments[a.id]).length
   const dpo = cycle ? Math.floor((Date.now() - cycle.ovulationDay.getTime()) / 86400000) : -99
@@ -693,15 +697,28 @@ export default function PreparingPage() {
             { label: '영양제', value: `${supplCount}개`, color: supplCount > 0 ? '#10B981' : '#9E9A95' },
             { label: '운동', value: `${exerciseCount}회`, color: exerciseCount > 0 ? '#F59E0B' : '#9E9A95' },
           ]
-          const chips: RecordChip[] = prepTodayDone
-            .map(type => PREP_CFG[type] ? { key: type, ...PREP_CFG[type] } : null)
-            .filter(Boolean) as RecordChip[]
+          const eventList = prepTodayDone.length > 0 ? (
+            <div>
+              {prepTodayDone.map(type => {
+                const cfg = PREP_CFG[type]
+                if (!cfg) return null
+                return (
+                  <div key={type} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.color + '22' }}>
+                      <cfg.Icon className="w-3.5 h-3.5" style={{ color: cfg.color }} />
+                    </div>
+                    <span className="text-[13px] font-semibold text-[#1A1918]">{cfg.label}</span>
+                  </div>
+                )
+              })}
+            </div>
+          ) : null
           return (
             <TodayRecordSection
               count={prepTodayDone.length}
               tiles={tiles}
-              chips={chips}
-              emptyMessage="영양제, 운동, 마음챙김을 기록해보세요"
+              emptyMessage="영양제, 운동, 기다림 일기를 기록해보세요"
+              footer={eventList}
             />
           )
         })()}

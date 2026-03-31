@@ -826,6 +826,16 @@ export function StretchIcon({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
+// 캡슐 (영양제 카테고리용 — 클린 스타일)
+export function CapsuleIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="8" width="20" height="8" rx="4" />
+      <line x1="12" y1="8" x2="12" y2="16" />
+    </svg>
+  )
+}
+
 // ===== 기분 아이콘 =====
 
 // 행복
