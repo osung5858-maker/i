@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client'
 import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
 import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, HeartFilledIcon, MoonIcon, WaterGlassIcon, StretchIcon, VitaminIcon, MusicIcon, BookOpenIcon, CompassIcon } from '@/components/ui/Icons'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
-import type { RecordTile } from '@/components/ui/TodayRecordSection'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
@@ -684,16 +683,6 @@ export default function PreparingPage() {
             prep_meditate:   { label: '명상',     Icon: MoonIcon,     color: '#8B5CF6', bg: '#EDE9FF' },
             prep_music:      { label: '음악감상', Icon: MusicIcon,    color: '#F472B6', bg: '#FFE4F2' },
           }
-          const MOOD_LABELS: Record<string, string> = {
-            happy: '행복', calm: '평온', anxious: '불안', tired: '피곤', sad: '슬픔',
-          }
-          const exerciseKeys = ['prep_walk', 'prep_stretch', 'prep_breath', 'prep_meditate', 'prep_music']
-          const exerciseCount = prepTodayDone.filter(k => exerciseKeys.includes(k)).length
-          const tiles: RecordTile[] = [
-            { label: '기분', value: todayMood ? (MOOD_LABELS[todayMood] ?? todayMood) : '-', color: todayMood ? '#FF8FAB' : '#9E9A95' },
-            { label: '영양제', value: `${supplCount}개`, color: supplCount > 0 ? '#10B981' : '#9E9A95' },
-            { label: '운동', value: `${exerciseCount}회`, color: exerciseCount > 0 ? '#F59E0B' : '#9E9A95' },
-          ]
           const eventList = prepTodayDone.length > 0 ? (
             <div>
               {prepTodayDone.map(type => {
@@ -718,7 +707,6 @@ export default function PreparingPage() {
           return (
             <TodayRecordSection
               count={prepTodayDone.length}
-              tiles={tiles}
               emptyMessage="영양제, 운동, 기다림 일기를 기록해보세요"
               headerRight={headerRight}
               footer={eventList}

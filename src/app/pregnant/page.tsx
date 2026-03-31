@@ -8,7 +8,6 @@ import { shareFetalSize, shareDday } from '@/lib/kakao/share-pregnant'
 import BabyIllust from '@/components/pregnant/BabyIllust'
 import { SparkleIcon, PenIcon, StethoscopeIcon, ClipboardIcon, ActivityIcon, HeartFilledIcon, ExternalLinkIcon, WalkIcon, VitaminIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon, ChartIcon, DropletIcon, CompassIcon } from '@/components/ui/Icons'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
-import type { RecordTile } from '@/components/ui/TodayRecordSection'
 import IllustVideo from '@/components/ui/IllustVideo'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
@@ -734,12 +733,6 @@ const [diarySaving, setDiarySaving] = useState(false)
             if (type === 'preg_stretch') return { label: '스트레칭', Icon: ActivityIcon, color: '#8B5CF6', bg: '#EDE9FF' }
             return { label: type, Icon: PenIcon, color: '#9E9A95', bg: '#F0EDE8' }
           }
-          const moodMc = mood ? MOOD_CONFIG[mood] : null
-          const tiles: RecordTile[] = [
-            { label: '기분', value: moodMc ? moodMc.label : '-', color: moodMc ? moodMc.color : '#9E9A95' },
-            { label: '태동', value: fetalMove > 0 ? `${fetalMove}회` : '0회', color: fetalMove > 0 ? '#5BA882' : '#9E9A95' },
-            { label: '체중', value: weight > 0 ? `${weight}kg` : '-', color: weight > 0 ? '#D08068' : '#9E9A95' },
-          ]
           const eventList = pregTodayEvents.length > 0 ? (
             <div className="max-h-[200px] overflow-y-auto hide-scrollbar">
               {pregTodayEvents.map((ev) => {
@@ -783,7 +776,6 @@ const [diarySaving, setDiarySaving] = useState(false)
           return (
             <TodayRecordSection
               count={pregTodayEvents.length}
-              tiles={tiles}
               emptyMessage="아래 버튼으로 오늘의 첫 기록을 남겨보세요"
               headerRight={headerRight}
               footer={footer}
