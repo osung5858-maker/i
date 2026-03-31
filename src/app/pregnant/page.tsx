@@ -997,45 +997,43 @@ export default function PregnantPage() {
           return (
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[14px] font-bold text-[#1A1918]">오늘 기록</p>
+                <p className="text-[14px] font-bold text-[#1A1918]">오늘 기록 <span className="text-[#9E9A95] font-normal">{pregTodayEvents.length}건</span></p>
                 {pregTodayEvents.length > 0 && (
-                  <span className="text-[12px] text-[#9E9A95]">{pregTodayEvents.length}건</span>
+                  <button className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</button>
                 )}
               </div>
 
-              {/* 오늘 요약 칩 */}
-              {(mood || fetalMove > 0 || weight > 0 || edema) && (
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {mood && (() => {
-                    const mc = MOOD_CONFIG[mood]
-                    if (!mc) return null
-                    return (
-                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold" style={{ background: mc.color + '22', color: mc.color }}>
-                        <mc.Icon className="w-3.5 h-3.5" />
-                        {mc.label}
-                      </span>
-                    )
-                  })()}
-                  {fetalMove > 0 && (
-                    <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#90C8A822] text-[#5BA882]">
-                      <ActivityIcon className="w-3.5 h-3.5" />
-                      태동 {fetalMove}회
-                    </span>
-                  )}
-                  {weight > 0 && (
-                    <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#D0806822] text-[#D08068]">
-                      <ChartIcon className="w-3.5 h-3.5" />
-                      {weight}kg
-                    </span>
-                  )}
-                  {edema && edema !== 'none' && (
-                    <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-[#4A90D922] text-[#4A90D9]">
-                      <DropletIcon className="w-3.5 h-3.5" />
-                      부종 {edema === 'mild' ? '약함' : '심함'}
-                    </span>
-                  )}
-                </div>
-              )}
+              {/* 오늘 요약 타일 */}
+              {(() => {
+                const moodMc = mood ? MOOD_CONFIG[mood] : null
+                const tiles = [
+                  {
+                    label: '기분',
+                    value: moodMc ? moodMc.label : '-',
+                    color: moodMc ? moodMc.color : '#9E9A95',
+                  },
+                  {
+                    label: '태동',
+                    value: fetalMove > 0 ? `${fetalMove}회` : '0회',
+                    color: fetalMove > 0 ? '#5BA882' : '#9E9A95',
+                  },
+                  {
+                    label: '체중',
+                    value: weight > 0 ? `${weight}kg` : '-',
+                    color: weight > 0 ? '#D08068' : '#9E9A95',
+                  },
+                ]
+                return (
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {tiles.map((t) => (
+                      <div key={t.label} className="bg-[#F8F6F3] rounded-xl py-2.5 px-2 text-center">
+                        <p className="text-[11px] text-[#9E9A95] mb-0.5">{t.label}</p>
+                        <p className="text-[15px] font-bold" style={{ color: t.color }}>{t.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
 
               {pregTodayEvents.length === 0 ? (
                 <div className="py-5 text-center">

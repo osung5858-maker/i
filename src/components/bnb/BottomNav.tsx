@@ -65,7 +65,8 @@ function buildCategories(ageMonths: number): RecordCategory[] {
     )
   }
   if (ageMonths < 13) { // 분유
-    eatItems.push({ type: 'feed', label: '분유', isSlider: true })
+    eatItems.push({ type: 'feed', label: '분유',
+      step3: [{ label: '60', value: 60, unit: 'ml' }, { label: '90', value: 90, unit: 'ml' }, { label: '120', value: 120, unit: 'ml' }, { label: '150', value: 150, unit: 'ml' }, { label: '180', value: 180, unit: 'ml' }] })
   }
   if (ageMonths >= 5) { // 이유식 5개월+
     eatItems.push({ type: 'babyfood', label: ageMonths < 7 ? '이유식(미음)' : ageMonths < 10 ? '이유식(죽)' : '이유식',
