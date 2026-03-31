@@ -73,7 +73,10 @@ function MapPageInner() {
 
   const handleCategoryChange = (cat: typeof CATEGORIES[number]) => {
     setSelectedCategory(cat)
+    setPlaces([])
     setLoading(true)
+    // 8초 내 결과 안 오면 stuck 방지
+    setTimeout(() => setLoading(l => { if (l) return false; return l }), 8000)
   }
 
   const handleCall = (phone: string) => {
@@ -93,7 +96,7 @@ function MapPageInner() {
       </div>
 
       {/* 카카오맵 */}
-      <div className="relative h-56 bg-[#e8e8e8]">
+      <div className="relative h-72 bg-[#e8e8e8]">
         <KakaoMap
           searchKeyword={selectedCategory.keyword}
           onPlacesFound={handlePlacesFound}

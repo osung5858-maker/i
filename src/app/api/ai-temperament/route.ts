@@ -5,24 +5,43 @@ import { checkRateLimit, getClientIP, AI_RATE_LIMIT } from '@/lib/security/rate-
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
 
-async function callGemini(prompt: string, maxTokens = 800): Promise<{ text: string | null; error: string | null }> {
-  const res = await fetch(GEMINI_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY ?? '' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 } },
-    }),
-  })
-  if (!res.ok) {
-    const err = await res.text().catch(() => '')
-    return { text: null, error: `Gemini ${res.status}: ${err.slice(0, 150)}` }
+async function callGemini(prompt: string, maxTokens = 800, retries = 2): Promise<{ text: string | null; error: string | null }> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY ?? '' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 } },
+        }),
+        signal: AbortSignal.timeout(25000),
+      })
+      if (res.status === 429 && attempt < retries) {
+        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)))
+        continue
+      }
+      if (!res.ok) {
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, 1500 * (attempt + 1)))
+          continue
+        }
+        return { text: null, error: 'AI 서버가 바빠요. 잠시 후 다시 시도해주세요.' }
+      }
+      const data = await res.json()
+      const parts = data.candidates?.[0]?.content?.parts || []
+      const raw = parts.map((p: any) => p.text || '').join('').trim()
+      const text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
+      return { text, error: null }
+    } catch (e: any) {
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+        continue
+      }
+      return { text: null, error: e?.message?.slice(0, 150) || 'Network error' }
+    }
   }
-  const data = await res.json()
-  const parts = data.candidates?.[0]?.content?.parts || []
-  const raw = parts.map((p: any) => p.text || '').join('').trim()
-  const text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
-  return { text, error: null }
+  return { text: null, error: 'Max retries exceeded' }
 }
 
 export async function POST(request: Request) {
