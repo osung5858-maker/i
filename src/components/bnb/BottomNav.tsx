@@ -12,6 +12,7 @@ import {
   HeartFilledIcon, ActivityIcon, PenIcon, ChartIcon,
   MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon,
   WaterGlassIcon, WalkIcon, StretchIcon,
+  CheckCircleIcon, BanIcon, RunnerIcon,
 } from '@/components/ui/Icons'
 import { autoBackup, restoreLocalData } from '@/lib/storage/backup'
 import { createClient } from '@/lib/supabase/client'
@@ -150,6 +151,23 @@ function buildPregnantCategories(): RecordCategory[] {
   ]
 }
 
+function buildPreparingCategories(): RecordCategory[] {
+  return [
+    { key: 'todo', label: '할일', color: '#6366F1', items: [
+      { type: 'prep_folic',       label: '엽산 복용' },
+      { type: 'prep_exercise',    label: '운동' },
+      { type: 'prep_checkup',     label: '검진 예약' },
+      { type: 'prep_no_alcohol',  label: '금주' },
+    ]},
+    { key: 'mind', label: '마음챙김', color: '#FF8FAB', items: [
+      { type: 'prep_breath',  label: '호흡 명상' },
+      { type: 'prep_journal', label: '감사일기' },
+      { type: 'prep_walk',    label: '산책' },
+      { type: 'prep_partner', label: '파트너 대화' },
+    ]},
+  ]
+}
+
 interface RecordItem {
   type: string; label: string
   hasInput?: string
@@ -232,7 +250,7 @@ function BottomNavComponent() {
   }, [pathname])
 
   const tabs = TABS_BY_MODE[mode] || TABS_BY_MODE.parenting
-  const DYNAMIC_CATEGORIES = mode === 'pregnant' ? buildPregnantCategories() : buildCategories(getAgeMonths())
+  const DYNAMIC_CATEGORIES = mode === 'pregnant' ? buildPregnantCategories() : mode === 'preparing' ? buildPreparingCategories() : buildCategories(getAgeMonths())
 
   // 다른 페이지로 이동하면 FAB + 모든 depth 상태 리셋
   useEffect(() => {
@@ -291,7 +309,7 @@ function BottomNavComponent() {
       } catch { /* */ }
     }
     // page.tsx가 없는 페이지(추억/동네/우리 등)에서는 직접 DB 저장
-    if (!(event.detail as any)._handled && !type.startsWith('preg_')) {
+    if (!(event.detail as any)._handled && !type.startsWith('preg_') && !type.startsWith('prep_')) {
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -469,6 +487,8 @@ function BottomNavComponent() {
                             mood: <HeartFilledIcon className="w-8 h-8" />,
                             fetal: <ActivityIcon className="w-8 h-8" />,
                             diary: <BookOpenIcon className="w-8 h-8" />,
+                            todo: <CheckCircleIcon className="w-8 h-8" />,
+                            mind: <HeartFilledIcon className="w-8 h-8" />,
                           }
                           return <span style={{ color: cat.color }}>{iconMap[cat.key] || <NoteIcon className="w-8 h-8" />}</span>
                         })()}
@@ -742,6 +762,14 @@ function BottomNavComponent() {
                             t === 'preg_weight' ? <ChartIcon className="w-7 h-7" /> :
                             t === 'preg_edema_none' || t === 'preg_edema_mild' || t === 'preg_edema_severe' ? <DropletIcon className="w-7 h-7" /> :
                             t === 'preg_diary' ? <PenIcon className="w-7 h-7" /> :
+                            t === 'prep_folic' ? <PillIcon className="w-7 h-7" /> :
+                            t === 'prep_exercise' ? <RunnerIcon className="w-7 h-7" /> :
+                            t === 'prep_checkup' ? <HospitalIcon className="w-7 h-7" /> :
+                            t === 'prep_no_alcohol' ? <BanIcon className="w-7 h-7" /> :
+                            t === 'prep_breath' ? <ActivityIcon className="w-7 h-7" /> :
+                            t === 'prep_journal' ? <PenIcon className="w-7 h-7" /> :
+                            t === 'prep_walk' ? <WalkIcon className="w-7 h-7" /> :
+                            t === 'prep_partner' ? <HeartFilledIcon className="w-7 h-7" /> :
                             <NoteIcon className="w-7 h-7" />
                           return <span style={{ color: item.color || cat.color }}>{node}</span>
                         })()}
@@ -759,12 +787,7 @@ function BottomNavComponent() {
       {/* BNB 바 — Pill Style */}
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[65] pt-3 pr-5 pb-[max(20px,env(safe-area-inset-bottom))] pl-5">
         <div className="flex items-center h-[62px] rounded-[36px] bg-white/95 backdrop-blur-lg border border-[#E8E4DF]/60 p-1" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
-          {mode === 'preparing' ? (
-            tabs.map((tab) => (
-              <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more', '/waiting': 'nav-waiting' }[tab.href]} />
-            ))
-          ) : (
-            <>
+          <>
               {tabs.slice(0, 2).map((tab) => (
                 <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more', '/waiting': 'nav-waiting' }[tab.href]} />
               ))}
@@ -829,8 +852,7 @@ function BottomNavComponent() {
               {tabs.slice(2).map((tab) => (
                 <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more', '/waiting': 'nav-waiting' }[tab.href]} />
               ))}
-            </>
-          )}
+          </>
         </div>
       </nav>
 
