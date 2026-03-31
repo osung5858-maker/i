@@ -783,7 +783,7 @@ function BottomNavComponent() {
 
               {/* 중앙 FAB (물방울 — pill 위로 돌출) */}
               <div data-guide="fab" className="flex-1 flex items-center justify-center relative">
-                {activeSession && mode !== 'pregnant' ? (
+                {activeSession ? (
                   <button
                     onClick={endSession}
                     className="absolute -top-14 flex flex-col items-center justify-center transition-transform duration-200 active:scale-95"
