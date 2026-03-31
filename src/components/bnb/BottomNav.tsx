@@ -225,8 +225,15 @@ function BottomNavComponent() {
   const tabs = TABS_BY_MODE[mode] || TABS_BY_MODE.parenting
   const DYNAMIC_CATEGORIES = mode === 'pregnant' ? buildPregnantCategories() : buildCategories(getAgeMonths())
 
-  // 다른 페이지로 이동하면 FAB 닫기
-  useEffect(() => { setFabOpen(false) }, [pathname])
+  // 다른 페이지로 이동하면 FAB + 모든 depth 상태 리셋
+  useEffect(() => {
+    setFabOpen(false)
+    setSelectedCategory(null)
+    setSelectedItem(null)
+    setTempSlider(null)
+    setMemoItem(null)
+    setMemoText('')
+  }, [pathname])
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<string | null>(null) // 3단계: 용량 선택
@@ -422,7 +429,7 @@ function BottomNavComponent() {
           // 1단계: 카테고리
           return (
             <>
-              <div className="fixed inset-0 z-[60] bg-black/50" onClick={() => setFabOpen(false)} />
+              <div className="fixed inset-0 z-[60] bg-black/50" onClick={() => { setFabOpen(false); setSelectedCategory(null); setSelectedItem(null); setTempSlider(null); setMemoItem(null); setMemoText('') }} />
               <div className="fixed z-[70] bottom-[80px] left-1/2" style={{ maxWidth: 430 }}>
                 <div className="relative" style={{ width: 0, height: 0 }}>
                   {DYNAMIC_CATEGORIES.map((cat, i) => (
@@ -708,6 +715,7 @@ function BottomNavComponent() {
                             poop_hard: <PoopIcon className="w-7 h-7" />,
                             temp: <ThermometerIcon className="w-7 h-7" />,
                             bath: <BathIcon className="w-7 h-7" />,
+                            medication: <PillIcon className="w-7 h-7" />,
                             memo: <PillIcon className="w-7 h-7" />,
                             note: <NoteIcon className="w-7 h-7" />,
                           }
