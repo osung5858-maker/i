@@ -153,17 +153,28 @@ function buildPregnantCategories(): RecordCategory[] {
 
 function buildPreparingCategories(): RecordCategory[] {
   return [
-    { key: 'todo', label: '할일', color: '#6366F1', items: [
-      { type: 'prep_folic',       label: '엽산 복용' },
-      { type: 'prep_exercise',    label: '운동' },
-      { type: 'prep_checkup',     label: '검진 예약' },
-      { type: 'prep_no_alcohol',  label: '금주' },
+    { key: 'prep_suppl', label: '영양제', color: '#10B981', items: [
+      { type: 'prep_folic',  label: '엽산',    color: '#10B981' },
+      { type: 'prep_vitd',   label: '비타민D', color: '#10B981' },
+      { type: 'prep_iron',   label: '철분',    color: '#10B981' },
+      { type: 'prep_omega3', label: '오메가3', color: '#10B981' },
     ]},
-    { key: 'mind', label: '마음챙김', color: '#FF8FAB', items: [
-      { type: 'prep_breath',  label: '호흡 명상' },
-      { type: 'prep_journal', label: '감사일기' },
-      { type: 'prep_walk',    label: '산책' },
-      { type: 'prep_partner', label: '파트너 대화' },
+    { key: 'prep_exercise', label: '운동', color: '#F59E0B', items: [
+      { type: 'prep_walk',    label: '산책',   color: '#F59E0B' },
+      { type: 'prep_yoga',    label: '요가',   color: '#F59E0B' },
+      { type: 'prep_swim',    label: '수영',   color: '#F59E0B' },
+      { type: 'prep_workout', label: '근력',   color: '#F59E0B' },
+    ]},
+    { key: 'prep_mind', label: '마음챙김', color: '#FF8FAB', items: [
+      { type: 'prep_breath',  label: '명상',        color: '#FF8FAB' },
+      { type: 'prep_journal', label: '감사일기',    color: '#FF8FAB' },
+      { type: 'prep_partner', label: '파트너 대화', color: '#FF8FAB' },
+    ]},
+    { key: 'prep_habit', label: '생활습관', color: '#6366F1', items: [
+      { type: 'prep_no_alcohol', label: '금주',   color: '#6366F1' },
+      { type: 'prep_no_smoke',   label: '금연',   color: '#6366F1' },
+      { type: 'prep_sleep',      label: '숙면',   color: '#6366F1' },
+      { type: 'prep_water',      label: '수분',   color: '#6366F1' },
     ]},
   ]
 }
@@ -487,8 +498,10 @@ function BottomNavComponent() {
                             mood: <HeartFilledIcon className="w-8 h-8" />,
                             fetal: <ActivityIcon className="w-8 h-8" />,
                             diary: <BookOpenIcon className="w-8 h-8" />,
-                            todo: <CheckCircleIcon className="w-8 h-8" />,
-                            mind: <HeartFilledIcon className="w-8 h-8" />,
+                            prep_suppl:    <PillIcon className="w-8 h-8" />,
+                            prep_exercise: <RunnerIcon className="w-8 h-8" />,
+                            prep_mind:     <HeartFilledIcon className="w-8 h-8" />,
+                            prep_habit:    <CheckCircleIcon className="w-8 h-8" />,
                           }
                           return <span style={{ color: cat.color }}>{iconMap[cat.key] || <NoteIcon className="w-8 h-8" />}</span>
                         })()}
@@ -762,14 +775,15 @@ function BottomNavComponent() {
                             t === 'preg_weight' ? <ChartIcon className="w-7 h-7" /> :
                             t === 'preg_edema_none' || t === 'preg_edema_mild' || t === 'preg_edema_severe' ? <DropletIcon className="w-7 h-7" /> :
                             t === 'preg_diary' ? <PenIcon className="w-7 h-7" /> :
-                            t === 'prep_folic' ? <PillIcon className="w-7 h-7" /> :
-                            t === 'prep_exercise' ? <RunnerIcon className="w-7 h-7" /> :
-                            t === 'prep_checkup' ? <HospitalIcon className="w-7 h-7" /> :
-                            t === 'prep_no_alcohol' ? <BanIcon className="w-7 h-7" /> :
+                            t === 'prep_folic' || t === 'prep_vitd' || t === 'prep_iron' || t === 'prep_omega3' ? <PillIcon className="w-7 h-7" /> :
+                            t === 'prep_walk' ? <WalkIcon className="w-7 h-7" /> :
+                            t === 'prep_yoga' || t === 'prep_swim' || t === 'prep_workout' ? <RunnerIcon className="w-7 h-7" /> :
                             t === 'prep_breath' ? <ActivityIcon className="w-7 h-7" /> :
                             t === 'prep_journal' ? <PenIcon className="w-7 h-7" /> :
-                            t === 'prep_walk' ? <WalkIcon className="w-7 h-7" /> :
                             t === 'prep_partner' ? <HeartFilledIcon className="w-7 h-7" /> :
+                            t === 'prep_no_alcohol' || t === 'prep_no_smoke' ? <BanIcon className="w-7 h-7" /> :
+                            t === 'prep_sleep' ? <MoonIcon className="w-7 h-7" /> :
+                            t === 'prep_water' ? <WaterGlassIcon className="w-7 h-7" /> :
                             <NoteIcon className="w-7 h-7" />
                           return <span style={{ color: item.color || cat.color }}>{node}</span>
                         })()}

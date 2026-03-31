@@ -5,7 +5,7 @@ import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
-import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, HeartFilledIcon, RunnerIcon, CheckCircleIcon } from '@/components/ui/Icons'
+import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, HeartFilledIcon, RunnerIcon, CheckCircleIcon, MoonIcon, WaterGlassIcon } from '@/components/ui/Icons'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
@@ -294,8 +294,10 @@ export default function PreparingPage() {
         return updated
       })
       const labels: Record<string, string> = {
-        prep_folic: '엽산 복용', prep_exercise: '운동', prep_checkup: '검진 예약', prep_no_alcohol: '금주',
-        prep_breath: '호흡 명상', prep_journal: '감사일기', prep_walk: '산책', prep_partner: '파트너 대화',
+        prep_folic: '엽산', prep_vitd: '비타민D', prep_iron: '철분', prep_omega3: '오메가3',
+        prep_walk: '산책', prep_yoga: '요가', prep_swim: '수영', prep_workout: '근력',
+        prep_breath: '명상', prep_journal: '감사일기', prep_partner: '파트너 대화',
+        prep_no_alcohol: '금주', prep_no_smoke: '금연', prep_sleep: '숙면', prep_water: '수분',
       }
       showToast(`${labels[detail.type] || '기록'} 완료!`)
     }
@@ -662,14 +664,21 @@ export default function PreparingPage() {
         {/* ━━━ 오늘 기록 (FAB) ━━━ */}
         {(() => {
           const PREP_CFG: Record<string, { label: string; Icon: React.FC<{ className?: string }>; color: string }> = {
-            prep_folic:      { label: '엽산 복용',   Icon: PillIcon,       color: '#6366F1' },
-            prep_exercise:   { label: '운동',        Icon: RunnerIcon,     color: '#6366F1' },
-            prep_checkup:    { label: '검진 예약',   Icon: HospitalIcon,   color: '#6366F1' },
-            prep_no_alcohol: { label: '금주',        Icon: BanIcon,        color: '#6366F1' },
-            prep_breath:     { label: '호흡 명상',   Icon: ActivityIcon,   color: '#FF8FAB' },
-            prep_journal:    { label: '감사일기',    Icon: PenIcon,        color: '#FF8FAB' },
-            prep_walk:       { label: '산책',        Icon: WalkIcon,       color: '#FF8FAB' },
+            prep_folic:      { label: '엽산',        Icon: PillIcon,        color: '#10B981' },
+            prep_vitd:       { label: '비타민D',     Icon: PillIcon,        color: '#10B981' },
+            prep_iron:       { label: '철분',        Icon: PillIcon,        color: '#10B981' },
+            prep_omega3:     { label: '오메가3',     Icon: PillIcon,        color: '#10B981' },
+            prep_walk:       { label: '산책',        Icon: WalkIcon,        color: '#F59E0B' },
+            prep_yoga:       { label: '요가',        Icon: RunnerIcon,      color: '#F59E0B' },
+            prep_swim:       { label: '수영',        Icon: RunnerIcon,      color: '#F59E0B' },
+            prep_workout:    { label: '근력',        Icon: RunnerIcon,      color: '#F59E0B' },
+            prep_breath:     { label: '명상',        Icon: ActivityIcon,    color: '#FF8FAB' },
+            prep_journal:    { label: '감사일기',    Icon: PenIcon,         color: '#FF8FAB' },
             prep_partner:    { label: '파트너 대화', Icon: HeartFilledIcon, color: '#FF8FAB' },
+            prep_no_alcohol: { label: '금주',        Icon: BanIcon,         color: '#6366F1' },
+            prep_no_smoke:   { label: '금연',        Icon: BanIcon,         color: '#6366F1' },
+            prep_sleep:      { label: '숙면',        Icon: MoonIcon,        color: '#6366F1' },
+            prep_water:      { label: '수분',        Icon: WaterGlassIcon,  color: '#6366F1' },
           }
           return (
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
@@ -678,7 +687,7 @@ export default function PreparingPage() {
                 <CheckCircleIcon className="w-4 h-4 text-[#9E9A95]" />
               </div>
               {prepTodayDone.length === 0 ? (
-                <p className="text-[13px] text-[#9E9A95] text-center py-3">아래 버튼으로 오늘 할일과 마음챙김을 기록해보세요</p>
+                <p className="text-[13px] text-[#9E9A95] text-center py-3">영양제, 운동, 마음챙김을 기록해보세요</p>
               ) : (
                 <div className="flex flex-wrap gap-1.5">
                   {prepTodayDone.map(type => {
