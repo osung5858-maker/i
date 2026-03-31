@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { getSecure } from '@/lib/secureStorage'
 import { PageHeader } from '@/components/layout/PageLayout'
-import { CrystalBallIcon, DragonIcon, CardIcon, StarIcon, HeartIcon, AlertIcon, LightbulbIcon, RefreshIcon, EnvelopeIcon } from '@/components/ui/Icons'
+import { CrystalBallIcon, DragonIcon, CardIcon, StarIcon, HeartIcon, AlertIcon, LightbulbIcon, RefreshIcon } from '@/components/ui/Icons'
 import { shareFortune } from '@/lib/kakao/share-parenting'
 
 export default function FortunePage() {
@@ -281,15 +281,6 @@ export default function FortunePage() {
                   <p className="text-[14px] font-bold text-[#1A1918] mb-2 flex items-center gap-1"><CardIcon className="w-4 h-4" /> 오늘의 운세</p>
                   <p className="text-[13px] text-[#1A1918] leading-relaxed">{fortuneResult.todayLuck}</p>
                 </div>
-
-                {/* 아이 메시지 — pregnant 모드일 때만 노출 */}
-                {mode === 'pregnant' && fortuneResult.babyMessage && (
-                  <div className="bg-[#FFF8F3] rounded-xl border border-[#FFDDC8]/30 p-4 text-center">
-                    <span className="block mb-1"><EnvelopeIcon className="w-5 h-5 mx-auto text-[#D08068]" /></span>
-                    <p className="text-[13px] text-[#1A1918] italic leading-relaxed">"{fortuneResult.babyMessage}"</p>
-                    <p className="text-[14px] text-[#6B6966] mt-1">아이가 전하는 말</p>
-                  </div>
-                )}
 
                 {/* 띠/별자리 운세 */}
                 {(fortuneResult.animalFortune || fortuneResult.starFortune) && (
