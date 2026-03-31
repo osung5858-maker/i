@@ -1015,6 +1015,19 @@ export default function PregnantPage() {
               const lvl = data.tags?.level
               return { label: lvl === 'none' ? '부종 없음' : lvl === 'mild' ? '부종 약함' : '부종 심함', Icon: DropletIcon, color: '#4A90D9' }
             }
+            if (type === 'preg_water') return { label: '물 마시기', Icon: DropletIcon, color: '#3B82F6' }
+            if (type === 'preg_walk') {
+              const mins = data.end_ts ? Math.round((new Date(data.end_ts).getTime() - new Date(data.start_ts).getTime()) / 60000) : null
+              return { label: mins ? `걷기 ${mins}분` : '걷기', Icon: ActivityIcon, color: '#10B981' }
+            }
+            if (type === 'preg_suppl') {
+              const names: Record<string, string> = { folic: '엽산', iron: '철분', dha: 'DHA', calcium: '칼슘', multi: '종합비타민', etc: '영양제' }
+              return { label: names[data.tags?.subtype] || '영양제', Icon: VitaminIcon, color: '#F59E0B' }
+            }
+            if (type === 'preg_stretch') {
+              const mins = data.end_ts ? Math.round((new Date(data.end_ts).getTime() - new Date(data.start_ts).getTime()) / 60000) : null
+              return { label: mins ? `스트레칭 ${mins}분` : '스트레칭', Icon: ActivityIcon, color: '#8B5CF6' }
+            }
             return { label: type, Icon: PenIcon, color: '#9E9A95' }
           }
           return (
