@@ -876,7 +876,7 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
           { label: '수면', count: todaySleepCount, Icon: MoonIcon, color: '#7B6DB0' },
           { label: '배변', count: todayPoopCount, Icon: PoopIcon, color: '#C4913E' },
         ].map((s) => (
-          <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center">
+          <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center border border-white/80">
             <p className="text-[14px] font-bold flex items-center justify-center gap-1" style={{ color: s.color }}>
               <s.Icon className="w-4 h-4" /> {s.count}
             </p>

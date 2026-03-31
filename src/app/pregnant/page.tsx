@@ -313,9 +313,12 @@ export default function PregnantPage() {
   }, [])
 
   const [dueDate, setDueDate] = useState<string>('')
-  const [editingDate, setEditingDate] = useState(true)
+  const [editingDate, setEditingDate] = useState<boolean | null>(null)
   useEffect(() => {
-    getSecure('dodam_due_date').then(v => { if (v) { setDueDate(v); setEditingDate(false) } })
+    getSecure('dodam_due_date').then(v => {
+      if (v) { setDueDate(v); setEditingDate(false) }
+      else setEditingDate(true)
+    })
   }, [])
 
   // 건강 기록 (parse once instead of 4x)
@@ -558,6 +561,9 @@ const [diarySaving, setDiarySaving] = useState(false)
 
   // 출산 예정일 입력
   const [tempDueDate, setTempDueDate] = useState(dueDate)
+  if (editingDate === null) {
+    return <div className="min-h-[100dvh] bg-[var(--color-page-bg)]" />
+  }
   if (editingDate) {
     return (
       <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6">
@@ -661,7 +667,7 @@ const [diarySaving, setDiarySaving] = useState(false)
                   { label: '태동', value: fetalMove > 0 ? `${fetalMove}회` : '0회', Icon: ActivityIcon, color: '#5BA882' },
                   { label: '체중', value: weight > 0 ? `${weight}kg` : '-', Icon: ChartIcon, color: '#D08068' },
                 ].map(s => (
-                  <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center">
+                  <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center border border-white/80">
                     <p className="text-[14px] font-bold flex items-center justify-center gap-1" style={{ color: s.color }}>
                       <s.Icon className="w-4 h-4" /> {s.value}
                     </p>

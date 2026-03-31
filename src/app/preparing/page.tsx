@@ -253,10 +253,11 @@ export default function PreparingPage() {
 
   const [lastPeriod, setLastPeriod] = useState<string>('')
   const [cycleLength, setCycleLength] = useState<number>(28)
-  const [editingCycle, setEditingCycle] = useState(true)
+  const [editingCycle, setEditingCycle] = useState<boolean | null>(null)
   useEffect(() => {
     Promise.all([getSecure('dodam_last_period'), getSecure('dodam_cycle_length')]).then(([lp, cl]) => {
       if (lp) { setLastPeriod(lp); setEditingCycle(false) }
+      else setEditingCycle(true)
       if (cl) setCycleLength(Number(cl) || 28)
     })
   }, [])
@@ -533,6 +534,9 @@ export default function PreparingPage() {
   }
 
   // 주기 설정 화면
+  if (editingCycle === null) {
+    return <div className="min-h-[100dvh] bg-[var(--color-page-bg)]" />
+  }
   if (editingCycle) {
     const myBirth = myRole === 'mom' ? tempMotherBirth : tempFatherBirth
     const partnerBirth = myRole === 'mom' ? tempFatherBirth : tempMotherBirth
@@ -643,7 +647,7 @@ export default function PreparingPage() {
                     { label: '영양제', value: `${supplCount}개`, Icon: PillIcon, color: '#10B981' },
                     { label: '운동', value: `${exerciseCount}회`, Icon: WalkIcon, color: '#F59E0B' },
                   ].map(s => (
-                    <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center">
+                    <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center border border-white/80">
                       <p className="text-[14px] font-bold flex items-center justify-center gap-1" style={{ color: s.color }}>
                         <s.Icon className="w-4 h-4" /> {s.value}
                       </p>
