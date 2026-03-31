@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect } from 'react'
 import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { createClient } from '@/lib/supabase/client'
 import { shareFetalSize, shareDday } from '@/lib/kakao/share-pregnant'
 import BabyIllust from '@/components/pregnant/BabyIllust'
 import { SparkleIcon, PenIcon, StethoscopeIcon, ClipboardIcon, ActivityIcon, HeartFilledIcon, ExternalLinkIcon, WalkIcon, VitaminIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon, ChartIcon, DropletIcon, CompassIcon } from '@/components/ui/Icons'
@@ -115,247 +114,6 @@ function getSeasonalBag(): { season: string; items: string[] } | null {
   if (month >= 6 && month <= 8) return SEASONAL_BAG.summer
   if (month >= 11 || month <= 2) return SEASONAL_BAG.winter
   return null
-}
-
-// ===== 검진 기록 =====
-function CheckupRecord({ currentWeek }: { currentWeek: number }) {
-  const [records, setRecords] = useState<any[]>(() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_checkup_records') || '[]') } catch { return [] } }
-    return []
-  })
-  const [formOpen, setFormOpen] = useState(false)
-  const [week, setWeek] = useState(String(currentWeek))
-  const [note, setNote] = useState('')
-  const [babyWeight, setBabyWeight] = useState('')
-  const [babyStatus, setBabyStatus] = useState('')
-  const [doctorNote, setDoctorNote] = useState('')
-  const [photos, setPhotos] = useState<string[]>([])
-  const [uploading, setUploading] = useState(false)
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || files.length === 0) return
-    setUploading(true)
-    try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setUploading(false); return }
-
-      const newPhotos: string[] = []
-      for (let i = 0; i < Math.min(files.length, 5 - photos.length); i++) {
-        const file = files[i]
-        const ext = file.name.split('.').pop()
-        const path = `checkup/${user.id}/${Date.now()}_${i}.${ext}`
-        const { error } = await supabase.storage.from('photos').upload(path, file)
-        if (!error) {
-          const { data: urlData } = supabase.storage.from('photos').getPublicUrl(path)
-          newPhotos.push(urlData.publicUrl)
-        }
-      }
-      setPhotos(prev => [...prev, ...newPhotos])
-    } catch { /* */ }
-    setUploading(false)
-  }
-
-  const save = () => {
-    if (!note.trim() && !doctorNote.trim() && photos.length === 0) return
-    const entry = {
-      id: Date.now(),
-      date: new Date().toISOString().split('T')[0],
-      week: Number(week),
-      note: note.trim(),
-      babyWeight: babyWeight.trim(),
-      babyStatus,
-      doctorNote: doctorNote.trim(),
-      photos,
-    }
-    const next = [entry, ...records]
-    setRecords(next)
-    localStorage.setItem('dodam_checkup_records', JSON.stringify(next))
-    setNote(''); setBabyWeight(''); setBabyStatus(''); setDoctorNote(''); setPhotos([])
-    setFormOpen(false)
-  }
-
-  return (
-    <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-[14px] font-bold text-[#1A1918]">검진 기록</p>
-        <button onClick={() => setFormOpen(!formOpen)} className="text-[13px] text-[var(--color-primary)] font-semibold">
-          {formOpen ? '취소' : '+ 기록'}
-        </button>
-      </div>
-
-      {formOpen && (
-        <div className="space-y-2 mb-3 pb-3 border-b border-[#E8E4DF]">
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <p className="text-[14px] text-[#6B6966] mb-0.5">검진 주차</p>
-              <input type="number" value={week} onChange={e => setWeek(e.target.value)} className="w-full h-9 rounded-lg border border-[#E8E4DF] px-2 text-[13px] text-center" />
-            </div>
-            <div className="flex-1">
-              <p className="text-[14px] text-[#6B6966] mb-0.5">아기 체중 (g)</p>
-              <input type="text" value={babyWeight} onChange={e => setBabyWeight(e.target.value)} placeholder="예: 500g" className="w-full h-9 rounded-lg border border-[#E8E4DF] px-2 text-[13px]" />
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[14px] text-[#6B6966] mb-0.5">아기 상태</p>
-            <div className="flex gap-1.5">
-              {['정상', '주의', '정밀 검사 필요'].map(s => (
-                <button key={s} onClick={() => setBabyStatus(s)}
-                  className={`flex-1 py-1.5 rounded-lg text-[14px] font-medium ${babyStatus === s ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[14px] text-[#6B6966] mb-0.5">의사 소견 / 메모</p>
-            <textarea value={doctorNote} onChange={e => setDoctorNote(e.target.value)} placeholder="의사 선생님이 말씀하신 내용..."
-              className="w-full h-14 text-[14px] p-2 bg-[var(--color-page-bg)] rounded-lg resize-none focus:outline-none" />
-          </div>
-
-          <div>
-            <p className="text-[14px] text-[#6B6966] mb-0.5">특이사항 메모</p>
-            <input type="text" value={note} onChange={e => setNote(e.target.value)} placeholder="초음파 결과, 느낀 점 등"
-              className="w-full h-9 rounded-lg border border-[#E8E4DF] px-2 text-[14px]" />
-          </div>
-
-          {/* 사진 업로드 */}
-          <div>
-            <p className="text-[14px] text-[#6B6966] mb-1">초음파 사진 / 영상 캡처 (최대 5장)</p>
-            <div className="flex gap-2 flex-wrap">
-              {photos.map((url, i) => (
-                <div key={i} className="w-16 h-16 rounded-lg overflow-hidden relative">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button onClick={() => setPhotos(prev => prev.filter((_, j) => j !== i))}
-                    className="absolute top-0 right-0 w-6 h-6 bg-black/50 text-white text-[14px] rounded-bl-lg">✕</button>
-                </div>
-              ))}
-              {photos.length < 5 && (
-                <label className="w-16 h-16 rounded-lg border-2 border-dashed border-[#AEB1B9] flex flex-col items-center justify-center cursor-pointer active:opacity-60">
-                  <span className="text-lg text-[#9E9A95]">{uploading ? '...' : '+'}</span>
-                  <span className="text-[13px] text-[#9E9A95]">{uploading ? '업로드' : '추가'}</span>
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
-                </label>
-              )}
-            </div>
-          </div>
-
-          <button onClick={save} className="w-full py-2 bg-[var(--color-primary)] text-white text-[14px] font-semibold rounded-lg active:opacity-80">검진 기록 저장</button>
-        </div>
-      )}
-
-      {/* 기록 목록 */}
-      {records.length === 0 ? (
-        <p className="text-[13px] text-[#9E9A95] text-center py-2">검진 기록이 없어요</p>
-      ) : (
-        <div className="space-y-2">
-          {records.slice(0, 3).map((r: any) => (
-            <div key={r.id} className="bg-[var(--color-page-bg)] rounded-lg p-2.5">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[14px] font-semibold text-[#1A1918]">{r.week}주차 검진</span>
-                <div className="flex items-center gap-2">
-                  {r.babyWeight && <span className="text-[14px] text-[var(--color-primary)]">{r.babyWeight}</span>}
-                  <span className="text-[13px] text-[#9E9A95]">{r.date}</span>
-                </div>
-              </div>
-              {r.babyStatus && <p className="text-[14px] text-[#1A1918] mb-0.5">{r.babyStatus}</p>}
-              {r.doctorNote && <p className="text-[14px] text-[#6B6966]">{r.doctorNote}</p>}
-              {r.note && <p className="text-[14px] text-[#6B6966]">{r.note}</p>}
-              {r.photos && r.photos.length > 0 && (
-                <div className="flex gap-1.5 mt-1.5">
-                  {r.photos.map((url: string, j: number) => (
-                    <img key={j} src={url} alt="" className="w-12 h-12 rounded-lg object-cover" />
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-          {records.length > 3 && <p className="text-[13px] text-[#9E9A95] text-center">+{records.length - 3}건 더</p>}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ===== 임산부 식단 추천 카드 =====
-function PregnantMealCard({ week }: { week: number }) {
-  const [meal, setMeal] = useState<any>(null)
-  const [loading, setLoading] = useState(false)
-  const [expanded, setExpanded] = useState(false)
-  const trimester = week <= 13 ? '초기' : week <= 27 ? '중기' : '후기'
-
-  useEffect(() => {
-    const cacheKey = `dodam_preg_meal_${week}_${new Date().toISOString().split('T')[0]}`
-    try { const c = localStorage.getItem(cacheKey); if (c) { const d = JSON.parse(c); if (d.breakfast) setMeal(d) } } catch { /* */ }
-  }, [week])
-
-  const fetchMeal = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/ai-pregnant', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'meal', week }) })
-      const data = await res.json()
-      if (data.breakfast) {
-        setMeal(data); setExpanded(true)
-        try { localStorage.setItem(`dodam_preg_meal_${week}_${new Date().toISOString().split('T')[0]}`, JSON.stringify(data)) } catch { /* */ }
-      }
-    } catch { /* */ }
-    setLoading(false)
-  }
-
-  if (!meal && !loading) {
-    return (
-      <button onClick={fetchMeal} className="w-full bg-white rounded-xl border border-[#E8E4DF] p-3 flex items-center gap-2.5 active:bg-[#F5F1EC] text-left">
-        <div className="w-9 h-9 rounded-full bg-[#FFF0E6] flex items-center justify-center shrink-0">
-          <ClipboardIcon className="w-4.5 h-4.5 text-[var(--color-primary)]" />
-        </div>
-        <div className="flex-1">
-          <p className="text-[14px] font-semibold text-[#1A1918]">{trimester} 임산부 식단</p>
-          <p className="text-[13px] text-[#9E9A95]">AI 오늘의 식단 추천받기</p>
-        </div>
-        <SparkleIcon className="w-4 h-4 text-[var(--color-primary)]" />
-      </button>
-    )
-  }
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 flex items-center gap-2.5">
-        <div className="w-5 h-5 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
-        <p className="text-[13px] text-[#6B6966]">AI가 오늘 식단을 추천하고 있어요...</p>
-      </div>
-    )
-  }
-  return (
-    <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
-      <button onClick={() => setExpanded(v => !v)} className="w-full p-3 flex items-center gap-2.5 text-left active:bg-[#F5F1EC]">
-        <div className="w-9 h-9 rounded-full bg-[#FFF0E6] flex items-center justify-center shrink-0">
-          <ClipboardIcon className="w-4.5 h-4.5 text-[var(--color-primary)]" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-semibold text-[#1A1918]">{trimester} 임산부 · 오늘의 식단</p>
-          <p className="text-[13px] text-[#6B6966] truncate">{meal.breakfast?.menu} · {meal.lunch?.menu}</p>
-        </div>
-        <span className="text-[12px] text-[#9E9A95]">{expanded ? '접기' : '펼치기'}</span>
-      </button>
-      {expanded && (
-        <div className="px-3 pb-3 space-y-2">
-          {[{ label: '아침', data: meal.breakfast }, { label: '점심', data: meal.lunch }, { label: '저녁', data: meal.dinner }, { label: '간식', data: meal.snack }].map(m => m.data && (
-            <div key={m.label} className="p-2.5 rounded-lg bg-[var(--color-page-bg)]">
-              <p className="text-[12px] font-semibold text-[#6B6966]">{m.label}</p>
-              <p className="text-[13px] font-medium text-[#1A1918] mt-0.5">{m.data.menu}</p>
-              <p className="text-[11px] text-[#9E9A95]">{m.data.reason}</p>
-            </div>
-          ))}
-          {meal.keyNutrient && <p className="text-[12px] text-[var(--color-primary)] font-medium px-1">핵심 영양소: {meal.keyNutrient}</p>}
-          {meal.avoid && <p className="text-[11px] text-[#D08068] px-1">주의: {meal.avoid}</p>}
-          <button onClick={fetchMeal} className="w-full py-1.5 text-[11px] text-[#6B6966] bg-[var(--color-page-bg)] rounded-lg active:bg-[#E8E4DF]">다른 식단</button>
-        </div>
-      )}
-    </div>
-  )
 }
 
 // ===== 혜택 3탭 (정부지원 / 축하박스 / 출산 후) =====
@@ -548,13 +306,6 @@ export default function PregnantPage() {
   const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
   const [showGuide, setShowGuide] = useState(false)
 
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  useEffect(() => {
-    createClient().auth.getUser().then(({ data }: any) => {
-      setAvatarUrl(data.user?.user_metadata?.avatar_url || null)
-    })
-  }, [])
-
   useEffect(() => {
     if (!localStorage.getItem('dodam_guide_pregnant')) {
       const t = setTimeout(() => setShowGuide(true), 1000)
@@ -575,7 +326,7 @@ export default function PregnantPage() {
     return {}
   })()
   const [weight, setWeight] = useState<number>(_initHealth.weight || 0)
-  const [bp, setBp] = useState<string>(_initHealth.bp || '')
+  const [bp] = useState<string>(_initHealth.bp || '')
   const [fetalMove, setFetalMove] = useState<number>(_initHealth.fetalMove || 0)
   const [edema, setEdema] = useState<string>(_initHealth.edema || '')
   const [mood, setMood] = useState<string>(() => {
@@ -585,8 +336,7 @@ export default function PregnantPage() {
 
   // 태교 일기
   const [diaryText, setDiaryText] = useState('')
-  const [diaryOpen, setDiaryOpen] = useState(false)
-  const [diarySaving, setDiarySaving] = useState(false)
+const [diarySaving, setDiarySaving] = useState(false)
   const [pregTodayEvents, setPregTodayEvents] = useState<{ id: number; type: string; data: Record<string, any>; timeStr: string }[]>(() => {
     if (typeof window !== 'undefined') {
       try { return JSON.parse(localStorage.getItem(`dodam_preg_events_${new Date().toISOString().split('T')[0]}`) || '[]') } catch { return [] }
@@ -622,10 +372,6 @@ export default function PregnantPage() {
   // AI
   const [aiBriefing, setAiBriefing] = useState<any>(null)
   const [aiLoading, setAiLoading] = useState(false)
-  // 식단
-  const [aiMeal, setAiMeal] = useState<any>(null)
-  const [aiMealLoading, setAiMealLoading] = useState(false)
-
   // 더보기
   const [moreOpen, setMoreOpen] = useState(false)
 
@@ -651,37 +397,12 @@ export default function PregnantPage() {
   const trimester = currentWeek <= 13 ? '초기' : currentWeek <= 27 ? '중기' : '후기'
   const upcomingCheckups = checkups.filter(c => c.week >= currentWeek && !checkupDone[c.id]).slice(0, 3)
 
-  // 저장 핸들러
-  const saveHealth = () => {
-    const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
-    all[today] = { weight, bp, fetalMove, edema }
-    localStorage.setItem('dodam_preg_health', JSON.stringify(all))
-  }
   const saveEdema = (level: string) => {
     setEdema(level)
     const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
     all[today] = { ...all[today], edema: level }
     localStorage.setItem('dodam_preg_health', JSON.stringify(all))
     showToast(level === 'none' ? '부종 없음 기록' : level === 'mild' ? '약간 부종 기록' : '심한 부종 기록')
-  }
-  // 최근 4주 체중 데이터 추출
-  const getWeightHistory = () => {
-    try {
-      const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
-      const dates = Object.keys(all).sort().slice(-28) // 최근 28일
-      // 주 단위로 그룹핑
-      const weeks: { label: string; weight: number }[] = []
-      for (let w = 0; w < 4; w++) {
-        const weekDates = dates.slice(w * 7, (w + 1) * 7)
-        const weights = weekDates.map(d => all[d]?.weight).filter((v: number) => v > 0)
-        if (weights.length > 0) {
-          weeks.push({ label: `${4 - w}주 전`, weight: weights[weights.length - 1] })
-        }
-      }
-      // 오늘 체중 추가
-      if (weight > 0) weeks.push({ label: '이번주', weight })
-      return weeks.length >= 2 ? weeks : []
-    } catch { return [] }
   }
   const saveMood = (m: string) => {
     setMood(m); localStorage.setItem(`dodam_preg_mood_${today}`, m)
@@ -719,7 +440,7 @@ export default function PregnantPage() {
     const entry = { text: diaryText.trim(), date: new Date().toISOString(), mood, comment }
     const next = [entry, ...diaries]
     setDiaries(next); localStorage.setItem('dodam_preg_diary', JSON.stringify(next))
-    setDiaryText(''); setDiaryOpen(false); setDiarySaving(false)
+    setDiaryText(''); setDiarySaving(false)
   }
 
   // 진통 타이머
@@ -757,19 +478,6 @@ export default function PregnantPage() {
       if (!data.error) { setAiBriefing(data); localStorage.setItem('dodam_preg_ai', JSON.stringify({ date: today, data })) }
     } catch { /* */ }
     setAiLoading(false)
-  }
-
-  const fetchMeal = async () => {
-    const cached = localStorage.getItem('dodam_preg_meal')
-    if (cached) { try { const { date, data } = JSON.parse(cached); if (date === today && data.breakfast) { setAiMeal(data); return } } catch { /* */ } }
-    setAiMealLoading(true)
-    try {
-      const res = await fetch('/api/ai-pregnant', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'meal', week: currentWeek }) })
-      const data = await res.json()
-      if (!data.error && data.breakfast) { setAiMeal(data); localStorage.setItem('dodam_preg_meal', JSON.stringify({ date: today, data })) }
-    } catch { /* */ }
-    setAiMealLoading(false)
   }
 
   // AI 자동 호출 제거 — 캐시만 복원
@@ -1068,7 +776,7 @@ export default function PregnantPage() {
             </>
           )
           const headerRight = (
-            <Link href="/health">
+            <Link href="/record">
               <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
             </Link>
           )

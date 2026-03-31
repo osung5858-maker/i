@@ -711,7 +711,7 @@ export default function PreparingPage() {
             </div>
           ) : null
           const headerRight = (
-            <Link href="/health">
+            <Link href="/record">
               <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
             </Link>
           )
