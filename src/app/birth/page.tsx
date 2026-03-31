@@ -7,6 +7,17 @@ import { shareBirth } from '@/lib/kakao/share-parenting'
 import IllustVideo from '@/components/ui/IllustVideo'
 import { PregnantIcon, PenIcon, HospitalIcon, EnvelopeIcon, BottleIcon, ChartIcon, SyringeIcon, BowlIcon, MoonIcon, RainbowIcon, BabyIcon } from '@/components/ui/Icons'
 
+// confetti 파티클은 클라이언트에서만 생성 (hydration mismatch 방지)
+const CONFETTI = Array.from({ length: 50 }, () => ({
+  left: Math.random() * 100,
+  top: Math.random() * 100,
+  delay: Math.random() * 2,
+  duration: 1.5 + Math.random() * 2,
+  size: 12 + Math.random() * 20,
+  opacity: 0.7 + Math.random() * 0.3,
+  char: ['*', '+', '·', ':', '*', '+', '·', ':', '+'][Math.floor(Math.random() * 9)],
+}))
+
 export default function BirthPage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
@@ -38,10 +49,10 @@ export default function BirthPage() {
       <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6 relative overflow-hidden">
         {showConfetti && (
           <div className="absolute inset-0 pointer-events-none">
-            {Array.from({ length: 50 }).map((_, i) => (
+            {CONFETTI.map((p, i) => (
               <div key={i} className="absolute animate-bounce"
-                style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 2}s`, animationDuration: `${1.5 + Math.random() * 2}s`, fontSize: `${12 + Math.random() * 20}px`, opacity: 0.7 + Math.random() * 0.3 }}>
-                {['*', '+', '·', ':', '*', '+', '·', ':', '+'][Math.floor(Math.random() * 9)]}
+                style={{ left: `${p.left}%`, top: `${p.top}%`, animationDelay: `${p.delay}s`, animationDuration: `${p.duration}s`, fontSize: `${p.size}px`, opacity: p.opacity }}>
+                {p.char}
               </div>
             ))}
           </div>

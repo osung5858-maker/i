@@ -6,6 +6,17 @@ import { PregnantIcon, EnvelopeIcon, CheckCircleIcon, SproutIcon, RainbowIcon } 
 import IllustVideo from '@/components/ui/IllustVideo'
 import { setSecure, getSecure } from '@/lib/secureStorage'
 
+// confetti 파티클은 클라이언트에서만 생성 (hydration mismatch 방지)
+const CONFETTI = Array.from({ length: 40 }, () => ({
+  left: Math.random() * 100,
+  top: Math.random() * 100,
+  delay: Math.random() * 2,
+  duration: 1.5 + Math.random() * 2,
+  size: 12 + Math.random() * 16,
+  opacity: 0.7 + Math.random() * 0.3,
+  char: ['*', '+', '·', ':', '*', '+', '·', ':'][Math.floor(Math.random() * 8)],
+}))
+
 export default function CelebrationPage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
@@ -44,20 +55,20 @@ export default function CelebrationPage() {
         {/* 축하 파티클 */}
         {showConfetti && (
           <div className="absolute inset-0 pointer-events-none">
-            {Array.from({ length: 40 }).map((_, i) => (
+            {CONFETTI.map((p, i) => (
               <div
                 key={i}
                 className="absolute animate-bounce"
                 style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 2}s`,
-                  animationDuration: `${1.5 + Math.random() * 2}s`,
-                  fontSize: `${12 + Math.random() * 16}px`,
-                  opacity: 0.7 + Math.random() * 0.3,
+                  left: `${p.left}%`,
+                  top: `${p.top}%`,
+                  animationDelay: `${p.delay}s`,
+                  animationDuration: `${p.duration}s`,
+                  fontSize: `${p.size}px`,
+                  opacity: p.opacity,
                 }}
               >
-                {['*', '+', '·', ':', '*', '+', '·', ':'][Math.floor(Math.random() * 8)]}
+                {p.char}
               </div>
             ))}
           </div>
