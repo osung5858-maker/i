@@ -7,11 +7,13 @@ import FeedSheet from '@/components/quick-buttons/FeedSheet'
 import PoopSheet from '@/components/quick-buttons/PoopSheet'
 import TempSheet from '@/components/quick-buttons/TempSheet'
 import Toast from '@/components/ui/Toast'
-import { BellIcon, ChevronRightIcon, BottleIcon, MoonIcon, PoopIcon, DropletIcon, ThermometerIcon, PillIcon, NoteIcon, SyringeIcon, BowlIcon, ChartIcon, SparkleIcon, BuildingIcon, BabyIcon, BathIcon, PumpIcon, CookieIcon, RiceIcon } from '@/components/ui/Icons'
+import { BellIcon, ChevronRightIcon, BottleIcon, MoonIcon, PoopIcon, DropletIcon, ThermometerIcon, PillIcon, NoteIcon, SyringeIcon, BowlIcon, ChartIcon, SparkleIcon, BuildingIcon, BabyIcon, BathIcon, PumpIcon, CookieIcon, RiceIcon, ActivityIcon, CompassIcon } from '@/components/ui/Icons'
 import { decrypt } from '@/lib/security/crypto'
 import { createClient } from '@/lib/supabase/client'
 import { shareTodayRecord } from '@/lib/kakao/share-parenting'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
+import TodayRecordSection from '@/components/ui/TodayRecordSection'
+import type { RecordTile } from '@/components/ui/TodayRecordSection'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
 import PushPrompt from '@/components/push/PushPrompt'
 import CareFlowCard from '@/components/care-flow/CareFlowCard'
@@ -491,42 +493,51 @@ export default function HomePage() {
           )}
 
 
-          {/* ━━━ 2. 최근 기록 ━━━ */}
-          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[14px] font-bold text-[#1A1918]">최근 기록 {events.length > 0 && <span className="text-[13px] text-[#9E9A95] font-normal ml-1">{events.length}건</span>}</p>
-              {events.length > 0 && (
-                <Link href={`/records/${new Date().toISOString().split('T')[0]}`} className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</Link>
-              )}
-            </div>
-            {events.length === 0 ? (
-              <p className="text-[14px] text-[#9E9A95] text-center py-3">아직 기록이 없어요. 펜 버튼으로 첫 기록을 남겨보세요!</p>
-            ) : (
-              <div className="max-h-[220px] overflow-y-auto hide-scrollbar">
-                {events.slice(0, 10).map((e) => {
-                  const time = new Date(e.start_ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
-                  const iconInfo = EVENT_ICON_MAP[e.type] || EVENT_ICON_DEFAULT
-                  const detail = e.amount_ml ? `${e.amount_ml}ml` :
-                    e.end_ts ? `${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` :
-                    e.tags?.celsius ? `${e.tags.celsius}°C` :
-                    e.tags?.status ? ({ normal: '정상', soft: '묽음', hard: '단단' }[e.tags.status as string] || '') : ''
-                  const isAlert = e.type === 'temp' && Number(e.tags?.celsius) >= 37.5
-
-                  return (
-                    <div key={e.id} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
-                      <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{time}</span>
-                      <div className={`w-7 h-7 rounded-full ${iconInfo.bg} flex items-center justify-center shrink-0`}>
-                        <iconInfo.Icon className={`w-3.5 h-3.5 ${iconInfo.color}`} />
+          {/* ━━━ 2. 오늘 기록 ━━━ */}
+          {(() => {
+            const tiles: RecordTile[] = [
+              { label: '수유', value: `${todayFeedCount}회`, color: todayFeedCount > 0 ? 'var(--color-primary)' : '#9E9A95' },
+              { label: '수면', value: `${todaySleepCount}회`, color: todaySleepCount > 0 ? '#7B6DB0' : '#9E9A95' },
+              { label: '대변', value: `${todayPoopCount}회`, color: todayPoopCount > 0 ? '#C4913E' : '#9E9A95' },
+            ]
+            const eventList = events.length > 0 ? (
+              <>
+                <Link href={`/records/${new Date().toISOString().split('T')[0]}`} className="flex justify-end mb-2">
+                  <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
+                </Link>
+                <div className="max-h-[200px] overflow-y-auto hide-scrollbar">
+                  {events.slice(0, 10).map((e) => {
+                    const time = new Date(e.start_ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
+                    const iconInfo = EVENT_ICON_MAP[e.type] || EVENT_ICON_DEFAULT
+                    const detail = e.amount_ml ? `${e.amount_ml}ml` :
+                      e.end_ts ? `${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` :
+                      e.tags?.celsius ? `${e.tags.celsius}°C` :
+                      e.tags?.status ? ({ normal: '정상', soft: '묽음', hard: '단단' }[e.tags.status as string] || '') : ''
+                    const isAlert = e.type === 'temp' && Number(e.tags?.celsius) >= 37.5
+                    return (
+                      <div key={e.id} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
+                        <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{time}</span>
+                        <div className={`w-7 h-7 rounded-full ${iconInfo.bg} flex items-center justify-center shrink-0`}>
+                          <iconInfo.Icon className={`w-3.5 h-3.5 ${iconInfo.color}`} />
+                        </div>
+                        <span className="text-[13px] font-semibold text-[#1A1918]">{getEventLabel(e)}</span>
+                        {detail && <span className={`text-[12px] font-medium ${isAlert ? 'text-red-500' : 'text-[var(--color-primary)]'}`}>{detail}</span>}
+                        {isAlert && <span className="text-[10px] bg-red-50 text-red-500 px-1 py-0.5 rounded font-bold">주의</span>}
                       </div>
-                      <span className="text-[13px] font-semibold text-[#1A1918]">{getEventLabel(e)}</span>
-                      {detail && <span className={`text-[12px] font-medium ${isAlert ? 'text-red-500' : 'text-[var(--color-primary)]'}`}>{detail}</span>}
-                      {isAlert && <span className="text-[10px] bg-red-50 text-red-500 px-1 py-0.5 rounded font-bold">주의</span>}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
+                    )
+                  })}
+                </div>
+              </>
+            ) : null
+            return (
+              <TodayRecordSection
+                count={events.length}
+                tiles={tiles}
+                emptyMessage="아직 기록이 없어요. 펜 버튼으로 첫 기록을 남겨보세요!"
+                footer={eventList}
+              />
+            )
+          })()}
 
           {/* ━━━ 3. 상태 카드 2열 ━━━ */}
           <div className="grid grid-cols-2 gap-2">
@@ -559,6 +570,25 @@ export default function HomePage() {
 
           {/* AI 식단 추천 (풀 너비) */}
           <AIMealCard mode="parenting" value={ageMonths} />
+
+          {/* 재미 콘텐츠 */}
+          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
+            <p className="text-[13px] font-bold text-[#1A1918] mb-2">재미</p>
+            <div className="grid grid-cols-3 gap-2">
+              <Link href="/fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+                <ActivityIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+                <p className="text-[12px] font-semibold text-[#1A1918]">바이오리듬</p>
+              </Link>
+              <Link href="/fortune?tab=zodiac" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+                <CompassIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+                <p className="text-[12px] font-semibold text-[#1A1918]">띠 · 별자리</p>
+              </Link>
+              <Link href="/fortune?tab=fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
+                <SparkleIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
+                <p className="text-[12px] font-semibold text-[#1A1918]">오늘의 운세</p>
+              </Link>
+            </div>
+          </div>
 
           {/* 키즈노트 — 조건부 노출 */}
           <KidsnoteCard ageMonths={ageMonths} />
