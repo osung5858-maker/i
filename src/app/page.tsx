@@ -871,12 +871,14 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
       {/* 오늘 요약 */}
       <div className="flex gap-2 mb-3">
         {[
-          { label: '수유', count: todayFeedCount, Icon: BottleIcon },
-          { label: '수면', count: todaySleepCount, Icon: MoonIcon },
-          { label: '배변', count: todayPoopCount, Icon: PoopIcon },
+          { label: '수유', count: todayFeedCount, Icon: BottleIcon, color: 'var(--color-primary)' },
+          { label: '수면', count: todaySleepCount, Icon: MoonIcon, color: '#7B6DB0' },
+          { label: '배변', count: todayPoopCount, Icon: PoopIcon, color: '#C4913E' },
         ].map((s) => (
           <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center">
-            <p className="text-[14px] font-bold text-[#1A1918] flex items-center justify-center gap-1"><s.Icon className="w-4 h-4" /> {s.count}</p>
+            <p className="text-[14px] font-bold flex items-center justify-center gap-1" style={{ color: s.color }}>
+              <s.Icon className="w-4 h-4" /> {s.count}
+            </p>
             <p className="text-[13px] text-[#9E9A95]">{s.label}</p>
           </div>
         ))}
