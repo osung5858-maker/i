@@ -9,6 +9,7 @@ import {
   PlusIcon, XIcon, BookOpenIcon, MenuIcon, BottleIcon, MoonIcon, PoopIcon, ThermometerIcon,
   DropletIcon, PillIcon, BreastfeedIcon, BowlIcon, DiaperIcon, HospitalIcon,
   NoteIcon, ArrowLeftIcon, CookieIcon, RiceIcon, PumpIcon, BathIcon, NapIcon, NightIcon,
+  HeartFilledIcon, ActivityIcon, MusicIcon, PenIcon,
 } from '@/components/ui/Icons'
 import { autoBackup, restoreLocalData } from '@/lib/storage/backup'
 import { createClient } from '@/lib/supabase/client'
@@ -110,6 +111,30 @@ function buildCategories(ageMonths: number): RecordCategory[] {
   return cats
 }
 
+function buildPregnantCategories(): RecordCategory[] {
+  return [
+    { key: 'mood', label: '기분', color: '#FF8FAB', items: [
+      { type: 'preg_mood_happy', label: '행복', baseType: 'preg_mood', tags: { mood: 'happy' } },
+      { type: 'preg_mood_calm', label: '평온', baseType: 'preg_mood', tags: { mood: 'calm' } },
+      { type: 'preg_mood_anxious', label: '불안', baseType: 'preg_mood', tags: { mood: 'anxious' } },
+      { type: 'preg_mood_sick', label: '입덧', baseType: 'preg_mood', tags: { mood: 'sick' } },
+      { type: 'preg_mood_tired', label: '피곤', baseType: 'preg_mood', tags: { mood: 'tired' } },
+    ]},
+    { key: 'fetal', label: '태동', color: '#90C8A8', items: [
+      { type: 'preg_fetal_move', label: '태동 +1' },
+    ]},
+    { key: 'health', label: '건강', color: '#D08068', items: [
+      { type: 'preg_weight', label: '체중', isSlider: true },
+      { type: 'preg_edema_none', label: '부종 없음', baseType: 'preg_edema', tags: { level: 'none' } },
+      { type: 'preg_edema_mild', label: '부종 약함', baseType: 'preg_edema', tags: { level: 'mild' } },
+      { type: 'preg_edema_severe', label: '부종 심함', baseType: 'preg_edema', tags: { level: 'severe' } },
+    ]},
+    { key: 'diary', label: '태교일기', color: '#6366F1', items: [
+      { type: 'preg_diary', label: '일기 쓰기' },
+    ]},
+  ]
+}
+
 interface RecordItem {
   type: string; label: string
   hasInput?: string
@@ -191,7 +216,7 @@ function BottomNavComponent() {
   }, [pathname])
 
   const tabs = TABS_BY_MODE[mode] || TABS_BY_MODE.parenting
-  const DYNAMIC_CATEGORIES = buildCategories(getAgeMonths())
+  const DYNAMIC_CATEGORIES = mode === 'pregnant' ? buildPregnantCategories() : buildCategories(getAgeMonths())
 
   // 다른 페이지로 이동하면 FAB 닫기
   useEffect(() => { setFabOpen(false) }, [pathname])
@@ -201,6 +226,7 @@ function BottomNavComponent() {
   const [tempSlider, setTempSlider] = useState<string | null>(null) // 슬라이더 열린 아이템 타입
   const [tempValue, setTempValue] = useState(36.5)
   const [feedValue, setFeedValue] = useState(120)
+  const [weightValue, setWeightValue] = useState(60.0)
   const [memoItem, setMemoItem] = useState<string | null>(null) // 투약 메모
   const [memoText, setMemoText] = useState('')
   const fabStyle = 'B' as const // B안 확정
@@ -232,7 +258,7 @@ function BottomNavComponent() {
     window.dispatchEvent(event)
 
     // page.tsx가 없는 페이지(추억/동네/우리 등)에서는 직접 DB 저장
-    if (!(event.detail as any)._handled) {
+    if (!(event.detail as any)._handled && !type.startsWith('preg_')) {
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -407,6 +433,9 @@ function BottomNavComponent() {
                             diaper: <DiaperIcon className="w-8 h-8" />,
                             health: <HospitalIcon className="w-8 h-8" />,
                             more: <NoteIcon className="w-8 h-8" />,
+                            mood: <HeartFilledIcon className="w-8 h-8" />,
+                            fetal: <ActivityIcon className="w-8 h-8" />,
+                            diary: <MusicIcon className="w-8 h-8" />,
                           }
                           return <span style={{ color: cat.color }}>{iconMap[cat.key] || <NoteIcon className="w-8 h-8" />}</span>
                         })()}
@@ -423,6 +452,7 @@ function BottomNavComponent() {
         if (tempSlider) {
           const isTemp = tempSlider === 'temp'
           const isFeed = tempSlider === 'feed'
+          const isWeight = tempSlider === 'preg_weight'
 
           // 체온 설정
           const isHigh = tempValue >= 37.5
@@ -505,6 +535,41 @@ function BottomNavComponent() {
                         <button onClick={() => { handleQuickRecord('feed', { amount_ml: feedValue }); setTempSlider(null) }}
                           className="flex-[2] py-3 rounded-xl text-[14px] font-bold text-white active:scale-95 transition-transform" style={{ background: 'var(--color-primary)' }}>
                           분유 {feedValue}ml 기록
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {isWeight && (
+                    <>
+                      <div className="text-center mb-4">
+                        <span className="text-[42px] font-bold tabular-nums" style={{ color: 'var(--color-primary)' }}>{weightValue.toFixed(1)}</span>
+                        <span className="text-[18px] font-medium text-[#9E9A95] ml-1">kg</span>
+                      </div>
+                      <div className="px-1 mb-4">
+                        <input type="range" min={40} max={120} step={0.1} value={weightValue}
+                          onChange={(e) => setWeightValue(parseFloat(e.target.value))}
+                          className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                          style={{ background: `linear-gradient(to right, var(--color-primary) ${((weightValue - 40) / 80) * 100}%, #E8E4DF ${((weightValue - 40) / 80) * 100}%)` }}
+                        />
+                        <div className="flex justify-between text-[10px] text-[#9E9A95] mt-1 px-0.5">
+                          <span>40</span><span>60</span><span>80</span><span>100</span><span>120kg</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5 mb-4">
+                        {[50, 55, 60, 65, 70, 75].map((v) => (
+                          <button key={v} onClick={() => setWeightValue(v)}
+                            className="flex-1 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95"
+                            style={{ backgroundColor: Math.abs(weightValue - v) < 0.05 ? 'var(--color-primary)' : '#F5F3F0', color: Math.abs(weightValue - v) < 0.05 ? 'white' : '#6B6966' }}>
+                            {v}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-[14px] font-medium text-[#6B6966] bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
+                        <button onClick={() => { handleQuickRecord('preg_weight', { tags: { kg: weightValue } }); setTempSlider(null) }}
+                          className="flex-[2] py-3 rounded-xl text-[14px] font-bold text-white active:scale-95 transition-transform" style={{ background: 'var(--color-primary)' }}>
+                          {weightValue.toFixed(1)}kg 기록
                         </button>
                       </div>
                     </>
@@ -645,7 +710,20 @@ function BottomNavComponent() {
                             memo: <PillIcon className="w-7 h-7" />,
                             note: <NoteIcon className="w-7 h-7" />,
                           }
-                          return <span style={{ color: cat.color }}>{itemIconMap[item.type] || <NoteIcon className="w-7 h-7" />}</span>
+                          const pregIconMap: Record<string, React.ReactNode> = {
+                            preg_mood_happy: <HeartFilledIcon className="w-7 h-7" />,
+                            preg_mood_calm: <HeartFilledIcon className="w-7 h-7" />,
+                            preg_mood_anxious: <HeartFilledIcon className="w-7 h-7" />,
+                            preg_mood_sick: <HeartFilledIcon className="w-7 h-7" />,
+                            preg_mood_tired: <HeartFilledIcon className="w-7 h-7" />,
+                            preg_fetal_move: <ActivityIcon className="w-7 h-7" />,
+                            preg_weight: <ThermometerIcon className="w-7 h-7" />,
+                            preg_edema_none: <DropletIcon className="w-7 h-7" />,
+                            preg_edema_mild: <DropletIcon className="w-7 h-7" />,
+                            preg_edema_severe: <DropletIcon className="w-7 h-7" />,
+                            preg_diary: <PenIcon className="w-7 h-7" />,
+                          }
+                          return <span style={{ color: cat.color }}>{pregIconMap[item.type] || itemIconMap[item.type] || <NoteIcon className="w-7 h-7" />}</span>
                         })()}
                       </button>
                       <span className="text-[12px] font-bold text-white whitespace-nowrap bg-black/50 px-2 py-0.5 rounded-full">{item.label}</span>
@@ -667,7 +745,7 @@ function BottomNavComponent() {
       {/* BNB 바 — Pill Style */}
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[65] pt-3 pr-5 pb-[max(20px,env(safe-area-inset-bottom))] pl-5">
         <div className="flex items-center h-[62px] rounded-[36px] bg-white/95 backdrop-blur-lg border border-[#E8E4DF]/60 p-1" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
-          {mode === 'preparing' || mode === 'pregnant' ? (
+          {mode === 'preparing' ? (
             tabs.map((tab) => (
               <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more', '/waiting': 'nav-waiting' }[tab.href]} />
             ))
@@ -679,7 +757,7 @@ function BottomNavComponent() {
 
               {/* 중앙 FAB (물방울 — pill 위로 돌출) */}
               <div data-guide="fab" className="flex-1 flex items-center justify-center relative">
-                {activeSession ? (
+                {activeSession && mode !== 'pregnant' ? (
                   <button
                     onClick={endSession}
                     className="absolute -top-14 flex flex-col items-center justify-center transition-transform duration-200 active:scale-95"

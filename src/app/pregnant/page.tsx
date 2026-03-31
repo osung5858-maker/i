@@ -597,6 +597,12 @@ export default function PregnantPage() {
   const [diaryText, setDiaryText] = useState('')
   const [diaryOpen, setDiaryOpen] = useState(false)
   const [diarySaving, setDiarySaving] = useState(false)
+  const [pregTodayEvents, setPregTodayEvents] = useState<{ id: number; type: string; data: Record<string, any>; timeStr: string }[]>(() => {
+    if (typeof window !== 'undefined') {
+      try { return JSON.parse(localStorage.getItem(`dodam_preg_events_${new Date().toISOString().split('T')[0]}`) || '[]') } catch { return [] }
+    }
+    return []
+  })
   const [diarySheetOpen, setDiarySheetOpen] = useState(false)
   const [diaries, setDiaries] = useState<{ text: string; date: string; mood: string; comment: string }[]>(() => {
     if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] } }
@@ -784,6 +790,52 @@ export default function PregnantPage() {
     }
   }, [!!dueDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // FAB 기록 이벤트 수신
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as any
+      detail._handled = true
+
+      if (detail.type === 'preg_diary') {
+        setDiarySheetOpen(true)
+        return
+      }
+
+      const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
+      const newEvent = { id: Date.now(), type: detail.type, data: detail, timeStr }
+
+      setPregTodayEvents(prev => {
+        const updated = [newEvent, ...prev]
+        try { localStorage.setItem(`dodam_preg_events_${today}`, JSON.stringify(updated)) } catch { /* */ }
+        return updated
+      })
+
+      if (detail.type === 'preg_mood' && detail.tags?.mood) {
+        saveMood(detail.tags.mood)
+      } else if (detail.type === 'preg_fetal_move') {
+        setFetalMove(prev => {
+          const next = prev + 1
+          const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
+          all[today] = { ...all[today], fetalMove: next }
+          localStorage.setItem('dodam_preg_health', JSON.stringify(all))
+          showToast('태동 기록!')
+          return next
+        })
+      } else if (detail.type === 'preg_weight' && detail.tags?.kg) {
+        const kg = detail.tags.kg
+        setWeight(kg)
+        const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
+        all[today] = { ...all[today], weight: kg }
+        localStorage.setItem('dodam_preg_health', JSON.stringify(all))
+        showToast(`체중 ${kg}kg 기록!`)
+      } else if (detail.type === 'preg_edema' && detail.tags?.level) {
+        saveEdema(detail.tags.level)
+      }
+    }
+    window.addEventListener('dodam-record', handler)
+    return () => window.removeEventListener('dodam-record', handler)
+  }, [today]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // 출산 예정일 입력
   const [tempDueDate, setTempDueDate] = useState(dueDate)
   if (editingDate) {
@@ -923,40 +975,74 @@ export default function PregnantPage() {
         {/* 푸시 알림 동의 */}
         <PushPrompt message="검진일과 주차 변경을 알려드릴까요?" />
 
-        {/* ━━━ 2. 오늘 할 일 ━━━ */}
-        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <p className="text-[14px] font-bold text-[#1A1918] mb-3">오늘 기록</p>
+        {/* ━━━ 2. 오늘 기록 타임라인 ━━━ */}
+        {(() => {
+          const PREG_EVENT_LABELS: Record<string, (d: any) => string> = {
+            preg_mood: (d) => ({ happy: '기분 좋음 😊', calm: '평온함 😌', anxious: '불안함 😰', sick: '입덧 🤢', tired: '피곤함 😫' } as Record<string, string>)[d.tags?.mood] || '기분 기록',
+            preg_fetal_move: () => '태동 기록',
+            preg_weight: (d) => `체중 ${d.tags?.kg}kg 기록`,
+            preg_edema: (d) => ({ none: '부종 없음 💧', mild: '부종 약함', severe: '부종 심함 ⚠️' } as Record<string, string>)[d.tags?.level] || '부종 기록',
+          }
+          return (
+            <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[14px] font-bold text-[#1A1918]">오늘 기록</p>
+                {pregTodayEvents.length > 0 && (
+                  <span className="text-[12px] text-[#9E9A95]">{pregTodayEvents.length}건</span>
+                )}
+              </div>
 
-          {/* 감정 */}
-          <div data-guide="mood" className="mb-3">
-            <p className="text-[14px] font-semibold text-[#6B6966] mb-1.5">오늘 기분</p>
-            <div className="flex gap-1.5">
-              {MOODS.map(m => (
-                <button key={m.key} onClick={() => saveMood(m.key)}
-                  className={`flex-1 py-1.5 rounded-lg text-center ${mood === m.key ? 'bg-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/30' : 'bg-[var(--color-page-bg)]'}`}>
-                  <p className="flex flex-col items-center"><span style={{ color: mood === m.key ? 'white' : m.color }}><m.Icon className="w-5 h-5" /></span><span className="text-[11px] block mt-0.5">{m.label}</span></p>
+              {pregTodayEvents.length === 0 ? (
+                <div className="py-5 text-center">
+                  <p className="text-[13px] text-[#9E9A95]">아래 기록 버튼으로</p>
+                  <p className="text-[13px] text-[#9E9A95]">오늘의 첫 기록을 남겨보세요</p>
+                </div>
+              ) : (
+                <div className="space-y-1 mb-3">
+                  {pregTodayEvents.map((ev) => (
+                    <div key={ev.id} className="flex items-center gap-3 py-1.5 border-b border-[#F5F3F0] last:border-0">
+                      <span className="text-[11px] text-[#9E9A95] shrink-0 w-10 tabular-nums">{ev.timeStr}</span>
+                      <p className="text-[13px] text-[#1A1918]">{PREG_EVENT_LABELS[ev.type]?.(ev.data) || ev.type}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 태교일기 CTA */}
+              <div className={pregTodayEvents.length > 0 ? 'mt-2 pt-3 border-t border-[#E8E4DF]' : ''}>
+                <button onClick={() => setDiarySheetOpen(true)} className="w-full flex items-center gap-3 bg-[var(--color-page-bg)] rounded-xl p-3 active:bg-[#F0EDE8]">
+                  <PenIcon className="w-5 h-5 text-[#6B6966]" />
+                  <div className="flex-1 text-left">
+                    <p className="text-[13px] font-bold text-[#1A1918]">태교일기 쓰기</p>
+                    <p className="text-[12px] text-[#9E9A95]">{diaries.length > 0 ? `최근: ${new Date(diaries[0].date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}` : '오늘의 첫 일기를 남겨보세요'}</p>
+                  </div>
+                  <span className="text-[#9E9A95]">→</span>
                 </button>
-              ))}
+                {diaries.length > 0 && (
+                  <div className="mt-2 p-2.5 bg-white rounded-lg border border-[#E8E4DF]">
+                    <p className="text-[13px] text-[#1A1918] line-clamp-2">{diaries[0].text}</p>
+                    {diaries[0].comment && <p className="text-[12px] text-[var(--color-primary)] mt-1 italic">{diaries[0].comment}</p>}
+                  </div>
+                )}
+              </div>
             </div>
-            {mood && (
-              <p className="text-[13px] text-[var(--color-primary)] mt-2 text-center">
-                {({ happy: '행복한 엄마, 행복한 아이! 오늘도 도담하게', calm: '평온한 마음이 아이에게 최고의 태교예요', anxious: '걱정은 사랑의 다른 이름이에요. 괜찮아요', sick: '입덧이 힘들죠. 이것도 아이가 잘 자라는 신호예요', tired: '피곤한 날엔 아이와 함께 쉬어요. 쉬는 것도 돌봄이에요' } as Record<string, string>)[mood]}
-              </p>
-            )}
-          </div>
+          )
+        })()}
 
-          {/* 오늘 챙기기 (실생활 맞춤) */}
-          {(() => {
-            const key = `dodam_preg_daily_${today}`
-            const saved = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem(key) || '{}') : {}
-            const items = [
-              { id: 'water', Icon: WaterGlassIcon, label: '물', desc: '수분 섭취', max: 8, unit: '잔' },
-              { id: 'walk', Icon: WalkIcon, label: '걷기', desc: '가벼운 산책', max: 1, unit: '' },
-              { id: 'folic', Icon: VitaminIcon, label: '영양제', desc: '엽산·철분·비타민D', max: 1, unit: '' },
-              { id: 'stretch', Icon: StretchIcon, label: '스트레칭', desc: '5분 혈액순환', max: 1, unit: '' },
-            ]
-            return (
-              <div data-guide="daily-check" className="grid grid-cols-4 gap-1.5 mb-3">
+        {/* ━━━ 오늘 챙기기 ━━━ */}
+        {(() => {
+          const key = `dodam_preg_daily_${today}`
+          const saved = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem(key) || '{}') : {}
+          const items = [
+            { id: 'water', Icon: WaterGlassIcon, label: '물', max: 8, unit: '잔' },
+            { id: 'walk', Icon: WalkIcon, label: '걷기', max: 1, unit: '' },
+            { id: 'folic', Icon: VitaminIcon, label: '영양제', max: 1, unit: '' },
+            { id: 'stretch', Icon: StretchIcon, label: '스트레칭', max: 1, unit: '' },
+          ]
+          return (
+            <div data-guide="daily-check" className="bg-white rounded-xl border border-[#E8E4DF] p-4">
+              <p className="text-[14px] font-bold text-[#1A1918] mb-2">오늘 챙기기</p>
+              <div className="grid grid-cols-4 gap-1.5">
                 {items.map(it => {
                   const count = typeof saved[it.id] === 'number' ? saved[it.id] : (saved[it.id] ? 1 : 0)
                   const done = count >= it.max
@@ -978,88 +1064,9 @@ export default function PregnantPage() {
                   )
                 })}
               </div>
-            )
-          })()}
-
-          {/* 태동 카운터 */}
-          <div className="flex items-center justify-between mb-3 bg-[var(--color-page-bg)] rounded-xl p-3">
-            <div>
-              <p className="text-[13px] font-semibold text-[#1A1918]">태동 카운터</p>
-              <p className="text-[11px] text-[#9E9A95]">2시간 동안 10회 이상이면 정상</p>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => { setFetalMove(Math.max(0, fetalMove - 1)); haptic() }} className="w-8 h-8 rounded-full bg-white text-[14px] border border-[#E8E4DF]">−</button>
-              <span className="text-[16px] font-bold text-[var(--color-primary)] w-8 text-center">{fetalMove}</span>
-              <button onClick={() => { setFetalMove(fetalMove + 1); showToast(`태동 ${fetalMove + 1}회!`) }} className="w-8 h-8 rounded-full bg-[var(--color-primary)] text-white text-[14px]">+</button>
-            </div>
-          </div>
-
-          {/* 부종 레벨 */}
-          <div className="mb-3">
-            <p className="text-[13px] font-semibold text-[#1A1918] mb-1.5">부종</p>
-            <div className="flex gap-2">
-              {[
-                { key: 'none', label: '없음', color: 'bg-[#E8F5EE] text-[var(--color-primary)]' },
-                { key: 'mild', label: '약간', color: 'bg-[#FFF8F3] text-[#C4A35A]' },
-                { key: 'severe', label: '심함', color: 'bg-[#FDE8E8] text-[#D08068]' },
-              ].map(e => (
-                <button key={e.key} onClick={() => saveEdema(e.key)}
-                  className={`flex-1 py-2 rounded-xl text-[13px] font-semibold transition-colors ${edema === e.key ? e.color + ' ring-2 ring-current/20' : 'bg-[var(--color-page-bg)] text-[#9E9A95]'}`}>
-                  {e.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 체중 트렌드 (최근 4주) */}
-          {(() => {
-            const history = getWeightHistory()
-            if (history.length < 2) return null
-            const maxW = Math.max(...history.map(h => h.weight))
-            const minW = Math.min(...history.map(h => h.weight))
-            const range = maxW - minW || 1
-            return (
-              <div className="mb-3 bg-[var(--color-page-bg)] rounded-xl p-3">
-                <p className="text-[13px] font-semibold text-[#1A1918] mb-2">체중 변화 (최근 4주)</p>
-                <div className="flex items-end gap-1.5" style={{ height: 60 }}>
-                  {history.map((h, i) => {
-                    const pct = ((h.weight - minW) / range) * 60 + 20
-                    return (
-                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                        <span className="text-[10px] text-[var(--color-primary)] font-bold">{h.weight}</span>
-                        <div className="w-full rounded-t-md bg-[var(--color-primary)]" style={{ height: `${pct}%`, minHeight: 8, opacity: 0.3 + (i / history.length) * 0.7 }} />
-                        <span className="text-[10px] text-[#9E9A95]">{h.label}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-                {history.length >= 2 && (
-                  <p className="text-[11px] text-[#6B6966] mt-1.5 text-center">
-                    변화: {(history[history.length - 1].weight - history[0].weight) > 0 ? '+' : ''}{(history[history.length - 1].weight - history[0].weight).toFixed(1)}kg
-                  </p>
-                )}
-              </div>
-            )
-          })()}
-
-          {/* 태교 일기 — 바텀시트 CTA */}
-          <div className="mt-3 pt-3 border-t border-[#E8E4DF]">
-            <button onClick={() => setDiarySheetOpen(true)} className="w-full flex items-center gap-3 bg-[var(--color-page-bg)] rounded-xl p-3 active:bg-[#F0EDE8]">
-              <PenIcon className="w-5 h-5 text-[#6B6966]" />
-              <div className="flex-1 text-left">
-                <p className="text-[13px] font-bold text-[#1A1918]">태교일기 쓰기</p>
-                <p className="text-[12px] text-[#9E9A95]">{diaries.length > 0 ? `최근: ${diaries[0].date}` : '오늘의 첫 일기를 남겨보세요'}</p>
-              </div>
-              <span className="text-[#9E9A95]">→</span>
-            </button>
-            {diaries.length > 0 && (
-              <div className="mt-2 p-2.5 bg-white rounded-lg border border-[#E8E4DF]">
-                <p className="text-[13px] text-[#1A1918] line-clamp-2">{diaries[0].text}</p>
-                {diaries[0].comment && <p className="text-[12px] text-[var(--color-primary)] mt-1 italic">{diaries[0].comment}</p>}
-              </div>
-            )}
-          </div>
-        </div>
+          )
+        })()}
 
         {/* 검진 기록 · 식단 추천 → 성장 탭/우리 탭으로 이동 완료 */}
 
