@@ -747,8 +747,8 @@ const [diarySaving, setDiarySaving] = useState(false)
                 return (
                   <div key={ev.id} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
                     <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{ev.timeStr}</span>
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.bg }}>
-                      <cfg.Icon className="w-3.5 h-3.5" style={{ color: cfg.color }} />
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
+                      <cfg.Icon className="w-3.5 h-3.5" />
                     </div>
                     <span className="text-[13px] font-semibold text-[#1A1918]">{cfg.label}</span>
                   </div>
