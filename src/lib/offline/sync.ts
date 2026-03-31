@@ -3,6 +3,11 @@ import { getPendingEvents, removePendingEvent } from './db'
 
 export async function syncPendingEvents(): Promise<number> {
   const supabase = createClient()
+
+  // 인증 세션 확인 — 없으면 동기화 건너뜀 (401/400 방지)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 0
+
   const pending = await getPendingEvents()
 
   if (pending.length === 0) return 0

@@ -209,10 +209,10 @@ export default function HomePage() {
     return () => window.removeEventListener('devicemotion', handler)
   }, [router])
 
-  // 오프라인 이벤트 재동기화
+  // 오프라인 이벤트 재동기화 — user & child 준비 후에만 실행
   useEffect(() => {
     const syncPending = async () => {
-      if (!navigator.onLine || !user) return
+      if (!navigator.onLine || !user || !child) return
       try {
         const { getPendingEvents, clearSyncedEvents } = await import('@/lib/offline/db')
         const pending = await getPendingEvents()
@@ -569,7 +569,7 @@ export default function HomePage() {
           <AIMealCard mode="parenting" value={ageMonths} />
 
           {/* 키즈노트 — 조건부 노출 */}
-          <KidsnoteCard ageMonths={ageMonths} />
+          <KidsnoteCard ageMonths={ageMonths} userId={user?.id} />
 
           {/* 재미 콘텐츠 */}
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
@@ -646,7 +646,7 @@ function KnImageViewer({ images, startIndex, onClose }: { images: { original: st
   )
 }
 
-function KidsnoteCard({ ageMonths }: { ageMonths: number }) {
+function KidsnoteCard({ ageMonths, userId }: { ageMonths: number; userId?: string }) {
   const [connected, setConnected] = useState(false)
   const [reports, setReports] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -701,12 +701,13 @@ function KidsnoteCard({ ageMonths }: { ageMonths: number }) {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    if (!userId) return // 인증 완료 전에는 실행하지 않음
     const hasCreds = !!localStorage.getItem('kn_credentials_enc') || !!localStorage.getItem('kn_credentials')
     const hasDaycare = localStorage.getItem('dodam_daycare') === 'true'
     setConnected(hasCreds)
     setDaycare(hasDaycare)
     if (hasCreds) autoFetch()
-  }, [])
+  }, [userId])
 
   // 노출 조건: 연동됨 OR 어린이집 등록 OR 12개월+
   if (!connected && !daycare && ageMonths < 12) return null

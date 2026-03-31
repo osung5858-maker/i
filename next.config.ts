@@ -40,7 +40,7 @@ const nextConfig: NextConfig = {
         key: 'Content-Security-Policy',
         value: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://dapi.kakao.com https://t1.daumcdn.net https://pagead2.googlesyndication.com https://www.googletagmanager.com https://va.vercel-scripts.com",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://dapi.kakao.com https://t1.kakaocdn.net https://t2.kakaocdn.net https://t1.daumcdn.net https://pagead2.googlesyndication.com https://www.googletagmanager.com https://va.vercel-scripts.com",
           "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
           "img-src 'self' data: blob: https: http:",
           "font-src 'self' data: https://cdn.jsdelivr.net",
