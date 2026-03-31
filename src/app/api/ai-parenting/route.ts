@@ -158,6 +158,43 @@ JSON으로 출력:
       }
     }
 
+    // === 양육자 식단 추천 ===
+    if (type === 'caregiver_meal') {
+      const { ageMonths } = body
+      const cacheKey = `caregiver-meal-v1-${new Date().toISOString().split('T')[0]}`
+      const cached = getCachedResponse(cacheKey)
+      if (cached) return NextResponse.json(cached)
+
+      const prompt = `${ageMonths}개월 아기를 키우는 양육자를 위한 오늘의 식단을 추천해주세요.
+육아로 바쁜 현실을 고려해 간단하면서도 영양 균형 잡힌 식단으로.
+각 끼니는 밥 1가지 + 국/찌개 1가지 + 메인반찬(단백질) 1가지 + 나물/채소반찬 + 김치류로 구성하세요.
+
+JSON으로 출력:
+{
+  "dishTitle": "점심 대표 요리명만 짧게",
+  "cuisine": "한식 또는 양식 또는 중식 또는 일식 중 하나만",
+  "breakfast": {"menu": "밥 이름 (예: 잡곡밥)", "sides": ["국/찌개", "메인반찬(단백질요리)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
+  "lunch": {"menu": "밥 이름 (예: 현미밥)", "sides": ["국/찌개", "메인반찬(단백질요리)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
+  "dinner": {"menu": "밥 이름 (예: 잡곡밥)", "sides": ["국/찌개", "메인반찬(단백질요리)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
+  "snack": {"menu": "간식명 (예: 두유)", "sides": ["견과류", "과일"], "calories": 숫자, "reason": "이유 1줄"},
+  "keyNutrient": "육아 중 양육자에게 중요한 영양소",
+  "avoid": "피로 회복을 위해 피할 것"
+}
+한국 가정식 위주. calories는 해당 끼니 예상 총칼로리(kcal, 숫자만). JSON만 출력.`
+
+      const { text, error } = await callGemini(prompt, 800)
+      if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })
+      try {
+        const match = text.match(/\{[\s\S]*\}/)
+        if (!match) return NextResponse.json({ error: 'parse error' }, { status: 500 })
+        const result = JSON.parse(match[0])
+        setCachedResponse(cacheKey, result)
+        return NextResponse.json(result)
+      } catch {
+        return NextResponse.json({ error: 'parse error' }, { status: 500 })
+      }
+    }
+
     return NextResponse.json({ error: 'Unknown type' }, { status: 400 })
   } catch {
     return NextResponse.json({ error: 'Server error' }, { status: 500 })

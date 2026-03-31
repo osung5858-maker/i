@@ -28,15 +28,20 @@ function getLabel(mode: string, value: number, phase?: string) {
   return (ko[phase || ''] || '맞춤') + ' 식단'
 }
 
-function getApiConfig(mode: string, value: number, phase?: string) {
-  if (mode === 'parenting') return { url: '/api/ai-parenting', body: { type: 'meal', ageMonths: value } }
+function getApiConfig(mode: string, value: number, phase?: string, tab?: string) {
+  if (mode === 'parenting') {
+    if (tab === 'caregiver') return { url: '/api/ai-parenting', body: { type: 'caregiver_meal', ageMonths: value } }
+    return { url: '/api/ai-parenting', body: { type: 'meal', ageMonths: value } }
+  }
   if (mode === 'pregnant') return { url: '/api/ai-pregnant', body: { type: 'meal', week: value } }
   return { url: '/api/ai-preparing', body: { type: 'meal', phase: phase || 'follicular' } }
 }
 
-function getCacheKey(mode: string, value: number, phase?: string) {
+function getCacheKey(mode: string, value: number, phase?: string, tab?: string) {
   const d = new Date().toISOString().split('T')[0]
-  return mode === 'parenting' ? `dodam_meal_v2_${value}_${d}` : mode === 'pregnant' ? `dodam_preg_meal_v2_${value}_${d}` : `dodam_prep_meal_v2_${phase}_${d}`
+  if (mode === 'parenting') return tab === 'caregiver' ? `dodam_caregiver_meal_v1_${d}` : `dodam_meal_v2_${value}_${d}`
+  if (mode === 'pregnant') return `dodam_preg_meal_v3_${value}_${d}`
+  return `dodam_prep_meal_v3_${phase}_${d}`
 }
 
 const CUISINE_MAP: [RegExp, string, string][] = [
@@ -74,37 +79,131 @@ function getRestaurantQuery(menuText: string, mode: string): string {
   return mode === 'parenting' ? '아이 동반 식당' : mode === 'pregnant' ? '임산부 맛집' : '건강식'
 }
 
+function MealRows({ meal, mode }: { meal: MealData; mode: string }) {
+  const meals = [
+    { key: '아침', data: meal.breakfast },
+    { key: '점심', data: meal.lunch },
+    ...(meal.dinner ? [{ key: '저녁', data: meal.dinner }] : []),
+    { key: '간식', data: meal.snack },
+  ].filter(m => m.data)
+
+  return (
+    <>
+      {meals.map((m, i) => {
+        const cuisine = detectCuisine(m.data!.menu)
+        const sides = m.data!.sides || []
+        return (
+          <div key={m.key} className={`flex items-center gap-3 py-2.5 ${i < meals.length - 1 ? 'border-b border-[#F0EDE8]' : ''}`}>
+            <div className="w-10 shrink-0 flex flex-col items-center gap-0.5">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: MEAL_COLOR[m.key] }} />
+              <span className="text-[10px] font-semibold text-[#9E9A95]">{m.key}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-[13px] font-semibold text-[#1A1918] leading-snug">{m.data!.menu}</p>
+                {cuisine && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold text-[#6B6966] leading-none" style={{ backgroundColor: cuisine.bg }}>
+                    {cuisine.label}
+                  </span>
+                )}
+                {m.data!.calories && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold text-[#9E9A95] bg-[#F0EDE8] leading-none">
+                    {m.data!.calories}kcal
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-[#9E9A95] leading-snug truncate mt-0.5">
+                {sides.length > 0 ? sides.join(' · ') : (m.data!.ingredients || '')}
+              </p>
+            </div>
+            <Link href={`/map?q=${encodeURIComponent(getRestaurantQuery(m.data!.menu, mode))}`} className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-[#F0F4FF] active:bg-[#D5DFEF]">
+              <MapPinIcon className="w-3.5 h-3.5 text-[#4A6FA5]" />
+            </Link>
+          </div>
+        )
+      })}
+      {(meal.keyNutrient || meal.avoid) && (
+        <div className="flex gap-2 pt-2 flex-wrap">
+          {meal.keyNutrient && <span className="text-[10px] text-[#2D7A4A] bg-[#F0F9F4] px-2 py-1 rounded-full">{meal.keyNutrient}</span>}
+          {meal.avoid && <span className="text-[10px] text-[#D08068] bg-[#FDF2F2] px-2 py-1 rounded-full">⚠ {meal.avoid}</span>}
+        </div>
+      )}
+    </>
+  )
+}
+
 export default function AIMealCard({ mode, value, phase }: Props) {
-  const [meal, setMeal] = useState<MealData | null>(null)
-  const [loading, setLoading] = useState(false)
+  const isParenting = mode === 'parenting'
+
+  // 아이 식단
+  const [childMeal, setChildMeal] = useState<MealData | null>(null)
+  const [childLoading, setChildLoading] = useState(false)
+
+  // 양육자 식단 (parenting 전용)
+  const [caregiverMeal, setCaregiverMeal] = useState<MealData | null>(null)
+  const [caregiverLoading, setCaregiverLoading] = useState(false)
+
   const [expanded, setExpanded] = useState(false)
+  const [activeTab, setActiveTab] = useState<'child' | 'caregiver'>('child')
+
   const label = getLabel(mode, value, phase)
 
   useEffect(() => {
-    try { const c = localStorage.getItem(getCacheKey(mode, value, phase)); if (c) { const d = JSON.parse(c); if (d.breakfast) setMeal(d) } } catch { /* */ }
-  }, [mode, value, phase])
+    try {
+      const c = localStorage.getItem(getCacheKey(mode, value, phase))
+      if (c) { const d = JSON.parse(c); if (d.breakfast) setChildMeal(d) }
+    } catch { /* */ }
+    if (isParenting) {
+      try {
+        const c = localStorage.getItem(getCacheKey(mode, value, phase, 'caregiver'))
+        if (c) { const d = JSON.parse(c); if (d.breakfast) setCaregiverMeal(d) }
+      } catch { /* */ }
+    }
+  }, [mode, value, phase, isParenting])
 
-  const fetchMeal = async () => {
-    setLoading(true)
+  const fetchChildMeal = async () => {
+    setChildLoading(true)
     const { url, body } = getApiConfig(mode, value, phase)
     try {
       const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const data = await res.json()
-      if (data.breakfast) { setMeal(data); setExpanded(true); try { localStorage.setItem(getCacheKey(mode, value, phase), JSON.stringify(data)) } catch { /* */ } }
+      if (data.breakfast) {
+        setChildMeal(data); setExpanded(true)
+        try { localStorage.setItem(getCacheKey(mode, value, phase), JSON.stringify(data)) } catch { /* */ }
+      }
     } catch { /* */ }
-    setLoading(false)
+    setChildLoading(false)
   }
 
-  if (!meal && !loading) {
+  const fetchCaregiverMeal = async () => {
+    setCaregiverLoading(true)
+    const { url, body } = getApiConfig(mode, value, phase, 'caregiver')
+    try {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      const data = await res.json()
+      if (data.breakfast) {
+        setCaregiverMeal(data)
+        try { localStorage.setItem(getCacheKey(mode, value, phase, 'caregiver'), JSON.stringify(data)) } catch { /* */ }
+      }
+    } catch { /* */ }
+    setCaregiverLoading(false)
+  }
+
+  const activeMeal = isParenting ? (activeTab === 'child' ? childMeal : caregiverMeal) : childMeal
+  const activeLoading = isParenting ? (activeTab === 'child' ? childLoading : caregiverLoading) : childLoading
+  const fetchActive = isParenting ? (activeTab === 'child' ? fetchChildMeal : fetchCaregiverMeal) : fetchChildMeal
+
+  // 미요청 상태 (아이 식단 기준)
+  if (!childMeal && !childLoading) {
     return (
-      <button onClick={fetchMeal} className="w-full bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-2xl border border-[#E8DFD5] p-4 text-left active:opacity-90">
+      <button onClick={fetchChildMeal} className="w-full bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-2xl border border-[#E8DFD5] p-4 text-left active:opacity-90">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-full bg-white/80 flex items-center justify-center shrink-0 shadow-sm">
             <SparkleIcon className="w-5 h-5 text-[var(--color-primary)]" />
           </div>
           <div className="flex-1">
             <p className="text-[14px] font-bold text-[#1A1918]">AI 오늘의 식단</p>
-            <p className="text-[12px] text-[#9E9A95] mt-0.5">{label} · 맞춤 추천받기</p>
+            <p className="text-[12px] text-[#9E9A95] mt-0.5">{isParenting ? '아이 + 양육자' : label} · 맞춤 추천받기</p>
           </div>
           <div className="px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white text-[11px] font-bold">추천</div>
         </div>
@@ -112,7 +211,7 @@ export default function AIMealCard({ mode, value, phase }: Props) {
     )
   }
 
-  if (loading) {
+  if (childLoading && !childMeal) {
     return (
       <div className="bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-2xl border border-[#E8DFD5] p-4">
         <div className="flex items-center gap-3">
@@ -126,12 +225,7 @@ export default function AIMealCard({ mode, value, phase }: Props) {
     )
   }
 
-  const meals = [
-    { key: '아침', data: meal?.breakfast },
-    { key: '점심', data: meal?.lunch },
-    ...(meal?.dinner ? [{ key: '저녁', data: meal.dinner }] : []),
-    { key: '간식', data: meal?.snack },
-  ].filter(m => m.data)
+  const mealForHeader = activeMeal || childMeal
 
   return (
     <div className="rounded-2xl border border-[#E8DFD5] overflow-hidden bg-white">
@@ -142,69 +236,66 @@ export default function AIMealCard({ mode, value, phase }: Props) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="text-[13px] font-bold text-[#1A1918]">{meal?.dishTitle || 'AI 오늘의 식단'}</p>
+            <p className="text-[13px] font-bold text-[#1A1918]">{mealForHeader?.dishTitle || 'AI 오늘의 식단'}</p>
             <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold">AI</span>
-            {meal?.cuisine && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#F0EDE8] text-[#6B6966] font-medium">{meal.cuisine}</span>}
+            {mealForHeader?.cuisine && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#F0EDE8] text-[#6B6966] font-medium">{mealForHeader.cuisine}</span>}
           </div>
-          <p className="text-[12px] text-[#6B6966] mt-0.5">{meals.length}끼 맞춤 구성 · 탭해서 확인</p>
+          <p className="text-[12px] text-[#6B6966] mt-0.5">
+            {isParenting ? '아이 · 양육자 맞춤 구성' : `${[childMeal?.breakfast, childMeal?.lunch, childMeal?.dinner, childMeal?.snack].filter(Boolean).length}끼 맞춤 구성`} · 탭해서 확인
+          </p>
         </div>
         <span className="text-[11px] text-[#9E9A95] shrink-0">{expanded ? '접기' : '펼치기'}</span>
       </button>
 
       {expanded && (
-        <div className="px-3.5 pb-3.5 pt-1 space-y-0">
-          {/* 끼니별 행 — 3줄 고정 */}
-          {meals.map((m, i) => {
-            const cuisine = detectCuisine(m.data!.menu)
-            const sides = m.data!.sides || []
-            return (
-              <div key={m.key} className={`flex items-center gap-3 py-2.5 ${i < meals.length - 1 ? 'border-b border-[#F0EDE8]' : ''}`}>
-                {/* 끼니 라벨 */}
-                <div className="w-10 shrink-0 flex flex-col items-center gap-0.5">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: MEAL_COLOR[m.key] }} />
-                  <span className="text-[10px] font-semibold text-[#9E9A95]">{m.key}</span>
-                </div>
-                {/* 내용 — 2줄 고정 */}
-                <div className="flex-1 min-w-0">
-                  {/* 줄 1: 메뉴명 + 뱃지들 */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[13px] font-semibold text-[#1A1918] leading-snug">{m.data!.menu}</p>
-                    {cuisine && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold text-[#6B6966] leading-none" style={{ backgroundColor: cuisine.bg }}>
-                        {cuisine.label}
-                      </span>
-                    )}
-                    {m.data!.calories && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold text-[#9E9A95] bg-[#F0EDE8] leading-none">
-                        {m.data!.calories}kcal
-                      </span>
-                    )}
-                  </div>
-                  {/* 줄 2: 반찬/재료 */}
-                  <p className="text-[11px] text-[#9E9A95] leading-snug truncate mt-0.5">
-                    {sides.length > 0 ? sides.join(' · ') : (m.data!.ingredients || '')}
-                  </p>
-                </div>
-                <Link href={`/map?q=${encodeURIComponent(getRestaurantQuery(m.data!.menu, mode))}`} className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-[#F0F4FF] active:bg-[#D5DFEF]">
-                  <MapPinIcon className="w-3.5 h-3.5 text-[#4A6FA5]" />
-                </Link>
-              </div>
-            )
-          })}
-
-          {/* 영양/주의 한 줄 */}
-          {(meal?.keyNutrient || meal?.avoid) && (
-            <div className="flex gap-2 pt-2 flex-wrap">
-              {meal?.keyNutrient && <span className="text-[10px] text-[#2D7A4A] bg-[#F0F9F4] px-2 py-1 rounded-full">{meal.keyNutrient}</span>}
-              {meal?.avoid && <span className="text-[10px] text-[#D08068] bg-[#FDF2F2] px-2 py-1 rounded-full">⚠ {meal.avoid}</span>}
+        <div className="px-3.5 pb-3.5 pt-2 space-y-0">
+          {/* 탭 (parenting만) */}
+          {isParenting && (
+            <div className="flex gap-1.5 mb-3">
+              <button
+                onClick={() => setActiveTab('child')}
+                className={`flex-1 py-1.5 rounded-lg text-[12px] font-semibold transition-colors ${
+                  activeTab === 'child'
+                    ? 'bg-[var(--color-primary)] text-white'
+                    : 'bg-[#F5F3F0] text-[#6B6966]'
+                }`}
+              >
+                🍼 아이 식단
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('caregiver')
+                  if (!caregiverMeal && !caregiverLoading) fetchCaregiverMeal()
+                }}
+                className={`flex-1 py-1.5 rounded-lg text-[12px] font-semibold transition-colors ${
+                  activeTab === 'caregiver'
+                    ? 'bg-[var(--color-primary)] text-white'
+                    : 'bg-[#F5F3F0] text-[#6B6966]'
+                }`}
+              >
+                🧑 양육자 식단
+              </button>
             </div>
           )}
 
+          {/* 끼니 목록 */}
+          {activeLoading ? (
+            <div className="flex items-center gap-2 py-4">
+              <div className="w-6 h-6 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
+              <p className="text-[12px] text-[#9E9A95]">AI가 식단을 구성하고 있어요...</p>
+            </div>
+          ) : activeMeal ? (
+            <MealRows meal={activeMeal} mode={mode} />
+          ) : null}
+
           {/* 액션 */}
           <div className="flex gap-1.5 pt-3">
-            <button onClick={fetchMeal} className="flex-1 py-2 text-[11px] text-[#6B6966] font-medium bg-[#F5F3F0] rounded-lg active:bg-[#E8E4DF]">다른 식단</button>
-            <button onClick={() => shareMealPlan(value, meal?.breakfast?.menu || '', meal?.lunch?.menu || '', meal?.snack?.menu || '')} className="flex-1 py-2 text-[11px] text-[var(--color-primary)] font-semibold bg-[#FFF0E6] rounded-lg active:bg-[#FFE0CC]">카톡 공유</button>
-            {mode === 'parenting' && (
+            <button onClick={fetchActive} className="flex-1 py-2 text-[11px] text-[#6B6966] font-medium bg-[#F5F3F0] rounded-lg active:bg-[#E8E4DF]">다른 식단</button>
+            <button
+              onClick={() => shareMealPlan(value, activeMeal?.breakfast?.menu || '', activeMeal?.lunch?.menu || '', activeMeal?.snack?.menu || '')}
+              className="flex-1 py-2 text-[11px] text-[var(--color-primary)] font-semibold bg-[#FFF0E6] rounded-lg active:bg-[#FFE0CC]"
+            >카톡 공유</button>
+            {isParenting && activeTab === 'child' && (
               <Link href="/babyfood" className="flex-1 py-2 text-[11px] text-[var(--color-primary)] font-medium bg-[#F0F4FF] rounded-lg text-center active:bg-[#D5DFEF]">가이드</Link>
             )}
           </div>
