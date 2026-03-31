@@ -664,8 +664,9 @@ export default function KidsnotePage() {
                       {item.images && item.images.length > 0 && (
                         <div className="flex gap-1 mt-2 overflow-x-auto">
                           {item.images.slice(0, 3).map((img: any, j: number) => (
-                            <img key={j} src={proxyImg(img.thumbnail || img.original)} alt=""
+                            <img key={img.thumbnail || img.original || j} src={proxyImg(img.thumbnail || img.original)} alt=""
                               onClick={() => { setViewerImages(item.images); setViewerStart(j) }}
+                              loading="lazy"
                               className="w-14 h-14 rounded-lg object-cover shrink-0 cursor-pointer" />
                           ))}
                           {item.images.length > 3 && (
@@ -689,8 +690,9 @@ export default function KidsnotePage() {
                     {album.images && album.images.length > 0 && (
                       <div className="flex gap-1.5 mb-2 overflow-x-auto hide-scrollbar">
                         {album.images.slice(0, 4).map((img: any, j: number) => (
-                          <img key={j} src={proxyImg(img.thumbnail || img.original)} alt=""
+                          <img key={img.thumbnail || img.original || j} src={proxyImg(img.thumbnail || img.original)} alt=""
                             onClick={() => { setViewerImages(album.images); setViewerStart(j) }}
+                            loading="lazy"
                             className="w-20 h-20 rounded-lg object-cover shrink-0 cursor-pointer active:opacity-80" />
                         ))}
                         {album.images.length > 4 && (
@@ -732,8 +734,9 @@ export default function KidsnotePage() {
                     {report.images && report.images.length > 0 && (
                       <div className="flex gap-1.5 mt-2">
                         {report.images.slice(0, 4).map((img: any, j: number) => (
-                          <img key={j} src={proxyImg(img.thumbnail || img.original)} alt=""
+                          <img key={img.thumbnail || img.original || j} src={proxyImg(img.thumbnail || img.original)} alt=""
                             onClick={() => { setViewerImages(report.images); setViewerStart(j) }}
+                            loading="lazy"
                             className="w-16 h-16 rounded-lg object-cover cursor-pointer active:opacity-80" />
                         ))}
                         {report.images.length > 4 && (

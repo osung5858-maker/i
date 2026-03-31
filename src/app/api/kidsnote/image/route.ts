@@ -5,7 +5,7 @@ import { checkRateLimit, getClientIP } from '@/lib/security/rate-limit'
 export async function GET(request: NextRequest) {
   // Rate limit 체크 (이미지 프록시는 IP 기반, 분당 60회)
   const ip = getClientIP(request)
-  const { limited } = checkRateLimit(`kn-image:${ip}`, { limit: 60, windowMs: 60_000 })
+  const { limited } = checkRateLimit(`kn-image:${ip}`, { limit: 300, windowMs: 60_000 })
   if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
   const url = request.nextUrl.searchParams.get('url')
