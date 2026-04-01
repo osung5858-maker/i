@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
       { protocol: 'https', hostname: '**.daumcdn.net' },
     ],
+    localPatterns: [
+      {
+        pathname: '/api/kidsnote/image',
+        search: '**',
+      },
+    ],
     deviceSizes: [390, 430, 768],
     minimumCacheTTL: 86400,
   },
