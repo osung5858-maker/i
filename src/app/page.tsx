@@ -436,13 +436,13 @@ export default function HomePage() {
   if (loading) {
     return (
       <div className="h-[100dvh] bg-white px-5 pt-14">
-        <div className="h-5 w-32 bg-[#E8E4DF] rounded-lg animate-pulse mb-2" />
-        <div className="h-4 w-48 bg-[#E8E4DF] rounded-lg animate-pulse mb-6" />
+        <div className="h-5 w-32 shimmer rounded-lg mb-2" />
+        <div className="h-4 w-48 shimmer rounded-lg mb-6" />
         <div className="flex gap-3 mb-6">
-          {[1, 2, 3, 4].map(i => <div key={i} className="w-14 h-14 bg-[#E8E4DF] rounded-2xl animate-pulse" />)}
+          {[1, 2, 3, 4].map(i => <div key={i} className="w-14 h-14 shimmer rounded-2xl" />)}
         </div>
         <div className="space-y-3">
-          {[1, 2, 3].map(i => <div key={i} className="h-24 bg-[#E8E4DF] rounded-xl animate-pulse" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-24 shimmer rounded-xl" />)}
         </div>
       </div>
     )
@@ -570,7 +570,7 @@ export default function HomePage() {
               })()
               const urgent = dDay !== null && dDay <= 7
               return (
-                <Link href="/vaccination" className={`bg-white rounded-xl border p-3 flex items-center gap-2.5 active:bg-[#F5F1EC] ${urgent ? 'border-[#5B9FD6]/40 bg-[#E6F4FF]/30' : 'border-[#E8E4DF]'}`}>
+                <Link href="/vaccination" className={`bg-white rounded-xl border p-3 flex items-center gap-2.5 hover-lift press-feedback ${urgent ? 'border-[#5B9FD6]/40 bg-[#E6F4FF]/30' : 'border-[#E8E4DF]'}`}>
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${urgent ? 'bg-[#5B9FD6]' : 'bg-[#E6F4FF]'}`}>
                     <SyringeIcon className={`w-4.5 h-4.5 ${urgent ? 'text-white' : 'text-[#5B9FD6]'}`} />
                   </div>
@@ -584,7 +584,7 @@ export default function HomePage() {
               )
             })()}
             {/* 성장 기록 */}
-            <Link href="/record" className="bg-white rounded-xl border border-[#E8E4DF] p-3 flex items-center gap-2.5 active:bg-[#F5F1EC]">
+            <Link href="/record" className="bg-white rounded-xl border border-[#E8E4DF] p-3 flex items-center gap-2.5 hover-lift press-feedback">
               <div className="w-9 h-9 rounded-full bg-[#E8F5E9] flex items-center justify-center shrink-0">
                 <ChartIcon className="w-4.5 h-4.5 text-[#4A9B6E]" />
               </div>
@@ -605,7 +605,7 @@ export default function HomePage() {
           <KidsnoteCard ageMonths={ageMonths} userId={user?.id} />
 
           {/* 심심풀이 */}
-          <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
+          <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden hover-lift">
             <div className="grid grid-cols-3 divide-x divide-[#E8E4DF]">
               {([
                 { href: '/fortune', Icon: ActivityIcon, title: '바이오리듬' },
@@ -613,7 +613,7 @@ export default function HomePage() {
                 { href: '/fortune?tab=fortune', Icon: SparkleIcon, title: '오늘의 운세' },
               ] as const).map((item) => (
                 <Link key={item.href} href={item.href}
-                  className="flex flex-col items-center gap-1.5 py-3 px-2 active:bg-[var(--color-page-bg)]">
+                  className="flex flex-col items-center gap-1.5 py-3 px-2 press-feedback">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[var(--color-page-bg)]">
                     <item.Icon className="w-5 h-5 text-[var(--color-primary)]" />
                   </div>
