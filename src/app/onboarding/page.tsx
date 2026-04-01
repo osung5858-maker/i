@@ -95,7 +95,7 @@ export default function OnboardingPage() {
   if (checkingAuth) {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full shimmer" />
       </div>
     )
   }
@@ -109,11 +109,11 @@ export default function OnboardingPage() {
         <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col items-center px-6 pt-16 pb-16">
           {/* 랜덤 프로필 아바타 */}
-          <div className="w-20 h-20 rounded-full overflow-hidden mb-5 shadow-[0_4px_20px_rgba(61,138,90,0.15)]">
+          <div className="w-20 h-20 rounded-full overflow-hidden mb-5" style={{ boxShadow: 'var(--shadow-md)' }}>
             <video src={randomAvatar} autoPlay loop muted playsInline className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-[22px] font-bold text-[#212124] mb-1">환영해요!</h1>
-          <p className="text-[14px] text-[#6B6966] mb-8">지금 어떤 상태인가요?</p>
+          <h1 className="text-heading-2 mb-1">환영해요!</h1>
+          <p className="text-body text-tertiary mb-8">지금 어떤 상태인가요?</p>
 
           <div className="w-full max-w-sm space-y-4">
             {[
@@ -124,7 +124,7 @@ export default function OnboardingPage() {
               <button
                 key={option.key}
                 onClick={() => handleModeSelect(option.key)}
-                className="w-full rounded-2xl border-2 border-[#ECECEC] bg-white text-left transition-all active:scale-[0.98] active:border-[var(--color-primary)] active:bg-[#F0F9F4] overflow-hidden"
+                className="w-full dodam-card press-feedback text-left overflow-hidden border-2"
               >
                 {/* 일러스트 영상 (그라데이션 페이드) */}
                 <div className="w-full h-36 bg-white relative overflow-hidden">
@@ -134,9 +134,9 @@ export default function OnboardingPage() {
                   }} />
                 </div>
                 {/* 텍스트 */}
-                <div className="p-4">
-                  <p className="text-[15px] font-bold text-[#212124]">{option.title}</p>
-                  <p className="text-[13px] text-[#6B6966] mt-1">{option.desc}</p>
+                <div style={{ padding: 'var(--spacing-4)' }}>
+                  <p className="text-body-emphasis">{option.title}</p>
+                  <p className="text-caption mt-1">{option.desc}</p>
                 </div>
               </button>
             ))}
@@ -157,19 +157,20 @@ export default function OnboardingPage() {
           width={80}
           height={80}
           priority
-          className="rounded-[20px] shadow-[0_4px_20px_rgba(232,147,122,0.25)]"
+          className="rounded-[20px]"
+          style={{ boxShadow: 'var(--shadow-lg)' }}
         />
-        <h1 className="mt-6 text-[28px] font-bold text-[#212124]">도담</h1>
-        <p className="mt-2 text-[15px] text-[#6B6966] text-center">오늘도 도담하게</p>
-        <p className="mt-8 text-[13px] text-[#9E9A95] text-center leading-relaxed max-w-[260px]">
+        <h1 className="mt-6 text-heading-2">도담</h1>
+        <p className="mt-2 text-body-emphasis text-center">오늘도 도담하게</p>
+        <p className="mt-8 text-caption text-center leading-relaxed max-w-[260px]">
           임신 준비부터 육아까지<br />
           AI 케어 파트너가 함께할게요
         </p>
       </div>
 
-      <div className="px-6 pb-12 pt-6 space-y-3">
+      <div className="px-6 pb-12 pt-6" style={{ gap: 'var(--spacing-3)' }}>
         {error && (
-          <div className="mb-1 p-3 rounded-2xl bg-[#FFF0E6] text-[13px] text-[#D08068] text-center font-medium">
+          <div className="mb-1 rounded-2xl bg-[#FFF0E6] text-caption text-[#D08068] text-center font-medium" style={{ padding: 'var(--spacing-3)' }}>
             {error}
           </div>
         )}
@@ -177,11 +178,11 @@ export default function OnboardingPage() {
         <button
           onClick={() => handleLogin('kakao')}
           disabled={loading !== null}
-          className="w-full h-[52px] rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
-          style={{ backgroundColor: '#FEE500', color: '#191919' }}
+          className="w-full dodam-btn dodam-btn-lg press-feedback"
+          style={{ backgroundColor: '#FEE500', color: '#191919', gap: 'var(--spacing-2)' }}
         >
           {loading === 'kakao' ? (
-            <div className="w-5 h-5 border-2 border-[#191919]/30 border-t-[#191919] rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[#191919]/30 border-t-[#191919] rounded-full shimmer" />
           ) : (
             <>
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -195,10 +196,11 @@ export default function OnboardingPage() {
         <button
           onClick={() => handleLogin('google')}
           disabled={loading !== null}
-          className="w-full h-[52px] rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 border border-[#DADCE0] bg-white text-[#3C4043]"
+          className="w-full dodam-btn dodam-btn-outline dodam-btn-lg press-feedback"
+          style={{ gap: 'var(--spacing-2)', color: '#3C4043' }}
         >
           {loading === 'google' ? (
-            <div className="w-5 h-5 border-2 border-[#4285F4]/30 border-t-[#4285F4] rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[#4285F4]/30 border-t-[#4285F4] rounded-full shimmer" />
           ) : (
             <>
               <svg width="18" height="18" viewBox="0 0 18 18">

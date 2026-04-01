@@ -76,9 +76,9 @@ function PregnantAIDisplay({ briefing, onRefresh, week, daysLeft, fruitName }: {
 
   return (
     <div>
-      <div className="flex items-start gap-2">
+      <div className="flex items-start" style={{ gap: 'var(--spacing-2)' }}>
         <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center shrink-0 mt-0.5">
-          <span className="text-[13px] text-white font-bold">AI</span>
+          <span className="text-caption text-white font-bold">AI</span>
         </div>
         <div className="flex-1">
           {/* 요약: 첫 문장 볼드 + 나머지 일반 */}
@@ -89,35 +89,35 @@ function PregnantAIDisplay({ briefing, onRefresh, week, daysLeft, fruitName }: {
             const rest = firstDot > 0 ? text.slice(firstDot + 1).trim() : text.slice(50).trim()
             return (
               <div>
-                <span className="text-[15px] font-bold text-[#1A1918] leading-snug">{headline}</span>
-                {rest && <span className="text-[14px] text-[#4A4744] leading-relaxed"> {rest}</span>}
+                <span className="text-body-emphasis leading-snug">{headline}</span>
+                {rest && <span className="text-body text-secondary leading-relaxed"> {rest}</span>}
               </div>
             )
           })()}
 
           {/* 아기 메시지 (항상) */}
           {briefing.babyMessage && (
-            <div className="bg-[#FFF8F3] rounded-lg p-2 mt-1.5">
-              <p className="text-[13px] text-[#1A1918]">{briefing.babyMessage}</p>
+            <div className="bg-[#FFF8F3] rounded-lg mt-1.5" style={{ padding: 'var(--spacing-2)' }}>
+              <p className="text-caption">{briefing.babyMessage}</p>
             </div>
           )}
 
           {/* 상세 (펼치기) */}
           {expanded && (
-            <div className="mt-2 space-y-1.5 bg-white/60 rounded-lg p-2.5">
-              {briefing.mainAdvice && <p className="text-[13px] text-[#4A4744] leading-relaxed">{briefing.mainAdvice}</p>}
-              {briefing.weekHighlight && <p className="text-[13px] text-[#4A4744] leading-relaxed">{briefing.weekHighlight}</p>}
-              {briefing.bodyTip && <p className="text-[13px] text-[#4A4744] leading-relaxed">{briefing.bodyTip}</p>}
-              {briefing.emotionalCare && <p className="text-[13px] text-[#4A4744] leading-relaxed">{briefing.emotionalCare}</p>}
+            <div className="mt-2 bg-white/60 rounded-lg" style={{ padding: 'var(--spacing-3)', gap: 'var(--spacing-2)' }}>
+              {briefing.mainAdvice && <p className="text-caption text-secondary leading-relaxed">{briefing.mainAdvice}</p>}
+              {briefing.weekHighlight && <p className="text-caption text-secondary leading-relaxed">{briefing.weekHighlight}</p>}
+              {briefing.bodyTip && <p className="text-caption text-secondary leading-relaxed">{briefing.bodyTip}</p>}
+              {briefing.emotionalCare && <p className="text-caption text-secondary leading-relaxed">{briefing.emotionalCare}</p>}
             </div>
           )}
 
-          <div className="flex items-center gap-3 mt-2">
-            <button onClick={() => setExpanded(!expanded)} className="text-[13px] text-[var(--color-primary)] font-medium">
+          <div className="flex items-center mt-2" style={{ gap: 'var(--spacing-3)' }}>
+            <button onClick={() => setExpanded(!expanded)} className="text-caption text-[var(--color-primary)] font-medium press-feedback">
               {expanded ? '접기 ▲' : '자세히 ▼'}
             </button>
-            <button onClick={onRefresh} className="text-[13px] text-[#9E9A95]">다시 받기</button>
-            <button onClick={() => shareDday(week, daysLeft, fruitName)} className="text-[13px] text-[var(--color-primary)]">공유</button>
+            <button onClick={onRefresh} className="text-caption text-tertiary press-feedback">다시 받기</button>
+            <button onClick={() => shareDday(week, daysLeft, fruitName)} className="text-caption text-[var(--color-primary)] press-feedback">공유</button>
           </div>
         </div>
       </div>
@@ -424,70 +424,70 @@ export default function PregnantPage() {
 
         {/* ━━━ 출산 확인 (D-day 지남) ━━━ */}
         {daysLeft <= 0 && (
-          <Link href="/birth" className="block bg-gradient-to-r from-[#FFF0E6] to-[#FFF8F3] rounded-xl border border-[#FFDDC8] p-5 text-center active:opacity-80 animate-[fadeIn_0.5s]">
+          <Link href="/birth" className="dodam-card-accent text-center press-feedback scale-in">
             <IllustVideo src="/images/illustrations/h1.webm" variant="circle" className="w-24 h-24 mx-auto mb-2" />
-            <p className="text-[16px] font-bold text-[#1A1918]">{chosenNickname || '우리 아이'}, 만났나요?</p>
-            <p className="text-[14px] text-[#6B6966] mt-1">출산 예정일이 지났어요!</p>
-            <p className="text-[13px] font-semibold text-[var(--color-primary)] mt-3">네, 만났어요! →</p>
+            <p className="text-body-emphasis">{chosenNickname || '우리 아이'}, 만났나요?</p>
+            <p className="text-body text-tertiary mt-1">출산 예정일이 지났어요!</p>
+            <p className="text-caption-bold text-[var(--color-primary)] mt-3">네, 만났어요! →</p>
           </Link>
         )}
 
         {/* ━━━ 출산 임박 (D-14 이내) ━━━ */}
         {daysLeft > 0 && daysLeft <= 14 && (
-          <div className="bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-4">
-            <div className="flex items-center gap-3">
+          <div className="dodam-card-accent" style={{ gap: 'var(--spacing-3)' }}>
+            <div className="flex items-center" style={{ gap: 'var(--spacing-3)' }}>
               <HeartFilledIcon className="w-6 h-6 text-[var(--color-primary)]" />
               <div className="flex-1">
-                <p className="text-[13px] font-bold text-[#1A1918]">곧 만나요! D-{daysLeft}</p>
-                <p className="text-[13px] text-[#6B6966]">출산 가방은 준비됐나요? 진통 타이머도 확인해보세요</p>
+                <p className="text-caption-bold">곧 만나요! D-{daysLeft}</p>
+                <p className="text-caption text-tertiary">출산 가방은 준비됐나요? 진통 타이머도 확인해보세요</p>
               </div>
-              <Link href="/birth" className="text-[14px] text-[var(--color-primary)] font-semibold shrink-0">출산했어요 →</Link>
+              <Link href="/birth" className="text-body-emphasis text-[var(--color-primary)] shrink-0 press-feedback">출산했어요 →</Link>
             </div>
           </div>
         )}
 
         {/* ━━━ 태명 유도 (미설정 시) ━━━ */}
         {!chosenNickname && (
-          <Link href="/name" className="block bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-xl border border-[#FFDDC8]/50 p-4 active:opacity-80">
-            <div className="flex items-center gap-3">
+          <Link href="/name" className="dodam-card hover-lift press-feedback" style={{ background: 'linear-gradient(to right, #FFF8F3, #F0F9F4)' }}>
+            <div className="flex items-center" style={{ gap: 'var(--spacing-3)' }}>
               <SparkleIcon className="w-6 h-6 text-[#C4913E]" />
               <div className="flex-1">
-                <p className="text-[13px] font-bold text-[#1A1918]">우리 아이 태명을 지어볼까요?</p>
-                <p className="text-[13px] text-[#6B6966]">AI가 예쁜 태명을 추천해드려요</p>
+                <p className="text-caption-bold">우리 아이 태명을 지어볼까요?</p>
+                <p className="text-caption text-tertiary">AI가 예쁜 태명을 추천해드려요</p>
               </div>
-              <span className="text-[#9E9A95]">→</span>
+              <span className="text-tertiary">→</span>
             </div>
           </Link>
         )}
 
         {/* ━━━ 1. AI 히어로 + 태아 ━━━ */}
-        <div data-guide="fetal-card" className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-4">
+        <div data-guide="fetal-card" className="dodam-card-accent" style={{ background: 'linear-gradient(to bottom right, white, #F0F9F4)' }}>
           {/* 태아 비주얼 — 수평 레이아웃 */}
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center mb-3" style={{ gap: 'var(--spacing-3)' }}>
             <div className="shrink-0">
               <BabyIllust week={currentWeek} size={100} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-bold text-[#1A1918] leading-tight">{currentWeek}주차 · <span className="text-[var(--color-primary)]">{currentFetal.name}</span>만해요</p>
-              <div className="flex items-center gap-1.5 mt-0.5 mb-2">
-                <span className="text-[12px] text-[#6B6966]">{currentFetal.length}</span>
-                <span className="text-[12px] text-[#C4BFB9]">·</span>
-                <span className="text-[12px] text-[#6B6966]">{currentFetal.weight}</span>
-                <button onClick={() => shareFetalSize(currentWeek, currentFetal.fruit, currentFetal.name, currentFetal.length, currentFetal.weight, daysLeft)} className="ml-auto text-[12px] text-[var(--color-primary)] font-medium">공유</button>
+              <p className="text-body-emphasis leading-tight">{currentWeek}주차 · <span className="text-[var(--color-primary)]">{currentFetal.name}</span>만해요</p>
+              <div className="flex items-center mt-0.5 mb-2" style={{ gap: 'var(--spacing-2)' }}>
+                <span className="text-caption text-tertiary">{currentFetal.length}</span>
+                <span className="text-caption text-quaternary">·</span>
+                <span className="text-caption text-tertiary">{currentFetal.weight}</span>
+                <button onClick={() => shareFetalSize(currentWeek, currentFetal.fruit, currentFetal.name, currentFetal.length, currentFetal.weight, daysLeft)} className="ml-auto text-caption text-[var(--color-primary)] font-medium press-feedback">공유</button>
               </div>
               {/* 오늘 스탯 */}
               {(() => {
                 const MOOD_LABELS: Record<string, string> = { happy: '행복', calm: '평온', anxious: '불안', sick: '입덧', tired: '피곤' }
                 return (
-                  <div className="flex gap-1.5">
+                  <div className="flex" style={{ gap: 'var(--spacing-2)' }}>
                     {[
                       { label: '기분', value: mood ? (MOOD_LABELS[mood] ?? mood) : '-', color: '#FF8FAB' },
                       { label: '태동', value: fetalMove > 0 ? `${fetalMove}회` : '0회', color: '#5BA882' },
                       { label: '체중', value: weight > 0 ? `${weight}kg` : '-', color: '#D08068' },
                     ].map(s => (
-                      <div key={s.label} className="flex-1 bg-white/70 rounded-lg py-1.5 text-center border border-white/80">
-                        <p className="text-[13px] font-bold leading-tight" style={{ color: s.color }}>{s.value}</p>
-                        <p className="text-[11px] text-[#9E9A95]">{s.label}</p>
+                      <div key={s.label} className="flex-1 bg-white/70 rounded-lg text-center border border-white/80" style={{ padding: 'var(--spacing-2) 0' }}>
+                        <p className="text-caption-bold leading-tight" style={{ color: s.color }}>{s.value}</p>
+                        <p className="text-label text-tertiary">{s.label}</p>
                       </div>
                     ))}
                   </div>
@@ -496,7 +496,7 @@ export default function PregnantPage() {
             </div>
           </div>
           {/* 아기 한마디 */}
-          <p className="text-[12px] text-[#9E9A95] italic text-center mb-3 px-1">
+          <p className="text-caption text-tertiary italic text-center mb-3 px-1">
             {currentWeek <= 12 ? '"나 여기 있어요! 열심히 자라고 있어요"' :
              currentWeek <= 20 ? '"내가 움직이는 거 느꼈어요? 안에서 춤추고 있어요"' :
              currentWeek <= 30 ? '"엄마 목소리가 들려요. 계속 이야기해줘요"' :
@@ -506,17 +506,17 @@ export default function PregnantPage() {
 
           {/* AI 브리핑 — 요약 + 펼치기 */}
           {aiLoading ? (
-            <div className="py-3">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center"><span className="text-[13px] text-white">AI</span></div>
-                <div className="flex gap-1"><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full animate-bounce" /><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }} /><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} /></div>
+            <div style={{ padding: 'var(--spacing-3) 0' }}>
+              <div className="flex items-center" style={{ gap: 'var(--spacing-2)' }}>
+                <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center"><span className="text-caption text-white">AI</span></div>
+                <div className="flex" style={{ gap: 'var(--spacing-1)' }}><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full blink" /><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full blink" style={{ animationDelay: '0.15s' }} /><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full blink" style={{ animationDelay: '0.3s' }} /></div>
               </div>
             </div>
           ) : aiBriefing ? (
             <PregnantAIDisplay briefing={aiBriefing} onRefresh={() => fetchAI(true)} week={currentWeek} daysLeft={daysLeft} fruitName={currentFetal.name} />
           ) : (
-            <div className="text-center py-2">
-              <button onClick={() => fetchAI()} className="px-6 py-2 bg-[var(--color-primary)] text-white text-[14px] font-semibold rounded-xl active:opacity-80">AI 조언 받기</button>
+            <div className="text-center" style={{ padding: 'var(--spacing-2) 0' }}>
+              <button onClick={() => fetchAI()} className="dodam-btn dodam-btn-primary press-feedback">AI 조언 받기</button>
             </div>
           )}
 
@@ -698,9 +698,9 @@ export default function PregnantPage() {
         <MissionCard mode="pregnant" />
 
         {/* 기다림 페이지 바로가기 */}
-        <Link href="/waiting" className="block bg-white rounded-xl border border-[#E8E4DF] p-3.5 text-center active:bg-[var(--color-page-bg)]">
-          <p className="text-[13px] font-semibold text-[#1A1918]">검진 · 혜택 · 준비물 보기 →</p>
-          <p className="text-[12px] text-[#9E9A95] mt-0.5">기다림 페이지에서 확인하세요</p>
+        <Link href="/waiting" className="dodam-card text-center hover-lift press-feedback">
+          <p className="text-caption-bold">검진 · 혜택 · 준비물 보기 →</p>
+          <p className="text-caption text-tertiary mt-0.5">기다림 페이지에서 확인하세요</p>
         </Link>
 
       </div>
