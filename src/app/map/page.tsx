@@ -89,7 +89,7 @@ function MapPageInner() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#f5f5f5] flex flex-col">
+    <div className="min-h-[calc(100dvh-144px)] bg-[#f5f5f5] flex flex-col">
       {/* 헤더 */}
       <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full text-center">
         <h1 className="text-[15px] font-bold text-[#0A0B0D]">동네 육아 지도</h1>
@@ -137,7 +137,7 @@ function MapPageInner() {
       </div>
 
       {/* 장소 리스트 */}
-      <div className="flex-1 max-w-lg mx-auto w-full pb-24">
+      <div className="flex-1 max-w-lg mx-auto w-full pb-4">
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChatIcon, FireIcon, TrashIcon, HeartIcon, HeartFilledIcon, BookmarkIcon, BookmarkFilledIcon, GiftIcon, PackageIcon, MapPinIcon, CameraIcon, XIcon } from '@/components/ui/Icons'
 import AdSlot from '@/components/ads/AdSlot'
+import Image from 'next/image'
 
 type MainTab = 'feed' | 'market'
 
@@ -420,7 +421,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   }
 
   return (
-    <div className={hideHeader ? '' : 'min-h-[100dvh] bg-[var(--color-page-bg)]'}>
+    <div className={hideHeader ? '' : 'min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]'}>
       {!hideHeader && (
       <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full">
         <div className="flex items-center justify-between mb-3">
@@ -464,7 +465,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
         </div>
       )}
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4">
         {/* ===== 이야기 탭 ===== */}
         {tab === 'feed' && (
           <>
@@ -683,9 +684,9 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
               <div key={item.id} className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
                 {/* 썸네일 + 기본 정보 */}
                 <div className="flex items-start gap-3 p-4">
-                  <div className="w-20 h-20 rounded-xl bg-[var(--color-page-bg)] flex items-center justify-center shrink-0 overflow-hidden">
+                  <div className="w-20 h-20 rounded-xl bg-[var(--color-page-bg)] flex items-center justify-center shrink-0 overflow-hidden relative">
                     {item.photos && item.photos.length > 0 ? (
-                      <img src={item.photos[0]} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <Image src={item.photos[0]} alt="" fill className="object-cover" />
                     ) : (
                       <PackageIcon className="w-6 h-6 text-[#9E9A95]" />
                     )}
@@ -724,8 +725,8 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 {item.photos && item.photos.length > 1 && (
                   <div className="flex gap-1 px-5 pb-3 overflow-x-auto">
                     {item.photos.map((url: string, i: number) => (
-                      <div key={i} className="w-14 h-14 rounded-lg bg-[var(--color-page-bg)] shrink-0 overflow-hidden">
-                        <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <div key={i} className="w-14 h-14 rounded-lg bg-[var(--color-page-bg)] shrink-0 overflow-hidden relative">
+                        <Image src={url} alt="" fill className="object-cover" />
                       </div>
                     ))}
                   </div>
@@ -878,7 +879,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 <div className="flex gap-2">
                   {mPhotos.map((url, i) => (
                     <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden bg-[var(--color-page-bg)]">
-                      <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <Image src={url} alt="" fill className="object-cover" />
                       <button
                         onClick={() => setMPhotos((prev) => prev.filter((_, j) => j !== i))}
                         className="absolute top-0.5 right-0.5 w-4 h-4 bg-black/50 rounded-full text-white text-[13px] flex items-center justify-center"

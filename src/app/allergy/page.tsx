@@ -86,7 +86,7 @@ export default function AllergyPage() {
   const addFood = (food: string) => {
     if (!food.trim()) return
     const entry: AllergyEntry = {
-      id: Date.now().toString(36),
+      id: crypto.randomUUID(),
       food: food.trim(),
       startDate: new Date().toISOString().split('T')[0],
       day1: { symptoms: [], notes: '' },
@@ -142,10 +142,10 @@ export default function AllergyPage() {
   const reactionCount = completed.filter(e => e.result === 'reaction').length
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="알레르기 트래커" showBack />
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-4">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4 space-y-4">
         {/* Summary */}
         {completed.length > 0 && (
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 flex items-center justify-around">
@@ -220,7 +220,16 @@ export default function AllergyPage() {
                             Day {d + 1}
                           </p>
                           <p className="text-[14px] mt-0.5">
-                            {hasSymptoms ? '🔴' : noSymptoms ? '🟢' : isPast ? '⚪' : isToday ? '📝' : '—'}
+                            {hasSymptoms
+                            ? <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#D05050]" />
+                            : noSymptoms
+                            ? <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#4CAF50]" />
+                            : isPast
+                            ? <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#D5D0CA]" />
+                            : isToday
+                            ? <span className="text-[10px] font-bold text-[var(--color-primary)]">오늘</span>
+                            : <span className="text-[12px] text-[#D5D0CA]">—</span>
+                          }
                           </p>
                         </button>
                       )
@@ -299,7 +308,7 @@ export default function AllergyPage() {
         {/* Empty state */}
         {entries.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-[40px] mb-3">🥕</p>
+            <p className="text-[14px] font-semibold text-[#9E9A95] mb-1">기록 없음</p>
             <p className="text-[14px] text-[#6B6966]">새 식재료를 추가하고</p>
             <p className="text-[14px] text-[#6B6966]">3일간 알레르기 반응을 관찰해보세요</p>
           </div>

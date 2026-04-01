@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronRightIcon, UsersIcon, BellIcon } from '@/components/ui/Icons'
 import { loadNotificationSettings, saveNotificationSettings, type NotificationSettings } from '@/lib/push/config'
@@ -15,6 +16,7 @@ import type { Child } from '@/types'
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null)
   const [children, setChildren] = useState<Child[]>([])
+  const [mode, setMode] = useState('parenting')
   const router = useRouter()
   const supabase = createClient()
 
@@ -32,6 +34,7 @@ export default function SettingsPage() {
       if (data) setChildren(data as Child[])
     }
     load()
+    setMode(localStorage.getItem('dodam_mode') || 'parenting')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLogout = async () => {
@@ -53,7 +56,10 @@ export default function SettingsPage() {
       if (newVal) {
         const ok = await subscribePush()
         setPushActive(ok)
-        if (!ok) return // 권한 거부
+        if (!ok) {
+          window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '브라우저 알림 권한이 거부되어 있어요. 설정에서 허용해주세요.' } }))
+          return
+        }
       } else {
         await unsubscribePush()
         setPushActive(false)
@@ -74,7 +80,7 @@ export default function SettingsPage() {
 
   const executeDeleteAccount = async () => {
     try {
-      await supabase.from('users').update({ status: 'withdrawn', updated_at: new Date().toISOString() }).eq('id', user?.id)
+      await supabase.from('user_profiles').upsert({ user_id: user?.id, status: 'withdrawn', updated_at: new Date().toISOString() })
       const keysToRemove = Object.keys(localStorage).filter(k => k.startsWith('dodam_') || k.startsWith('kn_'))
       keysToRemove.forEach(k => localStorage.removeItem(k))
       await supabase.auth.signOut()
@@ -90,21 +96,14 @@ export default function SettingsPage() {
   const avatarUrl = user?.user_metadata?.avatar_url
 
   return (
-    <div className="min-h-[100dvh] bg-[#f5f5f5]">
-      {/* 헤더 */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-[#E8E4DF]">
-        <div className="flex items-center justify-center h-14 px-5 max-w-lg mx-auto w-full">
-          <h1 className="text-[15px] font-bold text-[#0A0B0D]">설정</h1>
-        </div>
-      </header>
-
-      <div className="max-w-lg mx-auto w-full pb-24">
+    <div className="min-h-[calc(100dvh-144px)] bg-[#f5f5f5]">
+      <div className="max-w-lg mx-auto w-full pb-6">
         {/* 프로필 카드 */}
         <div className="m-4 p-4 rounded-2xl bg-white border border-[#E8E4DF]">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden shrink-0" style={{ background: 'linear-gradient(135deg, var(--color-primary-light), var(--color-primary))' }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden relative shrink-0" style={{ background: 'linear-gradient(135deg, var(--color-primary-light), var(--color-primary))' }}>
               {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                <Image src={avatarUrl} alt="" fill className="object-cover" />
               ) : (
                 <span className="text-white text-lg font-bold">{nickname.charAt(0)}</span>
               )}
@@ -183,35 +182,6 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 기록 설정 */}
-        <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
-          <div className="px-5 pt-3 pb-2">
-            <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">기록 설정</p>
-          </div>
-          <div className="flex items-center justify-between px-4 py-3.5 border-t border-[#E8E4DF]">
-            <div>
-              <p className="text-sm font-semibold text-[#0A0B0D]">제스처 입력</p>
-              <p className="text-xs text-[#9B9B9B]">스와이프로 빠르게 기록 (↑수유 ↓대변 ←수면 →소변)</p>
-            </div>
-            <button
-              onClick={() => {
-                const current = localStorage.getItem('dodam_gesture_mode') === 'true'
-                localStorage.setItem('dodam_gesture_mode', current ? 'false' : 'true')
-                window.location.reload()
-              }}
-              className={`w-12 h-7 rounded-full transition-colors relative ${
-                typeof window !== 'undefined' && localStorage.getItem('dodam_gesture_mode') === 'true'
-                  ? 'bg-[var(--color-primary)]' : 'bg-[#D1D5DB]'
-              }`}
-            >
-              <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-transform shadow-sm ${
-                typeof window !== 'undefined' && localStorage.getItem('dodam_gesture_mode') === 'true'
-                  ? 'translate-x-6' : 'translate-x-1'
-              }`} />
-            </button>
-          </div>
-        </div>
-
         {/* 알림 설정 */}
         <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
           <div className="px-5 pt-3 pb-2">
@@ -238,12 +208,12 @@ export default function SettingsPage() {
           {notiSettings.enabled && (
             <>
               {[
-                { key: 'predictFeed' as const, label: '수유 예측 알림', desc: 'AI 예측 시간 10분 전' },
-                { key: 'predictSleep' as const, label: '수면 예측 알림', desc: '낮잠/밤잠 시간 알림' },
-                { key: 'vaccination' as const, label: '접종 · 검진', desc: '예방접종, 영유아검진 리마인더' },
-                { key: 'dailyEncourage' as const, label: '기록 격려', desc: '매일 저녁 기록 격려 메시지' },
-                { key: 'aiInsight' as const, label: 'AI 인사이트', desc: '매일 오전 돌봄 분석 리포트' },
-              ].map(item => (
+                { key: 'predictFeed' as const,    label: '수유 예측 알림',  desc: 'AI 예측 시간 10분 전',          modes: ['parenting'] },
+                { key: 'predictSleep' as const,   label: '수면 예측 알림',  desc: '낮잠/밤잠 시간 알림',           modes: ['parenting'] },
+                { key: 'vaccination' as const,    label: '접종 · 검진',     desc: '예방접종, 영유아검진 리마인더',  modes: ['parenting'] },
+                { key: 'dailyEncourage' as const, label: '기록 격려',       desc: '매일 저녁 기록 격려 메시지',    modes: ['preparing', 'pregnant', 'parenting'] },
+                { key: 'aiInsight' as const,      label: 'AI 인사이트',     desc: '매일 오전 돌봄 분석 리포트',    modes: ['preparing', 'pregnant', 'parenting'] },
+              ].filter(item => item.modes.includes(mode)).map(item => (
                 <div key={item.key} className="flex items-center justify-between px-4 py-3 border-t border-[#E8E4DF]">
                   <div>
                     <p className="text-sm text-[#0A0B0D]">{item.label}</p>
@@ -253,7 +223,7 @@ export default function SettingsPage() {
                     onClick={() => toggleNoti(item.key)}
                     className={`w-11 h-6 rounded-full transition-colors relative ${notiSettings[item.key] ? 'bg-[var(--color-primary)]' : 'bg-[#D1D5DB]'}`}
                   >
-                    <div className={`w-4.5 h-4.5 bg-white rounded-full absolute top-[3px] transition-transform shadow-sm ${notiSettings[item.key] ? 'translate-x-[22px]' : 'translate-x-[3px]'}`} />
+                    <div className={`w-[18px] h-[18px] bg-white rounded-full absolute top-[3px] transition-transform shadow-sm ${notiSettings[item.key] ? 'translate-x-[22px]' : 'translate-x-[3px]'}`} />
                   </button>
                 </div>
               ))}

@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 const PRESETS = [
-  { label: '기능 제안', emoji: '💡', desc: '이런 기능이 있으면 좋겠어요' },
-  { label: 'UX 의견', emoji: '🎨', desc: '디자인이나 사용성 관련' },
-  { label: '버그 제보', emoji: '🐛', desc: '오류를 발견했어요' },
-  { label: '칭찬', emoji: '💌', desc: '응원 한마디' },
-  { label: '제휴 제안', emoji: '🤝', desc: '협업/파트너십 문의' },
+  { label: '기능 제안', desc: '이런 기능이 있으면 좋겠어요' },
+  { label: 'UX 의견', desc: '디자인이나 사용성 관련' },
+  { label: '버그 제보', desc: '오류를 발견했어요' },
+  { label: '칭찬', desc: '응원 한마디' },
+  { label: '제휴 제안', desc: '협업/파트너십 문의' },
 ]
 
 export default function FeedbackPage() {
@@ -29,7 +29,7 @@ export default function FeedbackPage() {
   if (sent) {
     return (
       <div className="min-h-[100dvh] flex flex-col items-center justify-center px-6 bg-white">
-        <p className="text-[48px] mb-4">💌</p>
+        <p className="text-[14px] font-medium text-[var(--color-primary)] mb-4">전송 완료</p>
         <h2 className="text-[22px] lg:text-[28px] font-bold text-[#1A1918] mb-2">감사합니다!</h2>
         <p className="text-[14px] lg:text-[16px] text-[#6B6966] mb-8 text-center">
           메일 앱에서 보내기를 눌러주세요.<br />소중한 의견 꼭 반영할게요.
@@ -76,7 +76,6 @@ export default function FeedbackPage() {
                 color: preset === p.label ? '#D47B62' : '#6B6966',
               }}
             >
-              <span>{p.emoji}</span>
               <span>{p.label}</span>
             </button>
           ))}

@@ -122,10 +122,10 @@ function FortuneContent() {
   const birthParts = birthDate ? birthDate.split('-').map(Number) : [0, 0, 0]
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="운세 · 바이오리듬" showBack />
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3 w-full">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4 space-y-3 w-full">
         {/* 탭 */}
         <div className="flex gap-1.5">
           {[
@@ -375,7 +375,7 @@ function FortuneContent() {
 
 export default function FortunePage() {
   return (
-    <Suspense fallback={<div className="min-h-[100dvh] bg-[var(--color-page-bg)]" />}>
+    <Suspense fallback={<div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]" />}>
       <FortuneContent />
     </Suspense>
   )

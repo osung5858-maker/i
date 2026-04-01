@@ -17,6 +17,7 @@ async function callGemini(prompt: string, maxTokens = 500, retries = 2): Promise
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { temperature: 0.6, maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 } },
         }),
+        signal: AbortSignal.timeout(25000),
       })
       if (res.status === 429 && attempt < retries) {
         await new Promise(r => setTimeout(r, 2000 * (attempt + 1)))
@@ -31,15 +32,15 @@ async function callGemini(prompt: string, maxTokens = 500, retries = 2): Promise
       }
       const data = await res.json()
       const parts = data.candidates?.[0]?.content?.parts || []
-      const raw = parts.map((p: any) => p.text || '').join('').trim()
+      const raw = parts.map((p: { text?: string }) => p.text || '').join('').trim()
       const text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
       return { text, error: null }
-    } catch (e: any) {
+    } catch (e) {
       if (attempt < retries) {
         await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
         continue
       }
-      return { text: null, error: e?.message?.slice(0, 150) || 'Network error' }
+      return { text: null, error: (e as Error)?.message?.slice(0, 150) || 'Network error' }
     }
   }
   return { text: null, error: 'Max retries exceeded' }
@@ -124,23 +125,22 @@ JSON만 출력.`
       const mealCached = getCachedResponse(mealCacheKey)
       if (mealCached) return NextResponse.json(mealCached)
 
-      const prompt = `임신 ${week}주차 예비맘을 위한 오늘의 식단을 추천해주세요.
+      const prompt = `임신 ${week}주차 임산부를 위한 오늘의 식단을 추천해주세요.
 임산부가 피해야 할 음식(날생선, 생고기, 알코올, 고카페인)은 절대 추천하지 마세요.
 엽산, 철분, 칼슘, DHA가 풍부한 음식 위주로.
-각 끼니는 반드시 밥 1가지 + 국/찌개 1가지 + 반찬 3가지 이상으로 구성하세요.
+한식·양식·일식·중식·분식 등 다양한 장르를 자연스럽게 섞어서 추천하세요. 매번 한식 위주가 되지 않도록 하세요.
+각 끼니는 메인 요리 1가지와 곁들이는 음식들로 구성하세요. 밥+국+반찬 형식에 국한하지 마세요.
 
 JSON으로 출력:
 {
-  "dishTitle": "점심 대표 요리명만 짧게 (예: 된장찌개 한상)",
-  "cuisine": "한식 또는 양식 또는 중식 또는 일식 중 하나만",
-  "breakfast": {"menu": "밥 이름 (예: 잡곡밥)", "sides": ["국/찌개", "메인반찬(단백질요리, 예:달걀찜)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
-  "lunch": {"menu": "밥 이름 (예: 현미밥)", "sides": ["국/찌개", "메인반찬(단백질요리, 예:제육볶음)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
-  "dinner": {"menu": "밥 이름 (예: 잡곡밥)", "sides": ["국/찌개", "메인반찬(단백질요리, 예:두부조림)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
-  "snack": {"menu": "간식명 (예: 두유)", "sides": ["견과류", "과일"], "calories": 숫자, "reason": "이유 1줄"},
+  "breakfast": {"menu": "메인 요리명", "sides": ["곁들이1", "곁들이2"], "calories": 숫자, "reason": "이유 1줄"},
+  "lunch": {"menu": "메인 요리명", "sides": ["곁들이1", "곁들이2", "곁들이3"], "calories": 숫자, "reason": "이유 1줄"},
+  "dinner": {"menu": "메인 요리명", "sides": ["곁들이1", "곁들이2", "곁들이3"], "calories": 숫자, "reason": "이유 1줄"},
+  "snack": {"menu": "간식명", "sides": ["곁들이1"], "calories": 숫자, "reason": "이유 1줄"},
   "keyNutrient": "이 주차에 중요한 영양소",
   "avoid": "이 주차에 특히 주의할 것"
 }
-한국 가정식 위주. calories는 해당 끼니 예상 총칼로리(kcal, 숫자만). JSON만 출력.`
+calories는 해당 끼니 예상 총칼로리(숫자만). JSON만 출력.`
 
       const { text: mealText, error: mealErr } = await callGemini(prompt, 600)
       if (!mealText) return NextResponse.json({ error: mealErr || 'AI failed' }, { status: 500 })
@@ -158,6 +158,11 @@ JSON으로 출력:
     // === 운세 ===
     if (type === 'fortune') {
       const { birthYear, birthMonth, birthDay, animal, constellation, context, dueDate: dd } = body
+      const week = body.week
+      const cacheKey = `preg-fortune-${week}`
+      const cached = getCachedResponse(cacheKey)
+      if (cached) return NextResponse.json(cached)
+
       const prompt = `재미있는 운세를 봐주세요. 따뜻하고 긍정적으로.
 
 [정보]
@@ -186,12 +191,14 @@ JSON 형식으로 풍부하게 출력:
 }
 재미로 보는 것이므로 부담 없이, 하지만 풍부하고 구체적으로. JSON만 출력.`
 
-      const { text, error } = await callGemini(prompt, 900)
+      const { text, error } = await callGemini(prompt, 600)
       if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })
       try {
         const match = text.match(/\{[\s\S]*\}/)
         if (!match) return NextResponse.json({ error: 'parse error' }, { status: 500 })
-        return NextResponse.json(JSON.parse(match[0]))
+        const result = JSON.parse(match[0])
+        setCachedResponse(cacheKey, result, 604800 * 1000)
+        return NextResponse.json(result)
       } catch {
         return NextResponse.json({ error: 'parse error' }, { status: 500 })
       }

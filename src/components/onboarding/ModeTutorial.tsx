@@ -40,13 +40,13 @@ const TUTORIALS: Record<string, TutorialStep[]> = {
     },
     {
       illustration: '/images/illustrations/empty-no-records.webm',
-      title: '검진 일정 · 정부 혜택',
-      desc: '다음 검진을 놓치지 않게 알려드리고\n받을 수 있는 혜택도 안내해요',
+      title: '기다림 탭에서 한번에 확인해요',
+      desc: '검진 일정 · 혜택 · 준비물 체크리스트\n기다림 탭에 모두 모아뒀어요',
       accent: '#5B9FD6',
     },
     {
       illustration: '/images/illustrations/celebration-new-start.webm',
-      title: '아이에게 편지를 써보세요',
+      title: '기다림 일기도 써보세요',
       desc: '태어날 아이에게 마음을 전하면\n나중에 함께 읽을 수 있어요',
       accent: '#C67A52',
     },

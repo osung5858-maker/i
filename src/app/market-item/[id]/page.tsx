@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 
 export default function PublicMarketItemPage() {
   const params = useParams()
@@ -58,7 +59,9 @@ export default function PublicMarketItemPage() {
           {item.photos && item.photos.length > 0 && (
             <div className="flex gap-2 mb-3 overflow-x-auto hide-scrollbar">
               {item.photos.map((url: string, i: number) => (
-                <img key={i} src={url} alt="" className="w-40 h-40 rounded-xl object-cover shrink-0" loading="lazy" />
+                <div key={i} className="relative w-40 h-40 rounded-xl overflow-hidden shrink-0">
+                  <Image src={url} alt="" fill className="object-cover" />
+                </div>
               ))}
             </div>
           )}

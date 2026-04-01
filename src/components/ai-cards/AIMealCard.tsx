@@ -48,7 +48,7 @@ const CUISINE_MAP: [RegExp, string, string][] = [
   [/중화|짜장|짬뽕|마파|탕수|팔보채|고추잡채|중식|깐풍|라조|유산슬/, '중식', '#FFF0E0'],
   [/파스타|리조또|피자|스테이크|라자냐|뇨끼|크림|알프레도|오믈렛|양식|오일파스타|그라탱/, '양식', '#F0F0FF'],
   [/스시|초밥|우동|라멘|소바|돈카츠|돈까스|오야코|규동|일식|미소|데리야키|텐동|가라아게/, '일식', '#F5F0FF'],
-  [/쌀국수|포|반미|팟타이|그린커리|똠얌|동남아|태국|베트남/, '동남아', '#F0FFF4'],
+  [/쌀국수|반미|팟타이|그린커리|똠얌|동남아|태국|베트남/, '동남아', '#F0FFF4'],
   [/떡볶이|순대|어묵|튀김|분식|라볶이|김밥/, '분식', '#FFF5F0'],
   [/토스트|샌드위치|베이글|크루아상|빵|베이커리/, '베이커리', '#FDFAF0'],
   [/죽|미음|호박죽|전복죽|쇠고기죽|흰죽/, '죽', '#F0FFF9'],
@@ -93,30 +93,32 @@ function MealRows({ meal, mode }: { meal: MealData; mode: string }) {
         const cuisine = detectCuisine(m.data!.menu)
         const sides = m.data!.sides || []
         return (
-          <div key={m.key} className={`flex items-center gap-3 py-2.5 ${i < meals.length - 1 ? 'border-b border-[#F0EDE8]' : ''}`}>
-            <div className="w-10 shrink-0 flex flex-col items-center gap-0.5">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: MEAL_COLOR[m.key] }} />
-              <span className="text-[10px] font-semibold text-[#9E9A95]">{m.key}</span>
+          <div key={m.key} className={`flex items-start gap-3 py-3 ${i < meals.length - 1 ? 'border-b border-[#F0EDE8]' : ''}`}>
+            {/* 끼니 레이블 */}
+            <div className="w-8 shrink-0 flex flex-col items-center gap-1 pt-0.5">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: MEAL_COLOR[m.key] }} />
+              <span className="text-[10px] font-medium text-[#9E9A95]">{m.key}</span>
             </div>
+            {/* 내용 */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="text-[13px] font-semibold text-[#1A1918] leading-snug">{m.data!.menu}</p>
+              {/* 태그 줄 */}
+              <div className="flex items-center gap-1 mb-1">
                 {cuisine && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold text-[#6B6966] leading-none" style={{ backgroundColor: cuisine.bg }}>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded font-medium text-[#6B6966]" style={{ backgroundColor: cuisine.bg }}>
                     {cuisine.label}
                   </span>
                 )}
                 {m.data!.calories && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold text-[#9E9A95] bg-[#F0EDE8] leading-none">
-                    {m.data!.calories}kcal
-                  </span>
+                  <span className="text-[10px] text-[#9E9A95]">{m.data!.calories}kcal</span>
                 )}
               </div>
-              <p className="text-[11px] text-[#9E9A95] leading-snug truncate mt-0.5">
-                {sides.length > 0 ? sides.join(' · ') : (m.data!.ingredients || '')}
+              {/* 메뉴 전체 */}
+              <p className="text-[12px] text-[#1A1918] leading-snug">
+                {[m.data!.menu, ...sides].join(' · ')}
               </p>
             </div>
-            <Link href={`/map?q=${encodeURIComponent(getRestaurantQuery(m.data!.menu, mode))}`} className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-[#F0F4FF] active:bg-[#D5DFEF]">
+            {/* 지도 */}
+            <Link href={`/map?q=${encodeURIComponent(getRestaurantQuery(m.data!.menu, mode))}`} className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-[#F0F4FF] active:bg-[#D5DFEF] mt-0.5">
               <MapPinIcon className="w-3.5 h-3.5 text-[#4A6FA5]" />
             </Link>
           </div>
@@ -196,7 +198,7 @@ export default function AIMealCard({ mode, value, phase }: Props) {
   // 미요청 상태 (아이 식단 기준)
   if (!childMeal && !childLoading) {
     return (
-      <button onClick={fetchChildMeal} className="w-full bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-2xl border border-[#E8DFD5] p-4 text-left active:opacity-90">
+      <button onClick={fetchChildMeal} className="w-full bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-2xl border border-[#E8E4DF] p-4 text-left active:opacity-90">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-full bg-white/80 flex items-center justify-center shrink-0 shadow-sm">
             <SparkleIcon className="w-5 h-5 text-[var(--color-primary)]" />
@@ -213,7 +215,7 @@ export default function AIMealCard({ mode, value, phase }: Props) {
 
   if (childLoading && !childMeal) {
     return (
-      <div className="bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-2xl border border-[#E8DFD5] p-4">
+      <div className="bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-2xl border border-[#E8E4DF] p-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
           <div>
@@ -228,7 +230,7 @@ export default function AIMealCard({ mode, value, phase }: Props) {
   const mealForHeader = activeMeal || childMeal
 
   return (
-    <div className="rounded-2xl border border-[#E8DFD5] overflow-hidden bg-white">
+    <div className="rounded-2xl border border-[#E8E4DF] overflow-hidden bg-white">
       {/* 헤더 */}
       <button onClick={() => setExpanded(v => !v)} className="w-full bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] p-3.5 flex items-center gap-3 text-left active:opacity-90">
         <div className="w-9 h-9 rounded-full bg-white/80 flex items-center justify-center shrink-0 shadow-sm">
@@ -236,9 +238,8 @@ export default function AIMealCard({ mode, value, phase }: Props) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="text-[13px] font-bold text-[#1A1918]">{mealForHeader?.dishTitle || 'AI 오늘의 식단'}</p>
+            <p className="text-[13px] font-bold text-[#1A1918]">AI 식단 제안</p>
             <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold">AI</span>
-            {mealForHeader?.cuisine && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#F0EDE8] text-[#6B6966] font-medium">{mealForHeader.cuisine}</span>}
           </div>
           <p className="text-[12px] text-[#6B6966] mt-0.5">
             {isParenting ? '아이 · 양육자 맞춤 구성' : `${[childMeal?.breakfast, childMeal?.lunch, childMeal?.dinner, childMeal?.snack].filter(Boolean).length}끼 맞춤 구성`} · 탭해서 확인

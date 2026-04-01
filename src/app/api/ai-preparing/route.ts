@@ -7,35 +7,44 @@ import { sanitizeForPrompt } from '@/lib/security/sanitize'
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
 
-async function callGemini(prompt: string, maxTokens = 500, temperature = 0.7, retries = 1): Promise<{ text: string | null; error: string | null }> {
+async function callGemini(prompt: string, maxTokens = 500, temperature = 0.7, retries = 2): Promise<{ text: string | null; error: string | null }> {
   for (let attempt = 0; attempt <= retries; attempt++) {
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY ?? '' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature, maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 } },
-      }),
-    })
+    try {
+      const res = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY ?? '' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature, maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 } },
+        }),
+        signal: AbortSignal.timeout(25000),
+      })
 
-    if (res.ok) {
-      const data = await res.json()
-      // gemini-2.5-flash는 parts가 여러 개일 수 있음 (thinking + response)
-      const parts = data.candidates?.[0]?.content?.parts || []
-      const raw = parts.map((p: any) => p.text || '').join('').trim()
-      const text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
-      return { text, error: null }
+      if (res.ok) {
+        const data = await res.json()
+        // gemini-2.5-flash는 parts가 여러 개일 수 있음 (thinking + response)
+        const parts = data.candidates?.[0]?.content?.parts || []
+        const raw = parts.map((p: { text?: string }) => p.text || '').join('').trim()
+        const text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
+        return { text, error: null }
+      }
+
+      // 429 → 잠시 후 재시도
+      if (res.status === 429 && attempt < retries) {
+        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)))
+        continue
+      }
+
+      const errBody = await res.text().catch(() => 'unknown')
+      console.error(`Gemini ${res.status}: ${errBody}`)
+      return { text: null, error: `Gemini ${res.status}${res.status === 429 ? ' (한도 초과 — 잠시 후 다시 시도해주세요)' : ''}: ${errBody.slice(0, 150)}` }
+    } catch (e) {
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+        continue
+      }
+      return { text: null, error: (e as Error)?.message?.slice(0, 150) || 'Network error' }
     }
-
-    // 429 → 잠시 후 재시도
-    if (res.status === 429 && attempt < retries) {
-      await new Promise(r => setTimeout(r, 2000 * (attempt + 1)))
-      continue
-    }
-
-    const errBody = await res.text().catch(() => 'unknown')
-    console.error(`Gemini ${res.status}: ${errBody}`)
-    return { text: null, error: `Gemini ${res.status}${res.status === 429 ? ' (한도 초과 — 잠시 후 다시 시도해주세요)' : ''}: ${errBody.slice(0, 150)}` }
   }
   return { text: null, error: 'Max retries exceeded' }
 }
@@ -115,6 +124,17 @@ JSON만 출력하세요.`
       }
     }
 
+    // === 기다림 일기 AI 코멘트 ===
+    if (type === 'diary') {
+      const { text: diaryText } = body
+      const safeDiaryText = sanitizeForPrompt(diaryText, 1000)
+      const prompt = `임신을 준비 중인 예비맘이 기다림 일기를 썼어요. 따뜻하게 1-2문장으로 코멘트해주세요. 이모지 1개 포함.
+일기: "${safeDiaryText}"
+코멘트만 출력.`
+      const { text } = await callGemini(prompt, 100)
+      return NextResponse.json({ comment: text || '오늘도 도담하게 잘 기다리고 있어요 🌱' })
+    }
+
     // === 편지 AI 답장 ===
     if (type === 'letter') {
       const { letterText, letterCount } = body
@@ -148,21 +168,19 @@ JSON만 출력하세요.`
 
       const prompt = `당신은 임신 준비 영양 전문가입니다.
 현재 생리주기 ${cycleDay}일차, 단계: ${phase}에 맞는 오늘의 식단을 추천해주세요.
-각 끼니는 반드시 밥 1가지 + 국/찌개 1가지 + 반찬 3가지 이상으로 구성하세요.
+한식·양식·일식·중식·분식 등 다양한 장르를 자연스럽게 섞어서 추천하세요. 매번 한식 위주가 되지 않도록 하세요.
+각 끼니는 메인 요리 1가지와 곁들이는 음식들로 구성하세요. 밥+국+반찬 형식에 국한하지 마세요.
 
 JSON 형식으로 출력:
 {
-  "dishTitle": "점심 대표 요리명만 짧게 (예: 된장찌개 한상)",
-  "cuisine": "한식 또는 양식 또는 중식 또는 일식 중 하나만",
-  "breakfast": {"menu": "밥 이름 (예: 잡곡밥)", "sides": ["국/찌개", "메인반찬(단백질요리, 예:달걀찜)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
-  "lunch": {"menu": "밥 이름 (예: 현미밥)", "sides": ["국/찌개", "메인반찬(단백질요리, 예:제육볶음)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
-  "dinner": {"menu": "밥 이름 (예: 잡곡밥)", "sides": ["국/찌개", "메인반찬(단백질요리, 예:두부조림)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
-  "snack": {"menu": "간식명 (예: 두유)", "sides": ["견과류", "과일"], "calories": 숫자, "reason": "이유 1줄"},
+  "breakfast": {"menu": "메인 요리명", "sides": ["곁들이1", "곁들이2"], "calories": 숫자, "reason": "이유 1줄"},
+  "lunch": {"menu": "메인 요리명", "sides": ["곁들이1", "곁들이2", "곁들이3"], "calories": 숫자, "reason": "이유 1줄"},
+  "dinner": {"menu": "메인 요리명", "sides": ["곁들이1", "곁들이2", "곁들이3"], "calories": 숫자, "reason": "이유 1줄"},
+  "snack": {"menu": "간식명", "sides": ["곁들이1"], "calories": 숫자, "reason": "이유 1줄"},
   "keyNutrient": "이 단계에 가장 중요한 영양소",
   "avoid": "이 단계에 특히 피할 것"
 }
-
-한국 가정식 위주로 현실적으로. calories는 해당 끼니 예상 총칼로리(kcal, 숫자만). JSON만 출력.`
+calories는 해당 끼니 예상 총칼로리(숫자만). JSON만 출력.`
 
       const { text: mealText, error: mealErr } = await callGemini(prompt, 700, 0.7)
       if (!mealText) return NextResponse.json({ error: mealErr || 'AI failed' }, { status: 500 })
@@ -182,7 +200,10 @@ JSON 형식으로 출력:
 
     // === 감정 분석 ===
     if (type === 'emotion') {
-      const { moodHistory, currentMood } = body
+      const { moodHistory, currentMood, phase, cycleDay } = body
+      const cacheKey = `prep-emotion-${phase || ''}-${cycleDay || ''}`
+      const cached = getCachedResponse(cacheKey)
+      if (cached) return NextResponse.json(cached)
 
       const prompt = `당신은 임신 준비 중인 여성의 감정 케어 전문가입니다.
 따뜻하고 공감하는 톤으로, 절대 진단하지 마세요.
@@ -196,6 +217,7 @@ ${currentMood}
 2-3문장으로 공감 + 구체적 마음 케어 제안을 해주세요. 순수 텍스트만.`
 
       const r3 = await callGemini(prompt, 200, 0.7)
+      if (r3.text) setCachedResponse(cacheKey, { advice: r3.text }, 86400 * 1000)
       return NextResponse.json({ advice: r3.text || '오늘 하루도 수고했어요. 자신을 위한 시간을 가져보세요 💚' })
     }
 

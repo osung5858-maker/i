@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { SparkleIcon, ChartIcon, ClipboardIcon } from '@/components/ui/Icons'
+import Image from 'next/image'
 
 interface AnalysisResult {
   extracted: {
@@ -134,7 +135,7 @@ export default function AnalyzeCheckupPage() {
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col">
-      <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
+      <div className="sticky top-0 z-40 bg-white border-b border-[#E8E4DF] px-5 max-w-lg mx-auto w-full flex items-center justify-between h-12">
         <button onClick={() => router.back()} className="text-[13px] text-[#6B6966]">뒤로</button>
         <h1 className="text-[15px] font-bold text-[#212124]">검진결과 AI 분석</h1>
         {history.length > 0 && (
@@ -183,8 +184,8 @@ export default function AnalyzeCheckupPage() {
             </div>
           </button>
         ) : (
-          <div className="relative">
-            <img src={preview} alt="검진결과표" className="w-full rounded-2xl border border-[#ECECEC] object-contain max-h-80" loading="lazy" />
+          <div className="relative w-full max-h-80 overflow-hidden rounded-2xl border border-[#ECECEC]" style={{ minHeight: '240px' }}>
+            <Image src={preview} alt="검진결과표" fill className="object-contain" />
             <button
               onClick={() => { setPreview(null); setFile(null); setResult(null) }}
               className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 text-white text-sm flex items-center justify-center"

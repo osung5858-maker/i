@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { encrypt, decrypt } from '@/lib/security/crypto'
+import Image from 'next/image'
 
 // 사진 확대 뷰어
 function ImageViewer({ images, startIndex, onClose }: { images: { original: string; thumbnail: string }[]; startIndex: number; onClose: () => void }) {
@@ -26,7 +27,9 @@ function ImageViewer({ images, startIndex, onClose }: { images: { original: stri
       </div>
       <div className="flex-1 flex items-center justify-center px-2"
         onClick={e => e.stopPropagation()} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-        <img src={images[idx].original} alt="" className="max-w-full max-h-[80vh] object-contain rounded-lg select-none" draggable={false} />
+        <div className="relative w-full" style={{ maxHeight: '80vh', aspectRatio: '1 / 1' }}>
+          <Image src={images[idx].original} alt="" fill className="object-contain rounded-lg select-none" draggable={false} />
+        </div>
       </div>
       {images.length > 1 && (
         <>
@@ -428,13 +431,13 @@ export default function KidsnotePage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="키즈노트" showBack
         rightAction={session ? <button onClick={logout} className="text-[13px] text-[#6B6966] whitespace-nowrap">로그아웃</button> : undefined} />
 
       {/* 다운로드 프로그레스 */}
       {downloadProgress && (
-        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[100] w-72">
+        <div className="fixed top-[72px] left-1/2 -translate-x-1/2 z-[100] w-72">
           <div className="bg-[#212124]/90 text-white px-4 py-3 rounded-xl shadow-lg backdrop-blur-sm">
             <div className="flex items-center justify-between mb-2">
               <p className="text-[13px] font-medium">다운로드 중...</p>
@@ -448,7 +451,7 @@ export default function KidsnotePage() {
         </div>
       )}
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4 space-y-3">
 
         {/* 동의 화면 */}
         {step === 'login' && !agreed && (
@@ -673,10 +676,10 @@ export default function KidsnotePage() {
                       {item.images && item.images.length > 0 && (
                         <div className="flex gap-1 mt-2 overflow-x-auto">
                           {item.images.slice(0, 3).map((img: any, j: number) => (
-                            <img key={img.thumbnail || img.original || j} src={proxyImg(img.thumbnail || img.original)} alt=""
-                              onClick={() => { setViewerImages(item.images); setViewerStart(j) }}
-                              loading="lazy"
-                              className="w-14 h-14 rounded-lg object-cover shrink-0 cursor-pointer" />
+                            <div key={img.thumbnail || img.original || j} className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 cursor-pointer"
+                              onClick={() => { setViewerImages(item.images); setViewerStart(j) }}>
+                              <Image src={proxyImg(img.thumbnail || img.original)} alt="" fill className="object-cover" />
+                            </div>
                           ))}
                           {item.images.length > 3 && (
                             <span className="w-14 h-14 rounded-lg bg-[var(--color-page-bg)] flex items-center justify-center shrink-0 text-[12px] text-[#6B6966]">
@@ -699,10 +702,10 @@ export default function KidsnotePage() {
                     {album.images && album.images.length > 0 && (
                       <div className="flex gap-1.5 mb-2 overflow-x-auto hide-scrollbar">
                         {album.images.slice(0, 4).map((img: any, j: number) => (
-                          <img key={img.thumbnail || img.original || j} src={proxyImg(img.thumbnail || img.original)} alt=""
-                            onClick={() => { setViewerImages(album.images); setViewerStart(j) }}
-                            loading="lazy"
-                            className="w-20 h-20 rounded-lg object-cover shrink-0 cursor-pointer active:opacity-80" />
+                          <div key={img.thumbnail || img.original || j} className="relative w-20 h-20 rounded-lg overflow-hidden shrink-0 cursor-pointer active:opacity-80"
+                            onClick={() => { setViewerImages(album.images); setViewerStart(j) }}>
+                            <Image src={proxyImg(img.thumbnail || img.original)} alt="" fill className="object-cover" />
+                          </div>
                         ))}
                         {album.images.length > 4 && (
                           <button onClick={() => { setViewerImages(album.images); setViewerStart(4) }}
@@ -743,10 +746,10 @@ export default function KidsnotePage() {
                     {report.images && report.images.length > 0 && (
                       <div className="flex gap-1.5 mt-2">
                         {report.images.slice(0, 4).map((img: any, j: number) => (
-                          <img key={img.thumbnail || img.original || j} src={proxyImg(img.thumbnail || img.original)} alt=""
-                            onClick={() => { setViewerImages(report.images); setViewerStart(j) }}
-                            loading="lazy"
-                            className="w-16 h-16 rounded-lg object-cover cursor-pointer active:opacity-80" />
+                          <div key={img.thumbnail || img.original || j} className="relative w-16 h-16 rounded-lg overflow-hidden cursor-pointer active:opacity-80"
+                            onClick={() => { setViewerImages(report.images); setViewerStart(j) }}>
+                            <Image src={proxyImg(img.thumbnail || img.original)} alt="" fill className="object-cover" />
+                          </div>
                         ))}
                         {report.images.length > 4 && (
                           <button onClick={() => { setViewerImages(report.images); setViewerStart(4) }}

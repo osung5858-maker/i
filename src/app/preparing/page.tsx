@@ -3,11 +3,13 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
-import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, HeartFilledIcon, MoonIcon, WaterGlassIcon, StretchIcon, VitaminIcon, MusicIcon, BookOpenIcon, CompassIcon } from '@/components/ui/Icons'
+import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, FootstepsIcon, YogaIcon, HeartFilledIcon, MoonIcon, WaterGlassIcon, MusicIcon, BookOpenIcon, CompassIcon, SproutIcon, DropletIcon, SunIcon, OmegaIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodTiredIcon } from '@/components/ui/Icons'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
+import MissionCard from '@/components/ui/MissionCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
 import { setSecure, getSecure } from '@/lib/secureStorage'
@@ -32,18 +34,6 @@ interface AIBriefing {
   nutritionTip: string; emotionalCare: string; partnerTip: string; todayScore: number
 }
 
-// ===== 더보기 섹션 데이터 =====
-const DEFAULT_GOOD_FOODS = [
-  { icon: '', name: '엽산 식품', items: '시금치 · 브로콜리 · 아보카도' },
-  { icon: '', name: '오메가3', items: '연어 · 고등어 · 호두' },
-  { icon: '', name: '철분', items: '소고기 · 두부 · 렌틸콩' },
-  { icon: '', name: '항산화', items: '블루베리 · 토마토 · 석류' },
-]
-const DEFAULT_BAD_FOODS = [
-  { icon: '', name: '카페인', desc: '하루 1잔 이하' },
-  { icon: '', name: '알코올', desc: '완전 금주' },
-  { icon: '', name: '고수은 생선', desc: '참치(큰것) · 황새치' },
-]
 
 const DEFAULT_APPOINTMENTS = [
   { id: 'basic', title: '기본 혈액검사', priority: 'high', desc: '빈혈 · 갑상선 · 간기능 · 혈당 · 혈액형', where: '산부인과 또는 보건소 (무료)', why: '임신 전 몸 상태 확인. 빈혈이 있으면 임신이 어려울 수 있어요' },
@@ -56,12 +46,6 @@ const DEFAULT_APPOINTMENTS = [
   { id: 'sperm', title: '정액 검사', priority: 'low', desc: '정자 수 · 운동성 · 형태', where: '비뇨기과 또는 난임 클리닉', why: '6개월 이상 임신 안 될 때. 남성 요인이 40%' },
 ]
 
-const DEFAULT_STRESS_TIPS = [
-  { icon: '', title: '4-7-8 호흡법', desc: '4초 들숨 → 7초 멈춤 → 8초 날숨' },
-  { icon: '', title: '산책 명상', desc: '15분 걷기 + 자연 소리' },
-  { icon: '', title: '감사 일기', desc: '매일 3가지 감사한 것' },
-  { icon: '', title: '음악 테라피', desc: '편안한 음악 20분' },
-]
 
 const CURRENT_YEAR = 2026
 
@@ -230,12 +214,12 @@ function PreparingMealCard({ phase }: { phase: string }) {
 }
 
 export default function PreparingPage() {
+  const router = useRouter()
   const apptList = useRemoteContent('preparing_appointments', DEFAULT_APPOINTMENTS)
-  const foodsData = useRemoteContent<{ good: typeof DEFAULT_GOOD_FOODS; bad: typeof DEFAULT_BAD_FOODS }>('preparing_foods', { good: DEFAULT_GOOD_FOODS, bad: DEFAULT_BAD_FOODS })
-  const stressTips = useRemoteContent('preparing_stress_tips', DEFAULT_STRESS_TIPS)
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
   const [showGuide, setShowGuide] = useState(false)
+  const [foodQuery, setFoodQuery] = useState('')
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   useEffect(() => {
@@ -278,40 +262,67 @@ export default function PreparingPage() {
   const fatherAge = calcAge(fatherBirth)
   const [partnerChecks, setPartnerChecks] = useState<Record<string, boolean>>({})
   const [appointments, setAppointments] = useState<Record<string, string>>({})
-  const today = new Date().toISOString().split('T')[0]
+  const _td = new Date()
+  const today = `${_td.getFullYear()}-${String(_td.getMonth()+1).padStart(2,'0')}-${String(_td.getDate()).padStart(2,'0')}`
 
   // 임신 준비 FAB 오늘 기록
   const [prepTodayDone, setPrepTodayDone] = useState<string[]>([])
-  const [journalSheetOpen, setJournalSheetOpen] = useState(false)
-  const [journalTexts, setJournalTexts] = useState<string[]>(['', '', ''])
   useEffect(() => {
     const key = `dodam_prep_done_${today}`
-    try { setPrepTodayDone(JSON.parse(localStorage.getItem(key) || '[]')) } catch {}
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail as any
-      if (!detail.type?.startsWith('prep_')) return
-      detail._handled = true
-      // 감사일기 → 폼 열기
-      if (detail.type === 'prep_journal') { setJournalSheetOpen(true); return }
-      // 기분 기록 → todayMood 업데이트
-      if (detail.type === 'prep_mood') { saveMood(detail.tags?.mood); return }
-      // 나머지 (영양제, 운동, 명상, 호흡) → 완료 목록에 추가
-      const recordKey = detail.type
-      setPrepTodayDone(prev => {
-        if (prev.includes(recordKey)) return prev
-        const updated = [...prev, recordKey]
-        try { localStorage.setItem(key, JSON.stringify(updated)) } catch {}
-        return updated
-      })
-      const LABELS: Record<string, string> = {
-        prep_folic: '엽산', prep_vitd: '비타민D', prep_iron: '철분', prep_omega3: '오메가3',
-        prep_walk: '걷기', prep_stretch: '스트레칭', prep_breath: '심호흡',
-        prep_meditate: '명상', prep_music: '음악감상',
-      }
-      showToast(`${LABELS[recordKey] || detail.label || '기록'} 완료!`)
+    try { setPrepTodayDone(JSON.parse(localStorage.getItem(key) || '[]') as string[]) } catch {}
+    // DB에서 오늘 기록 로드
+    const loadFromDB = async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase/client')
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data } = await supabase.from('prep_events')
+          .select('type, tags')
+          .eq('user_id', user.id)
+          .eq('recorded_date', today)
+        if (data && data.length > 0) {
+          const types = Array.from(new Set(data.map((e: { type: string; tags: Record<string, unknown> | null }) => e.type))) as string[]
+          // localStorage 캐시 갱신
+          try { localStorage.setItem(key, JSON.stringify(types)) } catch { /* */ }
+          setPrepTodayDone(types)
+          // 기분 복원
+          const moodRow = data.find((e: { type: string; tags: Record<string, unknown> | null }) =>
+            e.type === 'prep_mood' || e.type?.startsWith('prep_mood_'))
+          if (moodRow?.tags && (moodRow.tags as any).mood) {
+            setTodayMood((moodRow.tags as any).mood)
+          }
+        }
+      } catch { /* 오프라인 시 localStorage 유지 */ }
     }
-    window.addEventListener('dodam-record', handler)
-    return () => window.removeEventListener('dodam-record', handler)
+    loadFromDB()
+
+    // BottomNav가 localStorage 저장 완료 후 발송하는 이벤트 수신 → 상태 동기화
+    const prepDoneHandler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as any
+      const type: string = detail.type
+      if (!type?.startsWith('prep_')) return
+      if (type.startsWith('prep_mood_')) {
+        if (detail.mood) saveMood(detail.mood)
+        setPrepTodayDone(prev => prev.includes(type) ? prev : [...prev, type])
+        return
+      }
+      setPrepTodayDone(prev => prev.includes(type) ? prev : [...prev, type])
+    }
+    // prep_journal은 dodam-record에서 직접 처리 (BottomNav 저장 후 dispatch)
+    const recordHandler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as any
+      if (detail.type === 'prep_journal') {
+        detail._handled = true
+        setPrepTodayDone(prev => prev.includes('prep_journal') ? prev : [...prev, 'prep_journal'])
+      }
+    }
+    window.addEventListener('dodam-prep-done', prepDoneHandler)
+    window.addEventListener('dodam-record', recordHandler)
+    return () => {
+      window.removeEventListener('dodam-prep-done', prepDoneHandler)
+      window.removeEventListener('dodam-record', recordHandler)
+    }
   }, [today]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 접기 상태
@@ -465,7 +476,14 @@ export default function PreparingPage() {
     const current = supplements[key] || 0
     const nextVal = current >= SUPPL_MAX ? 0 : 1 // 0↔1 토글
     const next = { ...supplements, [key]: nextVal }
-    setSupplements(next); localStorage.setItem(`dodam_suppl_${today}`, JSON.stringify(next))
+    setSupplements(next)
+    localStorage.setItem(`dodam_suppl_${today}`, JSON.stringify(next))
+    if (nextVal > 0) {
+      const tsKey = `dodam_prep_ts_${today}`
+      const tsMap = JSON.parse(localStorage.getItem(tsKey) || '{}')
+      tsMap[`suppl_${key}`] = new Date().toISOString()
+      try { localStorage.setItem(tsKey, JSON.stringify(tsMap)) } catch {}
+    }
     const totalDone = Object.values(next).reduce((s, v) => s + v, 0)
     saveHistory('suppl', totalDone)
     const name = SUPPL_NAMES[key] || key
@@ -473,8 +491,9 @@ export default function PreparingPage() {
     else showToast(`${name} 복용 완료!`)
   }
   const saveMood = (mood: string) => {
-    const today = new Date().toISOString().split('T')[0]
-    setTodayMood(mood); localStorage.setItem(`dodam_mood_${today}`, mood)
+    const _d = new Date(); const today = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`
+    setTodayMood(mood)
+    localStorage.setItem(`dodam_mood_${today}`, JSON.stringify({ mood, ts: new Date().toISOString() }))
     saveHistory('mood', mood)
     showToast('오늘 기분이 기록됐어요')
   }
@@ -509,8 +528,13 @@ export default function PreparingPage() {
         setSupplements(migrated)
       } catch { /* */ }
     }
-    const mood = localStorage.getItem(`dodam_mood_${todayKey}`)
-    if (mood) setTodayMood(mood)
+    const moodRaw = localStorage.getItem(`dodam_mood_${todayKey}`)
+    if (moodRaw) {
+      try {
+        const parsed = JSON.parse(moodRaw)
+        setTodayMood(typeof parsed === 'object' ? parsed.mood : parsed)
+      } catch { setTodayMood(moodRaw) }
+    }
     const mb = localStorage.getItem('dodam_mother_birth')
     if (mb) { setMotherBirth(mb); setTempMotherBirth(mb) }
     const fb = localStorage.getItem('dodam_father_birth')
@@ -616,10 +640,10 @@ export default function PreparingPage() {
   const showTWW = dpo >= 0 && dpo <= 16
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)]">
+    <div className="bg-[var(--color-page-bg)]">
       {/* 헤더는 GlobalHeader (layout.tsx)에서 처리 */}
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-3 space-y-3">
 
         {/* ━━━ 1. AI 히어로 — CTA 형태 ━━━ */}
         {cycle && (
@@ -638,7 +662,7 @@ export default function PreparingPage() {
 
             {/* 오늘 요약 */}
             {(() => {
-              const MOOD_LABELS: Record<string, string> = { happy: '행복', calm: '평온', anxious: '불안', tired: '피곤', sad: '슬픔' }
+              const MOOD_LABELS: Record<string, string> = { happy: '행복', excited: '설렘', calm: '평온', anxious: '걱정', tired: '피곤', sad: '슬픔' }
               const exerciseCount = prepTodayDone.filter(k => ['prep_walk', 'prep_stretch', 'prep_breath', 'prep_meditate', 'prep_music'].includes(k)).length
               return (
                 <div className="flex gap-2 mb-3">
@@ -699,28 +723,47 @@ export default function PreparingPage() {
 
         {/* ━━━ 오늘 기록 (FAB) ━━━ */}
         {(() => {
-          const PREP_CFG: Record<string, { label: string; Icon: React.FC<{ className?: string }>; color: string; bg: string }> = {
-            prep_folic:      { label: '엽산',    Icon: PillIcon,     color: '#10B981', bg: '#E8F5EF' },
-            prep_vitd:       { label: '비타민D', Icon: VitaminIcon,  color: '#10B981', bg: '#E8F5EF' },
-            prep_iron:       { label: '철분',    Icon: PillIcon,     color: '#10B981', bg: '#E8F5EF' },
-            prep_omega3:     { label: '오메가3', Icon: VitaminIcon,  color: '#10B981', bg: '#E8F5EF' },
-            prep_walk:       { label: '걷기',     Icon: WalkIcon,     color: '#F59E0B', bg: '#FEF3E0' },
-            prep_stretch:    { label: '스트레칭', Icon: StretchIcon,  color: '#F59E0B', bg: '#FEF3E0' },
-            prep_breath:     { label: '심호흡',   Icon: ActivityIcon, color: '#F59E0B', bg: '#FEF3E0' },
-            prep_meditate:   { label: '명상',     Icon: MoonIcon,     color: '#8B5CF6', bg: '#EDE9FF' },
-            prep_music:      { label: '음악감상', Icon: MusicIcon,    color: '#F472B6', bg: '#FFE4F2' },
+          const PREP_CFG: Record<string, { cat: string; label: string; Icon: React.FC<{ className?: string }>; color: string; bg: string }> = {
+            prep_folic:      { cat: '영양제', label: '엽산',        Icon: SproutIcon,    color: '#10B981', bg: '#E8F5EF' },
+            prep_vitd:       { cat: '영양제', label: '비타민D',     Icon: SunIcon,       color: '#F59E0B', bg: '#FEF9E0' },
+            prep_iron:       { cat: '영양제', label: '철분',        Icon: DropletIcon,   color: '#EF4444', bg: '#FEE2E2' },
+            prep_omega3:     { cat: '영양제', label: '오메가3',     Icon: OmegaIcon,     color: '#3B82F6', bg: '#EFF6FF' },
+            prep_walk:       { cat: '건강',   label: '걷기',        Icon: FootstepsIcon, color: '#F59E0B', bg: '#FEF3E0' },
+            prep_stretch:    { cat: '건강',   label: '스트레칭',    Icon: YogaIcon,      color: '#F59E0B', bg: '#FEF3E0' },
+            prep_breath:     { cat: '건강',   label: '심호흡',      Icon: ActivityIcon,  color: '#F59E0B', bg: '#FEF3E0' },
+            prep_meditate:   { cat: '건강',   label: '명상',        Icon: MoonIcon,      color: '#8B5CF6', bg: '#EDE9FF' },
+            prep_music:      { cat: '건강',   label: '음악감상',    Icon: MusicIcon,     color: '#F472B6', bg: '#FFE4F2' },
+            prep_mood:         { cat: '기분', label: '기분',  Icon: HeartFilledIcon, color: '#F472B6', bg: '#FFE4F2' }, // 구버전 호환
+            prep_mood_happy:   { cat: '기분', label: '행복',  Icon: MoodHappyIcon,   color: '#FF8FAB', bg: '#FFE4F2' },
+            prep_mood_excited: { cat: '기분', label: '설렘',  Icon: MoodHappyIcon,   color: '#FFB347', bg: '#FFF3E0' },
+            prep_mood_calm:    { cat: '기분', label: '평온',  Icon: MoodCalmIcon,    color: '#90C8A8', bg: '#E8F5EF' },
+            prep_mood_tired:   { cat: '기분', label: '피곤',  Icon: MoodTiredIcon,   color: '#8EB4D4', bg: '#E8F0F8' },
+            prep_mood_anxious: { cat: '기분', label: '불안',  Icon: MoodAnxiousIcon, color: '#FFC078', bg: '#FFF3E0' },
+            prep_journal:      { cat: '기다림', label: '일기 작성', Icon: BookOpenIcon, color: '#A78BFA', bg: '#EDE9FF' },
           }
+          const todayTsMap: Record<string, string> = (() => { try { return JSON.parse(localStorage.getItem(`dodam_prep_ts_${today}`) || '{}') } catch { return {} } })()
+          const fmt = (iso?: string) => { if (!iso) return ''; const d = new Date(iso); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` }
+          const sortedDone = [...prepTodayDone].sort((a, b) => {
+            const ta = todayTsMap[a] ? new Date(todayTsMap[a]).getTime() : 0
+            const tb = todayTsMap[b] ? new Date(todayTsMap[b]).getTime() : 0
+            return tb - ta
+          })
           const eventList = prepTodayDone.length > 0 ? (
-            <div>
-              {prepTodayDone.map(type => {
+            <div className="max-h-[200px] overflow-y-auto hide-scrollbar">
+              {sortedDone.map(type => {
                 const cfg = PREP_CFG[type]
                 if (!cfg) return null
+                const time = fmt(todayTsMap[type])
                 return (
                   <div key={type} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
+                    <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{time || '—'}</span>
                     <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
                       <cfg.Icon className="w-3.5 h-3.5" />
                     </div>
-                    <span className="text-[13px] font-semibold text-[#1A1918]">{cfg.label}</span>
+                    <span className="text-[13px] text-[#1A1918]">
+                      {cfg.cat && <span className="text-[#9E9A95] font-normal mr-1">{cfg.cat}</span>}
+                      <span className="font-semibold">{cfg.label}</span>
+                    </span>
                   </div>
                 )
               })}
@@ -741,48 +784,28 @@ export default function PreparingPage() {
           )
         })()}
 
-        {/* ━━━ 능동적 제안 카드 ━━━ */}
-        {(() => {
-          const suggestions: { icon: string; text: string; action?: string; href?: string }[] = []
-          // 영양제 안 챙김
-          if (supplCount === 0) suggestions.push({ icon: '', text: '오늘 엽산 아직 안 챙겼어요!', action: 'suppl' })
-          // 가임기 알림
-          if (getCyclePhase() === 'fertile') {
-            suggestions.push({ icon: '', text: '지금 가임기예요! 타이밍 잡아보세요', href: '/waiting' })
-          }
-          // TWW 안내
-          if (getCyclePhase() === 'tww') {
-            suggestions.push({ icon: '', text: '착상 기다리는 중이에요. 무리하지 마세요', href: '/waiting' })
-          }
-
-          if (suggestions.length === 0) return null
-          return (
-            <div className="space-y-1.5">
-              {suggestions.slice(0, 3).map((s, i) => (
-                <Link key={i} href={s.href || '#'} className="flex items-center gap-2.5 bg-white rounded-xl border border-[#FFDDC8] p-3 active:bg-[var(--color-page-bg)]">
-                  <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] shrink-0" />
-                  <p className="text-[13px] text-[#1A1918] flex-1">{s.text}</p>
-                  <span className="text-[#9E9A95] text-[12px]">→</span>
-                </Link>
-              ))}
-            </div>
-          )
-        })()}
-
         {/* ━━━ 임신 준비 식단 추천 ━━━ */}
         <AIMealCard mode="preparing" value={0} phase={getCyclePhase()} />
 
         {/* 음식 물어보기 */}
-        <a href="/food-check" className="flex items-center gap-3 bg-white rounded-xl border border-[#E8E4DF] p-3.5 active:bg-[#F5F3F0]">
-          <div className="w-9 h-9 rounded-full bg-[#FFF8F3] flex items-center justify-center shrink-0">
-            <span className="text-[18px]">🍽️</span>
+        <form onSubmit={e => { e.preventDefault(); if (foodQuery.trim()) router.push(`/food-check?q=${encodeURIComponent(foodQuery.trim())}`) }}
+          className="flex items-center gap-2 bg-white rounded-xl border border-[#E8E4DF] p-2.5">
+          <div className="w-8 h-8 rounded-full bg-[#FFF8F3] flex items-center justify-center shrink-0">
+            <span className="text-[16px]">🍽️</span>
           </div>
-          <div className="flex-1">
-            <p className="text-[13px] font-bold text-[#1A1918]">이 음식 먹어도 되나요?</p>
-            <p className="text-[12px] text-[#9E9A95] mt-0.5">임신 준비 중 음식 안전 AI 확인</p>
-          </div>
-          <span className="text-[#9E9A95] text-[16px]">→</span>
-        </a>
+          <input
+            type="text"
+            value={foodQuery}
+            onChange={e => setFoodQuery(e.target.value)}
+            placeholder="이 음식 먹어도 되나요? 검색"
+            className="flex-1 text-[13px] bg-transparent outline-none text-[#1A1918] placeholder:text-[#9E9A95]"
+          />
+          {foodQuery.trim() ? (
+            <button type="submit" className="shrink-0 px-3 py-1 rounded-lg bg-[var(--color-primary)] text-white text-[12px] font-semibold">확인</button>
+          ) : (
+            <span className="text-[12px] text-[#9E9A95] shrink-0">AI 확인</span>
+          )}
+        </form>
 
         {/* 푸시 알림 동의 */}
         <PushPrompt message="배란일과 엽산 리마인더를 받아볼까요?" />
@@ -853,23 +876,26 @@ export default function PreparingPage() {
             )
           })()}
         </div>
-        {/* ━━━ 임신 준비 식품 가이드 ━━━ */}
-        <FoodGuideCard goodFoods={foodsData.good ?? DEFAULT_GOOD_FOODS} badFoods={foodsData.bad ?? DEFAULT_BAD_FOODS} />
 
-        {/* ━━━ 스트레스 관리 팁 ━━━ */}
+        {/* 부부 미션 카드 */}
+        <MissionCard mode="preparing" />
+
+        {/* 심심풀이 */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
-          <div className="p-3 border-b border-[#E8E4DF]">
-            <p className="text-[14px] font-semibold text-[#1A1918]">마음 챙기기</p>
-            <p className="text-[12px] text-[#9E9A95] mt-0.5">임신 준비 중 스트레스 관리</p>
-          </div>
-          <div className="p-3 grid grid-cols-2 gap-2">
-            {stressTips.map((tip: { title: string; desc: string }) => (
-              <div key={tip.title} className="bg-[var(--color-page-bg)] rounded-xl p-3">
-                <p className="text-[13px] font-semibold text-[#1A1918]">{tip.title}</p>
-                <p className="text-[11px] text-[#6B6966] mt-0.5">{tip.desc}</p>
+        <div className="grid grid-cols-3 divide-x divide-[#E8E4DF]">
+          {([
+            { href: '/fortune', Icon: ActivityIcon, title: '바이오리듬' },
+            { href: '/fortune?tab=zodiac', Icon: CompassIcon, title: '띠 · 별자리' },
+            { href: '/fortune?tab=fortune', Icon: SparkleIcon, title: '오늘의 운세' },
+          ] as const).map((item) => (
+            <Link key={item.href} href={item.href}
+              className="flex flex-col items-center gap-1.5 py-3 px-2 active:bg-[var(--color-page-bg)]">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[var(--color-page-bg)]">
+                <item.Icon className="w-5 h-5 text-[var(--color-primary)]" />
               </div>
-            ))}
-          </div>
+              <p className="text-[12px] font-semibold text-[#1A1918] text-center leading-tight">{item.title}</p>
+            </Link>
+          ))}
         </div>
       </div>
 
@@ -882,98 +908,8 @@ export default function PreparingPage() {
 
       {showGuide && <SpotlightGuide mode="preparing" onComplete={() => { localStorage.setItem('dodam_guide_preparing', '1'); setShowGuide(false) }} />}
 
-      {/* 기다림 일기 시트 */}
-      {/* 재미 콘텐츠 */}
-      <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 mx-5 mb-4">
-        <div className="grid grid-cols-3 gap-2">
-          <Link href="/fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
-            <ActivityIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-            <p className="text-[12px] font-semibold text-[#1A1918]">바이오리듬</p>
-          </Link>
-          <Link href="/fortune?tab=zodiac" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
-            <CompassIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-            <p className="text-[12px] font-semibold text-[#1A1918]">띠 · 별자리</p>
-          </Link>
-          <Link href="/fortune?tab=fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
-            <SparkleIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-            <p className="text-[12px] font-semibold text-[#1A1918]">오늘의 운세</p>
-          </Link>
-        </div>
-      </div>
-
-      {journalSheetOpen && (
-        <div className="fixed inset-0 z-[200] flex flex-col justify-end" onClick={() => setJournalSheetOpen(false)}>
-          <div className="bg-white rounded-t-3xl p-5 max-h-[80dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[16px] font-bold text-[#1A1918]">기다림 일기</p>
-              <button onClick={() => setJournalSheetOpen(false)} className="text-[#9E9A95] text-[14px]">닫기</button>
-            </div>
-            <p className="text-[13px] text-[#6B6966] mb-3">오늘 마음을 자유롭게 기록해요</p>
-            {(['오늘 어떤 하루였나요?', '아기에게 하고 싶은 말', '나에게 하고 싶은 말'] as const).map((placeholder, i) => (
-              <div key={i} className="mb-2">
-                <p className="text-[12px] font-semibold text-[#A78BFA] mb-1">{i + 1}</p>
-                <textarea
-                  value={journalTexts[i] || ''}
-                  onChange={e => {
-                    const next = [...journalTexts]
-                    next[i] = e.target.value
-                    setJournalTexts(next)
-                  }}
-                  placeholder={placeholder}
-                  rows={2}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[#E8E4DF] bg-[#FAFAF8] text-[14px] text-[#1A1918] placeholder-[#C4C0BB] resize-none focus:outline-none focus:border-[#A78BFA]"
-                />
-              </div>
-            ))}
-            <button onClick={() => {
-              try { localStorage.setItem(`dodam_prep_journal_${today}`, JSON.stringify(journalTexts)) } catch {}
-              setJournalSheetOpen(false)
-              showToast('기다림 일기 저장됐어요 🌱')
-            }} className="w-full mt-2 py-3 rounded-xl text-[14px] font-bold text-white" style={{ background: '#A78BFA' }}>
-              저장
-            </button>
-          </div>
-        </div>
-      )}
     </div>
+  </div>
   )
 }
 
-function FoodGuideCard({ goodFoods, badFoods }: {
-  goodFoods: { name: string; items: string }[]
-  badFoods: { name: string; desc: string }[]
-}) {
-  const [tab, setTab] = useState<'good' | 'bad'>('good')
-  return (
-    <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
-      <div className="flex border-b border-[#E8E4DF]">
-        <button onClick={() => setTab('good')}
-          className={`flex-1 py-2.5 text-[12px] font-semibold relative transition-colors ${tab === 'good' ? 'text-[#3D9A5F]' : 'text-[#9E9A95]'}`}>
-          권장 식품
-          {tab === 'good' && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#3D9A5F] rounded-full" />}
-        </button>
-        <button onClick={() => setTab('bad')}
-          className={`flex-1 py-2.5 text-[12px] font-semibold relative transition-colors ${tab === 'bad' ? 'text-[#D05050]' : 'text-[#9E9A95]'}`}>
-          주의 식품
-          {tab === 'bad' && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#D05050] rounded-full" />}
-        </button>
-      </div>
-      <div className="p-3 grid grid-cols-2 gap-2">
-        {tab === 'good'
-          ? goodFoods.map(f => (
-            <div key={f.name} className="bg-[#F0FAF4] rounded-xl px-3 py-2.5">
-              <p className="text-[12px] font-bold text-[#3D9A5F]">{f.name}</p>
-              <p className="text-[11px] text-[#6B6966] mt-0.5 leading-tight">{f.items}</p>
-            </div>
-          ))
-          : badFoods.map(f => (
-            <div key={f.name} className="bg-[#FDF2F2] rounded-xl px-3 py-2.5">
-              <p className="text-[12px] font-bold text-[#D05050]">{f.name}</p>
-              <p className="text-[11px] text-[#6B6966] mt-0.5 leading-tight">{f.desc}</p>
-            </div>
-          ))
-        }
-      </div>
-    </div>
-  )
-}

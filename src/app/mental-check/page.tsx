@@ -95,7 +95,7 @@ export default function MentalCheckPage() {
   if (showResult) {
     const history = JSON.parse(localStorage.getItem('dodam_epds_history') || '[]')
     return (
-      <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6">
+      <div className="min-h-[calc(100dvh-144px)] bg-white flex flex-col items-center justify-center px-6">
         <div className="mb-4" style={{ backgroundColor: `${result.color}10`, borderRadius: '50%' }}>
           <IllustVideo src={result.emoji} variant="circle" className="w-28 h-28" />
         </div>
@@ -203,10 +203,10 @@ export default function MentalCheckPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="마음 체크" showBack rightAction={<span className="text-[13px] text-[#6B6966]">{answers.filter(a => a !== null).length}/10</span>} />
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4">
         {/* 프로그레스 */}
         <div className="flex gap-1 mb-6">
           {QUESTIONS.map((_, i) => (

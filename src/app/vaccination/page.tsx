@@ -239,10 +239,10 @@ export default function VaccinationPage() {
   }, [])
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="예방접종" showBack rightAction={<span className="text-[13px] text-[var(--color-primary)] font-semibold">{doneCount}/{schedule.length}</span>} />
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4 space-y-3">
 
         {/* Active side effect tracking cards */}
         {activeTrackings.map(entry => {

@@ -24,22 +24,30 @@ export default function InvitePage() {
 
       if (!children || children.length === 0) return
 
-      // 초대 토큰 생성
       const token = crypto.randomUUID()
-      const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString() // 72시간
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7일
 
-      // user_id는 수락 시 설정. 초대 단계에서는 placeholder로 비워둠
-      // RLS 우회를 위해 서비스 역할 또는 invited_by 패턴 사용
-      await supabase.from('caregivers').insert({
+      const { error } = await supabase.from('caregivers').insert({
         child_id: children[0].id,
-        user_id: '00000000-0000-0000-0000-000000000000', // placeholder (수락 시 실제 user_id로 교체)
+        user_id: '00000000-0000-0000-0000-000000000000',
         role: 'caregiver',
         invite_token: token,
         invite_expires_at: expiresAt,
         permissions: { record: true, view: true, edit: false, delete: false },
       })
 
-      setInviteLink(`${window.location.origin}/invite/${token}`)
+      if (error) {
+        // RLS 차단 등 insert 실패 시 API route로 우회
+        const res = await fetch('/api/invite/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ childId: children[0].id, token, expiresAt }),
+        })
+        if (!res.ok) return
+      }
+
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dodam.life'
+      setInviteLink(`${siteUrl}/invite/${token}`)
     }
     generateLink()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -94,7 +102,7 @@ export default function InvitePage() {
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col">
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl">
+      <header className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-xl">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">닫기</button>
           <h1 className="text-[15px] font-bold text-[#0A0B0D]">가족 초대</h1>
@@ -146,7 +154,7 @@ export default function InvitePage() {
         )}
 
         <p className="text-xs text-[#9B9B9B] mt-6 text-center">
-          초대 링크는 72시간 동안 유효합니다
+          초대 링크는 7일 동안 유효합니다
         </p>
       </div>
     </div>

@@ -85,7 +85,7 @@ export default function PlaceDetailPage() {
     : null
 
   return (
-    <div className="min-h-[100dvh] bg-[#F0EDE8]">
+    <div className="min-h-[calc(100dvh-144px)] bg-[#F0EDE8]">
       {/* 헤더 */}
       <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
         <button onClick={() => router.back()} className="text-[13px] text-[#6B6966] shrink-0">뒤로</button>
@@ -93,7 +93,7 @@ export default function PlaceDetailPage() {
         <div className="w-8 shrink-0" />
       </div>
 
-      <div className="max-w-lg mx-auto w-full pb-24">
+      <div className="max-w-lg mx-auto w-full pb-4">
         {/* 기본 정보 */}
         <div className="m-4 p-5 rounded-2xl bg-white border border-[#ECECEC]">
           <h2 className="text-[18px] font-bold text-[#212124]">{place.name}</h2>

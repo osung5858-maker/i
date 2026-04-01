@@ -1,13 +1,21 @@
 'use client'
 
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useRemoteContent } from '@/lib/useRemoteContent'
 import { getSecure } from '@/lib/secureStorage'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { shareLetter, sharePositiveTest } from '@/lib/kakao/share'
-import { HeartIcon, PenIcon, SparkleIcon, EnvelopeIcon, PregnantIcon, MoonIcon, BabyIcon, ActivityIcon, CompassIcon, SproutIcon, ExternalLinkIcon } from '@/components/ui/Icons'
+import dynamic from 'next/dynamic'
+import { sharePositiveTest } from '@/lib/kakao/share'
+import { HeartIcon, PenIcon, SparkleIcon, BookOpenIcon, PregnantIcon, MoonIcon, BabyIcon, ActivityIcon, CompassIcon, SproutIcon, ExternalLinkIcon } from '@/components/ui/Icons'
 import IllustVideo from '@/components/ui/IllustVideo'
+import BenefitTabs from '@/components/ui/BenefitTabs'
+import AIMealCard from '@/components/ai-cards/AIMealCard'
+import BabyItemChecklist from '@/components/pregnant/BabyItemChecklist'
+
+const HospitalGuide = dynamic(() => import('@/components/pregnant/HospitalGuide'), {
+  loading: () => <div className="h-24 bg-[#F0EDE8] rounded-xl animate-pulse" />,
+})
 // ===== 주기 계산 =====
 function addDays(date: Date, days: number): Date {
   const d = new Date(date); d.setDate(d.getDate() + days); return d
@@ -47,32 +55,20 @@ const DEFAULT_CHECKLIST = [
   { id: 'stress', icon: '', title: '스트레스 관리', desc: '충분한 수면·명상' },
 ]
 
-const DEFAULT_GOV_SUPPORTS = [
-  { title: '난임부부 시술비 지원', desc: '체외수정 최대 110만원 · 인공수정 최대 30만원', link: 'https://www.gov.kr/portal/service/serviceInfo/SME000000100' },
-  { title: '임신 사전건강관리', desc: '보건소 무료 산전검사 · 풍진/빈혈 검사', link: 'https://www.mohw.go.kr/menu.es?mid=a10711020200' },
-  { title: '엽산제·철분제 무료', desc: '보건소 등록 시 무료 제공', link: 'https://www.gov.kr/portal/service/serviceInfo/SD0000016094' },
-  { title: '난임 원스톱 서비스', desc: '시술비·심리상담 통합 지원', link: 'https://www.gov.kr/portal/onestopSvc/Infertility' },
-  { title: '맘편한임신 통합신청', desc: '임신 후 각종 지원 한번에 신청', link: 'https://www.gov.kr/portal/onestopSvc/fertility' },
-]
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
 function haptic() { if (navigator.vibrate) navigator.vibrate(20) }
 
-export default function WaitingPage() {
+function PreparingWaitingPage() {
   const checklist = useRemoteContent('waiting_checklist', DEFAULT_CHECKLIST)
-  const govSupports = useRemoteContent('waiting_gov_supports', DEFAULT_GOV_SUPPORTS)
   const router = useRouter()
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
-
-  const [appMode] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('dodam_mode') || 'preparing'
-    return 'preparing'
+  const [chosenNickname] = useState<string>(() => {
+    if (typeof window === 'undefined') return ''
+    return localStorage.getItem('dodam_chosen_nickname') || ''
   })
-
-  // 임신 중 모드일 때는 임신 중 전용 기다림 페이지
-  if (appMode === 'pregnant') return <PregnantWaitingPage />
 
   const [lastPeriod, setLastPeriod] = useState<string>('')
   const [cycleLength, setCycleLength] = useState<number>(28)
@@ -121,14 +117,46 @@ export default function WaitingPage() {
     }
     return {}
   })
-  const [letters, setLetters] = useState<{ text: string; date: string; from: string; reply: string }[]>(() => {
-    if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('dodam_letters'); return s ? JSON.parse(s) : []
-    }
-    return []
-  })
-  const [letterText, setLetterText] = useState('')
-  const [letterOpen, setLetterOpen] = useState(false)
+  const [journals, setJournals] = useState<{ text: string; date: string; comment?: string }[]>([])
+  const [journalText, setJournalText] = useState('')
+  const [journalSheetOpen, setJournalSheetOpen] = useState(false)
+
+  const saveJournal = () => {
+    if (!journalText.trim()) return
+    const savedText = journalText.trim()
+    const entryDate = new Date().toISOString()
+    const _d = new Date()
+    const today = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`
+    const fallback = '오늘도 도담하게 잘 기다리고 있어요 🌱'
+    // 즉시 fallback comment로 저장
+    const entry = { text: savedText, date: entryDate, comment: fallback }
+    setJournals(prev => {
+      const next = [entry, ...prev]
+      try {
+        localStorage.setItem('dodam_prep_journal', JSON.stringify(next))
+        const tsMap = JSON.parse(localStorage.getItem(`dodam_prep_ts_${today}`) || '{}')
+        if (!tsMap['prep_journal']) { tsMap['prep_journal'] = entryDate; localStorage.setItem(`dodam_prep_ts_${today}`, JSON.stringify(tsMap)) }
+        const done: string[] = JSON.parse(localStorage.getItem(`dodam_prep_done_${today}`) || '[]')
+        if (!done.includes('prep_journal')) { done.push('prep_journal'); localStorage.setItem(`dodam_prep_done_${today}`, JSON.stringify(done)) }
+      } catch {}
+      return next
+    })
+    setJournalText('')
+    setJournalSheetOpen(false)
+    showToast('기다림 일기 저장됐어요 🌱')
+    // AI 답장은 백그라운드에서 업데이트
+    fetch('/api/ai-preparing', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'diary', text: savedText }),
+    }).then(r => r.json()).then(data => {
+      if (!data.comment) return
+      setJournals(prev => {
+        const updated = prev.map(e => e.date === entryDate ? { ...e, comment: data.comment } : e)
+        try { localStorage.setItem('dodam_prep_journal', JSON.stringify(updated)) } catch {}
+        return updated
+      })
+    }).catch(() => {})
+  }
   const [pregTests, setPregTests] = useState<{ date: string; result: string; dpo: number }[]>(() => {
     if (typeof window !== 'undefined') {
       const s = localStorage.getItem('dodam_preg_tests'); return s ? JSON.parse(s) : []
@@ -136,6 +164,12 @@ export default function WaitingPage() {
     return []
   })
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+
+  useEffect(() => {
+    try { setJournals(JSON.parse(localStorage.getItem('dodam_prep_journal') || '[]')) } catch {}
+  }, [])
+
+  // prep_journal FAB → BottomNav에서 직접 처리
 
   const cycle = useMemo(() => {
     if (!lastPeriod) return null
@@ -161,39 +195,6 @@ export default function WaitingPage() {
       if (ds >= c.fertileStart && ds <= c.fertileEnd) return 'fertile'
     }
     return 'none'
-  }
-
-  const [letterSaving, setLetterSaving] = useState(false)
-
-  const saveLetter = async () => {
-    if (!letterText.trim() || letterSaving) return
-    setLetterSaving(true)
-
-    // AI 답장 시도
-    let reply = ''
-    try {
-      const res = await fetch('/api/ai-preparing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'letter', letterText: letterText.trim(), letterCount: letters.length }),
-      })
-      const data = await res.json()
-      reply = data.reply || ''
-    } catch { /* fallback */ }
-
-    // AI 실패 시 폴백
-    if (!reply) {
-      const fallback = [
-        '엄마 아빠의 마음이 별빛처럼 따뜻하게 닿고 있어요. 곧 그 품에 안길게요.',
-        '아직 작은 씨앗이지만, 매일 조금씩 엄마 아빠를 닮아가고 있어요.',
-        '매일 보내주는 사랑, 꼭꼭 모아두고 있어요. 만나면 다 돌려줄게요.',
-      ]
-      reply = fallback[Math.floor(Math.random() * fallback.length)]
-    }
-
-    const next = [{ text: letterText.trim(), date: new Date().toISOString(), from: '엄마', reply }, ...letters]
-    setLetters(next); localStorage.setItem('dodam_letters', JSON.stringify(next))
-    setLetterText(''); setLetterOpen(false); setLetterSaving(false)
   }
 
   const toggleCheck = (id: string) => {
@@ -230,8 +231,8 @@ export default function WaitingPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)]">
-      <div className="max-w-lg mx-auto w-full px-5 pt-5 pb-28 space-y-3">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]">
+      <div className="max-w-lg mx-auto w-full px-5 pt-5 pb-4 space-y-3">
 
         {/* ━━━ 히어로: 기다림의 감성 ━━━ */}
         {cycle && (() => {
@@ -302,43 +303,47 @@ export default function WaitingPage() {
           )}
         </div>
 
-        {/* ━━━ 편지 ━━━ */}
+        {/* ━━━ 기다림 일기 ━━━ */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[13px] font-bold text-[#1A1918] flex items-center gap-1"><EnvelopeIcon className="w-3.5 h-3.5" /> 아이에게</p>
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-lg">{letters.length >= 30 ? '+++' : letters.length >= 10 ? '++' : '+'}</span>
-              <span className="text-[14px] text-[#6B6966]">{letters.length}통</span>
+              <p className="text-[14px] font-bold text-[#1A1918]">기다림 일기</p>
+              {journals.length > 0 && (
+                <span className="text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-primary)' }}>
+                  {journals.length}
+                </span>
+              )}
             </div>
+            {journals.length > 0 && (
+              <Link href="/prep-diary">
+                <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
+              </Link>
+            )}
           </div>
-          {letters.slice(0, 2).map((l, i) => (
-            <div key={i} className="mb-2">
-              <div className="p-3 bg-[#F0F9F4] rounded-xl rounded-bl-sm">
-                <p className="text-[14px] text-[#1A1918] line-clamp-3">{l.text}</p>
-                <p className="text-[13px] text-[#9E9A95] mt-1 text-right">{l.from} · {new Date(l.date).toLocaleDateString('ko-KR')}</p>
-              </div>
-              <div className="p-3 bg-[#FFF8F3] rounded-xl rounded-tr-sm mt-1 ml-6">
-                <p className="text-[14px] text-[#1A1918]">{l.reply}</p>
-                <div className="flex items-center justify-between mt-1">
-                  <p className="text-[13px] text-[#9E9A95]">아이의 답장</p>
-                  <button onClick={() => shareLetter(l.text, l.reply, letters.length - i)} className="text-[13px] text-[var(--color-primary)] font-medium">카톡 공유</button>
-                </div>
-              </div>
+          {journals.length > 0 && (
+            <div className="mb-3 p-3 bg-[var(--color-page-bg)] rounded-xl border border-[#E8E4DF]">
+              <p className="text-[11px] text-[#9E9A95] mb-1.5">
+                {new Date(journals[0].date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}
+              </p>
+              <p className="text-[13px] text-[#1A1918] leading-relaxed line-clamp-3">{journals[0].text}</p>
+              {journals[0].comment && (
+                <p className="text-[12px] text-[var(--color-primary)] mt-2 italic leading-relaxed">{journals[0].comment}</p>
+              )}
             </div>
-          ))}
-          {letterOpen ? (
-            <div>
-              <textarea value={letterText} onChange={(e) => setLetterText(e.target.value.slice(0, 500))} placeholder="아이에게 하고 싶은 말..." className="w-full h-20 text-[13px] p-3 bg-[var(--color-page-bg)] rounded-xl resize-none focus:outline-none" autoFocus />
-              <div className="flex justify-between mt-2">
-                <button onClick={() => setLetterOpen(false)} className="text-[14px] text-[#6B6966]">취소</button>
-                <button onClick={saveLetter} disabled={!letterText.trim() || letterSaving} className={`text-[14px] font-semibold px-3 py-1 rounded-lg ${letterText.trim() && !letterSaving ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}>
-                  {letterSaving ? 'AI가 답장 쓰는 중...' : '보내기'}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button onClick={() => setLetterOpen(true)} className="w-full py-2.5 text-[13px] font-semibold text-[var(--color-primary)] bg-[#F0F9F4] rounded-xl">오늘의 편지 쓰기</button>
           )}
+          <button onClick={() => setJournalSheetOpen(true)}
+            className="w-full flex items-center gap-3 bg-[var(--color-page-bg)] rounded-xl p-3 active:bg-[#F0EDE8]">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-white border border-[#E8E4DF]">
+              <PenIcon className="w-4 h-4 text-[var(--color-primary)]" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-[13px] font-bold text-[#1A1918]">오늘의 기다림 일기 쓰기</p>
+              <p className="text-[12px] text-[#9E9A95]">
+                {journals.length > 0 ? '새 일기 추가하기' : '기다림의 첫 일기를 남겨보세요'}
+              </p>
+            </div>
+            <span className="text-[#9E9A95] text-sm">→</span>
+          </button>
         </div>
 
         {/* 주기 캘린더 */}
@@ -557,18 +562,35 @@ export default function WaitingPage() {
           </div>
         )}
 
-        {/* 정부 지원 */}
-        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <p className="text-[14px] font-bold text-[#1A1918] mb-3">정부 지원</p>
-          {govSupports.map((item) => (
-            <div key={item.title} className="p-3 bg-[var(--color-page-bg)] rounded-xl mb-2 last:mb-0">
-              <p className="text-[13px] font-semibold text-[#1A1918]">{item.title}</p>
-              <p className="text-[13px] text-[#6B6966]">{item.desc}</p>
-              <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-[14px] text-[var(--color-primary)] mt-1 inline-flex items-center gap-1">자세히 보기 <ExternalLinkIcon className="w-3 h-3" /></a>
-            </div>
-          ))}
-        </div>
+        {/* 정부 지원 · 혜택 */}
+        <BenefitTabs />
       </div>
+
+      {/* 기다림 일기 바텀시트 */}
+      {journalSheetOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/40" onClick={() => setJournalSheetOpen(false)}>
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white rounded-t-2xl pb-[env(safe-area-inset-bottom)]" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
+            <div className="px-5 pb-5">
+              <p className="text-[15px] font-bold text-[#1A1918] mb-3 flex items-center gap-1.5"><PenIcon className="w-4 h-4" /> 기다림 일기</p>
+              <div className="flex gap-1.5 overflow-x-auto hide-scrollbar mb-3">
+                {['아이에게 한마디', '오늘의 감사', '나에게 응원', '임신 기원', '기다림의 마음'].map(chip => (
+                  <button key={chip} onClick={() => setJournalText(prev => prev ? prev + ' ' + chip : chip)}
+                    className="shrink-0 px-3 py-1.5 rounded-full bg-[var(--color-accent-bg)] text-[12px] font-medium text-[var(--color-primary)]">{chip}</button>
+                ))}
+              </div>
+              <textarea value={journalText} onChange={e => setJournalText(e.target.value.slice(0, 500))}
+                placeholder="아직 만나지 못한 아이에게, 오늘의 마음을 전해요"
+                className="w-full h-28 text-[14px] p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]" autoFocus />
+              <p className="text-right text-[12px] text-[#9E9A95] mt-1">{journalText.length}/500</p>
+              <button onClick={saveJournal} disabled={!journalText.trim()}
+                className={`w-full py-3.5 rounded-xl text-[15px] font-bold mt-2 ${journalText.trim() ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}>
+                저장하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 토스트 */}
       {toast && (
@@ -594,6 +616,13 @@ const WEEK_GUIDE = [
   { w: '36~40', size: '/images/illustrations/f9.webm', name: '수박', baby: '출생 준비 완료', mom: '이슬/진통', check: '매주 검진, 진통 타이머' },
 ]
 
+// 높이 상수
+const SEL_H = 88    // 활성 항목 높이
+const NON_H = 48    // 비활성 항목 높이
+const GAP = 5       // 항목 간 gap
+// 가시 영역: 활성 1 + 상하 인접 각 1개 + 클리핑
+const CONTAINER_H = SEL_H + (NON_H + GAP) * 2 + Math.floor((NON_H + GAP) * 0.4)
+
 function VerticalFetalGuide({ currentWeek }: { currentWeek: number }) {
   const currentIdx = useMemo(() => {
     const idx = WEEK_GUIDE.findIndex(g => {
@@ -604,59 +633,87 @@ function VerticalFetalGuide({ currentWeek }: { currentWeek: number }) {
   }, [currentWeek])
 
   const [selectedIdx, setSelectedIdx] = useState(currentIdx)
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
-
-  // currentIdx가 바뀌면 selectedIdx도 동기화
   useEffect(() => { setSelectedIdx(currentIdx) }, [currentIdx])
 
-  // 선택된 항목으로 스크롤
-  useEffect(() => {
-    const el = itemRefs.current[selectedIdx]
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  // 터치 스와이프
+  const touchStartY = useRef(0)
+  const onTouchStart = (e: React.TouchEvent) => { touchStartY.current = e.touches[0].clientY }
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const dy = touchStartY.current - e.changedTouches[0].clientY
+    if (Math.abs(dy) < 20) return
+    if (dy > 0) setSelectedIdx(i => Math.min(i + 1, WEEK_GUIDE.length - 1))
+    else setSelectedIdx(i => Math.max(i - 1, 0))
+  }
+
+  // 활성 항목이 컨테이너 중앙에 오도록 translateY 계산
+  const translateY = useMemo(() => {
+    // 각 항목 top = i*(NON_H+GAP), 단 selectedIdx 이후는 SEL_H 반영
+    const itemTop = (i: number) => {
+      if (i <= selectedIdx) return i * (NON_H + GAP)
+      return selectedIdx * (NON_H + GAP) + SEL_H + GAP + (i - selectedIdx - 1) * (NON_H + GAP)
+    }
+    const center = CONTAINER_H / 2
+    const selCenter = itemTop(selectedIdx) + SEL_H / 2
+    return center - selCenter
   }, [selectedIdx])
 
   return (
     <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
-      <p className="text-[14px] font-bold text-[#1A1918] px-4 pt-4 pb-3">주차별 발달 가이드</p>
-      <div className="relative">
-        {/* 스크롤 상단/하단 그라데이션 페이드 */}
-        <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none" />
-        <div ref={scrollRef} className="px-4 pb-4 space-y-2 max-h-[420px] overflow-y-auto">
+      <p className="text-[14px] font-bold text-[#1A1918] px-4 pt-4 pb-2">주차별 발달 가이드</p>
+      <div className="relative overflow-hidden px-3 pb-3" style={{ height: CONTAINER_H }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {/* 상단 페이드 */}
+        <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none" style={{ height: 36, background: 'linear-gradient(to bottom, white 0%, transparent 100%)' }} />
+        {/* 하단 페이드 */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none" style={{ height: 36, background: 'linear-gradient(to top, white 0%, transparent 100%)' }} />
+
+        <div
+          style={{ transform: `translateY(${translateY}px)`, transition: 'transform 0.35s cubic-bezier(0.4,0,0.2,1)', willChange: 'transform' }}
+        >
           {WEEK_GUIDE.map((item, idx) => {
             const { w, size, name, baby, mom, check } = item
             const isSelected = idx === selectedIdx
             const isCurrent = idx === currentIdx
+            const dist = Math.abs(idx - selectedIdx)
+            const opacity = dist === 0 ? 1 : dist === 1 ? 0.75 : dist === 2 ? 0.45 : 0.2
 
             return (
               <div
                 key={w}
-                ref={el => { itemRefs.current[idx] = el }}
                 onClick={() => setSelectedIdx(idx)}
-                className="transition-all duration-300 cursor-pointer"
-                style={{ opacity: isSelected ? 1 : Math.max(0.4, 1 - Math.abs(idx - selectedIdx) * 0.2) }}
+                className="cursor-pointer rounded-xl transition-all duration-300"
+                style={{
+                  height: isSelected ? SEL_H : NON_H,
+                  marginBottom: GAP,
+                  opacity,
+                  overflow: 'hidden',
+                  background: isSelected ? '#E8F5EE' : '#FAFAFA',
+                  boxShadow: isSelected ? '0 0 0 2px rgba(var(--color-primary-rgb,80,160,120),0.25)' : 'none',
+                }}
               >
-                <div className={`p-3 rounded-xl ${isSelected ? 'bg-[#E8F5EE] ring-2 ring-[var(--color-primary)]/30' : 'bg-[#FAFAFA]'}`}>
-                  <div className="flex items-center gap-2.5">
-                    <IllustVideo src={size} variant="icon" className={`shrink-0 transition-all duration-300 ${isSelected ? 'w-16 h-16' : 'w-10 h-10'}`} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`font-bold ${isSelected ? 'text-[13px] text-[var(--color-primary)]' : 'text-[12px] text-[#6B6966]'}`}>
-                          {w}주 · {name}
-                        </span>
-                        {isCurrent && <span className="text-[9px] bg-[var(--color-primary)] text-white px-1.5 py-0.5 rounded-full font-bold">지금</span>}
-                      </div>
-                      {isSelected ? (
-                        <div className="mt-1.5">
-                          <p className="text-[12px] text-[#4A4744]">아기: {baby}</p>
-                          <p className="text-[12px] text-[#6B6966]">엄마: {mom}</p>
-                          <p className="text-[12px] text-[var(--color-primary)] font-medium">체크: {check}</p>
-                        </div>
-                      ) : (
-                        <p className="text-[11px] text-[#9E9A95] mt-0.5 truncate">{baby}</p>
+                <div className={`flex items-center gap-2.5 px-3 h-full`}>
+                  <IllustVideo
+                    src={size}
+                    variant="icon"
+                    className={`shrink-0 transition-all duration-300 ${isSelected ? 'w-14 h-14' : 'w-9 h-9'}`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`font-bold transition-all duration-300 ${isSelected ? 'text-[13px] text-[var(--color-primary)]' : 'text-[12px] text-[#6B6966]'}`}>
+                        {w}주 · {name}
+                      </span>
+                      {isCurrent && (
+                        <span className="text-[9px] bg-[var(--color-primary)] text-white px-1.5 py-0.5 rounded-full font-bold">지금</span>
                       )}
                     </div>
+                    {isSelected ? (
+                      <div className="mt-1">
+                        <p className="text-[11px] text-[#4A4744]">아기: {baby}</p>
+                        <p className="text-[11px] text-[#6B6966]">엄마: {mom}</p>
+                        <p className="text-[11px] text-[var(--color-primary)] font-medium">체크: {check}</p>
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-[#9E9A95] mt-0.5 truncate">{baby}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -668,81 +725,18 @@ function VerticalFetalGuide({ currentWeek }: { currentWeek: number }) {
   )
 }
 
-// ===== 기다림 페이지 — 혜택 3탭 =====
-function WaitingBenefitTabs() {
-  const [tab, setTab] = useState<'money' | 'health' | 'box'>('money')
-
-  const TABS = [
-    { key: 'money' as const, label: '카드/급여' },
-    { key: 'health' as const, label: '의료/건강' },
-    { key: 'box' as const, label: '축하박스/기타' },
-  ]
-
-  const moneyItems = [
-    { t: '국민행복카드', d: '임신 1회당 100만원 (다태아 140만원)', u: 'https://www.gov.kr/portal/onestopSvc/fertility' },
-    { t: '첫만남이용권', d: '첫째 200만원 · 둘째 이상 300만원', u: 'https://www.gov.kr/portal/service/serviceInfo/PTR000050455' },
-    { t: '부모급여', d: '0세 월 100만원 · 1세 월 50만원', u: 'https://www.gov.kr/portal/service/serviceInfo/SD0000054655' },
-    { t: '아동수당', d: '만 8세 미만 월 10만원', u: 'https://www.gov.kr/portal/service/serviceInfo/135200000120' },
-    { t: '난임 시술비 지원', d: '체외수정 최대 110만원 · 인공수정 30만원', u: 'https://www.gov.kr/portal/service/serviceInfo/SME000000100' },
-    { t: '다자녀 전기요금 할인', d: '3자녀 이상 30% 감면', u: 'https://www.gov.kr/portal/service/serviceInfo/SD0000022936' },
-    { t: '맘편한임신 통합신청', d: '각종 지원 한번에 신청', u: 'https://www.gov.kr/portal/onestopSvc/fertility' },
-  ]
-
-  const healthItems = [
-    { t: '엽산·철분제 무료', d: '보건소 등록 시 무료 제공', u: 'https://www.gov.kr/portal/service/serviceInfo/SD0000016094' },
-    { t: '임산부 건강관리', d: '보건소 무료 산전검사 · 풍진/빈혈', u: 'https://www.mohw.go.kr/menu.es?mid=a10711020200' },
-    { t: '영유아 건강검진', d: '생후 14일~72개월 무료 검진', u: 'https://www.nhis.or.kr/nhis/healthin/wbhace04200m01.do' },
-    { t: '고위험 임산부 의료비', d: '의료비 90% 지원 (소득 무관)', u: 'https://www.gov.kr/portal/service/serviceInfo/135200000114' },
-    { t: '산후도우미 서비스', d: '정부 바우처 산후도우미', u: 'https://www.gov.kr/portal/onestopSvc/happyBirth' },
-  ]
-
-  type FreeBox = { id: string; category: string; name: string; desc: string; link: string; tip: string }
-  const DEFAULT_FREE_BOXES: FreeBox[] = [
-    { id: 'bebeform_p', category: 'pregnancy', name: '베베폼 축하박스', desc: '임신/출산 선물 꾸러미', link: 'https://bebeform.co.kr/giftbox/', tip: '' },
-    { id: 'momq_hug', category: 'pregnancy', name: '맘큐 하기스 허그박스', desc: '기저귀 · 물티슈 · 산모용품', link: 'https://www.momq.co.kr/event/202004180005#hugboxEventTop', tip: '' },
-    { id: 'bebeking_p', category: 'pregnancy', name: '베베킹 축하박스', desc: '매월 200명 선물 증정', link: 'https://bebeking.co.kr/theme/bbk2026/contents/bebebox.php', tip: '' },
-    { id: 'doubleheart', category: 'pregnancy', name: '더블하트 더블박스', desc: '약 20만원 상당 육아 필수템', link: 'https://m.doubleheart.co.kr/board/event/read.html?no=43417&board_no=8', tip: '' },
-    { id: 'momsdiary', category: 'pregnancy', name: '맘스다이어리 맘스팩', desc: '임산부 맞춤 샘플 박스', link: 'https://event.momsdiary.co.kr/com_event/momspack/2026/3m/index.html?', tip: '' },
-    { id: 'bebesup', category: 'pregnancy', name: '베베숲 마음박스', desc: '임신 · 출산 축하 선물 꾸러미', link: 'https://www.bebesup.co.kr/proc/heartbox', tip: '' },
-    { id: 'penelope', category: 'birth', name: '페넬로페 더 퍼스트 박스', desc: '신생아 첫 선물 박스', link: 'https://pf.kakao.com/_dxfaRxd/103498627', tip: '' },
-    { id: 'momspack', category: 'pregnancy', name: '맘스팩', desc: '매월 임산부 박스 발송', link: 'https://www.momspack.co.kr/', tip: '' },
-  ]
-  const remoteFreeBoxes = useRemoteContent<FreeBox[]>('free_boxes', DEFAULT_FREE_BOXES)
-  const boxItems = remoteFreeBoxes.filter(b => b.category !== 'birth').map(b => ({ t: b.name, d: b.desc, u: b.link }))
-
-  const items = tab === 'money' ? moneyItems : tab === 'health' ? healthItems : boxItems
-
-  return (
-    <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
-      <div className="flex border-b border-[#E8E4DF]">
-        {TABS.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex-1 py-2.5 text-[12px] font-semibold text-center relative transition-colors ${
-              tab === t.key ? 'text-[var(--color-primary)] bg-[var(--color-accent-bg)]/30' : 'text-[#9E9A95]'
-            }`}>
-            {t.label}
-            {tab === t.key && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[var(--color-primary)] rounded-full" />}
-          </button>
-        ))}
-      </div>
-      <div className="p-3 max-h-[320px] overflow-y-auto space-y-1.5">
-        {items.map(it => (
-          <a key={it.t} href={it.u} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2.5 p-2.5 bg-[var(--color-page-bg)] rounded-xl active:bg-[#E8E4DF]">
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-[#1A1918]">{it.t}</p>
-              <p className="text-[11px] text-[#6B6966]">{it.d}</p>
-            </div>
-            <ExternalLinkIcon className="w-3.5 h-3.5 text-[#9E9A95] shrink-0" />
-          </a>
-        ))}
-      </div>
-    </div>
-  )
-}
+// WaitingBenefitTabs → 공유 컴포넌트로 이동됨 (BenefitTabs)
+const WaitingBenefitTabs = BenefitTabs
 
 export function PregnantWaitingPage() {
+  const router = useRouter()
+  const [tab, setTab] = useState<'diary' | 'info' | 'benefit'>('diary')
+  const [foodQuery, setFoodQuery] = useState('')
   const [dueDate, setDueDate] = useState('')
+  const [chosenNickname] = useState<string>(() => {
+    if (typeof window === 'undefined') return ''
+    return localStorage.getItem('dodam_chosen_nickname') || ''
+  })
   useEffect(() => { getSecure('dodam_due_date').then(v => { if (v) setDueDate(v) }) }, [])
   const currentWeek = (() => {
     if (!dueDate) return 0
@@ -759,82 +753,245 @@ export function PregnantWaitingPage() {
   })()
   const trimester = currentWeek <= 13 ? '초기' : currentWeek <= 27 ? '중기' : '후기'
 
+  // 기다림 일기
+  const [diaries, setDiaries] = useState<{ text: string; date: string; mood: string; comment: string }[]>(() => {
+    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] } }
+    return []
+  })
+  const [diaryText, setDiaryText] = useState('')
+  const [diarySaving, setDiarySaving] = useState(false)
+  const [diarySheetOpen, setDiarySheetOpen] = useState(false)
+
+  // FAB에서 preg_journal 저장 시 목록 동기화
+  useEffect(() => {
+    const handler = (e: Event) => {
+      if ((e as CustomEvent).detail?.type === 'preg_journal') {
+        try { setDiaries(JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]')) } catch {}
+      }
+    }
+    window.addEventListener('dodam-record', handler)
+    return () => window.removeEventListener('dodam-record', handler)
+  }, [])
+
+  const saveDiary = async () => {
+    if (!diaryText.trim()) return
+    setDiarySaving(true)
+    let comment = '오늘도 도담하게 잘 지내고 있어요'
+    try {
+      const res = await fetch('/api/ai-pregnant', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'diary', text: diaryText, week: currentWeek, mood: '' }),
+      })
+      const data = await res.json()
+      if (data.comment) comment = data.comment
+    } catch { /* fallback */ }
+    const entry = { text: diaryText.trim(), date: new Date().toISOString(), mood: '', comment }
+    const next = [entry, ...diaries]
+    setDiaries(next); localStorage.setItem('dodam_preg_diary', JSON.stringify(next))
+    setDiaryText(''); setDiarySaving(false)
+  }
+
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)]">
-      <div className="max-w-lg mx-auto w-full px-5 pt-5 pb-28 space-y-3">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]">
+      <div className="max-w-lg mx-auto w-full px-5 pt-5 pb-4 space-y-3">
         {/* 출산 확인 (D-day 지남) */}
         {daysLeft <= 0 && (
           <Link href="/birth" className="block bg-gradient-to-r from-[#FFF0E6] to-[#FFF8F3] rounded-xl border border-[#FFDDC8] p-5 text-center active:opacity-80">
             <IllustVideo src="/images/illustrations/h1.webm" variant="circle" className="w-20 h-20 mx-auto mb-2" />
-            <p className="text-[16px] font-bold text-[#1A1918]">우리 아이, 만났나요?</p>
+            <p className="text-[16px] font-bold text-[#1A1918]">{chosenNickname || '우리 아이'}, 만났나요?</p>
             <p className="text-[13px] font-semibold text-[var(--color-primary)] mt-2">네, 만났어요! →</p>
           </Link>
         )}
 
         {/* 히어로 — 아이를 만나는 날 */}
-        <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-5 text-center">
-          <video src="/images/illustrations/h1.webm" autoPlay loop muted playsInline className="w-16 h-16 object-contain mx-auto mb-2" />
-          <p className="text-[18px] font-bold text-[#1A1918]">{daysLeft <= 0 ? '만날 날이 지났어요!' : daysLeft <= 7 ? '이번 주에 만나요!' : '아이를 만나는 날'}</p>
-          <p className="text-[28px] font-bold text-[var(--color-primary)] mt-1">{daysLeft <= 0 ? `D+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</p>
-          <div className="w-full h-2 bg-[#E8E4DF] rounded-full mt-3">
-            <div className="h-full bg-[var(--color-primary)] rounded-full" style={{ width: `${(currentWeek / 40) * 100}%` }} />
-          </div>
-          <p className="text-[14px] text-[#6B6966] mt-2">{currentWeek}주차 · {trimester} · {Math.round((currentWeek / 40) * 100)}%</p>
-        </div>
-
-        {/* 태교 일기 바로가기 */}
-        <Link href="/pregnant" className="block bg-white rounded-xl border border-[#E8E4DF] p-4 active:bg-[var(--color-page-bg)]">
-          <div className="flex items-center gap-3">
-            <PenIcon className="w-6 h-6 text-[#6B6966]" />
-            <div className="flex-1">
-              <p className="text-[13px] font-semibold text-[#1A1918]">오늘의 태교일기</p>
-              <p className="text-[14px] text-[#6B6966]">아이에게 한마디 남겨보세요</p>
+        {daysLeft <= 0 ? (
+          <div className="relative rounded-2xl border border-[#FFDDC8]/60 overflow-hidden p-6 text-center"
+            style={{ background: 'linear-gradient(135deg, #FFF8F3 0%, #FFEEE0 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: 'radial-gradient(ellipse 80% 70% at 50% 35%, rgba(255,160,100,0.18) 0%, transparent 70%)' }} />
+            <div className="relative w-32 h-32 mx-auto mb-4">
+              <div className="absolute inset-0 rounded-full animate-ping"
+                style={{ background: 'radial-gradient(circle, rgba(255,140,80,0.25) 0%, transparent 70%)', animationDuration: '2.4s' }} />
+              <div className="absolute -inset-3 rounded-full"
+                style={{ background: 'radial-gradient(circle, rgba(255,160,100,0.22) 0%, transparent 65%)' }} />
+              <div className="relative w-32 h-32 rounded-full overflow-hidden ring-4 ring-[var(--color-primary)]/30 shadow-lg">
+                <video src="/images/illustrations/h1.webm" autoPlay loop muted playsInline className="w-full h-full object-cover scale-110" />
+                <div className="absolute inset-0 rounded-full pointer-events-none"
+                  style={{ background: 'radial-gradient(circle, transparent 45%, rgba(255,240,228,0.55) 100%)' }} />
+              </div>
             </div>
-            <span className="text-[#9E9A95]">→</span>
+            <p className="text-[19px] font-bold text-[#1A1918] relative">만날 날이 지났어요!</p>
+            <p className="text-[30px] font-bold text-[var(--color-primary)] mt-1 relative">D+{Math.abs(daysLeft)}</p>
+            <p className="text-[13px] text-[#9B7060] mt-1 relative">{currentWeek}주차 · {trimester}</p>
           </div>
-        </Link>
-
-        {/* 이름 짓기 */}
-        <Link href="/name" className="block bg-white rounded-xl border border-[#E8E4DF] p-4 active:bg-[var(--color-page-bg)]">
-          <div className="flex items-center gap-3">
-            <SparkleIcon className="w-6 h-6 text-[#C4913E]" />
-            <div className="flex-1">
-              <p className="text-[13px] font-semibold text-[#1A1918]">이름 짓기</p>
-              <p className="text-[14px] text-[#6B6966]">AI 추천 · 한자 · 음양오행</p>
+        ) : (
+          <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-5 text-center">
+            <video src="/images/illustrations/h1.webm" autoPlay loop muted playsInline className="w-16 h-16 object-contain mx-auto mb-2" />
+            <p className="text-[18px] font-bold text-[#1A1918]">{daysLeft <= 7 ? '이번 주에 만나요!' : '아이를 만나는 날'}</p>
+            <p className="text-[28px] font-bold text-[var(--color-primary)] mt-1">D-{daysLeft}</p>
+            <div className="w-full h-2 bg-[#E8E4DF] rounded-full mt-3">
+              <div className="h-full bg-[var(--color-primary)] rounded-full" style={{ width: `${Math.min((currentWeek / 40) * 100, 100)}%` }} />
             </div>
-            <span className="text-[#9E9A95]">→</span>
+            <p className="text-[14px] text-[#6B6966] mt-2">{currentWeek}주차 · {trimester} · {Math.min(Math.round((currentWeek / 40) * 100), 100)}%</p>
           </div>
-        </Link>
+        )}
 
-        {/* 주차별 발달 가이드 — 세로형 (현재 중심, 전후 축소) */}
-        <VerticalFetalGuide currentWeek={currentWeek} />
-
-        {/* 정부 지원 · 혜택 — 3탭 */}
-        <WaitingBenefitTabs />
-
-        {/* 마음 체크 */}
-        <Link href="/mental-check" className="block bg-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-3 text-center active:opacity-80">
-          <p className="text-[14px] text-[var(--color-primary)] font-semibold">마음 체크 — 오늘 기분은 어때요?</p>
-        </Link>
-
-        {/* 재미 콘텐츠 */}
-        <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <div className="grid grid-cols-3 gap-2">
-            <Link href="/fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
-              <ActivityIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-              <p className="text-[12px] font-semibold text-[#1A1918]">바이오리듬</p>
-            </Link>
-            <Link href="/fortune?tab=zodiac" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
-              <CompassIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-              <p className="text-[12px] font-semibold text-[#1A1918]">띠 · 별자리</p>
-            </Link>
-            <Link href="/fortune?tab=fortune" className="block bg-[var(--color-page-bg)] rounded-lg p-3 text-center active:opacity-80">
-              <SparkleIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-              <p className="text-[12px] font-semibold text-[#1A1918]">오늘의 운세</p>
-            </Link>
+        {/* ━━━ 탭 네비게이션 ━━━ */}
+        <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
+          <div className="flex border-b border-[#E8E4DF]">
+            {([
+              { key: 'diary' as const, label: '일기·감성' },
+              { key: 'info' as const, label: '발달·정보' },
+              { key: 'benefit' as const, label: '혜택·준비' },
+            ]).map(t => (
+              <button key={t.key} onClick={() => setTab(t.key)}
+                className={`flex-1 py-2.5 text-[12px] font-semibold text-center relative transition-colors ${
+                  tab === t.key ? 'text-[var(--color-primary)] bg-[var(--color-accent-bg)]/30' : 'text-[#9E9A95]'
+                }`}>
+                {t.label}
+                {tab === t.key && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[var(--color-primary)] rounded-full" />}
+              </button>
+            ))}
           </div>
+
+          {/* ── 탭 1: 일기·감성 ── */}
+          {tab === 'diary' && (
+            <div className="p-3 space-y-3">
+              {/* 기다림 일기 */}
+              <div className="bg-[var(--color-page-bg)] rounded-xl p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-[13px] font-bold text-[#1A1918]">기다림 일기</p>
+                    {diaries.length > 0 && (
+                      <span className="text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full bg-[var(--color-primary)]">{diaries.length}</span>
+                    )}
+                  </div>
+                  {diaries.length > 0 && (
+                    <Link href="/preg-diary"><span className="text-[12px] text-[var(--color-primary)] font-medium">전체보기 →</span></Link>
+                  )}
+                </div>
+                {diaries.length > 0 && (
+                  <div className="mb-2 p-2.5 bg-white rounded-lg border border-[#E8E4DF]">
+                    <p className="text-[11px] text-[#9E9A95] mb-1">{new Date(diaries[0].date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}</p>
+                    <p className="text-[13px] text-[#1A1918] leading-relaxed line-clamp-2">{diaries[0].text}</p>
+                    {diaries[0].comment && <p className="text-[12px] text-[var(--color-primary)] mt-1 italic">{diaries[0].comment}</p>}
+                  </div>
+                )}
+                <button onClick={() => setDiarySheetOpen(true)}
+                  className="w-full flex items-center gap-2.5 bg-white rounded-xl p-3 active:bg-[#F0EDE8] border border-[#E8E4DF]">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-[var(--color-page-bg)] border border-[#E8E4DF] shrink-0">
+                    <PenIcon className="w-4 h-4 text-[var(--color-primary)]" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-[13px] font-bold text-[#1A1918]">오늘의 기다림 일기 쓰기</p>
+                    <p className="text-[12px] text-[#9E9A95]">{diaries.length > 0 ? '새 일기 추가하기' : '오늘의 첫 기다림 일기를 남겨보세요'}</p>
+                  </div>
+                  <span className="text-[#9E9A95] text-sm">→</span>
+                </button>
+              </div>
+
+              {/* 이름 짓기 */}
+              <Link href="/name" className="flex items-center gap-3 bg-[var(--color-page-bg)] rounded-xl p-3 active:bg-[#F0EDE8]">
+                <SparkleIcon className="w-5 h-5 text-[#C4913E] shrink-0" />
+                <div className="flex-1">
+                  <p className="text-[13px] font-semibold text-[#1A1918]">이름 짓기</p>
+                  <p className="text-[12px] text-[#6B6966]">AI 추천 · 한자 · 음양오행</p>
+                </div>
+                <span className="text-[#9E9A95]">→</span>
+              </Link>
+
+              {/* 마음 체크 */}
+              <Link href="/mental-check" className="block bg-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-3 text-center active:opacity-80">
+                <p className="text-[13px] text-[var(--color-primary)] font-semibold">마음 체크 — 오늘 기분은 어때요?</p>
+              </Link>
+
+              {/* 재미 콘텐츠 */}
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { href: '/fortune', Icon: ActivityIcon, title: '바이오리듬' },
+                  { href: '/fortune?tab=zodiac', Icon: CompassIcon, title: '띠 · 별자리' },
+                  { href: '/fortune?tab=fortune', Icon: SparkleIcon, title: '오늘의 운세' },
+                ] as const).map(item => (
+                  <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1.5 bg-[var(--color-page-bg)] rounded-xl py-3 px-2 active:opacity-80">
+                    <item.Icon className="w-5 h-5 text-[#6B6966]" />
+                    <p className="text-[12px] font-semibold text-[#1A1918] text-center leading-tight">{item.title}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── 탭 2: 발달·정보 ── */}
+          {tab === 'info' && (
+            <div className="p-3 space-y-3">
+              <VerticalFetalGuide currentWeek={currentWeek} />
+              {currentWeek > 0 && <HospitalGuide week={currentWeek} />}
+              <AIMealCard mode="pregnant" value={currentWeek} />
+              <form onSubmit={e => { e.preventDefault(); if (foodQuery.trim()) router.push(`/food-check?q=${encodeURIComponent(foodQuery.trim())}`) }}
+                className="flex items-center gap-2 bg-[var(--color-page-bg)] rounded-xl border border-[#E8E4DF] p-2.5">
+                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
+                  <span className="text-[16px]">🍽️</span>
+                </div>
+                <input type="text" value={foodQuery} onChange={e => setFoodQuery(e.target.value)}
+                  placeholder="이 음식 먹어도 되나요? 검색"
+                  className="flex-1 text-[13px] bg-transparent outline-none text-[#1A1918] placeholder:text-[#9E9A95]" />
+                {foodQuery.trim() ? (
+                  <button type="submit" className="shrink-0 px-3 py-1 rounded-lg bg-[var(--color-primary)] text-white text-[12px] font-semibold">확인</button>
+                ) : (
+                  <span className="text-[12px] text-[#9E9A95] shrink-0">AI 확인</span>
+                )}
+              </form>
+            </div>
+          )}
+
+          {/* ── 탭 3: 혜택·준비 ── */}
+          {tab === 'benefit' && (
+            <div className="p-3 space-y-3">
+              <WaitingBenefitTabs />
+              {currentWeek >= 12 && <BabyItemChecklist currentWeek={currentWeek} />}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* 기다림 일기 바텀시트 */}
+      {diarySheetOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/40" onClick={() => setDiarySheetOpen(false)}>
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white rounded-t-2xl pb-[env(safe-area-inset-bottom)]" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
+            <div className="px-5 pb-5">
+              <p className="text-[15px] font-bold text-[#1A1918] mb-3 flex items-center gap-1.5"><PenIcon className="w-4 h-4" /> 기다림 일기</p>
+              <div className="flex gap-1.5 overflow-x-auto hide-scrollbar mb-3">
+                {['아이에게 한마디', '태동 느낌', '들려준 음악', '맛있는 음식', '산책/외출'].map(text => (
+                  <button key={text} onClick={() => setDiaryText(prev => prev ? prev : text + ' ')}
+                    className="shrink-0 px-2.5 py-1.5 rounded-full bg-[var(--color-page-bg)] text-[12px] text-[#6B6966]">
+                    {text}
+                  </button>
+                ))}
+              </div>
+              <textarea value={diaryText} onChange={e => setDiaryText(e.target.value.slice(0, 500))}
+                placeholder={`${currentWeek}주차, 오늘 아이에게 하고 싶은 말이 있나요?`}
+                className="w-full h-28 text-[14px] p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]" autoFocus />
+              <p className="text-right text-[12px] text-[#9E9A95] mt-1">{diaryText.length}/500</p>
+              <button onClick={() => { saveDiary(); setDiarySheetOpen(false) }} disabled={!diaryText.trim() || diarySaving}
+                className={`w-full py-3.5 rounded-xl text-[15px] font-bold mt-2 ${diaryText.trim() && !diarySaving ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}>
+                {diarySaving ? 'AI 코멘트 생성 중...' : '저장하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+// ===== 모드 기반 dispatcher — hydration-safe =====
+export default function WaitingPage() {
+  const [appMode, setAppMode] = useState<string | null>(null)
+  useEffect(() => {
+    setAppMode(localStorage.getItem('dodam_mode') || 'preparing')
+  }, [])
+  if (appMode === null) return null
+  if (appMode === 'pregnant') return <PregnantWaitingPage />
+  return <PreparingWaitingPage />
 }

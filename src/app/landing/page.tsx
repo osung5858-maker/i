@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Magnetic from '@/components/effects/Magnetic'
+import ScrollProgress from '@/components/effects/ScrollProgress'
 
 // 카드 리스트 전용 stagger: 섹션 진입 시 delay ms 간격으로 순차 is-visible 추가
 function useStaggerCards(ref: React.RefObject<HTMLDivElement | null>, delay: number) {
@@ -113,6 +115,7 @@ export default function LandingPage() {
 
   return (
     <div className="w-full min-h-[100dvh]">
+      <ScrollProgress />
 
       {/* ━━━ 히어로 ━━━ */}
       {/* overflow: clip — JS clip과 달리 scroll container를 만들지 않으면서 클리핑 */}
@@ -150,7 +153,7 @@ export default function LandingPage() {
         </div>
 
         <div className="max-w-3xl mx-auto relative px-6 pt-10 lg:pt-14 pb-20 lg:pb-32">
-          <h1 className="hero-title text-[26px] sm:text-[40px] lg:text-[52px] font-bold text-[#1A1918] mb-4 lg:mb-6 leading-[1.3]">
+          <h1 className="hero-title text-[26px] sm:text-[40px] lg:text-[52px] font-bold text-[#1A1918] mb-4 lg:mb-6 leading-[1.3]" style={{ fontFamily: 'var(--font-display)' }}>
             기록만 해도,<br />
             <span className="text-[#D47B62]">AI가 먼저 챙겨줘요.</span>
           </h1>
@@ -159,11 +162,15 @@ export default function LandingPage() {
             아침마다 오늘 할 일을 알려주는 AI 파트너
           </p>
           <div className="hero-cta">
-            <Link href="/onboarding"
-              className="cta-glow inline-block px-9 py-4 lg:px-12 lg:py-5 rounded-full font-semibold text-white text-[16px] lg:text-[18px] active:scale-95 transition-transform"
-              style={{ background: 'linear-gradient(135deg, #E8937A, #D47B62)' }}>
-              무료로 시작하기
-            </Link>
+            <Magnetic strength={0.15}>
+              <Link
+                href="/onboarding"
+                className="cta-glow inline-block px-9 py-4 lg:px-12 lg:py-5 rounded-full font-semibold text-white text-[16px] lg:text-[18px] active:scale-95 transition-transform"
+                style={{ background: 'linear-gradient(135deg, #E8937A, #D47B62)' }}
+                aria-label="도담 앱 무료로 시작하기">
+                무료로 시작하기
+              </Link>
+            </Magnetic>
           </div>
         </div>
       </section>
@@ -171,7 +178,7 @@ export default function LandingPage() {
       {/* ━━━ 기본기 ━━━ */}
       <section className="px-6 py-16 sm:py-20 lg:py-28 bg-white">
         <div className="max-w-4xl mx-auto">
-          <h2 className="reveal text-center text-[20px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3">
+          <h2 className="reveal text-center text-[20px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3" style={{ fontFamily: 'var(--font-display)' }}>
             다른 앱에서 하던 것, 당연히 다 돼요
           </h2>
           <p className="reveal reveal-d1 text-center text-[14px] lg:text-[16px] text-[#6B6966] mb-12 lg:mb-16">
@@ -197,7 +204,7 @@ export default function LandingPage() {
       {/* ━━━ AI 차별점 ━━━ */}
       <section className="px-6 py-16 sm:py-20 lg:py-28" style={{ background: 'linear-gradient(180deg, #FFF8F3 0%, #FFF0E8 100%)' }}>
         <div className="max-w-3xl mx-auto">
-          <h2 className="reveal text-center text-[20px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3">
+          <h2 className="reveal text-center text-[20px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3" style={{ fontFamily: 'var(--font-display)' }}>
             앱 열면 <span className="text-[#D47B62]">AI가 먼저</span> 알려줘요
           </h2>
           <p className="reveal reveal-d1 text-center text-[14px] lg:text-[16px] text-[#6B6966] mb-12 lg:mb-16">
@@ -229,7 +236,7 @@ export default function LandingPage() {
       {/* ━━━ 3모드 ━━━ */}
       <section className="px-6 py-16 sm:py-20 lg:py-28 bg-white">
         <div className="max-w-3xl mx-auto">
-          <h2 className="reveal text-center text-[20px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3">지금 어떤 단계에 계세요?</h2>
+          <h2 className="reveal text-center text-[20px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3" style={{ fontFamily: 'var(--font-display)' }}>지금 어떤 단계에 계세요?</h2>
           <p className="reveal reveal-d1 text-center text-[14px] lg:text-[16px] text-[#6B6966] mb-12 lg:mb-16">단계마다 딱 필요한 것만, AI가 먼저 챙겨줘요</p>
           <div className="space-y-3 lg:space-y-4">
             {[
@@ -252,7 +259,7 @@ export default function LandingPage() {
       {/* ━━━ 이런 것도 돼요 ━━━ */}
       <section className="px-6 py-16 sm:py-20 lg:py-28 bg-[#FAFAFA]">
         <div className="max-w-3xl mx-auto">
-          <h2 className="reveal text-center text-[20px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3">이런 것도 돼요</h2>
+          <h2 className="reveal text-center text-[20px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3" style={{ fontFamily: 'var(--font-display)' }}>이런 것도 돼요</h2>
           <p className="reveal reveal-d1 text-center text-[14px] lg:text-[16px] text-[#6B6966] mb-12 lg:mb-16">육아의 크고 작은 순간들을 함께해요</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
             {[
@@ -276,7 +283,7 @@ export default function LandingPage() {
       {/* ━━━ 정부 지원 ━━━ */}
       <section className="px-6 py-16 sm:py-20 lg:py-28" style={{ background: 'linear-gradient(180deg, #F0FAF4, #E8F5EE)' }}>
         <div className="max-w-3xl mx-auto">
-          <h2 className="reveal text-center text-[20px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3">
+          <h2 className="reveal text-center text-[20px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3" style={{ fontFamily: 'var(--font-display)' }}>
             몰라서 못 받는 돈, 여기 다 있어요
           </h2>
           <p className="reveal reveal-d1 text-center text-[14px] lg:text-[16px] text-[#6B6966] mb-12 lg:mb-16">받을 수 있는 혜택을 한눈에</p>
@@ -328,16 +335,20 @@ export default function LandingPage() {
               <video src="/images/illustrations/hero2.webm" autoPlay loop muted playsInline className="w-full object-cover" />
             </div>
           </div>
-          <h2 className="reveal text-[22px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3 lg:mb-5 leading-tight">
+          <h2 className="reveal text-[22px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3 lg:mb-5 leading-tight" style={{ fontFamily: 'var(--font-display)' }}>
             오늘도 잘 하고 있어요.<br />도담이 옆에 있을게요.
           </h2>
           <p className="reveal reveal-d1 text-[14px] lg:text-[17px] text-[#6B6966] mb-8 lg:mb-10">가입도, 사용도 무료예요</p>
           <div className="flex flex-col items-center gap-3">
-            <Link href="/onboarding"
-              className="cta-glow w-full max-w-xs lg:max-w-sm px-9 py-4 lg:py-5 rounded-full font-semibold text-white text-center text-[16px] lg:text-[18px] active:scale-95 transition-transform"
-              style={{ background: 'linear-gradient(135deg, #E8937A, #D47B62)' }}>
-              무료로 시작하기
-            </Link>
+            <Magnetic strength={0.15}>
+              <Link
+                href="/onboarding"
+                className="cta-glow w-full max-w-xs lg:max-w-sm px-9 py-4 lg:py-5 rounded-full font-semibold text-white text-center text-[16px] lg:text-[18px] active:scale-95 transition-transform"
+                style={{ background: 'linear-gradient(135deg, #E8937A, #D47B62)' }}
+                aria-label="도담 앱 무료로 시작하기 - CTA">
+                무료로 시작하기
+              </Link>
+            </Magnetic>
             <Link href="/" className="text-[14px] lg:text-[16px] text-[#6B6966] active:text-[#1A1918]">이미 사용 중이에요</Link>
           </div>
         </div>

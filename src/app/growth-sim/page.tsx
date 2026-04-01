@@ -109,7 +109,7 @@ export default function GrowthSimPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+      <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
         <PageHeader title="성장 예측" showBack />
         <div className="flex-1 flex items-center justify-center">
           <div className="w-8 h-8 border-3 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
@@ -124,15 +124,14 @@ export default function GrowthSimPage() {
     : `${futureAge}개월`
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="성장 예측" showBack />
-      <div className="flex-1 max-w-lg mx-auto w-full px-5 pb-28 space-y-5">
+      <div className="flex-1 max-w-lg mx-auto w-full px-5 pb-4 space-y-5">
 
         {/* Intro + Form */}
         {!result && !predicting && (
           <div className="pt-8 space-y-6">
             <div className="text-center space-y-3">
-              <div className="text-5xl">🌱</div>
               <h2 className="text-[18px] font-bold text-[#1A1918]">
                 AI가 알려주는 우리 아이 미래
               </h2>
@@ -258,7 +257,6 @@ export default function GrowthSimPage() {
         {/* Predicting */}
         {predicting && (
           <div className="pt-16 text-center space-y-4">
-            <div className="text-5xl animate-bounce">🔮</div>
             <p className="text-[15px] font-semibold text-[#1A1918]">성장을 예측하고 있어요...</p>
             <p className="text-[13px] text-[#6B6966]">WHO 성장 기준 데이터를 분석 중</p>
             <div className="w-8 h-8 border-3 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto" />
@@ -271,7 +269,6 @@ export default function GrowthSimPage() {
             {/* Header Card */}
             <div className="pt-4">
               <div className="rounded-2xl p-6 text-center space-y-2" style={{ backgroundColor: 'var(--color-primary-bg)' }}>
-                <div className="text-4xl">🌱</div>
                 <h2 className="text-[18px] font-bold text-[#1A1918]">
                   {selectedTarget <= 6 ? `${selectedTarget}개월 후` : selectedTarget <= 12 ? '1년 후' : '3년 후'} ({result.targetAge})
                 </h2>
@@ -283,7 +280,7 @@ export default function GrowthSimPage() {
 
             {/* Physical Changes */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-4">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">📏 신체 변화</h3>
+              <h3 className="text-[15px] font-bold text-[#1A1918]">신체 변화</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-[#F0EDE8] rounded-xl p-3 text-center">
                   <p className="text-[12px] text-[#6B6966]">키</p>
@@ -308,7 +305,7 @@ export default function GrowthSimPage() {
 
             {/* Milestones */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-3">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">🎯 발달 마일스톤</h3>
+              <h3 className="text-[15px] font-bold text-[#1A1918]">발달 마일스톤</h3>
               <div className="space-y-2">
                 {result.milestones.map((m, i) => (
                   <div key={i} className="flex items-start gap-2">
@@ -323,7 +320,7 @@ export default function GrowthSimPage() {
 
             {/* Fun Facts */}
             <div className="bg-[#FFF8F0] rounded-xl p-5 space-y-3">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">✨ 재미있는 사실</h3>
+              <h3 className="text-[15px] font-bold text-[#1A1918]">재미있는 사실</h3>
               <div className="space-y-2">
                 {result.funFacts.map((f, i) => (
                   <p key={i} className="text-[13px] text-[#8B7355]">· {f}</p>
@@ -333,7 +330,7 @@ export default function GrowthSimPage() {
 
             {/* Parent Tip */}
             <div className="bg-[var(--color-primary-bg)] rounded-xl p-4">
-              <p className="text-[13px] text-[var(--color-primary)] font-semibold">💡 육아 팁</p>
+              <p className="text-[13px] text-[var(--color-primary)] font-semibold">육아 팁</p>
               <p className="text-[14px] text-[#4A4845] mt-1">{result.parentTip}</p>
             </div>
 

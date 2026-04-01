@@ -47,9 +47,9 @@ const DEFAULT_SECTIONS: { label: string; color: string; items: Benefit[] }[] = [
 export default function GovSupportPage() {
   const sections = useRemoteContent('gov_support_sections', DEFAULT_SECTIONS)
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="정부 지원 혜택" showBack />
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-4">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4 space-y-4">
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-3">
           <p className="text-[13px] text-[#6B6966] leading-relaxed">
             육아 가정을 위한 주요 정부 지원 혜택을 모았어요. 자세한 내용은 각 항목의 신청 링크를 확인하세요.

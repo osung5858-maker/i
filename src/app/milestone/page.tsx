@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 
 // ─── Types ───
 interface Milestone {
@@ -136,9 +137,9 @@ export default function MilestonePage() {
   const sortedCompleted = [...milestones].sort((a, b) => a.date.localeCompare(b.date))
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] pb-[env(safe-area-inset-bottom)]">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] pb-[env(safe-area-inset-bottom)]">
       <PageHeader title="첫 순간들" showBack />
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-32">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4">
         <p className="text-[13px] text-[#9E9A95] text-center mb-5">
           {completedCount}/{allTypes.length}개 기록됨
         </p>
@@ -296,7 +297,7 @@ export default function MilestonePage() {
                     {editPhoto.match(/\.(mp4|webm|mov)$/i) ? (
                       <video src={editPhoto} className="w-full h-full object-cover" controls />
                     ) : (
-                      <img src={editPhoto} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <Image src={editPhoto} alt="" fill className="object-cover" />
                     )}
                     <button onClick={() => setEditPhoto('')} className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full text-white text-[12px] flex items-center justify-center">x</button>
                   </div>

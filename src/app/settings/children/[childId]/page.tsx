@@ -86,7 +86,7 @@ export default function EditChildPage() {
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col">
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl">
+      <header className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-xl">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-sm text-[#9B9B9B] shrink-0">취소</button>
           <h1 className="text-[15px] font-bold text-[#0A0B0D] truncate mx-3">프로필 수정</h1>

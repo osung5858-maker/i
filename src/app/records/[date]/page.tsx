@@ -42,12 +42,12 @@ export default function RecordDetailPage() {
 
       if (!children || children.length === 0) return
 
-      const start = `${dateStr}T00:00:00`
-      const end = `${dateStr}T23:59:59`
+      const start = new Date(dateStr + 'T00:00:00').toISOString()
+      const end = new Date(dateStr + 'T23:59:59.999').toISOString()
 
       const { data } = await supabase
         .from('events')
-        .select('id, type, start_ts, end_ts, amount_ml, unit, temperature, tags, memo, notes, child_id, recorder_id')
+        .select('id, type, start_ts, end_ts, amount_ml, tags, child_id, recorder_id')
         .eq('child_id', children[0].id)
         .gte('start_ts', start)
         .lte('start_ts', end)
@@ -59,10 +59,12 @@ export default function RecordDetailPage() {
     load()
   }, [dateStr]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isToday = dateStr === new Date().toISOString().split('T')[0]
+  const now = new Date()
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  const isToday = dateStr === todayStr
   const prevDate = getDateOffset(dateStr, -1)
   const nextDate = getDateOffset(dateStr, 1)
-  const canGoNext = nextDate <= new Date().toISOString().split('T')[0]
+  const canGoNext = nextDate <= todayStr
 
   // 요약 통계
   const feedCount = events.filter((e) => e.type === 'feed').length
@@ -78,67 +80,52 @@ export default function RecordDetailPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#f5f5f5]">
-      {/* 헤더 */}
-      <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
+    <div className="fixed inset-0 flex flex-col bg-[#f5f5f5] overflow-hidden">
+      {/* 헤더 — 고정 */}
+      <div className="shrink-0 sticky top-0 z-40 bg-[#f5f5f5] border-b border-[#E8E4DF] px-5 max-w-lg mx-auto w-full flex items-center justify-between h-12">
         <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">뒤로</button>
         <h1 className="text-[15px] font-bold text-[#0A0B0D]">기록 상세</h1>
         <div className="w-8" />
       </div>
 
-      <div className="max-w-lg mx-auto w-full pb-24">
-        {/* 날짜 네비게이션 */}
-        <div className="flex items-center justify-between px-4 py-3">
-          <button
-            onClick={() => router.push(`/records/${prevDate}`)}
-            className="w-9 h-9 rounded-xl bg-white border border-[#E8E4DF] flex items-center justify-center active:scale-95 transition-transform"
-          >
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B] rotate-180" />
-          </button>
-          <p className="text-sm font-semibold text-[#0A0B0D]">
-            {formatDateKr(dateStr)}
-            {isToday && <span className="text-[var(--color-primary)] ml-1">오늘</span>}
-          </p>
-          <button
-            onClick={() => canGoNext && router.push(`/records/${nextDate}`)}
-            disabled={!canGoNext}
-            className="w-9 h-9 rounded-xl bg-white border border-[#E8E4DF] flex items-center justify-center active:scale-95 transition-transform disabled:opacity-30"
-          >
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
-          </button>
-        </div>
+      {/* 날짜 네비게이션 — 고정 */}
+      <div className="shrink-0 max-w-lg mx-auto w-full flex items-center justify-between px-4 py-3">
+        <button
+          onClick={() => router.push(`/records/${prevDate}`)}
+          className="w-9 h-9 rounded-xl bg-white border border-[#E8E4DF] flex items-center justify-center active:scale-95 transition-transform"
+        >
+          <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B] rotate-180" />
+        </button>
+        <p className="text-sm font-semibold text-[#0A0B0D]">
+          {formatDateKr(dateStr)}
+          {isToday && <span className="text-[var(--color-primary)] ml-1">오늘</span>}
+        </p>
+        <button
+          onClick={() => canGoNext && router.push(`/records/${nextDate}`)}
+          disabled={!canGoNext}
+          className="w-9 h-9 rounded-xl bg-white border border-[#E8E4DF] flex items-center justify-center active:scale-95 transition-transform disabled:opacity-30"
+        >
+          <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+        </button>
+      </div>
 
-        {/* 요약 */}
-        {events.length > 0 && (
-          <div className="mx-4 mb-3 flex gap-2 overflow-x-auto hide-scrollbar">
-            {feedCount > 0 && (
-              <div className="shrink-0 px-3 py-2 rounded-xl bg-blue-50 border border-blue-100">
-                <p className="text-[14px] text-blue-500 font-medium">수유</p>
-                <p className="text-sm font-bold text-blue-600">
-                  {feedCount}회{feedTotal > 0 && ` · ${feedTotal}ml`}
-                </p>
-              </div>
-            )}
-            {sleepCount > 0 && (
-              <div className="shrink-0 px-3 py-2 rounded-xl bg-indigo-50 border border-indigo-100">
-                <p className="text-[14px] text-indigo-500 font-medium">수면</p>
-                <p className="text-sm font-bold text-indigo-600">{sleepCount}회</p>
-              </div>
-            )}
-            {poopCount > 0 && (
-              <div className="shrink-0 px-3 py-2 rounded-xl bg-amber-50 border border-amber-100">
-                <p className="text-[14px] text-amber-600 font-medium">대변</p>
-                <p className="text-sm font-bold text-amber-700">{poopCount}회</p>
-              </div>
-            )}
-            {peeCount > 0 && (
-              <div className="shrink-0 px-3 py-2 rounded-xl bg-cyan-50 border border-cyan-100">
-                <p className="text-[14px] text-cyan-500 font-medium">소변</p>
-                <p className="text-sm font-bold text-cyan-600">{peeCount}회</p>
-              </div>
-            )}
-          </div>
-        )}
+      {/* 스크롤 바디 */}
+      <div className="flex-1 overflow-y-auto overscroll-contain max-w-lg mx-auto w-full pb-4">
+        {/* 요약 — 4칸 고정 균등 분배 */}
+        <div className="mx-4 mb-3 grid grid-cols-4 gap-2">
+          {[
+            { label: '수유', value: feedCount > 0 ? `${feedCount}회` : '-', sub: feedTotal > 0 ? `${feedTotal}ml` : null, bg: 'bg-blue-50', border: 'border-blue-100', labelColor: 'text-blue-500', valueColor: feedCount > 0 ? 'text-blue-600' : 'text-[#C4C0BB]' },
+            { label: '수면', value: sleepCount > 0 ? `${sleepCount}회` : '-', sub: null, bg: 'bg-indigo-50', border: 'border-indigo-100', labelColor: 'text-indigo-500', valueColor: sleepCount > 0 ? 'text-indigo-600' : 'text-[#C4C0BB]' },
+            { label: '대변', value: poopCount > 0 ? `${poopCount}회` : '-', sub: null, bg: 'bg-amber-50', border: 'border-amber-100', labelColor: 'text-amber-600', valueColor: poopCount > 0 ? 'text-amber-700' : 'text-[#C4C0BB]' },
+            { label: '소변', value: peeCount > 0 ? `${peeCount}회` : '-', sub: null, bg: 'bg-cyan-50', border: 'border-cyan-100', labelColor: 'text-cyan-500', valueColor: peeCount > 0 ? 'text-cyan-600' : 'text-[#C4C0BB]' },
+          ].map((c) => (
+            <div key={c.label} className={`py-2.5 rounded-xl ${c.bg} border ${c.border} text-center`}>
+              <p className={`text-[12px] font-medium ${c.labelColor}`}>{c.label}</p>
+              <p className={`text-[13px] font-bold ${c.valueColor} mt-0.5`}>{c.value}</p>
+              {c.sub && <p className="text-[11px] text-[#9B9B9B] mt-0.5">{c.sub}</p>}
+            </div>
+          ))}
+        </div>
 
         {/* 기록 목록 */}
         <div className="mx-4 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">

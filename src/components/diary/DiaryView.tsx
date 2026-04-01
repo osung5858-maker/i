@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import Image from 'next/image'
 import type { CareEvent } from '@/types'
 import { PenIcon, SparkleIcon, NoteIcon, BottleIcon, MoonIcon, DropletIcon, ThermometerIcon } from '@/components/ui/Icons'
 
@@ -181,7 +182,7 @@ export default function DiaryView({ events, childName }: Props) {
       <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
         {photos.map((src, i) => (
           <div key={i} className="relative shrink-0 w-24 h-24">
-            <img src={src} alt="" className="w-full h-full object-cover rounded-xl" loading="lazy" />
+            <Image src={src} alt="" fill className="object-cover rounded-xl" />
             <button onClick={() => removePhoto(i)} className="absolute -top-1 -right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center">
               <span className="text-white text-[14px]"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
             </button>
@@ -253,7 +254,7 @@ export default function DiaryView({ events, childName }: Props) {
           <div className="space-y-2">
             {dayEvents.slice(0, 5).map((e) => {
               const time = new Date(e.start_ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
-              const labels: Record<string, string> = { feed: '수유', sleep: '수면', poop: '대변', pee: '소변', temp: '체온', memo: '메모', bath: '목욕', pump: '유축', babyfood: '이유식', snack: '간식', toddler_meal: '유아식', medication: '투약' }
+              const labels: Record<string, string> = { feed: '수유', sleep: '수면', poop: '대변', pee: '소변', temp: '체온', memo: '메모', bath: '목욕', pump: '유축', babyfood: '이유식', snack: '간식', toddler_meal: '유아식', medication: '투약', breast_left: '모유(왼)', breast_right: '모유(오)', night_sleep: '밤잠', nap: '낮잠', poop_normal: '대변 정상', poop_soft: '대변 묽음', poop_hard: '대변 단단' }
               return (
                 <div key={e.id} className="flex items-center gap-2 text-[14px]">
                   <span className="text-[#9E9A95] w-10 shrink-0">{time}</span>

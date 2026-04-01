@@ -434,10 +434,10 @@ export default function CryPage() {
   }, [cleanup])
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="울음 번역기" subtitle="아이의 울음 소리를 분석해요" showBack />
 
-      <div className="flex-1 max-w-lg mx-auto w-full px-5 pb-28 space-y-5">
+      <div className="flex-1 max-w-lg mx-auto w-full px-5 pb-4 space-y-5">
 
         {/* Idle State */}
         {phase === 'idle' && !result && (

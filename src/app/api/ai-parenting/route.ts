@@ -3,6 +3,7 @@ import { getCachedResponse, setCachedResponse } from '@/lib/ai/cache'
 import { getAuthUserSoft } from '@/lib/security/auth'
 import { checkRateLimit, getClientIP, AI_RATE_LIMIT } from '@/lib/security/rate-limit'
 import { sanitizeForPrompt } from '@/lib/security/sanitize'
+import type { GeminiParentingResponse } from '@/types/gemini'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
@@ -32,15 +33,15 @@ async function callGemini(prompt: string, maxTokens = 500, retries = 2): Promise
       }
       const data = await res.json()
       const parts = data.candidates?.[0]?.content?.parts || []
-      const raw = parts.map((p: any) => p.text || '').join('').trim()
+      const raw = parts.map((p: { text?: string }) => p.text || '').join('').trim()
       const text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
       return { text, error: null }
-    } catch (e: any) {
+    } catch (e) {
       if (attempt < retries) {
         await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
         continue
       }
-      return { text: null, error: e?.message?.slice(0, 150) || 'Network error' }
+      return { text: null, error: (e as Error)?.message?.slice(0, 150) || 'Network error' }
     }
   }
   return { text: null, error: 'Max retries exceeded' }
@@ -128,6 +129,10 @@ JSON만 출력. 긴 문장 절대 금지.`
     // === 이유식 추천 ===
     if (type === 'meal') {
       const { ageMonths } = body
+      const today = new Date().toISOString().slice(0, 10)
+      const cacheKey = `parent-meal-${ageMonths}-${today}`
+      const cached = getCachedResponse(cacheKey)
+      if (cached) return NextResponse.json(cached)
 
       const stage = ageMonths < 6 ? '초기 (미음/퓨레)' : ageMonths < 8 ? '중기 (으깬 음식)' : ageMonths < 10 ? '후기 (잘게 다진)' : '완료기 (부드러운 밥)'
 
@@ -152,7 +157,9 @@ JSON으로 출력:
       try {
         const match = text.match(/\{[\s\S]*\}/)
         if (!match) return NextResponse.json({ error: 'parse error' }, { status: 500 })
-        return NextResponse.json(JSON.parse(match[0]))
+        const result = JSON.parse(match[0])
+        setCachedResponse(cacheKey, result, 86400 * 1000)
+        return NextResponse.json(result)
       } catch {
         return NextResponse.json({ error: 'parse error' }, { status: 500 })
       }
@@ -167,20 +174,19 @@ JSON으로 출력:
 
       const prompt = `${ageMonths}개월 아기를 키우는 양육자를 위한 오늘의 식단을 추천해주세요.
 육아로 바쁜 현실을 고려해 간단하면서도 영양 균형 잡힌 식단으로.
-각 끼니는 밥 1가지 + 국/찌개 1가지 + 메인반찬(단백질) 1가지 + 나물/채소반찬 + 김치류로 구성하세요.
+한식·양식·일식·중식·분식 등 다양한 장르를 자연스럽게 섞어서 추천하세요. 매번 한식 위주가 되지 않도록 하세요.
+각 끼니는 메인 요리 1가지와 곁들이는 음식들로 구성하세요. 밥+국+반찬 형식에 국한하지 마세요.
 
 JSON으로 출력:
 {
-  "dishTitle": "점심 대표 요리명만 짧게",
-  "cuisine": "한식 또는 양식 또는 중식 또는 일식 중 하나만",
-  "breakfast": {"menu": "밥 이름 (예: 잡곡밥)", "sides": ["국/찌개", "메인반찬(단백질요리)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
-  "lunch": {"menu": "밥 이름 (예: 현미밥)", "sides": ["국/찌개", "메인반찬(단백질요리)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
-  "dinner": {"menu": "밥 이름 (예: 잡곡밥)", "sides": ["국/찌개", "메인반찬(단백질요리)", "나물/채소반찬", "김치류"], "calories": 숫자, "reason": "이유 1줄"},
-  "snack": {"menu": "간식명 (예: 두유)", "sides": ["견과류", "과일"], "calories": 숫자, "reason": "이유 1줄"},
+  "breakfast": {"menu": "메인 요리명", "sides": ["곁들이1", "곁들이2"], "calories": 숫자, "reason": "이유 1줄"},
+  "lunch": {"menu": "메인 요리명", "sides": ["곁들이1", "곁들이2", "곁들이3"], "calories": 숫자, "reason": "이유 1줄"},
+  "dinner": {"menu": "메인 요리명", "sides": ["곁들이1", "곁들이2", "곁들이3"], "calories": 숫자, "reason": "이유 1줄"},
+  "snack": {"menu": "간식명", "sides": ["곁들이1"], "calories": 숫자, "reason": "이유 1줄"},
   "keyNutrient": "육아 중 양육자에게 중요한 영양소",
   "avoid": "피로 회복을 위해 피할 것"
 }
-한국 가정식 위주. calories는 해당 끼니 예상 총칼로리(kcal, 숫자만). JSON만 출력.`
+calories는 해당 끼니 예상 총칼로리(숫자만). JSON만 출력.`
 
       const { text, error } = await callGemini(prompt, 800)
       if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })

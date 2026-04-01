@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { PregnantIcon, EnvelopeIcon, CheckCircleIcon, SproutIcon, RainbowIcon } from '@/components/ui/Icons'
 import IllustVideo from '@/components/ui/IllustVideo'
 import { setSecure, getSecure } from '@/lib/secureStorage'
+import { createClient } from '@/lib/supabase/client'
 
 // confetti 파티클은 클라이언트에서만 생성 (hydration mismatch 방지)
 const CONFETTI = Array.from({ length: 40 }, () => ({
@@ -43,6 +44,9 @@ export default function CelebrationPage() {
   const handleComplete = async () => {
     if (dueDate) {
       await setSecure('dodam_due_date', dueDate)
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) supabase.from('user_profiles').upsert({ user_id: user.id, due_date: dueDate }).then(() => {})
     }
     localStorage.setItem('dodam_mode', 'pregnant')
     router.push('/pregnant')

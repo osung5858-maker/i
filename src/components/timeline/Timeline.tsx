@@ -7,111 +7,128 @@ const EVENT_CONFIG: Record<string, {
   icon: React.FC<{ className?: string }>
   bg: string
   iconColor: string
+  cat: string
   label: (e: CareEvent) => string
 }> = {
   feed: {
     icon: BottleIcon,
     bg: 'bg-[#FFF0E6]',
     iconColor: 'text-[var(--color-primary)]',
+    cat: '수유',
     label: (e) => {
       const side = e.tags?.side as string | undefined
-      const prefix = side === 'left' ? '모유(왼)' : side === 'right' ? '모유(오)' : '수유'
-      return `${prefix}${e.amount_ml ? ` ${e.amount_ml}ml` : ''}${e.end_ts ? ` ${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` : ''}`
+      const parts = [
+        side === 'left' ? '모유(왼)' : side === 'right' ? '모유(오)' : '',
+        e.amount_ml ? `${e.amount_ml}ml` : '',
+        e.end_ts ? `${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` : '',
+      ].filter(Boolean)
+      return parts.join(' ')
     },
   },
   sleep: {
     icon: MoonIcon,
     bg: 'bg-[#EEF0FF]',
     iconColor: 'text-[#5B6DFF]',
+    cat: '수면',
     label: (e) => {
       const sleepType = e.tags?.sleepType as string | undefined
-      const prefix = sleepType === 'nap' ? '낮잠' : sleepType === 'night' ? '밤잠' : '수면'
+      const typeStr = sleepType === 'nap' ? '낮잠' : sleepType === 'night' ? '밤잠' : ''
       if (e.end_ts) {
         const mins = Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)
         const h = Math.floor(mins / 60)
         const m = mins % 60
-        return `${prefix} ${h ? `${h}시간 ` : ''}${m}분`
+        return `${typeStr ? typeStr + ' ' : ''}${h ? `${h}시간 ` : ''}${m}분`
       }
-      return `${prefix} 중...`
+      return typeStr ? `${typeStr} 중...` : '진행 중...'
     },
   },
   poop: {
     icon: PoopIcon,
     bg: 'bg-[#FFF4E6]',
     iconColor: 'text-[#C68A2E]',
+    cat: '대변',
     label: (e) => {
       const s = e.tags?.status as string | undefined
-      return `대변${s ? ` · ${s === 'normal' ? '정상' : s === 'soft' ? '묽음' : '단단'}` : ''}`
+      return s ? (s === 'normal' ? '정상' : s === 'soft' ? '묽음' : '단단') : ''
     },
   },
   pee: {
     icon: DropletIcon,
     bg: 'bg-[#E6F5FF]',
     iconColor: 'text-[#3DA5F5]',
-    label: () => '소변',
+    cat: '소변',
+    label: () => '',
   },
   temp: {
     icon: ThermometerIcon,
     bg: 'bg-[#FFE6E6]',
     iconColor: 'text-[#F25555]',
+    cat: '체온',
     label: (e) => {
       const c = e.tags?.celsius as number | undefined
-      return c ? `체온 ${c}°C` : '체온'
+      return c ? `${c}°C` : ''
     },
   },
   memo: {
     icon: NoteIcon,
     bg: 'bg-[#F0EDE8]',
     iconColor: 'text-[#6B6966]',
+    cat: '메모',
     label: (e) => {
       const msg = e.tags?.message as string | undefined
       if (e.tags?.emergency) return '응급 모드 실행'
-      return msg || '메모'
+      return msg || ''
     },
   },
   bath: {
     icon: BathIcon,
     bg: 'bg-[#E6F5FF]',
     iconColor: 'text-[#5B9FD6]',
+    cat: '목욕',
     label: (e) => {
       if (e.end_ts) {
         const mins = Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)
-        return `목욕 ${mins}분`
+        return `${mins}분`
       }
-      return '목욕'
+      return ''
     },
   },
   pump: {
     icon: PumpIcon,
     bg: 'bg-[#FFF0E6]',
     iconColor: 'text-[var(--color-primary)]',
-    label: (e) => `유축${e.amount_ml ? ` ${e.amount_ml}ml` : ''}`,
+    cat: '유축',
+    label: (e) => e.amount_ml ? `${e.amount_ml}ml` : '',
   },
   babyfood: {
     icon: BowlIcon,
     bg: 'bg-[#FFF8F0]',
     iconColor: 'text-[#C4913E]',
-    label: () => '이유식',
+    cat: '이유식',
+    label: () => '',
   },
   snack: {
     icon: CookieIcon,
     bg: 'bg-[#FFF8F0]',
     iconColor: 'text-[#C4913E]',
-    label: () => '간식',
+    cat: '간식',
+    label: () => '',
   },
   toddler_meal: {
     icon: RiceIcon,
     bg: 'bg-[#FFF8F0]',
     iconColor: 'text-[#C4913E]',
-    label: () => '유아식',
+    cat: '유아식',
+    label: () => '',
   },
   medication: {
     icon: PillIcon,
     bg: 'bg-[#FFECDB]',
     iconColor: 'text-[#C4783E]',
+    cat: '투약',
     label: (e) => {
       const medicine = e.tags?.medicine as string | undefined
-      return medicine ? `투약 · ${medicine}` : '투약'
+      return medicine || ''
     },
   },
 }
@@ -147,12 +164,13 @@ export default function Timeline({ events, recorderNames = {}, onEventTap }: Pro
   }
 
   return (
-    <div className="flex flex-col px-4 gap-2 pb-4">
+    <div className="flex flex-col px-4 gap-2 pt-3 pb-4">
       {events.map((event) => {
         const config = EVENT_CONFIG[event.type] || EVENT_CONFIG.memo
         const Icon = config.icon
         const recorderName = recorderNames[event.recorder_id] || ''
 
+        const detail = config.label(event)
         return (
           <button
             key={event.id}
@@ -164,8 +182,15 @@ export default function Timeline({ events, recorderNames = {}, onEventTap }: Pro
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-[14px] font-semibold text-[#212124] truncate">
-                {config.label(event)}
+              <p className="text-[14px] text-[#1A1918] truncate">
+                {detail ? (
+                  <>
+                    <span className="text-[#9E9A95] font-normal mr-1">{config.cat}</span>
+                    <span className="font-semibold">{detail}</span>
+                  </>
+                ) : (
+                  <span className="font-semibold">{config.cat}</span>
+                )}
               </p>
               <p className="text-[14px] text-[#6B6966]">
                 {formatTime(event.start_ts)}

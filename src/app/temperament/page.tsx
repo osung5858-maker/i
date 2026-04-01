@@ -168,7 +168,7 @@ export default function TemperamentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+      <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
         <PageHeader title="아기 기질 분석" showBack />
         <div className="flex-1 flex items-center justify-center">
           <div className="w-8 h-8 border-3 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
@@ -185,14 +185,13 @@ export default function TemperamentPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="아기 기질 분석" showBack />
-      <div className="flex-1 max-w-lg mx-auto w-full px-5 pb-28 space-y-5">
+      <div className="flex-1 max-w-lg mx-auto w-full px-5 pb-4 space-y-5">
 
         {/* Intro */}
         {!result && !analyzing && (
           <div className="pt-8 text-center space-y-4">
-            <div className="text-6xl">🧒</div>
             <h2 className="text-[18px] font-bold text-[#1A1918]">
               {child?.name ? `${child.name}의 기질 유형은?` : '우리 아이 기질 유형은?'}
             </h2>
@@ -218,7 +217,6 @@ export default function TemperamentPage() {
         {/* Analyzing */}
         {analyzing && (
           <div className="pt-16 text-center space-y-4">
-            <div className="text-5xl animate-bounce">🔍</div>
             <p className="text-[15px] font-semibold text-[#1A1918]">패턴을 분석하고 있어요...</p>
             <p className="text-[13px] text-[#6B6966]">{dayCount}일간의 기록을 살펴보는 중</p>
             <div className="w-8 h-8 border-3 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto" />
@@ -233,7 +231,6 @@ export default function TemperamentPage() {
               className="rounded-2xl p-6 text-center space-y-3"
               style={{ backgroundColor: (typeColors[result.type] || '#FFB347') + '15' }}
             >
-              <div className="text-5xl">{result.emoji}</div>
               <h2 className="text-[20px] font-bold text-[#1A1918]">{result.title}</h2>
               <div
                 className="inline-block px-4 py-1.5 rounded-full text-[13px] font-semibold text-white"
@@ -255,7 +252,7 @@ export default function TemperamentPage() {
 
             {/* Strengths */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-3">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">💪 우리 아이 강점</h3>
+              <h3 className="text-[15px] font-bold text-[#1A1918]">우리 아이 강점</h3>
               <div className="space-y-2">
                 {result.strengths.map((s, i) => (
                   <div key={i} className="flex items-start gap-2">
@@ -268,7 +265,7 @@ export default function TemperamentPage() {
 
             {/* Parenting Tips */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-3">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">📝 육아 꿀팁</h3>
+              <h3 className="text-[15px] font-bold text-[#1A1918]">육아 꿀팁</h3>
               <div className="space-y-2">
                 {result.parentingTips.map((t, i) => (
                   <div key={i} className="flex items-start gap-2">
@@ -281,7 +278,7 @@ export default function TemperamentPage() {
 
             {/* Fun Fact */}
             <div className="bg-[#FFF8F0] rounded-xl p-4">
-              <p className="text-[13px] text-[#8B7355]">✨ {result.funFact}</p>
+              <p className="text-[13px] text-[#8B7355]">{result.funFact}</p>
             </div>
 
             {/* Retry */}

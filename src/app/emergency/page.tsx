@@ -180,7 +180,7 @@ export default function EmergencyPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#f5f5f5]">
+    <div className="min-h-[calc(100dvh-144px)] bg-[#f5f5f5]">
       {/* 헤더 */}
       <div className="bg-gradient-to-b from-[#E53935] to-[#C62828] px-5 pt-14 pb-6">
         <div className="max-w-lg mx-auto w-full">
@@ -216,7 +216,7 @@ export default function EmergencyPage() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto w-full -mt-2 pb-24">
+      <div className="max-w-lg mx-auto w-full -mt-2 pb-4">
         {/* 공동양육자 알림 배너 */}
         {notified && (
           <div className="mx-4 mb-2 p-3 rounded-xl bg-blue-50 border border-blue-200">

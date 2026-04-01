@@ -426,7 +426,7 @@ export default function LullabyPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] pb-[env(safe-area-inset-bottom)]">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] pb-[env(safe-area-inset-bottom)]">
       <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
         <Link href="/" className="text-[#9E9A95] text-sm">←</Link>
         <h1 className="text-[15px] font-bold text-[#1A1918]">자장가 · 동요</h1>

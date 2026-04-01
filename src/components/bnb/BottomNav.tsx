@@ -11,11 +11,12 @@ import {
   NoteIcon, ArrowLeftIcon, CookieIcon, RiceIcon, PumpIcon, BathIcon, NapIcon, NightIcon,
   HeartFilledIcon, ActivityIcon, PenIcon, ChartIcon,
   MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon,
-  WaterGlassIcon, WalkIcon, StretchIcon,
-  CheckCircleIcon, BanIcon, FireIcon, MusicIcon,
-  VitaminIcon, BrainIcon, WarningIcon, CapsuleIcon,
+  WaterGlassIcon, FootstepsIcon, YogaIcon,
+  CheckCircleIcon, BanIcon, MusicIcon,
+  WarningIcon, CapsuleIcon, SproutIcon, OmegaIcon, BrainIcon, BoneIcon,
 } from '@/components/ui/Icons'
 import { autoBackup, restoreLocalData } from '@/lib/storage/backup'
+import { getSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
 
 interface Tab {
@@ -63,8 +64,8 @@ function buildCategories(ageMonths: number): RecordCategory[] {
   const eatItems: RecordItem[] = []
   if (ageMonths < 13) { // 모유는 12개월까지
     eatItems.push(
-      { type: 'breast_left', label: '모유(왼)', baseType: 'feed', tags: { side: 'left' }, isDuration: true },
-      { type: 'breast_right', label: '모유(오)', baseType: 'feed', tags: { side: 'right' }, isDuration: true },
+      { type: 'breast_left',  label: '모유(왼)', tags: { side: 'left'  }, isDuration: true },
+      { type: 'breast_right', label: '모유(오)', tags: { side: 'right' }, isDuration: true },
     )
   }
   if (ageMonths < 13) { // 분유
@@ -72,10 +73,24 @@ function buildCategories(ageMonths: number): RecordCategory[] {
       step3: [{ label: '60', value: 60, unit: 'ml' }, { label: '90', value: 90, unit: 'ml' }, { label: '120', value: 120, unit: 'ml' }, { label: '150', value: 150, unit: 'ml' }, { label: '180', value: 180, unit: 'ml' }] })
   }
 
-  if (ageMonths < 7) { // 유축 초기만
-    eatItems.push({ type: 'pump', label: '유축', isDuration: true })
+  if (ageMonths < 3) { // 유축 초기 2~3개월
+    eatItems.push(
+      { type: 'pump_left',  label: '유축(왼)', tags: { side: 'left'  }, isDuration: true },
+      { type: 'pump_right', label: '유축(오)', tags: { side: 'right' }, isDuration: true },
+    )
   }
-  cats.push({ key: 'eat', label: '수유', color: 'var(--color-primary)', items: eatItems })
+  if (ageMonths >= 6) { // 이유식 (6개월~)
+    eatItems.push({ type: 'babyfood', label: '이유식',
+      step3: [{ label: '쌀미음', value: 'rice' }, { label: '야채죽', value: 'veggie' }, { label: '고기죽', value: 'meat' }, { label: '과일', value: 'fruit' }, { label: '기타', value: 'etc' }] })
+  }
+  if (ageMonths >= 9) { // 간식 (9개월~)
+    eatItems.push({ type: 'snack', label: '간식' })
+  }
+  if (ageMonths >= 13) { // 유아식 (13개월~)
+    eatItems.push({ type: 'toddler_meal', label: '유아식',
+      step3: [{ label: '밥', value: 'rice' }, { label: '국수', value: 'noodle' }, { label: '빵', value: 'bread' }, { label: '기타', value: 'etc' }] })
+  }
+  cats.push({ key: 'eat', label: ageMonths >= 13 ? '먹기' : '수유', color: 'var(--color-primary)', items: eatItems })
 
   // 잠 — 시간대 자동 분기 (20시~7시: 밤잠, 나머지: 낮잠)
   const hour = new Date().getHours()
@@ -105,8 +120,8 @@ function buildCategories(ageMonths: number): RecordCategory[] {
   return cats
 }
 
-function buildPregnantCategories(): RecordCategory[] {
-  return [
+function buildPregnantCategories(pregnancyWeeks: number): RecordCategory[] {
+  const cats: RecordCategory[] = [
     { key: 'mood', label: '기분', color: '#FF8FAB', items: [
       { type: 'preg_mood_happy',   label: '행복', baseType: 'preg_mood', tags: { mood: 'happy'   }, color: '#FF8FAB' },
       { type: 'preg_mood_calm',    label: '평온', baseType: 'preg_mood', tags: { mood: 'calm'    }, color: '#90C8A8' },
@@ -114,60 +129,57 @@ function buildPregnantCategories(): RecordCategory[] {
       { type: 'preg_mood_sick',    label: '입덧', baseType: 'preg_mood', tags: { mood: 'sick'    }, color: '#B8A0D4' },
       { type: 'preg_mood_tired',   label: '피곤', baseType: 'preg_mood', tags: { mood: 'tired'   }, color: '#8EB4D4' },
     ]},
-    { key: 'fetal', label: '태동', color: '#90C8A8', items: [
-      { type: 'preg_fetal_move', label: '태동 +1' },
-    ]},
     { key: 'health', label: '건강', color: '#D08068', items: [
-      { type: 'preg_weight', label: '체중', isSlider: true },
-      { type: 'preg_edema_none', label: '부종 없음', baseType: 'preg_edema', tags: { level: 'none' } },
-      { type: 'preg_edema_mild', label: '부종 약함', baseType: 'preg_edema', tags: { level: 'mild' } },
+      { type: 'preg_weight',   label: '체중',    isSlider: true },
+      { type: 'preg_stretch',  label: '스트레칭', color: '#F59E0B', isDuration: true },
+      { type: 'preg_meditate', label: '명상',    color: '#8B5CF6', isDuration: true },
+      { type: 'preg_edema_mild',   label: '부종',    baseType: 'preg_edema', tags: { level: 'mild'   } },
       { type: 'preg_edema_severe', label: '부종 심함', baseType: 'preg_edema', tags: { level: 'severe' } },
     ]},
-    { key: 'today', label: '오늘 챙기기', color: '#10B981', items: [
-      { type: 'preg_water',   label: '물 마시기',  color: '#3B82F6' },
-      { type: 'preg_walk',    label: '걷기',       color: '#10B981', isDuration: true },
-      { type: 'preg_suppl',   label: '영양제',     color: '#F59E0B',
-        step3: [
-          { label: '엽산', value: 'folic' },
-          { label: '철분', value: 'iron' },
-          { label: 'DHA', value: 'dha' },
-          { label: '칼슘', value: 'calcium' },
-          { label: '종합', value: 'multi' },
-          { label: '기타', value: 'etc' },
-        ]
-      },
-      { type: 'preg_stretch', label: '스트레칭',   color: '#8B5CF6', isDuration: true },
+    { key: 'preg_suppl', label: '영양제', color: '#10B981', items: [
+      { type: 'preg_folic',   label: '엽산',    color: '#10B981' },
+      { type: 'preg_iron',    label: '철분',    color: '#10B981' },
+      { type: 'preg_dha',     label: 'DHA',     color: '#10B981' },
+      { type: 'preg_calcium', label: '칼슘',    color: '#10B981' },
+      { type: 'preg_vitd',    label: '비타민D', color: '#10B981' },
+    ]},
+    { key: 'preg_diary', label: '기다림', color: '#A78BFA', items: [
+      { type: 'preg_journal', label: '기다림 일기', color: '#A78BFA', hasJournal: true },
     ]},
   ]
+  // 태동: 16주 이상일 때만 노출
+  if (pregnancyWeeks >= 16) {
+    cats.splice(1, 0, { key: 'fetal', label: '태동', color: '#90C8A8', items: [
+      { type: 'preg_fetal_move', label: '태동 +1' },
+    ]})
+  }
+  return cats
 }
 
 function buildPreparingCategories(): RecordCategory[] {
   return [
-    // 영양제 — 탭 하나로 즉시 기록
+    { key: 'prep_mood', label: '기분', color: '#F472B6', items: [
+      { type: 'prep_mood_happy',   label: '행복', baseType: 'prep_mood', tags: { mood: 'happy'   }, color: '#FF8FAB' },
+      { type: 'prep_mood_excited', label: '설렘', baseType: 'prep_mood', tags: { mood: 'excited' }, color: '#FFB347' },
+      { type: 'prep_mood_calm',    label: '평온', baseType: 'prep_mood', tags: { mood: 'calm'    }, color: '#90C8A8' },
+      { type: 'prep_mood_tired',   label: '피곤', baseType: 'prep_mood', tags: { mood: 'tired'   }, color: '#8EB4D4' },
+      { type: 'prep_mood_anxious', label: '불안', baseType: 'prep_mood', tags: { mood: 'anxious' }, color: '#FFC078' },
+    ]},
+    { key: 'prep_health', label: '건강', color: '#F59E0B', items: [
+      { type: 'prep_walk',     label: '걷기',     color: '#F59E0B' },
+      { type: 'prep_stretch',  label: '스트레칭', color: '#F59E0B' },
+      { type: 'prep_breath',   label: '심호흡',   color: '#F59E0B' },
+      { type: 'prep_meditate', label: '명상',     color: '#8B5CF6', isDuration: true },
+      { type: 'prep_music',    label: '음악감상', color: '#F472B6', isDuration: true },
+    ]},
     { key: 'prep_suppl', label: '영양제', color: '#10B981', items: [
       { type: 'prep_folic',  label: '엽산',    color: '#10B981' },
       { type: 'prep_vitd',   label: '비타민D', color: '#10B981' },
       { type: 'prep_iron',   label: '철분',    color: '#10B981' },
       { type: 'prep_omega3', label: '오메가3', color: '#10B981' },
     ]},
-    // 운동 — 타이머 기반 활동 전반
-    { key: 'prep_exercise', label: '운동', color: '#F59E0B', items: [
-      { type: 'prep_walk',     label: '걷기',     color: '#F59E0B', isDuration: true },
-      { type: 'prep_stretch',  label: '스트레칭', color: '#F59E0B', isDuration: true },
-      { type: 'prep_breath',   label: '심호흡',   color: '#F59E0B', isDuration: true },
-      { type: 'prep_meditate', label: '명상',     color: '#F59E0B', isDuration: true },
-      { type: 'prep_music',    label: '음악감상', color: '#F59E0B', isDuration: true },
-    ]},
-    // 기다림 일기 — 바로 폼 오픈
-    { key: 'prep_diary', label: '기다림 일기', color: '#A78BFA', items: [
-      { type: 'prep_journal', label: '기다림 일기', color: '#A78BFA' },
-    ]},
-    // 기분 — 오늘의 감정 빠른 기록 (pregnant 기분과 동일 패턴)
-    { key: 'prep_mood', label: '기분', color: '#F472B6', items: [
-      { type: 'prep_mood_excited', label: '설렘', baseType: 'prep_mood', tags: { mood: 'excited' }, color: '#FF8FAB' },
-      { type: 'prep_mood_calm',    label: '평온', baseType: 'prep_mood', tags: { mood: 'calm'    }, color: '#90C8A8' },
-      { type: 'prep_mood_anxious', label: '걱정', baseType: 'prep_mood', tags: { mood: 'anxious' }, color: '#FFC078' },
-      { type: 'prep_mood_tired',   label: '피곤', baseType: 'prep_mood', tags: { mood: 'tired'   }, color: '#8EB4D4' },
+    { key: 'prep_diary', label: '기다림', color: '#A78BFA', items: [
+      { type: 'prep_journal', label: '일기 작성', color: '#A78BFA', hasJournal: true },
     ]},
   ]
 }
@@ -181,6 +193,7 @@ interface RecordItem {
   isDuration?: boolean
   isSlider?: boolean
   hasMemo?: boolean
+  hasJournal?: boolean
   color?: string  // 아이템별 개별 색상 (카테고리 색상 override)
 }
 
@@ -242,8 +255,9 @@ function BottomNavComponent() {
   }, [])
 
   // pathname 기반 모드 자동 감지 (localStorage보다 우선)
+  // /waiting은 preparing/pregnant 공유 경로 → localStorage로 판단
   useEffect(() => {
-    if (pathname?.startsWith('/preparing') || pathname?.startsWith('/waiting')) {
+    if (pathname?.startsWith('/preparing')) {
       setMode('preparing')
     } else if (pathname?.startsWith('/pregnant')) {
       setMode('pregnant')
@@ -253,8 +267,33 @@ function BottomNavComponent() {
     }
   }, [pathname])
 
+  const [pregnancyWeeks, setPregnancyWeeks] = useState(0)
+  useEffect(() => {
+    if (mode !== 'pregnant') return
+    getSecure('dodam_due_date').then(v => {
+      if (!v) return
+      const due = new Date(v)
+      if (isNaN(due.getTime())) return
+      const weeks = Math.floor((280 - (due.getTime() - Date.now()) / 86400000) / 7)
+      setPregnancyWeeks(Math.max(0, weeks))
+    })
+  }, [mode])
+
   const tabs = TABS_BY_MODE[mode] || TABS_BY_MODE.parenting
-  const DYNAMIC_CATEGORIES = mode === 'pregnant' ? buildPregnantCategories() : mode === 'preparing' ? buildPreparingCategories() : buildCategories(getAgeMonths())
+  const DYNAMIC_CATEGORIES = mode === 'pregnant' ? buildPregnantCategories(pregnancyWeeks) : mode === 'preparing' ? buildPreparingCategories() : buildCategories(getAgeMonths())
+
+  // 디버깅: 모드와 카테고리 확인
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('BottomNav DEBUG:', {
+        pathname,
+        mode,
+        categoriesCount: DYNAMIC_CATEGORIES.length,
+        categories: DYNAMIC_CATEGORIES.map(c => c.label),
+        fabOpen
+      })
+    }
+  }, [mode, pathname, DYNAMIC_CATEGORIES, fabOpen])
 
   // 다른 페이지로 이동하면 FAB + 모든 depth 상태 리셋
   useEffect(() => {
@@ -274,6 +313,11 @@ function BottomNavComponent() {
   const [weightValue, setWeightValue] = useState(60.0)
   const [memoItem, setMemoItem] = useState<string | null>(null) // 투약 메모
   const [memoText, setMemoText] = useState('')
+  const [journalOpen, setJournalOpen] = useState(false)
+  const [journalType, setJournalType] = useState<'prep_journal' | 'preg_journal'>('prep_journal')
+  const [journalText, setJournalText] = useState('')
+
+  const [journalLoading, setJournalLoading] = useState(false)
   const fabStyle = 'B' as const // B안 확정
 
   // ESC로 닫기 — 단계별 역방향 닫기
@@ -302,18 +346,133 @@ function BottomNavComponent() {
     const event = new CustomEvent('dodam-record', { detail: { type, ...extra, _handled: false } })
     window.dispatchEvent(event)
 
-    // preg_ 타입: page 밖에서 기록 시 localStorage 폴백 저장
-    if (!(event.detail as any)._handled && type.startsWith('preg_')) {
+    // FAB 즉시 닫기 (DB 응답 기다리지 않음)
+    setFabOpen(false)
+    setSelectedCategory(null)
+    setSelectedItem(null)
+    setTempSlider(null)
+    setMemoItem(null)
+    setMemoText('')
+
+    // 로컬 날짜 (KST 기준)
+    const _td = new Date()
+    const localToday = `${_td.getFullYear()}-${String(_td.getMonth()+1).padStart(2,'0')}-${String(_td.getDate()).padStart(2,'0')}`
+
+    // preg_ 타입: 토스트 즉시 → DB 비동기
+    if (type.startsWith('preg_') && type !== 'preg_journal') {
+      const PREG_LABELS: Record<string, string> = {
+        preg_mood: '기분', preg_fetal_move: '태동', preg_weight: '체중', preg_edema: '부종',
+        preg_water: '물 마시기', preg_walk: '걷기', preg_suppl: '영양제', preg_stretch: '스트레칭',
+        preg_folic: '엽산', preg_iron: '철분', preg_dha: 'DHA', preg_calcium: '칼슘', preg_vitd: '비타민D',
+      }
+      // 토스트 즉시 표시
+      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${PREG_LABELS[type] || type} 기록됐어요` } }))
+      // DB 저장 비동기
       try {
-        const today = new Date().toISOString().split('T')[0]
-        const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
-        const stored = JSON.parse(localStorage.getItem(`dodam_preg_events_${today}`) || '[]')
-        stored.unshift({ id: Date.now(), type, data: { type, ...extra }, timeStr })
-        localStorage.setItem(`dodam_preg_events_${today}`, JSON.stringify(stored))
-      } catch { /* */ }
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          await supabase.from('pregnant_events').insert({
+            user_id: user.id,
+            type,
+            start_ts: new Date().toISOString(),
+            tags: extra?.tags ? extra.tags : undefined,
+          })
+        }
+      } catch { /* 오프라인 폴백 */ }
+      // localStorage 캐시 (page 밖일 때만)
+      if (!(event.detail as any)._handled) {
+        try {
+          const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
+          const stored = JSON.parse(localStorage.getItem(`dodam_preg_events_${localToday}`) || '[]')
+          stored.unshift({ id: Date.now(), type, data: { type, ...extra }, timeStr })
+          localStorage.setItem(`dodam_preg_events_${localToday}`, JSON.stringify(stored))
+        } catch { /* */ }
+      }
     }
-    // page.tsx가 없는 페이지(추억/동네/우리 등)에서는 직접 DB 저장
+
+    // prep_ 타입: DB 저장 + localStorage 캐시 + 토스트 (항상 실행)
+    if (type.startsWith('prep_')) {
+      const PREP_LABELS: Record<string, string> = {
+        prep_folic: '엽산', prep_vitd: '비타민D', prep_iron: '철분', prep_omega3: '오메가3',
+        prep_walk: '걷기', prep_stretch: '스트레칭', prep_breath: '심호흡',
+        prep_meditate: '명상', prep_music: '음악감상', prep_mood: '기분',
+      }
+      if (type === 'prep_mood' && extra?.tags && (extra.tags as any).mood) {
+        const moodVal: string = (extra.tags as any).mood
+        const specificType = `prep_mood_${moodVal}`
+        // localStorage 즉시 업데이트
+        try {
+          const now = new Date().toISOString()
+          localStorage.setItem(`dodam_mood_${localToday}`, JSON.stringify({ mood: moodVal, ts: now }))
+          const tsMap = JSON.parse(localStorage.getItem(`dodam_prep_ts_${localToday}`) || '{}')
+          if (!tsMap[specificType]) { tsMap[specificType] = now; localStorage.setItem(`dodam_prep_ts_${localToday}`, JSON.stringify(tsMap)) }
+          const doneKey = `dodam_prep_done_${localToday}`
+          const done: string[] = JSON.parse(localStorage.getItem(doneKey) || '[]')
+          if (!done.includes(specificType)) { done.push(specificType); localStorage.setItem(doneKey, JSON.stringify(done)) }
+        } catch { /* */ }
+        // 이벤트 + 토스트 즉시
+        window.dispatchEvent(new CustomEvent('dodam-prep-done', { detail: { type: specificType, date: localToday, mood: moodVal } }))
+        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '기분이 기록됐어요' } }))
+        // DB 비동기 (당일 중복 방지)
+        try {
+          const supabase = createClient()
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user) {
+            const { data: existing } = await supabase.from('prep_events')
+              .select('id').eq('user_id', user.id).eq('type', specificType).eq('recorded_date', localToday).limit(1)
+            if (!existing?.length) {
+              await supabase.from('prep_events').insert({
+                user_id: user.id, type: specificType, recorded_date: localToday,
+                tags: extra.tags,
+              })
+            }
+          }
+        } catch { /* 오프라인 폴백 */ }
+      } else if (type !== 'prep_journal') {
+        // localStorage 즉시 업데이트
+        try {
+          const key = `dodam_prep_done_${localToday}`
+          const done: string[] = JSON.parse(localStorage.getItem(key) || '[]')
+          if (!done.includes(type)) {
+            done.push(type)
+            localStorage.setItem(key, JSON.stringify(done))
+            const tsMap = JSON.parse(localStorage.getItem(`dodam_prep_ts_${localToday}`) || '{}')
+            if (!tsMap[type]) { tsMap[type] = new Date().toISOString(); localStorage.setItem(`dodam_prep_ts_${localToday}`, JSON.stringify(tsMap)) }
+          }
+        } catch { /* */ }
+        // 이벤트 + 토스트 즉시
+        window.dispatchEvent(new CustomEvent('dodam-prep-done', { detail: { type, date: localToday } }))
+        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${PREP_LABELS[type] || type} 완료!` } }))
+        // DB 비동기 (당일 중복 방지)
+        try {
+          const supabase = createClient()
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user) {
+            const { data: existing } = await supabase.from('prep_events')
+              .select('id').eq('user_id', user.id).eq('type', type).eq('recorded_date', localToday).limit(1)
+            if (!existing?.length) {
+              await supabase.from('prep_events').insert({
+                user_id: user.id, type, recorded_date: localToday,
+                tags: extra?.tags ? extra.tags : undefined,
+              })
+            }
+          }
+        } catch { /* 오프라인 폴백 */ }
+      }
+    }
+    // page.tsx가 없는 페이지(추억/동네/우리 등) — 토스트 즉시 → DB 비동기
     if (!(event.detail as any)._handled && !type.startsWith('preg_') && !type.startsWith('prep_')) {
+      const CARE_LABELS: Record<string, string> = {
+        feed: '분유', poop: '배변', pee: '소변', sleep: '수면', temp: '체온',
+        bath: '목욕', medication: '투약', babyfood: '이유식', snack: '간식', toddler_meal: '유아식',
+      }
+      const BABYFOOD_SUB: Record<string, string> = { rice: '쌀미음', veggie: '야채죽', meat: '고기죽', fruit: '과일', etc: '기타' }
+      const careLabel = type === 'babyfood' && (extra?.tags as any)?.subtype
+        ? `이유식 ${BABYFOOD_SUB[(extra?.tags as any).subtype] || ''}`
+        : type === 'feed' && extra?.amount_ml ? `분유 ${extra?.amount_ml}ml`
+        : (CARE_LABELS[type] || '기록')
+      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${careLabel} 완료!` } }))
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -334,13 +493,6 @@ function BottomNavComponent() {
         }
       } catch { /* 오프라인 폴백 */ }
     }
-
-    setFabOpen(false)
-    setSelectedCategory(null)
-    setSelectedItem(null)
-    setTempSlider(null)
-    setMemoItem(null)
-    setMemoText('')
   }, [])
 
   // ===== Duration-based session state =====
@@ -375,9 +527,13 @@ function BottomNavComponent() {
   }, [activeSession])
 
   const startSession = useCallback((item: RecordItem, catColor: string) => {
+    // breast_left/right, pump_left/right → baseType을 feed/pump로 설정
+    const derivedBaseType = item.baseType
+      || (item.type === 'breast_left' || item.type === 'breast_right' ? 'feed' : undefined)
+      || (item.type === 'pump_left'   || item.type === 'pump_right'   ? 'pump' : undefined)
     const session: ActiveSession = {
       type: item.type,
-      baseType: item.baseType,
+      baseType: derivedBaseType,
       label: item.label,
       tags: item.tags,
       startTs: Date.now(),
@@ -407,6 +563,22 @@ function BottomNavComponent() {
     const event = new CustomEvent('dodam-record', { detail })
     window.dispatchEvent(event)
 
+    // prep_ 세션 완료: page 밖에서도 localStorage 저장 (이미 _handled면 preparing/page.tsx가 처리)
+    if (!(event.detail as any)._handled && recordType.startsWith('prep_')) {
+      const _td2 = new Date()
+      const localToday2 = `${_td2.getFullYear()}-${String(_td2.getMonth()+1).padStart(2,'0')}-${String(_td2.getDate()).padStart(2,'0')}`
+      try {
+        const key = `dodam_prep_done_${localToday2}`
+        const done: string[] = JSON.parse(localStorage.getItem(key) || '[]')
+        if (!done.includes(recordType)) {
+          done.push(recordType)
+          localStorage.setItem(key, JSON.stringify(done))
+          const tsMap = JSON.parse(localStorage.getItem(`dodam_prep_ts_${localToday2}`) || '{}')
+          if (!tsMap[recordType]) { tsMap[recordType] = startTs; localStorage.setItem(`dodam_prep_ts_${localToday2}`, JSON.stringify(tsMap)) }
+        }
+      } catch { /* */ }
+    }
+
     // page.tsx가 없는 페이지에서는 직접 DB 저장 (preg_/prep_ 타입은 DB 저장 없음)
     if (!(event.detail as any)._handled && !recordType.startsWith('preg_') && !recordType.startsWith('prep_')) {
       try {
@@ -433,10 +605,16 @@ function BottomNavComponent() {
     localStorage.removeItem('dodam_active_session')
     setActiveSession(null)
 
-    // 토스트 표시
-    const labels: Record<string, string> = { feed: '수유', bath: '목욕', sleep: '수면', pump: '유축' }
-    const label = labels[recordType] || activeSession.label
-    window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${label} ${mins}분 기록 완료!` } }))
+    // 토스트 표시 (세부 타입 라벨 우선)
+    const sessionLabels: Record<string, string> = {
+      breast_left: '모유(왼)', breast_right: '모유(오)',
+      pump_left: '유축(왼)', pump_right: '유축(오)',
+      bath: '목욕', sleep: '수면', nap: '낮잠', night_sleep: '밤잠',
+      prep_meditate: '명상', prep_music: '음악감상',
+      preg_stretch: '스트레칭', preg_meditate: '명상',
+    }
+    const sessionLabel = sessionLabels[activeSession.type] || activeSession.label
+    window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${sessionLabel} ${mins}분 기록 완료!` } }))
   }, [activeSession])
 
   const formatElapsed = (s: number) => {
@@ -445,9 +623,8 @@ function BottomNavComponent() {
     return `${mm}:${ss}`
   }
 
-  if (pathname?.startsWith('/onboarding') || pathname?.startsWith('/invite') || pathname?.startsWith('/post/') || pathname?.startsWith('/market-item/') || pathname?.startsWith('/landing')) {
-    return null
-  }
+  const HIDE_PATHS = ['/onboarding', '/invite', '/auth', '/post/', '/market-item/', '/landing', '/privacy', '/terms', '/celebration', '/birth']
+  if (HIDE_PATHS.some(p => pathname?.startsWith(p))) return null
 
   return (
     <>
@@ -478,6 +655,12 @@ function BottomNavComponent() {
                       style={{ left: ARC[i].x - 28, top: ARC[i].y - 28, animation: `fabItemPop 0.25s ${i * 0.04}s both cubic-bezier(0.34, 1.56, 0.64, 1)` }}>
                       <button onClick={() => {
                         if (cat.items.length === 1 && cat.items[0].isDuration) startSession(cat.items[0], cat.color)
+                        else if (cat.items.length === 1 && cat.items[0].hasJournal) {
+                          setJournalType(cat.items[0].type as 'prep_journal' | 'preg_journal')
+                          setJournalText('')
+                          setFabOpen(false); setSelectedCategory(null)
+                          setJournalOpen(true)
+                        }
                         else if (cat.items.length === 1) handleQuickRecord(cat.items[0].type)
                         else setSelectedCategory(cat.key)
                       }} className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.25)] active:scale-90 transition-transform bg-white">
@@ -490,10 +673,11 @@ function BottomNavComponent() {
                             k === 'health'        ? <HospitalIcon className="w-8 h-8" /> :
                             k === 'mood'          ? <HeartFilledIcon className="w-8 h-8" /> :
                             k === 'fetal'         ? <ActivityIcon className="w-8 h-8" /> :
-                            k === 'today'         ? <BookOpenIcon className="w-8 h-8" /> :
                             k === 'prep_suppl'    ? <CapsuleIcon className="w-8 h-8" /> :
-                            k === 'prep_exercise' ? <FireIcon className="w-8 h-8" /> :
-                            k === 'prep_diary'    ? <BookOpenIcon className="w-8 h-8" /> :
+                            k === 'preg_suppl'    ? <CapsuleIcon className="w-8 h-8" /> :
+                            k === 'prep_health'   ? <HeartIcon className="w-8 h-8" /> :
+                            k === 'prep_diary'    ? <PenIcon className="w-8 h-8" /> :
+                            k === 'preg_diary'    ? <PenIcon className="w-8 h-8" /> :
                             k === 'prep_mood'     ? <MoodHappyIcon className="w-8 h-8" /> :
                             <NoteIcon className="w-8 h-8" />
                           return <span style={{ color: cat.color }}>{node}</span>
@@ -733,6 +917,11 @@ function BottomNavComponent() {
                           if (item.type === 'feed') setFeedValue(120)
                         } else if (item.hasMemo) {
                           setMemoItem(item.type); setMemoText('')
+                        } else if (item.hasJournal) {
+                          setJournalType(item.type as 'prep_journal' | 'preg_journal')
+                          setJournalText('')
+                          setFabOpen(false); setSelectedCategory(null); setSelectedItem(null)
+                          setJournalOpen(true)
                         } else if (item.step3) {
                           setSelectedItem(item.type)
                         } else {
@@ -746,40 +935,45 @@ function BottomNavComponent() {
                           const t = item.type
                           const node =
                             t === 'breast_left' || t === 'breast_right' ? <BreastfeedIcon className="w-7 h-7" /> :
-                            t === 'feed' ? <BottleIcon className="w-7 h-7" /> :
-                            t === 'babyfood' ? <BowlIcon className="w-7 h-7" /> :
-                            t === 'snack' ? <CookieIcon className="w-7 h-7" /> :
+                            t === 'feed'         ? <BottleIcon className="w-7 h-7" /> :
+                            t === 'babyfood'     ? <BowlIcon className="w-7 h-7" /> :
+                            t === 'snack'        ? <CookieIcon className="w-7 h-7" /> :
                             t === 'toddler_meal' ? <RiceIcon className="w-7 h-7" /> :
-                            t === 'pump' ? <PumpIcon className="w-7 h-7" /> :
-                            t === 'night_sleep' ? <NightIcon className="w-7 h-7" /> :
-                            t === 'nap' ? <NapIcon className="w-7 h-7" /> :
-                            t === 'sleep' ? <MoonIcon className="w-7 h-7" /> :
-                            t === 'pee' ? <DropletIcon className="w-7 h-7" /> :
+                            t === 'pump' || t === 'pump_left' || t === 'pump_right' ? <PumpIcon className="w-7 h-7" /> :
+                            t === 'night_sleep'  ? <NightIcon className="w-7 h-7" /> :
+                            t === 'nap'          ? <NapIcon className="w-7 h-7" /> :
+                            t === 'sleep'        ? <MoonIcon className="w-7 h-7" /> :
+                            t === 'pee'          ? <DropletIcon className="w-7 h-7" /> :
                             t === 'poop_normal' || t === 'poop_soft' || t === 'poop_hard' ? <PoopIcon className="w-7 h-7" /> :
-                            t === 'temp' ? <ThermometerIcon className="w-7 h-7" /> :
-                            t === 'bath' ? <BathIcon className="w-7 h-7" /> :
-                            t === 'medication' ? <PillIcon className="w-7 h-7" /> :
-                            t === 'preg_mood_happy' ? <MoodHappyIcon className="w-7 h-7" /> :
-                            t === 'preg_mood_calm' ? <MoodCalmIcon className="w-7 h-7" /> :
+                            t === 'temp'         ? <ThermometerIcon className="w-7 h-7" /> :
+                            t === 'bath'         ? <BathIcon className="w-7 h-7" /> :
+                            t === 'medication'   ? <PillIcon className="w-7 h-7" /> :
+                            t === 'preg_mood_happy'   ? <MoodHappyIcon className="w-7 h-7" /> :
+                            t === 'preg_mood_calm'    ? <MoodCalmIcon className="w-7 h-7" /> :
                             t === 'preg_mood_anxious' ? <MoodAnxiousIcon className="w-7 h-7" /> :
-                            t === 'preg_mood_sick' ? <MoodSickIcon className="w-7 h-7" /> :
-                            t === 'preg_mood_tired' ? <MoodTiredIcon className="w-7 h-7" /> :
-                            t === 'preg_fetal_move' ? <ActivityIcon className="w-7 h-7" /> :
-                            t === 'preg_weight' ? <ChartIcon className="w-7 h-7" /> :
-                            t === 'preg_edema_none' || t === 'preg_edema_mild' || t === 'preg_edema_severe' ? <WarningIcon className="w-7 h-7" /> :
-                            t === 'preg_diary' ? <PenIcon className="w-7 h-7" /> :
-                            t === 'prep_folic' || t === 'prep_iron' ? <PillIcon className="w-7 h-7" /> :
-                            t === 'prep_vitd' || t === 'prep_omega3' ? <VitaminIcon className="w-7 h-7" /> :
-                            t === 'prep_walk'     ? <WalkIcon className="w-7 h-7" /> :
-                            t === 'prep_stretch'  ? <StretchIcon className="w-7 h-7" /> :
+                            t === 'preg_mood_sick'    ? <MoodSickIcon className="w-7 h-7" /> :
+                            t === 'preg_mood_tired'   ? <MoodTiredIcon className="w-7 h-7" /> :
+                            t === 'preg_fetal_move'   ? <ActivityIcon className="w-7 h-7" /> :
+                            t === 'preg_weight'       ? <ChartIcon className="w-7 h-7" /> :
+                            t === 'preg_edema_mild' || t === 'preg_edema_severe' ? <WarningIcon className="w-7 h-7" /> :
+                            t === 'preg_stretch' || t === 'preg_meditate' ? <YogaIcon className="w-7 h-7" /> :
+                            t === 'preg_folic' || t === 'prep_folic'   ? <SproutIcon className="w-7 h-7" /> :
+                            t === 'preg_iron'  || t === 'prep_iron'    ? <DropletIcon className="w-7 h-7" /> :
+                            t === 'preg_vitd'  || t === 'prep_vitd'   ? <SunIcon className="w-7 h-7" /> :
+                            t === 'preg_dha'   || t === 'prep_omega3' ? <OmegaIcon className="w-7 h-7" /> :
+                            t === 'preg_calcium'  ? <BoneIcon className="w-7 h-7" /> :
+                            t === 'preg_journal'  ? <PenIcon className="w-7 h-7" /> :
+                            t === 'prep_walk'     ? <FootstepsIcon className="w-7 h-7" /> :
+                            t === 'prep_stretch'  ? <YogaIcon className="w-7 h-7" /> :
                             t === 'prep_breath'   ? <ActivityIcon className="w-7 h-7" /> :
                             t === 'prep_meditate' ? <MoonIcon className="w-7 h-7" /> :
                             t === 'prep_music'    ? <MusicIcon className="w-7 h-7" /> :
-                            t === 'prep_journal'  ? <BookOpenIcon className="w-7 h-7" /> :
+                            t === 'prep_journal'  ? <PenIcon className="w-7 h-7" /> :
+                            t === 'prep_mood_happy'   ? <MoodHappyIcon className="w-7 h-7" /> :
                             t === 'prep_mood_excited' ? <MoodHappyIcon className="w-7 h-7" /> :
-                            t === 'prep_mood_calm' ? <MoodCalmIcon className="w-7 h-7" /> :
+                            t === 'prep_mood_calm'    ? <MoodCalmIcon className="w-7 h-7" /> :
                             t === 'prep_mood_anxious' ? <MoodAnxiousIcon className="w-7 h-7" /> :
-                            t === 'prep_mood_tired' ? <MoodTiredIcon className="w-7 h-7" /> :
+                            t === 'prep_mood_tired'   ? <MoodTiredIcon className="w-7 h-7" /> :
                             <NoteIcon className="w-7 h-7" />
                           return <span style={{ color: item.color || cat.color }}>{node}</span>
                         })()}
@@ -795,22 +989,25 @@ function BottomNavComponent() {
       })()}
 
       {/* BNB 바 — Pill Style */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[65] pt-3 pr-5 pb-[max(20px,env(safe-area-inset-bottom))] pl-5">
-        <div className="flex items-center h-[62px] rounded-[36px] bg-white/95 backdrop-blur-lg border border-[#E8E4DF]/60 p-1" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[65] pt-3 pr-5 pb-[max(20px,env(safe-area-inset-bottom))] pl-5" style={{ overflow: 'visible' }}>
+        <div className="flex items-center h-[62px] rounded-[36px] bg-white/95 backdrop-blur-lg border border-[#E8E4DF]/60 p-1" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.08)', overflow: 'visible' }}>
           <>
               {tabs.slice(0, 2).map((tab) => (
                 <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more', '/waiting': 'nav-waiting' }[tab.href]} />
               ))}
 
               {/* 중앙 FAB (물방울 — pill 위로 돌출) */}
-              <div data-guide="fab" className="flex-1 flex items-center justify-center relative">
+              <div data-guide="fab" className="flex-1 flex items-center justify-center relative z-[75]" style={{ overflow: 'visible', pointerEvents: 'none' }}>
                 {activeSession ? (
                   <button
                     onClick={endSession}
-                    className="absolute -top-14 flex flex-col items-center justify-center transition-transform duration-200 active:scale-95"
+                    className="absolute -top-14 flex flex-col items-center justify-center transition-transform duration-200 active:scale-95 z-[80]"
+                    style={{ pointerEvents: 'auto', cursor: 'pointer', touchAction: 'manipulation' }}
+                    type="button"
+                    aria-label="세션 종료 버튼"
                   >
                     <div
-                      className="w-[66px] h-[66px] rounded-full flex flex-col items-center justify-center shadow-[0_6px_24px_rgba(0,0,0,0.3)]"
+                      className="w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center shadow-[0_6px_24px_rgba(0,0,0,0.3)]"
                       style={{
                         background: activeSession.color,
                         animation: 'fabSessionPulse 2s ease-in-out infinite',
@@ -828,26 +1025,31 @@ function BottomNavComponent() {
                 ) : (
                   <button
                     onClick={() => {
+                      if (process.env.NODE_ENV === 'development') console.log('FAB clicked', { memoItem, tempSlider, selectedItem, selectedCategory, fabOpen })
+                      if (navigator.vibrate) navigator.vibrate(30)
                       if (memoItem) { setMemoItem(null); setMemoText('') }
                       else if (tempSlider) setTempSlider(null)
                       else if (selectedItem) setSelectedItem(null)
                       else if (selectedCategory) setSelectedCategory(null)
                       else setFabOpen(v => !v)
                     }}
-                    className={`absolute -top-12 flex flex-col items-center justify-center transition-transform duration-200 ${fabOpen ? 'scale-95' : ''}`}
+                    className={`absolute -top-14 flex flex-col items-center justify-center transition-transform duration-200 z-[80] ${fabOpen ? 'scale-95' : ''}`}
+                    style={{ pointerEvents: 'auto', cursor: 'pointer', touchAction: 'manipulation' }}
+                    type="button"
+                    aria-label="빠른 기록 버튼"
                   >
                     {fabOpen ? (
-                      <div className="w-[62px] h-[62px] rounded-full flex items-center justify-center active:scale-90 transition-all duration-200 bg-[#212124] shadow-[0_6px_20px_rgba(0,0,0,0.35)]">
+                      <div className="w-[72px] h-[72px] rounded-full flex items-center justify-center active:scale-90 transition-all duration-200 bg-[#212124] shadow-[0_6px_20px_rgba(0,0,0,0.35)]">
                         {(selectedCategory || selectedItem || tempSlider || memoItem)
-                          ? <ArrowLeftIcon className="w-7 h-7 text-white" />
-                          : <XIcon className="w-7 h-7 text-white" />}
+                          ? <ArrowLeftIcon className="w-8 h-8 text-white" />
+                          : <XIcon className="w-8 h-8 text-white" />}
                       </div>
                     ) : (
                       <div className="relative">
                         {/* 호흡 글로우 링 */}
                         <div className="absolute inset-[-6px] rounded-full" style={{ animation: 'fabGlow 3s ease-in-out infinite', background: 'radial-gradient(circle, var(--color-primary) 0%, transparent 70%)', opacity: 0.15 }} />
                         {/* 물방울 이미지 */}
-                        <Image src="/fab.png" alt="" width={62} height={62} priority className="active:scale-90 transition-all duration-200" style={{ filter: 'drop-shadow(0 4px 12px var(--color-fab-shadow))', animation: 'fabBreathe 3s ease-in-out infinite' }} />
+                        <Image src="/fab.png" alt="빠른 기록 버튼" width={72} height={72} priority className="active:scale-90 transition-all duration-200" style={{ filter: 'drop-shadow(0 4px 12px var(--color-fab-shadow))', animation: 'fabBreathe 3s ease-in-out infinite' }} />
                         {/* 반짝임 점 */}
                         <div className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-white" style={{ animation: 'fabSparkle 2.5s ease-in-out infinite', boxShadow: '0 0 4px rgba(255,255,255,0.8)' }} />
                       </div>
@@ -891,6 +1093,84 @@ function BottomNavComponent() {
           60% { opacity: 0.6; transform: scale(0.8); }
         }
       `}</style>
+
+      {/* 기다림 일기 바텀시트 */}
+      {journalOpen && (
+        <div className="fixed inset-0 z-[300] bg-black/40" onClick={() => setJournalOpen(false)}>
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white rounded-t-2xl pb-[env(safe-area-inset-bottom)]"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
+            <div className="px-5 pb-5">
+              <p className="text-[15px] font-bold text-[#1A1918] mb-3 flex items-center gap-1.5">
+                <BookOpenIcon className="w-4 h-4" />
+                기다림 일기
+              </p>
+              <div className="flex gap-1.5 overflow-x-auto hide-scrollbar mb-3">
+                {(journalType === 'preg_journal'
+                  ? ['태아에게 한마디', '오늘의 태동', '나에게 응원', '임신 감사', '기다림의 마음']
+                  : ['아이에게 한마디', '오늘의 감사', '나에게 응원', '임신 기원', '기다림의 마음']
+                ).map(chip => (
+                  <button key={chip} onClick={() => setJournalText(prev => prev ? prev + ' ' + chip : chip)}
+                    className="shrink-0 px-3 py-1.5 rounded-full bg-[#F0EBFF] text-[12px] font-medium text-[#7C3AED]">{chip}</button>
+                ))}
+              </div>
+              <textarea value={journalText} onChange={e => setJournalText(e.target.value.slice(0, 500))}
+                placeholder={journalType === 'preg_journal' ? '우리 아기에게, 오늘의 마음을 전해요' : '아직 만나지 못한 아이에게, 오늘의 마음을 전해요'}
+                className="w-full h-28 text-[14px] p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[#A78BFA]"
+                autoFocus />
+              <p className="text-right text-[12px] text-[#9E9A95] mt-1">{journalText.length}/500</p>
+              <button onClick={async () => {
+                if (!journalText.trim()) return
+                const storageKey = journalType === 'preg_journal' ? 'dodam_preg_diary' : 'dodam_prep_journal'
+                const _d = new Date()
+                const today = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`
+                const entryDate = new Date().toISOString()
+                const fallbackComment = journalType === 'preg_journal'
+                  ? '오늘도 건강하게 자라고 있어요 💛'
+                  : '오늘도 도담하게 잘 기다리고 있어요 🌱'
+                try {
+                  const existing = JSON.parse(localStorage.getItem(storageKey) || '[]')
+                  const entry = journalType === 'preg_journal'
+                    ? { text: journalText.trim(), date: entryDate, mood: '', comment: fallbackComment }
+                    : { text: journalText.trim(), date: entryDate, comment: fallbackComment }
+                  localStorage.setItem(storageKey, JSON.stringify([entry, ...existing]))
+                  if (journalType === 'prep_journal') {
+                    const tsMap = JSON.parse(localStorage.getItem(`dodam_prep_ts_${today}`) || '{}')
+                    if (!tsMap[journalType]) { tsMap[journalType] = new Date().toISOString(); localStorage.setItem(`dodam_prep_ts_${today}`, JSON.stringify(tsMap)) }
+                    const done: string[] = JSON.parse(localStorage.getItem(`dodam_prep_done_${today}`) || '[]')
+                    if (!done.includes(journalType)) { done.push(journalType); localStorage.setItem(`dodam_prep_done_${today}`, JSON.stringify(done)) }
+                  }
+                } catch {}
+                window.dispatchEvent(new CustomEvent('dodam-record', { detail: { type: journalType, _handled: false } }))
+                setJournalOpen(false)
+                setJournalText('')
+                window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '일기가 저장됐어요 🌱' } }))
+                // AI 답장 — 백그라운드 처리 후 localStorage 업데이트 (토스트 없음)
+                try {
+                  setJournalLoading(true)
+                  const letterCount = (() => { try { return JSON.parse(localStorage.getItem(storageKey) || '[]').length } catch { return 1 } })()
+                  const res = await fetch('/api/ai-preparing', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'letter', letterText: journalText.trim(), letterCount }),
+                  })
+                  const data = await res.json()
+                  const aiReply = data.reply || fallbackComment
+                  const saved = JSON.parse(localStorage.getItem(storageKey) || '[]')
+                  const updated = saved.map((e: any) => e.date === entryDate ? { ...e, comment: aiReply } : e)
+                  localStorage.setItem(storageKey, JSON.stringify(updated))
+                } catch { /* 오프라인 폴백 — fallback comment 유지 */ } finally {
+                  setJournalLoading(false)
+                }
+              }} disabled={!journalText.trim() || journalLoading}
+                className={`w-full py-3.5 rounded-xl text-[15px] font-bold mt-2 ${journalText.trim() && !journalLoading ? 'text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}
+                style={journalText.trim() && !journalLoading ? { background: '#A78BFA' } : {}}>
+                {journalLoading ? '저장 중...' : '저장하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { PageHeader } from '@/components/layout/PageLayout'
-import { SparkleIcon, PenIcon, HeartIcon, HeartFilledIcon, StarIcon, ChartIcon, SearchIcon, TrophyIcon, LightbulbIcon, AlertIcon, XIcon } from '@/components/ui/Icons'
+import { useRouter } from 'next/navigation'
+import { SparkleIcon, PenIcon, StarIcon, ChartIcon, SearchIcon, TrophyIcon, LightbulbIcon, AlertIcon, XIcon } from '@/components/ui/Icons'
 import { shareNameAnalysis } from '@/lib/kakao/share-parenting'
 
 type Tab = 'nickname' | 'suggest' | 'compare' | 'analyze'
@@ -17,9 +17,12 @@ const ELEMENTS = [
 ]
 
 export default function NamePage() {
+  const router = useRouter()
   const [tab, setTab] = useState<Tab>('nickname')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2000) }
 
   // 태명
   const [nickTheme, setNickTheme] = useState('')
@@ -49,15 +52,24 @@ export default function NamePage() {
   const [compareBirthYear, setCompareBirthYear] = useState('')
   const [compareResult, setCompareResult] = useState<any>(null)
 
-  // 저장된 이름
-  const [saved, setSaved] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_saved_names') || '[]') } catch { return [] } }
-    return []
+  // 결정된 태명
+  const [chosenNickname, setChosenNickname] = useState<string>(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('dodam_chosen_nickname') || ''
+    return ''
   })
 
-  const saveName = (name: string) => {
-    const next = saved.includes(name) ? saved.filter(n => n !== name) : [...saved, name]
-    setSaved(next); localStorage.setItem('dodam_saved_names', JSON.stringify(next))
+  const chooseNickname = (name: string) => {
+    if (chosenNickname === name) {
+      // 취소
+      setChosenNickname('')
+      localStorage.removeItem('dodam_chosen_nickname')
+      showToast('태명 결정을 취소했어요')
+    } else {
+      // 결정 → 오늘 페이지로 이동
+      setChosenNickname(name)
+      localStorage.setItem('dodam_chosen_nickname', name)
+      router.back()
+    }
   }
 
   const fetchNickname = async () => {
@@ -169,10 +181,25 @@ export default function NamePage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
-      <PageHeader title="이름 짓기" showBack />
+    <div className="min-h-[100dvh] bg-[var(--color-page-bg)]">
+      <header className="sticky top-[72px] z-30 bg-white border-b border-[#E8E4DF]">
+        <div className="flex items-center h-12 px-4 max-w-lg mx-auto">
+          <button onClick={() => router.back()} className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full active:bg-[var(--color-page-bg)]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+          <div className="flex-1 text-center">
+            <p className="text-[15px] font-bold text-[#1A1918]">이름 짓기</p>
+          </div>
+          <div className="w-10" />
+        </div>
+      </header>
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#1A1918] text-white text-[13px] font-medium px-4 py-2.5 rounded-full shadow-lg whitespace-nowrap animate-[fadeIn_0.2s]">
+          {toast}
+        </div>
+      )}
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4">
         {/* 탭 */}
         <div className="flex gap-1.5 mb-4 overflow-x-auto hide-scrollbar -mx-5 px-5">
           {[
@@ -203,6 +230,15 @@ export default function NamePage() {
         {/* ===== 태명 탭 ===== */}
         {tab === 'nickname' && (
           <div className="space-y-3">
+            {chosenNickname && (
+              <div className="bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-xl border border-[#FFDDC8]/60 px-4 py-3 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] text-[#9E9A95] font-medium">결정된 태명</p>
+                  <p className="text-[16px] font-bold text-[#1A1918]">{chosenNickname}</p>
+                </div>
+                <button onClick={() => chooseNickname(chosenNickname)} className="text-[12px] text-[#9E9A95] px-2 py-1 rounded-lg border border-[#E8E4DF] bg-white">취소</button>
+              </div>
+            )}
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
               <p className="text-[14px] font-bold text-[#1A1918] mb-3 flex items-center gap-1"><StarIcon className="w-4 h-4 text-[#C4913E]" /> 태명 추천받기</p>
               <p className="text-[14px] text-[#6B6966] mb-1">어떤 아이로 자라길 바라나요?</p>
@@ -229,21 +265,27 @@ export default function NamePage() {
             </div>
 
             <div ref={nickResult ? resultTopRef : undefined} />
-            {nickResult?.names?.map((n: any, i: number) => (
-              <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-[18px] font-bold text-[#1A1918]">{n.name}</p>
-                  <button onClick={() => saveName(n.name)} className={`text-[13px] px-2 py-0.5 rounded-full ${saved.includes(n.name) ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
-                    {saved.includes(n.name) ? <><HeartFilledIcon className="w-3.5 h-3.5 inline" /> 저장됨</> : <><HeartIcon className="w-3.5 h-3.5 inline" /> 저장</>}
-                  </button>
+            {nickResult?.names?.map((n: any, i: number) => {
+              const isChosen = chosenNickname === n.name
+              return (
+                <div key={i} className={`bg-white rounded-xl border p-4 transition-all ${isChosen ? 'border-[var(--color-primary)] shadow-sm' : 'border-[#E8E4DF]'}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <p className="text-[18px] font-bold text-[#1A1918]">{n.name}</p>
+                    <button
+                      onClick={() => chooseNickname(n.name)}
+                      className={`text-[12px] px-2.5 py-1 rounded-full font-semibold transition-colors ${isChosen ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-accent-bg)] text-[var(--color-primary)]'}`}
+                    >
+                      {isChosen ? '✓ 결정됨' : '결정'}
+                    </button>
+                  </div>
+                  <p className="text-[14px] text-[#1A1918] mb-2">{n.meaning}</p>
+                  <div className="flex gap-2">
+                    <span className="text-[13px] text-[#6B6966] bg-[var(--color-page-bg)] px-2 py-0.5 rounded">{n.origin}</span>
+                    <span className="text-[13px] text-[#6B6966] bg-[var(--color-page-bg)] px-2 py-0.5 rounded">{n.vibe}</span>
+                  </div>
                 </div>
-                <p className="text-[14px] text-[#1A1918] mb-1">{n.meaning}</p>
-                <div className="flex gap-2">
-                  <span className="text-[14px] text-[#6B6966] bg-[var(--color-page-bg)] px-2 py-0.5 rounded">{n.origin}</span>
-                  <span className="text-[14px] text-[#6B6966] bg-[var(--color-page-bg)] px-2 py-0.5 rounded">{n.vibe}</span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
             {nickResult?.tip && <p className="text-[13px] text-[#6B6966] text-center">{nickResult.tip}</p>}
           </div>
         )}
@@ -309,9 +351,6 @@ export default function NamePage() {
                     <div className="w-10 h-10 rounded-full bg-[#F0F9F4] flex items-center justify-center">
                       <span className="text-[14px] font-bold text-[var(--color-primary)]">{n.score}</span>
                     </div>
-                    <button onClick={() => saveName(`${lastName}${n.name}`)} className={`text-[13px] px-2 py-0.5 rounded-full ${saved.includes(`${lastName}${n.name}`) ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
-                      {saved.includes(`${lastName}${n.name}`) ? <HeartFilledIcon className="w-3.5 h-3.5" /> : <HeartIcon className="w-3.5 h-3.5" />}
-                    </button>
                   </div>
                 </div>
 
@@ -372,21 +411,9 @@ export default function NamePage() {
                 </div>
               </div>
 
-              {/* 저장된 이름에서 추가 */}
-              {saved.length > 0 && (
+              {/* 저장된 이름에서 추가 — 제거됨 */}
+              {false && (
                 <div className="mb-3">
-                  <p className="text-[14px] text-[#6B6966] mb-1">저장된 이름에서 추가</p>
-                  <div className="flex flex-wrap gap-1">
-                    {saved.filter(n => !compareNames.includes(n)).map(name => (
-                      <button key={name} onClick={() => {
-                        const emptyIdx = compareNames.findIndex(n => !n.trim())
-                        if (emptyIdx >= 0) updateCompareName(emptyIdx, name)
-                        else if (compareNames.length < 6) setCompareNames([...compareNames, name])
-                      }} className="px-2 py-1 rounded-full bg-[#F0F9F4] text-[14px] text-[var(--color-primary)]">
-                        + {name}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
 
@@ -416,9 +443,6 @@ export default function NamePage() {
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${r.rank === 1 ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-page-bg)]'}`}>
                           <span className={`text-[14px] font-bold ${r.rank === 1 ? 'text-white' : 'text-[#1A1918]'}`}>{r.score}</span>
                         </div>
-                        <button onClick={() => saveName(r.name)} className={`text-[13px] px-2 py-0.5 rounded-full ${saved.includes(r.name) ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
-                          {saved.includes(r.name) ? <HeartFilledIcon className="w-3.5 h-3.5" /> : <HeartIcon className="w-3.5 h-3.5" />}
-                        </button>
                       </div>
                     </div>
                     <p className="text-[14px] text-[#1A1918] mb-1">{r.meaning}</p>
@@ -551,9 +575,6 @@ export default function NamePage() {
                   </div>
                   <p className="text-[14px] text-[#6B6966]">종합 점수 (100점 만점)</p>
                   <div className="flex items-center justify-center gap-2 mt-2">
-                    <button onClick={() => saveName(analyzeResult.name)} className={`text-[13px] px-3 py-1 rounded-full ${saved.includes(analyzeResult.name) ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
-                      {saved.includes(analyzeResult.name) ? <><HeartFilledIcon className="w-3.5 h-3.5 inline" /> 저장됨</> : <><HeartIcon className="w-3.5 h-3.5 inline" /> 저장하기</>}
-                    </button>
                     <button onClick={() => shareNameAnalysis(analyzeResult.name, analyzeResult.hanja || '', analyzeResult.totalScore, analyzeResult.meaning || '')} className="text-[13px] text-[var(--color-primary)] font-semibold px-3 py-1 rounded-full bg-[var(--color-page-bg)]">
                       카톡 공유
                     </button>
@@ -760,20 +781,6 @@ export default function NamePage() {
           </div>
         )}
 
-        {/* 저장된 이름 */}
-        {saved.length > 0 && (
-          <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 mt-4">
-            <p className="text-[13px] font-bold text-[#1A1918] mb-2 flex items-center gap-1"><HeartFilledIcon className="w-3.5 h-3.5 text-[var(--color-primary)]" /> 저장된 이름 ({saved.length})</p>
-            <div className="flex flex-wrap gap-1.5">
-              {saved.map(name => (
-                <button key={name} onClick={() => { setAnalyzeName(name); setTab('analyze') }}
-                  className="px-3 py-1.5 rounded-full bg-[#F0F9F4] text-[14px] text-[var(--color-primary)] font-medium">
-                  {name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

@@ -17,6 +17,7 @@ async function callGemini(prompt: string, maxTokens = 300, retries = 2): Promise
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 } },
         }),
+        signal: AbortSignal.timeout(25000),
       })
       if (res.status === 429 && attempt < retries) {
         await new Promise(r => setTimeout(r, 2000 * (attempt + 1)))
@@ -28,7 +29,7 @@ async function callGemini(prompt: string, maxTokens = 300, retries = 2): Promise
       }
       const data = await res.json()
       const parts = data.candidates?.[0]?.content?.parts || []
-      const raw = parts.map((p: any) => p.text || '').join('').trim()
+      const raw = parts.map((p: { text?: string }) => p.text || '').join('').trim()
       return raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
     } catch {
       if (attempt < retries) { await new Promise(r => setTimeout(r, 1500 * (attempt + 1))); continue }
@@ -163,6 +164,10 @@ JSON만 출력.`
     // === 성장 스토리 ===
     if (cardType === 'growth-story') {
       const { childName, ageMonths, milestones, feedTrend, sleepTrend, growthRecords, specialMoments } = body
+      const recentMilestones = Array.isArray(milestones) ? milestones : []
+      const cacheKey = `ai-card-growth-${ageMonths}-${childName || ''}-${recentMilestones.slice(0, 3).join('-')}`
+      const cached = getCachedResponse(cacheKey)
+      if (cached) return NextResponse.json(cached)
 
       const prompt = `당신은 "도담" 앱의 AI 성장 스토리 작가입니다.
 아이의 기록 데이터를 바탕으로 따뜻하고 감성적인 성장 이야기를 작성하세요.
@@ -198,7 +203,9 @@ JSON만 출력.`
       try {
         const match = text.match(/\{[\s\S]*\}/)
         if (!match) return NextResponse.json({ error: 'parse error' }, { status: 500 })
-        return NextResponse.json(JSON.parse(match[0]))
+        const result = JSON.parse(match[0])
+        setCachedResponse(cacheKey, result, 24 * 60 * 60 * 1000)
+        return NextResponse.json(result)
       } catch {
         return NextResponse.json({ error: 'parse error' }, { status: 500 })
       }
@@ -207,6 +214,13 @@ JSON만 출력.`
     // === 형제자매 비교 인사이트 ===
     if (cardType === 'sibling-compare') {
       const { children } = body // [{ name, ageMonths, milestones, feedPattern, sleepPattern }]
+      const childrenArr = Array.isArray(children) ? children : []
+      const ageMonths = childrenArr[0]?.ageMonths || ''
+      const siblingAgeMonths = childrenArr[1]?.ageMonths || ''
+      const sex = childrenArr[0]?.sex || ''
+      const cacheKey = `ai-card-sibling-${ageMonths}-${siblingAgeMonths}-${sex}`
+      const cached = getCachedResponse(cacheKey)
+      if (cached) return NextResponse.json(cached)
 
       const prompt = `당신은 "도담" 앱의 AI 다자녀 육아 파트너입니다.
 형제자매의 같은 월령 시기 데이터를 비교하여 따뜻한 인사이트를 드리세요.
@@ -237,7 +251,9 @@ JSON만 출력.`
       try {
         const match = text.match(/\{[\s\S]*\}/)
         if (!match) return NextResponse.json({ error: 'parse error' }, { status: 500 })
-        return NextResponse.json(JSON.parse(match[0]))
+        const result = JSON.parse(match[0])
+        setCachedResponse(cacheKey, result, 12 * 60 * 60 * 1000)
+        return NextResponse.json(result)
       } catch {
         return NextResponse.json({ error: 'parse error' }, { status: 500 })
       }

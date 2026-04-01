@@ -48,17 +48,25 @@ function PregnantRecord() {
     try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] }
   }, [])
 
-  const TABS = [{ key: 'daily' as const, label: '일별 기록' }, { key: 'diary' as const, label: '태교일기' }, { key: 'journey' as const, label: '여정' }]
+  const TABS = [{ key: 'daily' as const, label: '일별 기록' }, { key: 'diary' as const, label: '기다림 일기' }, { key: 'journey' as const, label: '여정' }]
 
   const EVENT_LABEL: Record<string, string> = {
     preg_water: '물 마시기', preg_walk: '걷기', preg_suppl: '영양제',
     preg_stretch: '스트레칭', preg_mood: '기분', preg_fetal_move: '태동',
     preg_weight: '체중', preg_edema: '부종',
+    preg_folic: '엽산', preg_iron: '철분', preg_dha: 'DHA', preg_calcium: '칼슘', preg_vitd: '비타민D',
+    preg_journal: '기다림 일기',
+    preg_mood_happy: '기분', preg_mood_excited: '기분', preg_mood_calm: '기분', preg_mood_tired: '기분', preg_mood_anxious: '기분', preg_mood_sick: '기분',
+    preg_edema_none: '부종', preg_edema_mild: '부종', preg_edema_severe: '부종',
   }
   const EVENT_COLOR: Record<string, string> = {
     preg_water: '#3B82F6', preg_walk: '#10B981', preg_suppl: '#F59E0B',
     preg_stretch: '#8B5CF6', preg_mood: '#FF8FAB', preg_fetal_move: '#5BA882',
     preg_weight: '#D08068', preg_edema: '#4A90D9',
+    preg_folic: '#10B981', preg_iron: '#10B981', preg_dha: '#10B981', preg_calcium: '#10B981', preg_vitd: '#10B981',
+    preg_journal: '#A78BFA',
+    preg_mood_happy: '#FF8FAB', preg_mood_excited: '#FF8FAB', preg_mood_calm: '#FF8FAB', preg_mood_tired: '#FF8FAB', preg_mood_anxious: '#FF8FAB', preg_mood_sick: '#FF8FAB',
+    preg_edema_none: '#4A90D9', preg_edema_mild: '#4A90D9', preg_edema_severe: '#4A90D9',
   }
 
   return (
@@ -74,7 +82,7 @@ function PregnantRecord() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto w-full px-5 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pb-4 space-y-3">
         {/* 일별 기록 */}
         {tab === 'daily' && (
           dailyHistory.length === 0 ? (
@@ -121,12 +129,12 @@ function PregnantRecord() {
           )
         )}
 
-        {/* 태교일기 */}
+        {/* 기다림 일기 */}
         {tab === 'diary' && (
           diaries.length === 0 ? (
             <div className="text-center py-16">
               <IllustVideo src="/images/illustrations/empty-no-records.webm" className="w-48 h-48 mx-auto mb-4" />
-              <p className="text-[13px] text-[#9E9A95]">아직 태교일기가 없어요</p>
+              <p className="text-[13px] text-[#9E9A95]">아직 기다림 일기가 없어요</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -161,12 +169,14 @@ function PreparingRecord() {
   const PREP_LABEL: Record<string, string> = {
     prep_folic: '엽산', prep_vitd: '비타민D', prep_iron: '철분', prep_omega3: '오메가3',
     prep_walk: '걷기', prep_stretch: '스트레칭', prep_breath: '심호흡', prep_meditate: '명상', prep_music: '음악감상',
+    prep_journal: '기다림 일기',
   }
   const PREP_COLOR: Record<string, string> = {
     prep_folic: '#10B981', prep_vitd: '#10B981', prep_iron: '#10B981', prep_omega3: '#10B981',
     prep_walk: '#F59E0B', prep_stretch: '#F59E0B', prep_breath: '#F59E0B', prep_meditate: '#8B5CF6', prep_music: '#F472B6',
+    prep_journal: '#A78BFA',
   }
-  const MOOD_LABEL: Record<string, string> = { happy: '행복', calm: '평온', anxious: '불안', tired: '피곤', sad: '슬픔' }
+  const MOOD_LABEL: Record<string, string> = { happy: '행복', excited: '설렘', calm: '평온', anxious: '불안', tired: '피곤', sad: '슬픔' }
   const MOOD_COLOR: Record<string, string> = { happy: '#FF8FAB', calm: '#90C8A8', anxious: '#FFC078', tired: '#8EB4D4', sad: '#A0A8C0' }
 
   const dailyHistory = useMemo(() => {
@@ -200,7 +210,7 @@ function PreparingRecord() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto w-full px-5 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pb-4 space-y-3">
         {/* 일별 기록 */}
         {tab === 'daily' && (
           dailyHistory.length === 0 ? (
@@ -319,9 +329,22 @@ function JourneyTimeline({ childName }: { childName: string }) {
     setNewText(''); setShowForm(false)
   }
 
-  const { letters, diaries, checkups, pregTests } = useMemo(() => ({
+  const { letters, diaries, prepDiaries, checkups, pregTests } = useMemo(() => ({
     letters: (() => { try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]') } catch { return [] } })(),
     diaries: (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] } })(),
+    prepDiaries: (() => {
+      // mode 1 기다림 일기: dodam_prep_journal_YYYY-MM-DD 키에 배열로 저장
+      const result: { date: string; text: string; comment: string }[] = []
+      for (let i = 0; i < 365; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i)
+        const dateStr = d.toISOString().split('T')[0]
+        try {
+          const entries: string[] = JSON.parse(localStorage.getItem(`dodam_prep_journal_${dateStr}`) || '[]')
+          entries.filter(Boolean).forEach(text => result.push({ date: dateStr, text, comment: '' }))
+        } catch { /* skip */ }
+      }
+      return result
+    })(),
     checkups: (() => { try { return JSON.parse(localStorage.getItem('dodam_checkup_records') || '[]') } catch { return [] } })(),
     pregTests: (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_tests') || '[]') } catch { return [] } })(),
   }), []) // read once on mount
@@ -329,13 +352,14 @@ function JourneyTimeline({ childName }: { childName: string }) {
   const timeline = useMemo(() => {
     const items: { date: string; type: string; emoji: string; title: string; content: string; sub?: string }[] = []
     letters.forEach((l: any) => { items.push({ date: l.date, type: 'letter', emoji: '/images/illustrations/t1.webm', title: '아이에게 보낸 편지', content: l.text?.slice(0, 60) || '', sub: l.reply?.slice(0, 40) }) })
-    diaries.forEach((d: any) => { items.push({ date: d.date, type: 'diary', emoji: '/images/illustrations/t2.webm', title: '태교일기', content: d.text?.slice(0, 60) || '', sub: d.comment?.slice(0, 40) }) })
+    diaries.forEach((d: any) => { items.push({ date: d.date, type: 'diary', emoji: '/images/illustrations/t2.webm', title: '기다림 일기 (임신중)', content: d.text?.slice(0, 60) || '', sub: d.comment?.slice(0, 40) }) })
+    prepDiaries.forEach((d: any) => { items.push({ date: d.date, type: 'prep_diary', emoji: '/images/illustrations/t2.webm', title: '기다림 일기 (임신준비)', content: d.text?.slice(0, 60) || '' }) })
     checkups.forEach((c: any) => { items.push({ date: c.date, type: 'checkup', emoji: '/images/illustrations/t3.webm', title: `${c.week}주차 검진`, content: c.doctorNote || c.note || '', sub: c.babyWeight ? `${c.babyWeight}` : undefined }) })
     pregTests.forEach((t: any) => { if (t.result === '양성') items.push({ date: t.date, type: 'positive', emoji: '/images/illustrations/t4.webm', title: '양성! 아이가 찾아왔어요', content: `D+${t.dpo}에 확인` }) })
     journeyEntries.forEach((e: any) => { items.push({ date: e.date, type: 'manual', emoji: '/images/illustrations/t5.webm', title: '추억 한마디', content: e.text?.slice(0, 80) || '' }) })
     items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     return items
-  }, [letters, diaries, checkups, pregTests, journeyEntries])
+  }, [letters, diaries, prepDiaries, checkups, pregTests, journeyEntries])
 
   const hasJourney = timeline.length > 0
 
@@ -347,11 +371,11 @@ function JourneyTimeline({ childName }: { childName: string }) {
         {hasJourney && (
           <div className="flex justify-center gap-4 mt-3">
             {letters.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[var(--color-primary)]">{letters.length}</p><p className="text-[13px] text-[#6B6966]">편지</p></div>}
-            {diaries.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[var(--color-primary)]">{diaries.length}</p><p className="text-[13px] text-[#6B6966]">태교일기</p></div>}
+            {(diaries.length + prepDiaries.length) > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[var(--color-primary)]">{diaries.length + prepDiaries.length}</p><p className="text-[13px] text-[#6B6966]">기다림 일기</p></div>}
             {checkups.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[var(--color-primary)]">{checkups.length}</p><p className="text-[13px] text-[#6B6966]">검진</p></div>}
           </div>
         )}
-        {!hasJourney && <p className="text-[14px] text-[#6B6966] mt-2">편지, 태교일기, 검진 기록이 여기에 모여요</p>}
+        {!hasJourney && <p className="text-[14px] text-[#6B6966] mt-2">임신준비·임신 중 일기, 편지, 검진 기록이 여기에 모여요</p>}
       </div>
 
       {!showForm ? (
@@ -390,7 +414,7 @@ function JourneyTimeline({ childName }: { childName: string }) {
         <div className="text-center py-8">
           <IllustVideo src="/images/illustrations/empty-no-records.webm" className="w-48 h-48 mx-auto mb-4" />
           <p className="text-[13px] text-[#9E9A95]">아직 기록이 없어요</p>
-          <p className="text-[13px] text-[#6B6966] mt-1">편지를 쓰거나, 태교일기를 남기면 여기에 모여요</p>
+          <p className="text-[13px] text-[#6B6966] mt-1">임신준비·임신 중 기다림 일기, 편지가 여기에 모여요</p>
         </div>
       )}
     </div>
@@ -472,7 +496,7 @@ function ParentingRecord() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto w-full pb-28">
+      <div className="max-w-lg mx-auto w-full pb-4">
         {tab === 'growth' && (
           <div className="space-y-3 px-5 pt-4">
             {latestRecord ? (
@@ -549,7 +573,7 @@ export default function RecordPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)]">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]">
       {mode === 'parenting' && <ParentingRecord />}
       {mode === 'pregnant' && <PregnantRecord />}
       {mode === 'preparing' && <PreparingRecord />}

@@ -106,7 +106,8 @@ export default function OnboardingPage() {
 
     return (
       <div className="min-h-[100dvh] flex flex-col bg-white">
-        <div className="flex-1 flex flex-col items-center px-6 pt-16">
+        <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col items-center px-6 pt-16 pb-16">
           {/* 랜덤 프로필 아바타 */}
           <div className="w-20 h-20 rounded-full overflow-hidden mb-5 shadow-[0_4px_20px_rgba(61,138,90,0.15)]">
             <video src={randomAvatar} autoPlay loop muted playsInline className="w-full h-full object-cover" />
@@ -141,6 +142,7 @@ export default function OnboardingPage() {
             ))}
           </div>
         </div>
+      </div>
       </div>
     )
   }

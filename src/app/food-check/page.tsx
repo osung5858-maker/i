@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { SparkleIcon, SearchIcon, XIcon } from '@/components/ui/Icons'
 
@@ -23,7 +24,12 @@ const RECENT_KEY = 'dodam_food_check_recent'
 const MAX_RECENT = 8
 
 export default function FoodCheckPage() {
-  const [input, setInput] = useState('')
+  return <Suspense><FoodCheckPageInner /></Suspense>
+}
+
+function FoodCheckPageInner() {
+  const searchParams = useSearchParams()
+  const [input, setInput] = useState(searchParams.get('q') || '')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<FoodResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -34,7 +40,12 @@ export default function FoodCheckPage() {
   useEffect(() => {
     setMode(localStorage.getItem('dodam_mode') || 'pregnant')
     try { setRecent(JSON.parse(localStorage.getItem(RECENT_KEY) || '[]')) } catch { /* */ }
-  }, [])
+    // URL에 q 파라미터가 있으면 자동으로 검색
+    const q = searchParams.get('q')
+    if (q?.trim()) {
+      setTimeout(() => check(q.trim()), 100)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveRecent = (food: string) => {
     const next = [food, ...recent.filter(r => r !== food)].slice(0, MAX_RECENT)
@@ -73,10 +84,10 @@ export default function FoodCheckPage() {
   const modeLabel = mode === 'pregnant' ? '임신 중' : mode === 'preparing' ? '임신 준비 중' : '육아 중'
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="음식 물어보기" showBack />
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-4">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4 space-y-4">
 
         {/* 모드 표시 */}
         <div className="flex items-center gap-2 px-1">

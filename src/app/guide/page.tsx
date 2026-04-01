@@ -186,13 +186,13 @@ function GuideContent({ guideKey }: { guideKey: string }) {
   if (!guide) return <div className="p-8 text-center text-[#9E9A95]">콘텐츠를 찾을 수 없어요</div>
 
   return (
-    <div className="min-h-[100dvh] bg-[#FFF9F5]">
-      <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center">
+    <div className="min-h-[calc(100dvh-144px)] bg-[#FFF9F5]">
+      <div className="sticky top-[72px] z-30 bg-[#FFF9F5] border-b border-[#E8E4DF] px-5 max-w-lg mx-auto w-full flex items-center h-12">
         <button onClick={() => router.back()} className="text-[13px] text-[#6B6966] mr-3">← 뒤로</button>
         <h1 className="text-[15px] font-bold text-[#1A1918] truncate">{guide.icon} {guide.title}</h1>
       </div>
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4 space-y-3">
         {/* Q&A 타입 (난임 FAQ) */}
         {guide.items?.[0]?.q && guide.items.map((item: any, i: number) => (
           <FAQItem key={i} q={item.q} a={item.a} idx={i + 1} />

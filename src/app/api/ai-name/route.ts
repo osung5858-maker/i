@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
+import { getCachedResponse, setCachedResponse } from '@/lib/ai/cache'
 import { getAuthUserSoft } from '@/lib/security/auth'
 import { checkRateLimit, getClientIP, AI_RATE_LIMIT } from '@/lib/security/rate-limit'
 import { sanitizeForPrompt } from '@/lib/security/sanitize'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
-// 이름 분석은 정확도가 중요 → Pro 모델 사용
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent`
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
 
 async function callGemini(prompt: string, maxTokens = 800, retries = 2): Promise<{ text: string | null; error: string | null }> {
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -17,25 +17,25 @@ async function callGemini(prompt: string, maxTokens = 800, retries = 2): Promise
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 } },
         }),
+        signal: AbortSignal.timeout(30000),
       })
       if (res.status === 429 && attempt < retries) {
-        await new Promise(r => setTimeout(r, 1500 * (attempt + 1)))
+        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)))
         continue
       }
       if (!res.ok) {
-        const err = await res.text().catch(() => '')
         if (attempt < retries) {
-          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+          await new Promise(r => setTimeout(r, 2000 * (attempt + 1)))
           continue
         }
         return { text: null, error: `AI 서버가 바빠요. 잠시 후 다시 시도해주세요.` }
       }
       const data = await res.json()
       const parts = data.candidates?.[0]?.content?.parts || []
-      const raw = parts.map((p: any) => p.text || '').join('').trim()
+      const raw = parts.map((p: { text?: string }) => p.text || '').join('').trim()
       const text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
       return { text, error: null }
-    } catch (e: any) {
+    } catch (e) {
       if (attempt < retries) {
         await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
         continue
@@ -65,6 +65,9 @@ export async function POST(request: Request) {
     // === 태명 추천 ===
     if (type === 'nickname') {
       const { theme, gender } = body
+      const cacheKey = `ai-name-nick-${sanitizeForPrompt(theme, 200) || ''}-${sanitizeForPrompt(gender, 20) || ''}`
+      const cached = getCachedResponse(cacheKey)
+      if (cached) return NextResponse.json(cached)
 
       const prompt = `한국 전통 태명을 추천해주세요.
 
@@ -92,15 +95,20 @@ JSON만 출력.`
       try {
         const fi = text.indexOf('{'), li = text.lastIndexOf('}')
         if (fi === -1 || li <= fi) return NextResponse.json({ error: 'parse error' }, { status: 500 })
-        return NextResponse.json(JSON.parse(text.slice(fi, li + 1)))
-      } catch (e: any) {
-        return NextResponse.json({ error: `parse error: ${e?.message?.slice(0, 100)}` }, { status: 500 })
+        const result = JSON.parse(text.slice(fi, li + 1))
+        setCachedResponse(cacheKey, result, 2592000 * 1000)
+        return NextResponse.json(result)
+      } catch (e) {
+        return NextResponse.json({ error: `parse error: ${(e as Error)?.message?.slice(0, 100)}` }, { status: 500 })
       }
     }
 
     // === 이름 추천 ===
     if (type === 'suggest') {
       const { lastName, gender, theme, syllables } = body
+      const cacheKey = `ai-name-suggest-${sanitizeForPrompt(lastName, 20) || ''}-${sanitizeForPrompt(theme, 200) || ''}-${sanitizeForPrompt(gender, 20) || ''}`
+      const cached = getCachedResponse(cacheKey)
+      if (cached) return NextResponse.json(cached)
 
       const prompt = `당신은 전통 한국 성명학 전문가입니다. 아기 이름을 추천하되, **삼원오행 상생과 정확한 획수 계산**을 반영하세요.
 
@@ -143,9 +151,11 @@ JSON만 출력.`
       try {
         const fi = text.indexOf('{'), li = text.lastIndexOf('}')
         if (fi === -1 || li <= fi) return NextResponse.json({ error: 'parse error' }, { status: 500 })
-        return NextResponse.json(JSON.parse(text.slice(fi, li + 1)))
-      } catch (e: any) {
-        return NextResponse.json({ error: `parse error: ${e?.message?.slice(0, 100)}` }, { status: 500 })
+        const result = JSON.parse(text.slice(fi, li + 1))
+        setCachedResponse(cacheKey, result, 7 * 24 * 60 * 60 * 1000)
+        return NextResponse.json(result)
+      } catch (e) {
+        return NextResponse.json({ error: `parse error: ${(e as Error)?.message?.slice(0, 100)}` }, { status: 500 })
       }
     }
 
@@ -154,6 +164,9 @@ JSON만 출력.`
       const { fullName: rawFullName, birthYear, hanja: rawHanja } = body
       const fullName = sanitizeForPrompt(rawFullName, 50)
       const hanja = sanitizeForPrompt(rawHanja, 50)
+      const cacheKey = `ai-name-analyze-${fullName}-${hanja || ''}`
+      const cached = getCachedResponse(cacheKey)
+      if (cached) return NextResponse.json(cached)
 
       const prompt = `당신은 전통 한국 성명학(작명학) 최고 전문가입니다. 아래 이름을 정밀 분석하되, **획수 계산과 오행 배치를 정확하게** 수행하세요.
 
@@ -243,14 +256,16 @@ JSON 출력 (반드시 이 구조):
 
 JSON만 출력. 설명 없이 JSON 객체만.`
 
-      const { text, error } = await callGemini(prompt, 2500)
+      const { text, error } = await callGemini(prompt, 1500)
       if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })
       try {
         const fi = text.indexOf('{'), li = text.lastIndexOf('}')
         if (fi === -1 || li <= fi) return NextResponse.json({ error: 'parse error' }, { status: 500 })
-        return NextResponse.json(JSON.parse(text.slice(fi, li + 1)))
-      } catch (e: any) {
-        return NextResponse.json({ error: `parse error: ${e?.message?.slice(0, 100)}` }, { status: 500 })
+        const result = JSON.parse(text.slice(fi, li + 1))
+        setCachedResponse(cacheKey, result, 2592000 * 1000)
+        return NextResponse.json(result)
+      } catch (e) {
+        return NextResponse.json({ error: `parse error: ${(e as Error)?.message?.slice(0, 100)}` }, { status: 500 })
       }
     }
 
@@ -258,6 +273,9 @@ JSON만 출력. 설명 없이 JSON 객체만.`
     if (type === 'hanja') {
       const { fullName } = body
       const chars: string[] = fullName.slice(1).split('')
+      const cacheKey = `ai-name-hanja-${sanitizeForPrompt(fullName, 50)}`
+      const cached = getCachedResponse(cacheKey)
+      if (cached) return NextResponse.json(cached)
 
       const prompt = `한국 이름 "${fullName}"의 각 글자별로 한자 후보를 알려주세요.
 성(${fullName[0]})은 제외하고, 이름 글자만 분석하세요.
@@ -288,7 +306,7 @@ JSON만 출력. 설명 없이 JSON 객체만.`
 - popular: 아기 이름에 상위 100위 이내로 쓰이면 true, 그 외 false
 - JSON만 출력. 설명 없이 JSON 객체만.`
 
-      const { text, error } = await callGemini(prompt, 2500)
+      const { text, error } = await callGemini(prompt, 1800)
       if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })
       try {
         const first = text.indexOf('{')
@@ -311,15 +329,20 @@ JSON만 출력. 설명 없이 JSON 객체만.`
           for (let i = 0; i < opens - (jsonStr.match(/\]/g) || []).length; i++) jsonStr += ']'
           for (let i = 0; i < openBraces - (jsonStr.match(/\}/g) || []).length; i++) jsonStr += '}'
         }
-        return NextResponse.json(JSON.parse(jsonStr))
-      } catch (e: any) {
-        return NextResponse.json({ error: `parse error: ${e?.message?.slice(0, 100)}` }, { status: 500 })
+        const result = JSON.parse(jsonStr)
+        setCachedResponse(cacheKey, result, 2592000 * 1000)
+        return NextResponse.json(result)
+      } catch (e) {
+        return NextResponse.json({ error: `parse error: ${(e as Error)?.message?.slice(0, 100)}` }, { status: 500 })
       }
     }
 
     // === 이름 비교 분석 ===
     if (type === 'compare') {
       const { names, birthYear } = body
+      const cacheKey = `ai-name-compare-${(names as string[]).map((n: string) => n.trim()).sort().join('-')}`
+      const cached = getCachedResponse(cacheKey)
+      if (cached) return NextResponse.json(cached)
 
       const prompt = `당신은 전통 한국 성명학(작명학) 최고 전문가입니다. 아래 이름 후보들을 **정확한 획수 계산과 삼원오행 상생** 기준으로 비교 분석해주세요.
 
@@ -364,9 +387,11 @@ JSON만 출력.`
       try {
         const fi = text.indexOf('{'), li = text.lastIndexOf('}')
         if (fi === -1 || li <= fi) return NextResponse.json({ error: 'parse error' }, { status: 500 })
-        return NextResponse.json(JSON.parse(text.slice(fi, li + 1)))
-      } catch (e: any) {
-        return NextResponse.json({ error: `parse error: ${e?.message?.slice(0, 100)}` }, { status: 500 })
+        const result = JSON.parse(text.slice(fi, li + 1))
+        setCachedResponse(cacheKey, result, 7 * 24 * 60 * 60 * 1000)
+        return NextResponse.json(result)
+      } catch (e) {
+        return NextResponse.json({ error: `parse error: ${(e as Error)?.message?.slice(0, 100)}` }, { status: 500 })
       }
     }
 

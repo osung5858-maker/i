@@ -2,27 +2,50 @@
 
 import { useState } from 'react'
 import { WrenchIcon, TrashIcon } from '@/components/ui/Icons'
+import { createClient } from '@/lib/supabase/client'
 
 export default function DevResetButton() {
   const [open, setOpen] = useState(false)
+  const [resetting, setResetting] = useState(false)
 
-  const resetLocalData = () => {
-    // localStorage에서 dodam_ 접두어 키만 삭제 (auth 쿠키/세션은 유지)
+  const resetAll = async () => {
+    if (!confirm('로컬 + DB 데이터를 모두 삭제할까요?\n(로그인은 유지됩니다)')) return
+    setResetting(true)
+
+    // 1. localStorage 삭제
     const keysToRemove: string[] = []
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
-      if (key && (key.startsWith('dodam_') || key.startsWith('sb-'))) {
-        // sb- 는 건너뜀 (supabase 세션)
-        if (key.startsWith('dodam_')) keysToRemove.push(key)
-      }
+      if (key?.startsWith('dodam_')) keysToRemove.push(key)
     }
     keysToRemove.forEach(k => localStorage.removeItem(k))
-    alert(`${keysToRemove.length}개 로컬 데이터 삭제 완료!\n(로그인 유지됨)`)
+
+    // 2. DB 삭제
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await Promise.all([
+          supabase.from('prep_events').delete().eq('user_id', user.id),
+          supabase.from('pregnant_events').delete().eq('user_id', user.id),
+          // 육아 events는 child_id 기반 — children 먼저 조회 후 삭제
+          supabase.from('children').select('id').eq('user_id', user.id).then(({ data: children }: { data: { id: string }[] | null }) => {
+            if (!children?.length) return
+            const ids = children.map((c: { id: string }) => c.id)
+            return supabase.from('events').delete().in('child_id', ids)
+          }),
+        ])
+      }
+    } catch (e) {
+      if (process.env.NODE_ENV === 'development') console.error('DB reset error:', e)
+    }
+
+    setResetting(false)
+    alert(`${keysToRemove.length}개 로컬 + DB 데이터 삭제 완료!`)
     window.location.href = '/onboarding'
   }
 
   const resetToMode = (mode: string) => {
-    // 모드만 변경 (데이터 유지)
     localStorage.setItem('dodam_mode', mode)
     if (mode === 'preparing') window.location.href = '/preparing'
     else if (mode === 'pregnant') window.location.href = '/pregnant'
@@ -31,7 +54,6 @@ export default function DevResetButton() {
 
   return (
     <>
-      {/* 플로팅 버튼 */}
       <button
         onClick={() => setOpen(!open)}
         className="fixed top-20 right-2 z-[100] w-8 h-8 rounded-full bg-red-500 text-white text-[14px] font-bold shadow-lg active:scale-90 opacity-60"
@@ -39,7 +61,6 @@ export default function DevResetButton() {
         <WrenchIcon className="w-4 h-4" />
       </button>
 
-      {/* 패널 */}
       {open && (
         <div className="fixed top-30 right-2 z-[100] bg-white rounded-xl shadow-xl border border-[#E8E4DF] p-3 w-48">
           <p className="text-[13px] font-bold text-[#1A1918] mb-2 flex items-center gap-1"><WrenchIcon className="w-3.5 h-3.5" /> 개발 도구</p>
@@ -58,9 +79,12 @@ export default function DevResetButton() {
             ))}
           </div>
 
-          <button onClick={resetLocalData}
-            className="w-full py-2 rounded-lg bg-red-500 text-white text-[13px] font-semibold active:opacity-80 mb-1">
-            <span className="inline-flex items-center gap-1"><TrashIcon className="w-3.5 h-3.5 inline" /> 로컬 데이터 리셋</span>
+          <button onClick={resetAll} disabled={resetting}
+            className="w-full py-2 rounded-lg bg-red-500 text-white text-[13px] font-semibold active:opacity-80 mb-1 disabled:opacity-50">
+            <span className="inline-flex items-center gap-1">
+              <TrashIcon className="w-3.5 h-3.5 inline" />
+              {resetting ? '삭제 중...' : '전체 리셋 (로컬+DB)'}
+            </span>
           </button>
 
           <p className="text-[13px] text-[#9E9A95] text-center">로그인은 유지됩니다</p>

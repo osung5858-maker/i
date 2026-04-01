@@ -31,14 +31,17 @@ export default function TodayRecordSection({ count, tiles, chips, emptyMessage, 
   const hasActivity = (chips?.length ?? 0) > 0
 
   return (
-    <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
+    <div className="dodam-card">
       {/* 헤더 */}
-      <div className="flex items-center gap-2 mb-3">
-        <p className="text-[14px] font-bold text-[#1A1918]">오늘 기록</p>
+      <div className="flex items-center mb-3" style={{ gap: 'var(--spacing-2)' }}>
+        <p className="text-body-emphasis">오늘 기록</p>
         {count > 0 && (
           <span
-            className="text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full"
-            style={{ backgroundColor: 'var(--color-primary)' }}
+            className="text-label text-white rounded-full"
+            style={{
+              backgroundColor: 'var(--color-primary)',
+              padding: '2px var(--spacing-2)'
+            }}
           >
             {count}
           </span>
@@ -48,11 +51,18 @@ export default function TodayRecordSection({ count, tiles, chips, emptyMessage, 
 
       {/* 요약 타일 */}
       {tiles && tiles.length > 0 && (
-        <div className={`grid ${colsCls} gap-1.5 ${hasActivity ? 'mb-3' : ''}`}>
+        <div className={`grid ${colsCls} ${hasActivity ? 'mb-3' : ''}`} style={{ gap: 'var(--spacing-2)' }}>
           {tiles.map(t => (
-            <div key={t.label} className="bg-[#F8F6F3] rounded-xl py-2.5 text-center">
-              <p className="text-[10px] text-[#9E9A95] mb-0.5">{t.label}</p>
-              <p className="text-[14px] font-bold" style={{ color: t.color || '#1A1918' }}>{t.value}</p>
+            <div
+              key={t.label}
+              className="rounded-xl text-center"
+              style={{
+                backgroundColor: 'var(--surface-secondary)',
+                padding: 'var(--spacing-3) var(--spacing-2)'
+              }}
+            >
+              <p className="text-label mb-0.5" style={{ color: 'var(--neutral-400)' }}>{t.label}</p>
+              <p className="text-body-emphasis" style={{ color: t.color || 'var(--color-text-primary)' }}>{t.value}</p>
             </div>
           ))}
         </div>
@@ -60,12 +70,17 @@ export default function TodayRecordSection({ count, tiles, chips, emptyMessage, 
 
       {/* 활동 칩 */}
       {hasActivity && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap" style={{ gap: 'var(--spacing-2)' }}>
           {chips!.map(c => (
             <span
               key={c.key}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[12px] font-semibold"
-              style={{ background: c.color + '1A', color: c.color }}
+              className="flex items-center rounded-full text-caption-bold"
+              style={{
+                background: c.color + '1A',
+                color: c.color,
+                gap: 'var(--spacing-1)',
+                padding: 'var(--spacing-2) var(--spacing-3)'
+              }}
             >
               <c.Icon className="w-3.5 h-3.5" />
               {c.label}
@@ -76,14 +91,24 @@ export default function TodayRecordSection({ count, tiles, chips, emptyMessage, 
 
       {/* 빈 상태 */}
       {count === 0 && !hasActivity && (
-        <p className="text-[13px] text-[#9E9A95] text-center py-2">
+        <p className="text-body text-center" style={{
+          color: 'var(--neutral-400)',
+          padding: 'var(--spacing-2) 0'
+        }}>
           {emptyMessage ?? '아래 버튼으로 오늘의 첫 기록을 남겨보세요'}
         </p>
       )}
 
       {/* 푸터 슬롯 */}
       {footer && (
-        <div className={count > 0 || hasActivity ? 'mt-3 pt-3 border-t border-[#E8E4DF]' : 'mt-2'}>
+        <div
+          className={count > 0 || hasActivity ? 'border-t' : ''}
+          style={{
+            marginTop: count > 0 || hasActivity ? 'var(--spacing-3)' : 'var(--spacing-2)',
+            paddingTop: count > 0 || hasActivity ? 'var(--spacing-3)' : 0,
+            borderColor: 'var(--border-default)'
+          }}
+        >
           {footer}
         </div>
       )}

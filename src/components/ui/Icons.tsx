@@ -21,8 +21,8 @@ export function MoonIcon({ className = 'w-5 h-5' }: { className?: string }) {
 
 export function DropletIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z" />
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 3 C12 3 5 11 5 16 A7 7 0 0 0 19 16 C19 11 12 3 12 3 Z" />
     </svg>
   )
 }
@@ -136,12 +136,16 @@ export function PillIcon({ className = 'w-5 h-5' }: { className?: string }) {
 
 export function SunIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="5" />
-      <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-      <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+      <circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none" />
+      <line x1="12" y1="2" x2="12" y2="5" />
+      <line x1="12" y1="19" x2="12" y2="22" />
+      <line x1="2" y1="12" x2="5" y2="12" />
+      <line x1="19" y1="12" x2="22" y2="12" />
+      <line x1="5.6" y1="5.6" x2="7.8" y2="7.8" />
+      <line x1="16.2" y1="16.2" x2="18.4" y2="18.4" />
+      <line x1="18.4" y1="5.6" x2="16.2" y2="7.8" />
+      <line x1="5.6" y1="18.4" x2="7.8" y2="16.2" />
     </svg>
   )
 }
@@ -353,11 +357,13 @@ export function SparkleIcon({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
-// 새싹 (학습 중)
+// 새싹 (엽산)
 export function SproutIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M7 20h10" /><path d="M12 20v-8" /><path d="M12 12C12 8 8 4 4 4c0 4 4 8 8 8z" /><path d="M12 10c0-4 4-8 8-8-0 4-4 8-8 8z" />
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 15 C12 10 7 5 3 4 C3 9 7 15 12 15 Z" />
+      <path d="M12 13 C12 8 17 3 21 3 C21 8 17 13 12 13 Z" />
+      <rect x="11" y="13" width="2" height="8" rx="1" />
     </svg>
   )
 }
@@ -822,6 +828,56 @@ export function StretchIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="4" r="2" /><path d="M4 17l4-4 4 2 4-2 4 4" /><path d="M12 8v6" />
+    </svg>
+  )
+}
+
+// 스트레칭 포즈 (T자 팔 벌림 — 굵은 실선)
+export function YogaIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="4" r="2.5" fill="currentColor" stroke="none" />
+      <path d="M12 7v8" />
+      <path d="M5 11h14" />
+      <path d="M9 21l3-7 3 7" />
+    </svg>
+  )
+}
+
+// 발 (걷기 — 발 실루엣 + 발가락 5개)
+export function FootstepsIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <ellipse cx="11" cy="15.5" rx="4.5" ry="6" transform="rotate(-5 11 15.5)" />
+      <circle cx="7" cy="7.5" r="1.9" />
+      <circle cx="10" cy="6" r="1.9" />
+      <circle cx="13.2" cy="6" r="1.9" />
+      <circle cx="16.2" cy="7.5" r="1.7" />
+      <circle cx="17.5" cy="10" r="1.4" />
+    </svg>
+  )
+}
+
+// 물고기 (오메가3/DHA)
+export function OmegaIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <ellipse cx="10" cy="12" rx="7.5" ry="5" />
+      <path d="M17.5 12 L23 7 L23 17 Z" />
+      <circle cx="6.5" cy="11" r="1.2" fill="white" />
+    </svg>
+  )
+}
+
+// 뼈 (칼슘 — 굵은 채움)
+export function BoneIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <rect x="6.5" y="10.5" width="11" height="3" rx="1.5" />
+      <circle cx="6.5" cy="8.5" r="3" />
+      <circle cx="6.5" cy="15.5" r="3" />
+      <circle cx="17.5" cy="8.5" r="3" />
+      <circle cx="17.5" cy="15.5" r="3" />
     </svg>
   )
 }

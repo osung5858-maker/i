@@ -105,8 +105,8 @@ export default function TownPage() {
   const categories = MAP_CATEGORIES[mode] || MAP_CATEGORIES.parenting
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--color-page-bg)]">
-      <div className="sticky top-12 z-30 bg-[var(--color-page-bg)] pt-3 pb-0 max-w-lg mx-auto w-full">
+    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]">
+      <div className="sticky top-[72px] z-30 bg-[var(--color-page-bg)] pt-3 pb-0 max-w-lg mx-auto w-full">
         <div className="max-w-lg mx-auto w-full">
           <div className="flex px-5 gap-2 bg-[#F0EDE8] mx-5 p-1 rounded-xl mb-3">
             {[
@@ -251,6 +251,8 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
   const [activeIdx, setActiveIdx] = useState(0)
   const [places, setPlaces] = useState<Place[]>([])
   const [loading, setLoading] = useState(true)
+  const [mapError, setMapError] = useState(false)
+  const retryCountRef = useRef(0)
   const [reviewStats, setReviewStats] = useState<Record<string, { avg: string; count: number }>>({})
   const [previewRange, setPreviewRange] = useState(range)
   const mapObjRef = useRef<any>(null)
@@ -324,39 +326,45 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
     }
 
     setLoading(true); setPlaces([])
-    if (!window.kakao?.maps) { setLoading(false); return }
+    if (!window.kakao?.maps) { setLoading(false); setMapError(true); return }
 
     const mapLevel = rangeRef.current <= 500 ? 4 : rangeRef.current <= 1000 ? 5 : rangeRef.current <= 3000 ? 6 : 7
 
     const doSearch = (lat: number, lng: number) => {
-      const latlng = new window.kakao.maps.LatLng(lat, lng)
-      if (!mapObjRef.current && mapRef.current) {
-        mapObjRef.current = new window.kakao.maps.Map(mapRef.current, { center: latlng, level: mapLevel })
-      } else if (mapObjRef.current) {
-        mapObjRef.current.setCenter(latlng)
-        mapObjRef.current.setLevel(mapLevel)
-      }
-
-      clearMarkers()
-      const ps = new window.kakao.maps.services.Places()
-      ps.keywordSearch(query, (data: any[], status: string) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          const results = data.slice(0, 10).map((p: any) => ({
-            id: p.id, name: p.place_name, address: p.road_address_name || p.address_name,
-            phone: p.phone || '', distance: p.distance ? `${Math.round(Number(p.distance))}m` : '',
-            lat: Number(p.y), lng: Number(p.x),
-          }))
-          setPlaces(results)
-          cacheRef.current[cacheKey] = results
-          if (mapObjRef.current) {
-            results.forEach(p => {
-              const marker = new window.kakao.maps.Marker({ map: mapObjRef.current, position: new window.kakao.maps.LatLng(p.lat, p.lng) })
-              markersRef.current.push(marker)
-            })
-          }
+      try {
+        const latlng = new window.kakao.maps.LatLng(lat, lng)
+        if (!mapObjRef.current && mapRef.current) {
+          mapObjRef.current = new window.kakao.maps.Map(mapRef.current, { center: latlng, level: mapLevel })
+        } else if (mapObjRef.current) {
+          mapObjRef.current.setCenter(latlng)
+          mapObjRef.current.setLevel(mapLevel)
         }
+
+        clearMarkers()
+        const ps = new window.kakao.maps.services.Places()
+        ps.keywordSearch(query, (data: any[], status: string) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            const results = data.slice(0, 10).map((p: any) => ({
+              id: p.id, name: p.place_name, address: p.road_address_name || p.address_name,
+              phone: p.phone || '', distance: p.distance ? `${Math.round(Number(p.distance))}m` : '',
+              lat: Number(p.y), lng: Number(p.x),
+            }))
+            setPlaces(results)
+            cacheRef.current[cacheKey] = results
+            if (mapObjRef.current) {
+              results.forEach(p => {
+                const marker = new window.kakao.maps.Marker({ map: mapObjRef.current, position: new window.kakao.maps.LatLng(p.lat, p.lng) })
+                markersRef.current.push(marker)
+              })
+            }
+          }
+          setLoading(false)
+        }, { location: latlng, radius: rangeRef.current, sort: (window.kakao.maps.services as any).SortBy?.DISTANCE })
+      } catch (err) {
+        console.error('Kakao map error:', err)
         setLoading(false)
-      }, { location: latlng, radius: rangeRef.current, sort: (window.kakao.maps.services as any).SortBy?.DISTANCE })
+        setMapError(true)
+      }
     }
 
     if (posRef.current) {
@@ -395,8 +403,21 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
 
   useEffect(() => {
     const initMap = () => {
-      if (window.kakao?.maps) { window.kakao.maps.load(() => searchPlaces(categories[0]?.query || '소아과')) }
-      else setTimeout(initMap, 300)
+      if (window.kakao?.maps?.load) {
+        try {
+          window.kakao.maps.load(() => searchPlaces(categories[0]?.query || '소아과'))
+        } catch (err) {
+          console.error('Kakao maps.load error:', err)
+          setLoading(false)
+          setMapError(true)
+        }
+      } else if (retryCountRef.current < 30) {
+        retryCountRef.current++
+        setTimeout(initMap, 300)
+      } else {
+        setLoading(false)
+        setMapError(true)
+      }
     }
     initMap()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -411,7 +432,7 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
   }, [range]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="pb-28">
+    <div className="pb-4">
       {/* 지도 + 범위 원 오버레이 */}
       <div className="relative">
         <div
@@ -448,6 +469,15 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
       <div className="px-5 space-y-2">
         {loading ? (
           <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" /></div>
+        ) : mapError ? (
+          <div className="text-center py-8 space-y-2">
+            <p className="text-[14px] font-semibold text-[#1A1918]">지도를 불러올 수 없어요</p>
+            <p className="text-[13px] text-[#9E9A95]">카카오 지도 API 권한을 확인해주세요</p>
+            <button onClick={() => { setMapError(false); setLoading(true); retryCountRef.current = 0; const t = setTimeout(() => { if (window.kakao?.maps?.load) window.kakao.maps.load(() => searchPlaces(categories[activeIdx]?.query || '소아과')); else { setLoading(false); setMapError(true) } }, 100); return () => clearTimeout(t) }}
+              className="px-4 py-2 bg-[var(--color-primary)] text-white text-[13px] rounded-xl font-semibold">
+              다시 시도
+            </button>
+          </div>
         ) : places.length === 0 ? (
           <p className="text-[13px] text-[#9E9A95] text-center py-8">주변에 검색 결과가 없어요</p>
         ) : (

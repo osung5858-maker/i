@@ -9,6 +9,7 @@ import KakaoSDK from '@/components/ui/KakaoSDK'
 import DevResetButton from '@/components/ui/DevResetButton'
 import GlobalToast from '@/components/ui/GlobalToast'
 import ScrollToTop from '@/components/ui/ScrollToTop'
+import NavSpacer from '@/components/ui/NavSpacer'
 import ThemeInitializer from '@/components/ThemeInitializer'
 import SplashProvider from '@/components/SplashProvider'
 import SecurityMigrator from '@/components/SecurityMigrator'
@@ -118,6 +119,26 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
         />
+        {/* Display Fonts — Gmarket Sans for headlines */}
+        <link
+          rel="preload"
+          as="style"
+          href="https://cdn.jsdelivr.net/gh/fonts-archive/GmarketSans/GmarketSans.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/fonts-archive/GmarketSans/GmarketSans.css"
+        />
+        {/* SUIT Variable for accents */}
+        <link
+          rel="preload"
+          as="style"
+          href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/woff2/SUIT-Variable.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/woff2/SUIT-Variable.css"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -155,7 +176,7 @@ export default function RootLayout({
         <div className="w-full max-w-[430px] min-h-full flex flex-col relative shadow-[0_0_40px_rgba(0,0,0,0.08)]" style={{ backgroundColor: 'var(--color-page-bg)' }}>
           <ThemeInitializer />
           <GlobalHeader />
-          <main className="flex-1 pb-20" id="main-content">{children}</main>
+          <main id="main-content">{children}<NavSpacer /></main>
           <ScrollToTop />
           <BottomNav />
           <PWAInstallPrompt />

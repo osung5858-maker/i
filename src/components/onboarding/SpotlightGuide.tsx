@@ -86,56 +86,28 @@ const GUIDE_STEPS: Record<string, GuideStep[]> = {
       desc: '매주 태아 크기를 과일로 비교하고\n발달 상황과 주의사항을 알려드려요',
       position: 'bottom',
     },
-    // 2. 검진 기록
+    // 2. 기다림 탭
     {
-      target: '[data-guide="checkup-record"]',
-      title: '검진 기록을 남겨보세요',
-      desc: '초음파 사진, 아기 체중, 의사 소견을\n날짜별로 기록하고 모아볼 수 있어요',
-      position: 'bottom',
+      target: '[data-guide="nav-waiting"]',
+      title: '기다림 탭에 다 있어요',
+      desc: '검진 일정 · 혜택 · 준비물 체크리스트\n태교 일기까지 기다림 탭에서 확인해요',
+      position: 'top',
     },
-    // 3. 일일 체크리스트
-    {
-      target: '[data-guide="daily-check"]',
-      title: '매일 4가지만 챙겨요',
-      desc: '물 8잔 · 30분 산책 · 영양제 · 스트레칭\n탭하면 완료 표시돼요',
-      position: 'bottom',
-    },
-    // 4. 기분 기록
-    {
-      target: '[data-guide="mood"]',
-      title: '오늘 기분은 어때요?',
-      desc: '기분을 기록하면 AI가\n오늘의 컨디션에 맞는 조언을 해줘요',
-      position: 'bottom',
-    },
-    // 5. AI 식단
-    {
-      target: '[data-guide="meal-card"]',
-      title: 'AI 맞춤 식단 추천',
-      desc: '주차별 필요 영양소에 맞춰\n아침·점심·저녁 식단을 추천해요',
-      position: 'bottom',
-    },
-    // 6. 동네
+    // 3. 동네
     {
       target: '[data-guide="nav-town"]',
       title: '동네 산부인과 · 산후조리원',
       desc: '가까운 병원과 조리원을\n지도에서 바로 찾아볼 수 있어요',
       position: 'top',
     },
-    // 7. 기다림 탭
-    {
-      target: '[data-guide="nav-waiting"]',
-      title: '아이에게 편지를 써보세요',
-      desc: '기다림 탭에서 태교 편지를 쓰면\n태어난 후 함께 읽을 수 있어요',
-      position: 'top',
-    },
-    // 8. 우리 탭
+    // 4. 우리 탭
     {
       target: '[data-guide="nav-more"]',
-      title: '정부 혜택 · 이름 짓기',
-      desc: '맘편한임신 통합신청, AI 이름 추천,\n출산 가방 체크리스트까지',
+      title: 'AI 이름 짓기 · 정부 혜택',
+      desc: '맘편한임신 통합신청, AI 이름 추천,\n영양제·운동 맞춤 가이드까지',
       position: 'top',
     },
-    // 9. 프로필
+    // 5. 프로필
     {
       target: '[data-guide="profile"]',
       title: '프로필 사진을 골라보세요',
@@ -151,35 +123,21 @@ const GUIDE_STEPS: Record<string, GuideStep[]> = {
       desc: '마지막 생리일과 주기 길이를 입력하면\n배란일 · 가임기를 자동 계산해요',
       position: 'bottom',
     },
-    // 2. 임신 확률
+    // 2. AI 브리핑 (임신 확률 + 영양제 현황 포함)
     {
       target: '[data-guide="ai-briefing"]',
-      title: '오늘의 임신 확률',
-      desc: '주기 데이터를 분석해서\n오늘 임신 가능성을 알려줘요',
+      title: '오늘의 임신 확률 · AI 조언',
+      desc: '주기 · 영양제 데이터를 종합해서\n임신 가능성과 맞춤 조언을 알려줘요',
       position: 'bottom',
     },
-    // 3. 영양제 체크
-    {
-      target: '[data-guide="supplements"]',
-      title: '엽산 챙기셨나요?',
-      desc: '엽산 · 비타민D · 철분 · 오메가3\n매일 복용 여부를 체크해요',
-      position: 'bottom',
-    },
-    // 4. AI 브리핑
-    {
-      target: '[data-guide="ai-briefing"]',
-      title: 'AI 브리핑 받아보세요',
-      desc: '주기 · 영양제 데이터를 종합해서\n오늘의 맞춤 조언과 식단을 추천해요',
-      position: 'bottom',
-    },
-    // 7. 동네
+    // 3. 동네
     {
       target: '[data-guide="nav-town"]',
       title: '동네 산부인과 찾기',
       desc: '난임 클리닉, 산부인과를\n지도에서 바로 찾아볼 수 있어요',
       position: 'top',
     },
-    // 8. 우리 탭
+    // 4. 우리 탭
     {
       target: '[data-guide="nav-more"]',
       title: '태명 짓기 · 정부 혜택',

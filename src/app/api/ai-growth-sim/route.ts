@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getCachedResponse, setCachedResponse } from '@/lib/ai/cache'
 import { getAuthUserSoft } from '@/lib/security/auth'
 import { checkRateLimit, getClientIP, AI_RATE_LIMIT } from '@/lib/security/rate-limit'
 
@@ -30,15 +31,15 @@ async function callGemini(prompt: string, maxTokens = 800, retries = 2): Promise
       }
       const data = await res.json()
       const parts = data.candidates?.[0]?.content?.parts || []
-      const raw = parts.map((p: any) => p.text || '').join('').trim()
+      const raw = parts.map((p: { text?: string }) => p.text || '').join('').trim()
       const text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
       return { text, error: null }
-    } catch (e: any) {
+    } catch (e) {
       if (attempt < retries) {
         await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
         continue
       }
-      return { text: null, error: e?.message?.slice(0, 150) || 'Network error' }
+      return { text: null, error: (e as Error)?.message?.slice(0, 150) || 'Network error' }
     }
   }
   return { text: null, error: 'Max retries exceeded' }
@@ -60,6 +61,11 @@ export async function POST(request: Request) {
 
   const targetAge = currentAgeMonths + targetMonths
   const periodLabel = targetMonths <= 6 ? `${targetMonths}개월 후` : targetMonths <= 12 ? '1년 후' : '3년 후'
+
+  // 같은 조건이면 캐시 반환 (7일)
+  const cacheKey = `growth-sim-${currentAgeMonths}-${targetMonths}-${sex}-${motherHeight || 0}-${fatherHeight || 0}`
+  const cached = getCachedResponse(cacheKey)
+  if (cached) return NextResponse.json(cached)
 
   try {
     const prompt = `당신은 소아과 전문의이자 아동 발달 전문가입니다. WHO 성장 기준과 발달 단계에 근거하여 아이의 미래 성장을 예측해주세요.
@@ -96,7 +102,9 @@ JSON만 출력.`
     try {
       const match = text.match(/\{[\s\S]*\}/)
       if (!match) return NextResponse.json({ error: 'parse error' }, { status: 500 })
-      return NextResponse.json(JSON.parse(match[0]))
+      const result = JSON.parse(match[0])
+      setCachedResponse(cacheKey, result, 7 * 24 * 60 * 60 * 1000) // 7일
+      return NextResponse.json(result)
     } catch {
       return NextResponse.json({ error: 'parse error' }, { status: 500 })
     }

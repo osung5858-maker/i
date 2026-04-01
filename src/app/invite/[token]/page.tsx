@@ -48,7 +48,7 @@ export default function InviteAcceptPage() {
       await supabase.auth.signInWithOAuth({
         provider: 'kakao',
         options: {
-          redirectTo: `${window.location.origin}/invite/${token}`,
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://dodam.life'}/invite/${token}`,
           scopes: 'profile_nickname profile_image',
         },
       })

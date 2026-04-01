@@ -16,17 +16,18 @@ async function callGemini(prompt: string): Promise<{ text: string | null; error:
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { temperature: 0.3, maxOutputTokens: 400, thinkingConfig: { thinkingBudget: 0 } },
         }),
+        signal: AbortSignal.timeout(25000),
       })
       if (res.status === 429 && attempt < 2) { await new Promise(r => setTimeout(r, 2000 * (attempt + 1))); continue }
       if (!res.ok) { if (attempt < 2) { await new Promise(r => setTimeout(r, 1500 * (attempt + 1))); continue } return { text: null, error: 'AI 서버 오류' } }
       const data = await res.json()
       const parts = data.candidates?.[0]?.content?.parts || []
-      const raw = parts.map((p: any) => p.text || '').join('').trim()
+      const raw = parts.map((p: { text?: string }) => p.text || '').join('').trim()
       const text = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim() || null
       return { text, error: null }
-    } catch (e: any) {
+    } catch (e) {
       if (attempt < 2) { await new Promise(r => setTimeout(r, 1000 * (attempt + 1))); continue }
-      return { text: null, error: e?.message?.slice(0, 100) || 'Network error' }
+      return { text: null, error: (e as Error)?.message?.slice(0, 100) || 'Network error' }
     }
   }
   return { text: null, error: 'Max retries exceeded' }

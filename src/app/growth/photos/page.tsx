@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CameraIcon } from '@/components/ui/Icons'
+import Image from 'next/image'
 import IllustVideo from '@/components/ui/IllustVideo'
 
 interface PhotoEntry {
@@ -85,7 +86,7 @@ export default function PhotoTimelapsePage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-white">
+    <div className="min-h-[calc(100dvh-144px)] bg-white">
       <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
         <button onClick={() => router.back()} className="text-[13px] text-[#6B6966] shrink-0">뒤로</button>
         <h1 className="text-[15px] font-bold text-[#212124] truncate mx-3">사진 타임랩스</h1>
@@ -99,22 +100,24 @@ export default function PhotoTimelapsePage() {
 
       <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleUpload} className="hidden" />
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4">
         {/* 재생 영역 */}
         {photos.length >= 2 && (
           <div className="mb-4">
             <div className="aspect-square rounded-2xl bg-[#F0EDE8] overflow-hidden relative">
               {playing || currentIndex > 0 ? (
-                <img
+                <Image
                   src={photos[currentIndex]?.url}
                   alt=""
-                  className="w-full h-full object-cover transition-opacity duration-300"
+                  fill
+                  className="object-cover transition-opacity duration-300"
                 />
               ) : (
-                <img
+                <Image
                   src={photos[photos.length - 1]?.url}
                   alt=""
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               )}
               {playing && (
@@ -152,7 +155,7 @@ export default function PhotoTimelapsePage() {
             <div className="grid grid-cols-3 gap-2">
               {photos.map((photo) => (
                 <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden bg-[#F0EDE8]">
-                  <img src={photo.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  <Image src={photo.url} alt="" fill className="object-cover" />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 px-2 py-1">
                     <p className="text-[14px] text-white">{photo.date}</p>
                   </div>

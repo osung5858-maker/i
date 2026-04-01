@@ -16,7 +16,7 @@ function weekToStage(week: number): number {
   return 10
 }
 
-export default function BabyIllust({ week }: { week: number }) {
+export default function BabyIllust({ week, size = 220 }: { week: number; size?: number }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const stage = weekToStage(week)
 
@@ -32,8 +32,8 @@ export default function BabyIllust({ week }: { week: number }) {
     <div
       className="mx-auto"
       style={{
-        width: 220,
-        height: 220,
+        width: size,
+        height: size,
         WebkitMaskImage: 'radial-gradient(circle, black 45%, transparent 72%)',
         maskImage: 'radial-gradient(circle, black 45%, transparent 72%)',
       }}
