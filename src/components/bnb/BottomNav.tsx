@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef, memo } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   SunIcon, HeartIcon, ShieldIcon, UsersIcon,
@@ -1049,7 +1048,7 @@ function BottomNavComponent() {
                         {/* 호흡 글로우 링 */}
                         <div className="absolute inset-[-6px] rounded-full" style={{ animation: 'fabGlow 3s ease-in-out infinite', background: 'radial-gradient(circle, var(--color-primary) 0%, transparent 70%)', opacity: 0.15 }} />
                         {/* 물방울 이미지 */}
-                        <Image src="/fab.png" alt="빠른 기록 버튼" width={72} height={72} priority className="active:scale-90 transition-all duration-200" style={{ filter: 'drop-shadow(0 4px 12px var(--color-fab-shadow))', animation: 'fabBreathe 3s ease-in-out infinite' }} />
+                        <img src="/fab.png" alt="빠른 기록 버튼" width={72} height={72} className="active:scale-90 transition-all duration-200" style={{ filter: 'drop-shadow(0 4px 12px var(--color-fab-shadow))', animation: 'fabBreathe 3s ease-in-out infinite' }} />
                         {/* 반짝임 점 */}
                         <div className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-white" style={{ animation: 'fabSparkle 2.5s ease-in-out infinite', boxShadow: '0 0 4px rgba(255,255,255,0.8)' }} />
                       </div>
