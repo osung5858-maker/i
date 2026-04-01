@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
         pathname: '/api/kidsnote/image',
         search: '**',
       },
+      {
+        pathname: '/**',
+      },
     ],
     deviceSizes: [390, 430, 768],
     minimumCacheTTL: 86400,
