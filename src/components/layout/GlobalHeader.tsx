@@ -18,7 +18,7 @@ interface NotificationLog {
   clicked_at: string | null
 }
 
-const NO_HEADER_PATHS = ['/onboarding', '/invite/', '/auth', '/post/', '/market-item/', '/privacy', '/terms', '/landing', '/records/', '/prep-records/', '/preg-records/', '/notifications', '/growth/', '/map/']
+const NO_HEADER_PATHS = ['/onboarding', '/invite/', '/auth', '/landing']
 
 const PROFILE_AVATARS = [
   '/images/illustrations/profile-default1.webm',
