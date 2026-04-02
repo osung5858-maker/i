@@ -158,7 +158,7 @@ export default function HomePage() {
   const [child, setChild] = useState<Child | null>(null)
   const [events, setEvents] = useState<CareEvent[]>([])
   const [loading, setLoading] = useState(true)
-  const [toast, setToast] = useState<{ message: string; undoId?: string; action?: { label: string; href: string } } | null>(null)
+  const [toast, setToast] = useState<{ message: string; undoId?: string; action?: { label: string; href?: string; onClick?: () => void } } | null>(null)
   const [sleepActive, setSleepActive] = useState(false)
   const [feedSheetOpen, setFeedSheetOpen] = useState(false)
   const [poopSheetOpen, setPoopSheetOpen] = useState(false)
@@ -188,7 +188,8 @@ export default function HomePage() {
         .order('created_at', { ascending: true }).limit(1)
 
       if (childError || !children || children.length === 0) {
-        router.push('/settings/children/add'); return
+        setLoading(false)
+        return
       }
 
       const currentChild = children[0] as Child
@@ -235,7 +236,10 @@ export default function HomePage() {
 
   // 기록 핸들러
   const handleRecord = useCallback(async (type: EventType) => {
-    if (!user || !child) return
+    if (!user || !child) {
+      setToast({ message: '아이 정보를 먼저 입력해주세요', action: { label: '입력하기', onClick: () => router.push('/settings/children/add') } })
+      return
+    }
     if (type === 'sleep' && sleepActive) {
       const active = events.find((e) => e.type === 'sleep' && !e.end_ts)
       if (active) {
@@ -755,7 +759,7 @@ export default function HomePage() {
           message={toast.message}
           action={
             toast.action
-              ? { label: toast.action.label, onClick: () => router.push(toast.action!.href) }
+              ? { label: toast.action.label, onClick: toast.action.onClick ?? (() => router.push(toast.action!.href!)) }
               : toast.undoId
                 ? { label: '되돌리기', onClick: handleUndo }
                 : undefined

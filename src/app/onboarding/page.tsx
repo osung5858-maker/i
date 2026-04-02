@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
-import ModeTutorial from '@/components/onboarding/ModeTutorial'
 import Image from 'next/image'
 type Mode = 'preparing' | 'pregnant' | 'parenting'
 
@@ -14,17 +13,9 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null)
   const [user, setUser] = useState<any>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
-  const [showIntro, setShowIntro] = useState(false)
-  const [profile, setProfile] = useState<Awaited<ReturnType<typeof getProfile>>>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
-
-  useEffect(() => {
-    if (!localStorage.getItem('dodam_intro_shown')) {
-      setShowIntro(true)
-    }
-  }, [])
 
   useEffect(() => {
     if (searchParams.get('error') === 'auth') {
@@ -38,11 +29,8 @@ export default function OnboardingPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const p = await getProfile()
-        setProfile(p)
-
         const mode = p?.mode
         if (mode) localStorage.setItem('dodam_mode', mode)
-        if (p?.intro_shown) localStorage.setItem('dodam_intro_shown', '1')
 
         if (mode === 'pregnant') { router.push('/pregnant'); return }
         if (mode === 'parenting') { router.push('/'); return }
@@ -76,49 +64,12 @@ export default function OnboardingPage() {
     }
   }
 
-  const [tutorialMode, setTutorialMode] = useState<Mode | null>(null)
-
   const handleModeSelect = async (mode: Mode) => {
     localStorage.setItem('dodam_mode', mode)
     upsertProfile({ mode })
-
-    // 튜토리얼을 처음 한 번만 (DB 기준)
-    const tutorialDone = profile?.[`tutorial_${mode}` as keyof typeof profile]
-    if (!tutorialDone) {
-      setTutorialMode(mode)
-    } else {
-      navigateToMode(mode)
-    }
-  }
-
-  const navigateToMode = (mode: Mode) => {
     if (mode === 'preparing') router.push('/preparing')
     else if (mode === 'pregnant') router.push('/pregnant')
-    else router.push('/settings/children/add')
-  }
-
-  const handleTutorialComplete = () => {
-    if (!tutorialMode) return
-    upsertProfile({ [`tutorial_${tutorialMode}`]: true } as Parameters<typeof upsertProfile>[0])
-    navigateToMode(tutorialMode)
-  }
-
-  // 서비스 인트로 (최초 1회) — 로그인 화면 위에 모달로 표시
-  const introModal = showIntro && (
-    <ModeTutorial
-      mode="intro"
-      modal
-      onComplete={() => {
-        localStorage.setItem('dodam_intro_shown', '1')
-        setShowIntro(false)
-        upsertProfile({ intro_shown: true })
-      }}
-    />
-  )
-
-  // 튜토리얼 진행 중
-  if (tutorialMode) {
-    return <ModeTutorial mode={tutorialMode} onComplete={handleTutorialComplete} />
+    else router.push('/')
   }
 
   if (checkingAuth) {
@@ -247,7 +198,6 @@ export default function OnboardingPage() {
           <a href="/privacy" className="underline">개인정보처리방침</a>에 동의하게 됩니다.
         </p>
       </div>
-      {introModal}
-    </div>
+</div>
   )
 }
