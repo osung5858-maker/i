@@ -2,37 +2,19 @@
 
 import { useState, useEffect, useCallback, memo } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { BellIcon, MoonIcon, XIcon } from '@/components/ui/Icons'
+import Image from 'next/image'
+import { BellIcon, MoonIcon } from '@/components/ui/Icons'
 import { createClient } from '@/lib/supabase/client'
 import { getSecure } from '@/lib/secureStorage'
 
-interface NotificationLog {
-  id: string
-  type: string
-  title: string
-  body: string | null
-  deeplink: string | null
-  sent_at: string
-  clicked_at: string | null
-}
-
-const NO_HEADER_PATHS = ['/onboarding', '/invite/', '/auth', '/landing']
-
-const PROFILE_AVATARS = [
-  '/images/illustrations/profile-default1.webm',
-  '/images/illustrations/profile-default2.webm',
-  '/images/illustrations/profile-default3.webm',
-  '/images/illustrations/profile-default4.webm',
-]
+const NO_HEADER_PATHS = ['/onboarding', '/invite/', '/auth', '/landing', '/settings']
 
 function GlobalHeaderComponent() {
   const pathname = usePathname()
   const [mode, setMode] = useState('')
   const [data, setData] = useState<any>(null)
-  const [showAvatarPicker, setShowAvatarPicker] = useState(false)
-  const [selectedAvatar, setSelectedAvatar] = useState('')
+  const [userPhotoUrl, setUserPhotoUrl] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
   const [smartAlertCount, setSmartAlertCount] = useState(0)
 
@@ -181,25 +163,21 @@ function GlobalHeaderComponent() {
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
-            {/* 좌측: 아바타 + 텍스트 */}
+            {/* 좌측: 프로필 이미지 + 텍스트 */}
             <div className="flex items-center min-w-0" style={{ gap: '12px' }}>
-              {/* 아바타 */}
-              <Link
-                href="/settings"
-                className="w-11 h-11 rounded-full overflow-hidden relative shrink-0 active:opacity-80"
-                style={{ backgroundColor: 'var(--surface-tertiary)' }}
-                aria-label="설정으로 이동"
-              >
-                {data?.userAvatar ? (
-                  <Image src={data.userAvatar} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center"
-                    style={{ background: 'linear-gradient(135deg, #F2C4A0 0%, #D08068 100%)' }}>
-                    <span className="text-white font-bold" style={{ fontSize: '18px' }}>{data?.userName?.charAt(0) || '나'}</span>
-                  </div>
-                )}
-              </Link>
-
+              {/* 프로필 이미지 */}
+              {mode === 'parenting' && (
+                <button
+                  onClick={() => setShowAvatarPicker(true)}
+                  className="shrink-0 w-10 h-10 rounded-full overflow-hidden bg-[#F0EDE8] active:opacity-80"
+                >
+                  {data.photoUrl ? (
+                    <video src={data.photoUrl} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                  ) : (
+                    <video src={PROFILE_AVATARS[0]} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                  )}
+                </button>
+              )}
               {/* 텍스트 */}
               <Link href={homeHref} className="flex flex-col min-w-0 active:opacity-70" style={{ gap: '2px' }}>
                 {mode === 'parenting' && (

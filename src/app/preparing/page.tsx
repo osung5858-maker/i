@@ -5,6 +5,7 @@ import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
 import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
 import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, FootstepsIcon, YogaIcon, HeartFilledIcon, MoonIcon, WaterGlassIcon, MusicIcon, BookOpenIcon, CompassIcon, SproutIcon, DropletIcon, SunIcon, OmegaIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodTiredIcon } from '@/components/ui/Icons'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
@@ -12,7 +13,6 @@ import AIMealCard from '@/components/ai-cards/AIMealCard'
 import MissionCard from '@/components/ui/MissionCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
-import { setSecure, getSecure } from '@/lib/secureStorage'
 
 function addDays(date: Date, days: number): Date {
   const d = new Date(date); d.setDate(d.getDate() + days); return d
@@ -239,10 +239,13 @@ export default function PreparingPage() {
   const [cycleLength, setCycleLength] = useState<number>(28)
   const [editingCycle, setEditingCycle] = useState<boolean | null>(null)
   useEffect(() => {
-    Promise.all([getSecure('dodam_last_period'), getSecure('dodam_cycle_length')]).then(([lp, cl]) => {
-      if (lp) { setLastPeriod(lp); setEditingCycle(false) }
+    getProfile().then(p => {
+      if (p?.last_period) { setLastPeriod(p.last_period); setEditingCycle(false) }
       else setEditingCycle(true)
-      if (cl) setCycleLength(Number(cl) || 28)
+      if (p?.cycle_length) setCycleLength(p.cycle_length)
+      if (p?.mother_birth) { setMotherBirth(p.mother_birth); setTempMotherBirth(p.mother_birth) }
+      if (p?.father_birth) { setFatherBirth(p.father_birth); setTempFatherBirth(p.father_birth) }
+      if (p?.my_role) setMyRole(p.my_role as 'mom' | 'dad')
     })
   }, [])
   const SUPPL_DEFAULT: Record<string, number> = { folic: 0, vitd: 0, iron: 0, omega3: 0 }
@@ -558,25 +561,25 @@ export default function PreparingPage() {
         setTodayMood(typeof parsed === 'object' ? parsed.mood : parsed)
       } catch { setTodayMood(moodRaw) }
     }
-    const mb = localStorage.getItem('dodam_mother_birth')
-    if (mb) { setMotherBirth(mb); setTempMotherBirth(mb) }
-    const fb = localStorage.getItem('dodam_father_birth')
-    if (fb) { setFatherBirth(fb); setTempFatherBirth(fb) }
     const pc = localStorage.getItem('dodam_partner_checks')
     if (pc) { try { setPartnerChecks(JSON.parse(pc)) } catch { /* */ } }
     const ap = localStorage.getItem('dodam_appointments')
     if (ap) { try { setAppointments(JSON.parse(ap)) } catch { /* */ } }
-    const role = localStorage.getItem('dodam_my_role') as 'mom' | 'dad' | null
-    if (role) setMyRole(role)
   }, [])
 
-  const handleSaveCycleSetup = async () => {
+  const handleSaveCycleSetup = () => {
     if (!tempPeriod) return
-    localStorage.setItem('dodam_my_role', myRole)
-    setLastPeriod(tempPeriod); await setSecure('dodam_last_period', tempPeriod)
-    setCycleLength(tempCycleLen); await setSecure('dodam_cycle_length', String(tempCycleLen))
-    if (tempMotherBirth) { setMotherBirth(tempMotherBirth); localStorage.setItem('dodam_mother_birth', tempMotherBirth) }
-    if (tempFatherBirth) { setFatherBirth(tempFatherBirth); localStorage.setItem('dodam_father_birth', tempFatherBirth) }
+    setLastPeriod(tempPeriod)
+    setCycleLength(tempCycleLen)
+    if (tempMotherBirth) setMotherBirth(tempMotherBirth)
+    if (tempFatherBirth) setFatherBirth(tempFatherBirth)
+    upsertProfile({
+      my_role: myRole,
+      last_period: tempPeriod,
+      cycle_length: tempCycleLen,
+      mother_birth: tempMotherBirth || null,
+      father_birth: tempFatherBirth || null,
+    })
     setEditingCycle(false)
   }
 

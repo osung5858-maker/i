@@ -2,7 +2,9 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useRemoteContent } from '@/lib/useRemoteContent'
+import { getProfile } from '@/lib/supabase/userProfile'
 import { getSecure } from '@/lib/secureStorage'
+import { upsertPrepRecord, insertPrepRecord, deletePrepRecord, fetchPrepRecords } from '@/lib/supabase/prepRecord'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -65,50 +67,52 @@ function PreparingWaitingPage() {
   const router = useRouter()
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
-  const [chosenNickname] = useState<string>(() => {
-    if (typeof window === 'undefined') return ''
-    return localStorage.getItem('dodam_chosen_nickname') || ''
-  })
-
+  const [chosenNickname, setChosenNickname] = useState<string>('')
   const [lastPeriod, setLastPeriod] = useState<string>('')
   const [cycleLength, setCycleLength] = useState<number>(28)
+  const [periodRecords] = useState<Record<string, string>>({})
+  const [bbtRecords, setBbtRecords] = useState<Record<string, number>>({})
+  const [ovulationTests, setOvulationTests] = useState<Record<string, boolean>>({})
+  const [intimacyDates, setIntimacyDates] = useState<Record<string, boolean>>({})
+
+  // DB에서 프로필 + 준비 기록 로드
   useEffect(() => {
-    Promise.all([getSecure('dodam_last_period'), getSecure('dodam_cycle_length')]).then(([lp, cl]) => {
-      if (lp) setLastPeriod(lp)
-      if (cl) setCycleLength(Number(cl) || 28)
+    getProfile().then(p => {
+      if (p?.chosen_nickname) setChosenNickname(p.chosen_nickname)
+      if (p?.last_period) setLastPeriod(p.last_period)
+      if (p?.cycle_length) setCycleLength(p.cycle_length)
+    })
+    fetchPrepRecords(['bbt', 'ovulation_test', 'intimacy', 'preg_test']).then(records => {
+      const tests = records
+        .filter(r => r.type === 'preg_test')
+        .map(r => ({
+          date: r.record_date,
+          result: (r.value as { result: string }).result,
+          dpo: (r.value as { dpo: number }).dpo,
+        }))
+        .sort((a, b) => b.date.localeCompare(a.date))
+      setPregTests(tests)
+      const bbt: Record<string, number> = {}
+      const ovulation: Record<string, boolean> = {}
+      const intimacy: Record<string, boolean> = {}
+      for (const r of records) {
+        if (r.type === 'bbt') bbt[r.record_date] = (r.value as { temp: number }).temp
+        else if (r.type === 'ovulation_test') ovulation[r.record_date] = (r.value as { positive: boolean }).positive
+        else if (r.type === 'intimacy') intimacy[r.record_date] = true
+      }
+      setBbtRecords(bbt)
+      setOvulationTests(ovulation)
+      setIntimacyDates(intimacy)
     })
   }, [])
-  const [periodRecords] = useState<Record<string, string>>(() => {
-    if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('dodam_period_records'); return s ? JSON.parse(s) : {}
-    }
-    return {}
-  })
-  const [bbtRecords, setBbtRecords] = useState<Record<string, number>>(() => {
-    if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('dodam_bbt_records'); return s ? JSON.parse(s) : {}
-    }
-    return {}
-  })
-  const [ovulationTests, setOvulationTests] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('dodam_ovulation_tests'); return s ? JSON.parse(s) : {}
-    }
-    return {}
-  })
-  const [intimacyDates, setIntimacyDates] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('dodam_intimacy_dates'); return s ? JSON.parse(s) : {}
-    }
-    return {}
-  })
   const toggleIntimacy = (date: string) => {
     // 미래 날짜 하트 방지
     if (new Date(date) > new Date()) { showToast('미래 날짜는 기록할 수 없어요'); return }
     const next = { ...intimacyDates, [date]: !intimacyDates[date] }
     if (!next[date]) delete next[date]
     setIntimacyDates(next)
-    localStorage.setItem('dodam_intimacy_dates', JSON.stringify(next))
+    if (next[date]) upsertPrepRecord(date, 'intimacy', {})
+    else deletePrepRecord(date, 'intimacy')
     showToast(next[date] ? '함께한 날 기록!' : '기록 취소')
   }
   const [checked, setChecked] = useState<Record<string, boolean>>(() => {
@@ -157,12 +161,7 @@ function PreparingWaitingPage() {
       })
     }).catch(() => {})
   }
-  const [pregTests, setPregTests] = useState<{ date: string; result: string; dpo: number }[]>(() => {
-    if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('dodam_preg_tests'); return s ? JSON.parse(s) : []
-    }
-    return []
-  })
+  const [pregTests, setPregTests] = useState<{ date: string; result: string; dpo: number }[]>([])
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   useEffect(() => {
@@ -207,22 +206,24 @@ function PreparingWaitingPage() {
   const recordBBT = useCallback((date: string, temp: number) => {
     if (!temp || temp < 35 || temp > 38) return
     const next = { ...bbtRecords, [date]: temp }; setBbtRecords(next)
-    localStorage.setItem('dodam_bbt_records', JSON.stringify(next))
+    upsertPrepRecord(date, 'bbt', { temp })
     showToast(`기초체온 ${temp.toFixed(2)}°C 기록!`)
   }, [bbtRecords]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const recordOvulationTest = useCallback((date: string, positive: boolean) => {
     const next = { ...ovulationTests, [date]: positive }; setOvulationTests(next)
-    localStorage.setItem('dodam_ovulation_tests', JSON.stringify(next))
+    upsertPrepRecord(date, 'ovulation_test', { positive })
     showToast(positive ? '배란 양성 기록!' : '배란 음성 기록')
   }, [ovulationTests]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [showPregConfirm, setShowPregConfirm] = useState(false)
 
   const addPregTest = (result: string) => {
+    const date = new Date().toISOString().split('T')[0]
     const dpo = cycle ? Math.floor((Date.now() - cycle.ovulationDay.getTime()) / 86400000) : 0
-    const next = [{ date: new Date().toISOString().split('T')[0], result, dpo }, ...pregTests]
-    setPregTests(next); localStorage.setItem('dodam_preg_tests', JSON.stringify(next))
+    const next = [{ date, result, dpo }, ...pregTests]
+    setPregTests(next)
+    insertPrepRecord(date, 'preg_test', { result, dpo })
     if (result === '양성') {
       setShowPregConfirm(true)
     } else {
@@ -733,11 +734,11 @@ export function PregnantWaitingPage() {
   const [tab, setTab] = useState<'diary' | 'info' | 'benefit'>('diary')
   const [foodQuery, setFoodQuery] = useState('')
   const [dueDate, setDueDate] = useState('')
-  const [chosenNickname] = useState<string>(() => {
-    if (typeof window === 'undefined') return ''
-    return localStorage.getItem('dodam_chosen_nickname') || ''
-  })
-  useEffect(() => { getSecure('dodam_due_date').then(v => { if (v) setDueDate(v) }) }, [])
+  const [chosenNickname, setChosenNickname2] = useState<string>('')
+  useEffect(() => {
+    getProfile().then(p => { if (p?.chosen_nickname) setChosenNickname2(p.chosen_nickname) })
+    getSecure('dodam_due_date').then(v => { if (v) setDueDate(v) })
+  }, [])
   const currentWeek = (() => {
     if (!dueDate) return 0
     const ms = new Date(dueDate).getTime()

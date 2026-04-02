@@ -44,8 +44,8 @@ export default function CaregiversPage() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="min-h-[calc(100dvh-144px)] bg-[#f5f5f5]">
-      <header className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-xl border-b border-[#E8E4DF]">
+    <div className="min-h-[100dvh] bg-[#f5f5f5]">
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-[#E8E4DF]">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-sm text-tertiary">뒤로</button>
           <h1 className="text-subtitle text-primary">공동양육자</h1>

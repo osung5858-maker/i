@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { SparkleIcon, PenIcon, StarIcon, ChartIcon, SearchIcon, TrophyIcon, LightbulbIcon, AlertIcon, XIcon } from '@/components/ui/Icons'
 import { shareNameAnalysis } from '@/lib/kakao/share-parenting'
+import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
 
 type Tab = 'nickname' | 'suggest' | 'compare' | 'analyze'
 
@@ -53,21 +54,19 @@ export default function NamePage() {
   const [compareResult, setCompareResult] = useState<any>(null)
 
   // 결정된 태명
-  const [chosenNickname, setChosenNickname] = useState<string>(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('dodam_chosen_nickname') || ''
-    return ''
-  })
+  const [chosenNickname, setChosenNickname] = useState<string>('')
+  useEffect(() => {
+    getProfile().then(p => { if (p?.chosen_nickname) setChosenNickname(p.chosen_nickname) })
+  }, [])
 
   const chooseNickname = (name: string) => {
     if (chosenNickname === name) {
-      // 취소
       setChosenNickname('')
-      localStorage.removeItem('dodam_chosen_nickname')
+      upsertProfile({ chosen_nickname: null })
       showToast('태명 결정을 취소했어요')
     } else {
-      // 결정 → 오늘 페이지로 이동
       setChosenNickname(name)
-      localStorage.setItem('dodam_chosen_nickname', name)
+      upsertProfile({ chosen_nickname: name })
       router.back()
     }
   }

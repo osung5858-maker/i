@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
 
 function addDays(date: Date, days: number): Date {
   const d = new Date(date); d.setDate(d.getDate() + days); return d
@@ -67,10 +68,10 @@ export default function OvulationPage() {
   } | null>(null)
 
   useEffect(() => {
-    const saved = localStorage.getItem('dodam_last_period')
-    const savedCycle = localStorage.getItem('dodam_cycle_length')
-    if (saved) setLastPeriod(saved)
-    if (savedCycle) setCycleLength(Number(savedCycle) || 28)
+    getProfile().then(p => {
+      if (p?.last_period) setLastPeriod(p.last_period)
+      if (p?.cycle_length) setCycleLength(p.cycle_length)
+    })
   }, [])
 
   useEffect(() => {
@@ -94,7 +95,7 @@ export default function OvulationPage() {
   }, [lastPeriod, cycleLength])
 
   const handleSave = () => {
-    localStorage.setItem('dodam_cycle_length', String(cycleLength))
+    upsertProfile({ cycle_length: cycleLength })
   }
 
   const STATUS_INFO = {
@@ -123,7 +124,7 @@ export default function OvulationPage() {
         <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4 space-y-4">
           <div>
             <p className="text-caption font-bold text-secondary mb-1.5">마지막 생리 시작일</p>
-            <DatePicker value={lastPeriod} onChange={v => { setLastPeriod(v); localStorage.setItem('dodam_last_period', v) }} />
+            <DatePicker value={lastPeriod} onChange={v => { setLastPeriod(v); upsertProfile({ last_period: v }) }} />
           </div>
           <div>
             <div className="flex items-center justify-between mb-1.5">

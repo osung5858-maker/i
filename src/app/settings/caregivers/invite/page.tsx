@@ -102,7 +102,7 @@ export default function InvitePage() {
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col">
-      <header className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-sm text-tertiary">닫기</button>
           <h1 className="text-subtitle text-primary">가족 초대</h1>

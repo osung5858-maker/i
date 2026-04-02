@@ -1,39 +1,53 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { HeartIcon, PregnantIcon, BabyIcon } from '@/components/ui/Icons'
+import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
 import ModeTutorial from '@/components/onboarding/ModeTutorial'
 import Image from 'next/image'
 type Mode = 'preparing' | 'pregnant' | 'parenting'
 
-const PROFILE_AVATARS = [
-  '/images/illustrations/profile-default1.webm',
-  '/images/illustrations/profile-default2.webm',
-  '/images/illustrations/profile-default3.webm',
-  '/images/illustrations/profile-default4.webm',
-]
 
 export default function OnboardingPage() {
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [user, setUser] = useState<any>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const [showIntro, setShowIntro] = useState(false)
+  const [profile, setProfile] = useState<Awaited<ReturnType<typeof getProfile>>>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  useEffect(() => {
+    if (!localStorage.getItem('dodam_intro_shown')) {
+      setShowIntro(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (searchParams.get('error') === 'auth') {
+      setError('로그인에 실패했어요. 다시 시도해주세요.')
+    }
+  }, [searchParams])
 
   // 로그인 상태 확인
   useEffect(() => {
     async function check() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        // 이미 모드 선택 완료 → 해당 페이지로
-        const mode = localStorage.getItem('dodam_mode')
+        const p = await getProfile()
+        setProfile(p)
+
+        const mode = p?.mode
+        if (mode) localStorage.setItem('dodam_mode', mode)
+        if (p?.intro_shown) localStorage.setItem('dodam_intro_shown', '1')
+
         if (mode === 'pregnant') { router.push('/pregnant'); return }
         if (mode === 'parenting') { router.push('/'); return }
         if (mode === 'preparing') { router.push('/'); return }
-        // 로그인은 됐지만 모드 미선택 → 모드 선택 화면
+
         setUser(user)
       }
       setCheckingAuth(false)
@@ -64,10 +78,12 @@ export default function OnboardingPage() {
 
   const [tutorialMode, setTutorialMode] = useState<Mode | null>(null)
 
-  const handleModeSelect = (mode: Mode) => {
+  const handleModeSelect = async (mode: Mode) => {
     localStorage.setItem('dodam_mode', mode)
-    // 튜토리얼을 처음 한 번만
-    const tutorialDone = localStorage.getItem(`dodam_tutorial_${mode}`)
+    upsertProfile({ mode })
+
+    // 튜토리얼을 처음 한 번만 (DB 기준)
+    const tutorialDone = profile?.[`tutorial_${mode}` as keyof typeof profile]
     if (!tutorialDone) {
       setTutorialMode(mode)
     } else {
@@ -83,9 +99,22 @@ export default function OnboardingPage() {
 
   const handleTutorialComplete = () => {
     if (!tutorialMode) return
-    localStorage.setItem(`dodam_tutorial_${tutorialMode}`, '1')
+    upsertProfile({ [`tutorial_${tutorialMode}`]: true } as Parameters<typeof upsertProfile>[0])
     navigateToMode(tutorialMode)
   }
+
+  // 서비스 인트로 (최초 1회) — 로그인 화면 위에 모달로 표시
+  const introModal = showIntro && (
+    <ModeTutorial
+      mode="intro"
+      modal
+      onComplete={() => {
+        localStorage.setItem('dodam_intro_shown', '1')
+        setShowIntro(false)
+        upsertProfile({ intro_shown: true })
+      }}
+    />
+  )
 
   // 튜토리얼 진행 중
   if (tutorialMode) {
@@ -102,55 +131,53 @@ export default function OnboardingPage() {
 
   // 로그인 완료 → 모드 선택
   if (user) {
-    const randomAvatar = PROFILE_AVATARS[Math.floor(Math.random() * PROFILE_AVATARS.length)]
-
     return (
-      <div className="min-h-[100dvh] flex flex-col bg-white">
-        <div className="flex-1 overflow-y-auto">
-        <div className="flex flex-col items-center px-6 pt-16 pb-16">
-          {/* 랜덤 프로필 아바타 */}
-          <div className="w-20 h-20 rounded-full overflow-hidden mb-5" style={{ boxShadow: 'var(--shadow-md)' }}>
-            <video src={randomAvatar} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-          </div>
-          <h1 className="text-heading-2 mb-1">환영해요!</h1>
-          <p className="text-body text-tertiary mb-8">지금 어떤 상태인가요?</p>
-
-          <div className="w-full max-w-sm space-y-4">
-            {[
-              { key: 'preparing' as Mode, title: '임신을 준비하고 있어요', desc: '배란일 · 건강 체크 · 준비 가이드', video: '/images/illustrations/onboarding-preparing.webm' },
-              { key: 'pregnant' as Mode, title: '임신 중이에요', desc: '주차별 태아 성장 · D-day · 체크리스트', video: '/images/illustrations/onboarding-pregnant.webm' },
-              { key: 'parenting' as Mode, title: '아이를 키우고 있어요', desc: '수유 · 수면 · 성장 기록 · AI 인사이트', video: '/images/illustrations/onboarding-parenting.webm' },
-            ].map((option) => (
-              <button
-                key={option.key}
-                onClick={() => handleModeSelect(option.key)}
-                className="w-full dodam-card press-feedback text-left overflow-hidden border-2"
-              >
-                {/* 일러스트 영상 (그라데이션 페이드) */}
-                <div className="w-full h-36 bg-white relative overflow-hidden">
-                  <video src={option.video} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 pointer-events-none" style={{
-                    background: 'linear-gradient(to bottom, transparent 60%, white 100%), linear-gradient(to top, transparent 85%, white 100%), linear-gradient(to right, white 0%, transparent 10%, transparent 90%, white 100%)',
-                  }} />
-                </div>
-                {/* 텍스트 */}
-                <div style={{ padding: 'var(--spacing-4)' }}>
-                  <p className="text-body-emphasis">{option.title}</p>
-                  <p className="text-caption mt-1">{option.desc}</p>
-                </div>
-              </button>
-            ))}
-          </div>
+      <div className="h-[100dvh] flex flex-col bg-white">
+        {/* 헤더 */}
+        <div className="px-6 pt-14 pb-4 shrink-0">
+          <p className="text-caption font-semibold tracking-[0.08em] text-[var(--color-primary)] mb-0.5">도담 · AI 육아파트너</p>
+          <h1 className="text-heading-2 font-bold">지금 어떤 여정에 계신가요?</h1>
         </div>
-      </div>
+
+        {/* 카드 */}
+        <div className="flex-1 flex flex-col px-4 pb-6 gap-3 min-h-0">
+          {[
+            { key: 'preparing' as Mode, title: '임신 준비 중', desc: '배란일 · 건강 체크 · 준비 가이드', video: '/images/illustrations/onboarding-preparing.webm', overlay: 'rgba(198,122,82,0.55)' },
+            { key: 'pregnant' as Mode,  title: '임신 중',      desc: '주차별 태아 성장 · D-day · 체크리스트', video: '/images/illustrations/onboarding-pregnant.webm',  overlay: 'rgba(61,138,90,0.50)' },
+            { key: 'parenting' as Mode, title: '육아 중',      desc: '수유 · 수면 · 성장 기록 · AI 인사이트', video: '/images/illustrations/onboarding-parenting.webm', overlay: 'rgba(80,120,180,0.50)' },
+          ].map((option) => (
+            <button
+              key={option.key}
+              onClick={() => handleModeSelect(option.key)}
+              className="flex-1 rounded-2xl press-feedback overflow-hidden relative min-h-0"
+            >
+              {/* 일러스트 전체 배경 */}
+              <video
+                src={option.video}
+                autoPlay loop muted playsInline
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              {/* 그라데이션 오버레이 — 하단 강화 */}
+              <div
+                className="absolute inset-0"
+                style={{ background: `linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.15) 45%, transparent 70%)` }}
+              />
+              {/* 텍스트 — 좌하단 */}
+              <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 text-left">
+                <p className="text-subtitle font-bold text-white drop-shadow-sm">{option.title}</p>
+                <p className="text-xs text-white mt-0.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>{option.desc}</p>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     )
   }
 
   // 미로그인 → 로그인 화면
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-white">
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
+    <div className="min-h-[100dvh] flex flex-col bg-white relative">
+      <div className="flex flex-col items-center px-6 pt-24 pb-8">
         <Image
           src="/app-icon.png"
           alt="도담"
@@ -168,7 +195,7 @@ export default function OnboardingPage() {
         </p>
       </div>
 
-      <div className="px-6 pb-12 pt-6" style={{ gap: 'var(--spacing-3)' }}>
+      <div className="mt-auto px-6 pb-12 pt-6 flex flex-col gap-3">
         {error && (
           <div className="mb-1 rounded-2xl bg-[#FFF0E6] text-caption text-[#D08068] text-center font-medium" style={{ padding: 'var(--spacing-3)' }}>
             {error}
@@ -220,6 +247,7 @@ export default function OnboardingPage() {
           <a href="/privacy" className="underline">개인정보처리방침</a>에 동의하게 됩니다.
         </p>
       </div>
+      {introModal}
     </div>
   )
 }

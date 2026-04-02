@@ -657,7 +657,7 @@ function BottomNavComponent() {
     return `${mm}:${ss}`
   }
 
-  const HIDE_PATHS = ['/onboarding', '/invite', '/auth', '/post/', '/market-item/', '/landing', '/privacy', '/terms', '/celebration', '/birth']
+  const HIDE_PATHS = ['/onboarding', '/invite', '/auth', '/post/', '/market-item/', '/landing', '/privacy', '/terms', '/celebration', '/birth', '/settings']
   if (HIDE_PATHS.some(p => pathname?.startsWith(p))) return null
 
   return (

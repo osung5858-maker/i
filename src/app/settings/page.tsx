@@ -96,7 +96,7 @@ export default function SettingsPage() {
   const avatarUrl = user?.user_metadata?.avatar_url
 
   return (
-    <div className="min-h-[calc(100dvh-144px)] bg-[#f5f5f5]">
+    <div className="min-h-[100dvh] bg-[#f5f5f5]">
       <div className="max-w-lg mx-auto w-full pb-28">
         {/* 프로필 카드 */}
         <div className="m-4 p-4 rounded-2xl bg-white border border-[#E8E4DF]">

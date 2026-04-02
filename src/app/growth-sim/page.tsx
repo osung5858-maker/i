@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { createClient } from '@/lib/supabase/client'
+import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
 import type { Child } from '@/types'
 
 interface GrowthResult {
@@ -38,16 +39,18 @@ export default function GrowthSimPage() {
   const [error, setError] = useState('')
   const [currentAge, setCurrentAge] = useState(3)
   const [selectedTarget, setSelectedTarget] = useState(6)
-  const [motherHeight, setMotherHeight] = useState(() => {
-    if (typeof window !== 'undefined') return Number(localStorage.getItem('dodam_mother_height')) || 0
-    return 0
-  })
-  const [fatherHeight, setFatherHeight] = useState(() => {
-    if (typeof window !== 'undefined') return Number(localStorage.getItem('dodam_father_height')) || 0
-    return 0
-  })
+  const [motherHeight, setMotherHeight] = useState(0)
+  const [fatherHeight, setFatherHeight] = useState(0)
   const router = useRouter()
   const supabase = createClient()
+  const heightDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const saveHeights = useCallback((mh: number, fh: number) => {
+    if (heightDebounce.current) clearTimeout(heightDebounce.current)
+    heightDebounce.current = setTimeout(() => {
+      upsertProfile({ mother_height: mh || null, father_height: fh || null })
+    }, 800)
+  }, [])
 
   useEffect(() => {
     async function init() {
@@ -64,6 +67,11 @@ export default function GrowthSimPage() {
         const months = getAgeMonths(c.birthdate)
         if (months >= 0) setCurrentAge(months)
       }
+
+      const p = await getProfile()
+      if (p?.mother_height) setMotherHeight(p.mother_height)
+      if (p?.father_height) setFatherHeight(p.father_height)
+
       setLoading(false)
     }
     init()
@@ -203,7 +211,7 @@ export default function GrowthSimPage() {
                     <input
                       type="number"
                       value={motherHeight || ''}
-                      onChange={e => { const v = Number(e.target.value); setMotherHeight(v); localStorage.setItem('dodam_mother_height', String(v)) }}
+                      onChange={e => { const v = Number(e.target.value); setMotherHeight(v); saveHeights(v, fatherHeight) }}
                       placeholder="162"
                       className="w-full h-10 px-3 rounded-lg border border-[#E8E4DF] text-body-emphasis text-center focus:outline-none focus:border-[var(--color-primary)]"
                     />
@@ -216,7 +224,7 @@ export default function GrowthSimPage() {
                     <input
                       type="number"
                       value={fatherHeight || ''}
-                      onChange={e => { const v = Number(e.target.value); setFatherHeight(v); localStorage.setItem('dodam_father_height', String(v)) }}
+                      onChange={e => { const v = Number(e.target.value); setFatherHeight(v); saveHeights(motherHeight, v) }}
                       placeholder="175"
                       className="w-full h-10 px-3 rounded-lg border border-[#E8E4DF] text-body-emphasis text-center focus:outline-none focus:border-[var(--color-primary)]"
                     />

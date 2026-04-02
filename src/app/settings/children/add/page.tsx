@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-// profile avatars are .webm video files
-
 const PROFILE_AVATARS = [
   '/images/illustrations/profile-default1.webm',
   '/images/illustrations/profile-default2.webm',
@@ -65,7 +63,7 @@ export default function AddChildPage() {
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col">
       {/* 헤더 */}
-      <header className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
           <button onClick={() => router.back()} className="text-tertiary text-sm">
             취소
@@ -77,31 +75,6 @@ export default function AddChildPage() {
 
       {/* 폼 */}
       <form onSubmit={handleSubmit} className="flex-1 flex flex-col px-6 pt-8 max-w-lg mx-auto w-full">
-        {/* 프로필 아바타 선택 */}
-        <div className="mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,82,255,0.15)] bg-[#f5f5f5]">
-              <video src={photoUrl} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-            </div>
-          </div>
-          <div className="flex justify-center gap-3">
-            {PROFILE_AVATARS.map((url, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setPhotoUrl(url)}
-                className={`w-14 h-14 rounded-2xl overflow-hidden transition-all ${
-                  photoUrl === url
-                    ? 'ring-[3px] ring-[var(--color-primary)] ring-offset-2 scale-105'
-                    : 'opacity-60 hover:opacity-80'
-                }`}
-              >
-                <video src={url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* 이름 */}
         <div className="mb-6">
           <label className="block text-xs font-semibold text-[#6B6B6B] mb-2 uppercase tracking-wide">
