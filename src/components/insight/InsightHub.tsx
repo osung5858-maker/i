@@ -92,11 +92,11 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-1.5">
             <SparkleIcon className="w-4 h-4 text-[#C4913E]" />
-            <span className="text-[14px] font-bold text-[#212124]">오늘의 AI 인사이트</span>
+            <span className="text-body-emphasis font-bold text-primary">오늘의 AI 인사이트</span>
           </div>
-          <span className="text-[13px] text-[#9E9A95]">{updateTime} 업데이트</span>
+          <span className="text-body text-tertiary">{updateTime} 업데이트</span>
         </div>
-        <p className="text-[14px] text-[#5A5854] leading-relaxed whitespace-pre-line mb-3">
+        <p className="text-body-emphasis text-[#5A5854] leading-relaxed whitespace-pre-line mb-3">
           {summaryText}
         </p>
         {statusChips.length > 0 && (
@@ -104,7 +104,7 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
             {statusChips.map((chip) => (
               <span
                 key={chip.label}
-                className={`${chip.bg} ${chip.color} text-[13px] font-semibold px-3 py-1.5 rounded-full`}
+                className={`${chip.bg} ${chip.color} text-body font-semibold px-3 py-1.5 rounded-full`}
               >
                 {chip.label}
               </span>
@@ -122,12 +122,12 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
                 <div className="w-8 h-8 rounded-full bg-[var(--color-accent-bg)] flex items-center justify-center">
                   <BottleIcon className="w-4 h-4 text-[var(--color-primary)]" />
                 </div>
-                <span className="text-[14px] font-semibold text-[#212124]">다음 수유</span>
+                <span className="text-body-emphasis text-primary">다음 수유</span>
               </div>
-              <p className="text-[22px] font-bold text-[#212124] mb-1">
+              <p className="text-heading-2 font-bold text-primary mb-1">
                 {formatTime(feedPred.predicted_ts)}
               </p>
-              <p className="text-[13px] text-[#9E9A95] mb-2.5">
+              <p className="text-body text-tertiary mb-2.5">
                 {formatTimeRemaining(feedPred.predicted_ts)} · ±{feedPred.ci_minutes}분
               </p>
               <div className="w-full h-1 bg-[#E8E6E1] rounded-full overflow-hidden">
@@ -137,7 +137,7 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
                 />
               </div>
               {feedPred.confidence === 'low' && (
-                <p className="text-[11px] text-[#9E9A95] mt-2">도담이가 아직 배우는 중이에요</p>
+                <p className="text-label text-tertiary mt-2">도담이가 아직 배우는 중이에요</p>
               )}
             </div>
           )}
@@ -147,12 +147,12 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
                 <div className="w-8 h-8 rounded-full bg-[#E8E0F8] flex items-center justify-center">
                   <MoonIcon className="w-4 h-4 text-[#7B6DB0]" />
                 </div>
-                <span className="text-[14px] font-semibold text-[#212124]">다음 낮잠</span>
+                <span className="text-body-emphasis text-primary">다음 낮잠</span>
               </div>
-              <p className="text-[22px] font-bold text-[#212124] mb-1">
+              <p className="text-heading-2 font-bold text-primary mb-1">
                 {formatTime(sleepPred.predicted_ts)}
               </p>
-              <p className="text-[13px] text-[#9E9A95] mb-2.5">
+              <p className="text-body text-tertiary mb-2.5">
                 {formatTimeRemaining(sleepPred.predicted_ts)} · ±{sleepPred.ci_minutes}분
               </p>
               <div className="w-full h-1 bg-[#E8E6E1] rounded-full overflow-hidden">
@@ -162,7 +162,7 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
                 />
               </div>
               {sleepPred.confidence === 'low' && (
-                <p className="text-[11px] text-[#9E9A95] mt-2">도담이가 아직 배우는 중이에요</p>
+                <p className="text-label text-tertiary mt-2">도담이가 아직 배우는 중이에요</p>
               )}
             </div>
           )}
@@ -171,9 +171,9 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
         <div className="mx-4 mb-3 bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(26,25,24,0.03)]">
           <div className="flex items-center gap-2 mb-2">
             <SproutIcon className="w-4 h-4 text-[#4A9B6E]" />
-            <span className="text-[14px] font-semibold text-[#212124]">루틴 예보 학습 중</span>
+            <span className="text-body-emphasis text-primary">루틴 예보 학습 중</span>
           </div>
-          <p className="text-[13px] text-[#5A5854] leading-relaxed">
+          <p className="text-body text-[#5A5854] leading-relaxed">
             도담이가 {childName}의 패턴을 배우고 있어요.
             {!feedDataCheck.enough && ` 수유 ${feedDataCheck.count}/${feedDataCheck.needed}건`}
             {!feedDataCheck.enough && !sleepDataCheck.enough && ' ·'}
@@ -211,7 +211,7 @@ export default function InsightHub({ events, birthdate, childName }: Props) {
       {/* 기록 부족 안내 */}
       {events.length < 3 && (
         <div className="px-4 py-8 text-center">
-          <p className="text-[13px] text-[#9E9A95]">기록이 쌓이면 더 정확한 인사이트가 나타나요</p>
+          <p className="text-body text-tertiary">기록이 쌓이면 더 정확한 인사이트가 나타나요</p>
         </div>
       )}
     </div>

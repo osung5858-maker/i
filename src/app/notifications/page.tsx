@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { BellIcon } from '@/components/ui/Icons'
 import { getSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
+import KakaoAdFit from '@/components/ads/KakaoAdFit'
+// import GoogleAdBanner from '@/components/ads/GoogleAdBanner' // AdSense 승인 후 활성화
 
 interface NotificationLog {
   id: string
@@ -129,39 +131,47 @@ export default function NotificationsPage() {
       {/* 헤더 */}
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
         <div className="flex items-center h-12 px-4 max-w-lg mx-auto gap-3">
-          <button onClick={() => router.back()} className="w-8 h-8 rounded-full flex items-center justify-center text-[#1A1918] active:bg-[#F0EDE8]">
+          <button onClick={() => router.back()} className="w-8 h-8 rounded-full flex items-center justify-center text-primary active:bg-[#F0EDE8]">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          <p className="text-[16px] font-bold text-[#1A1918] flex-1">알림</p>
+          <p className="text-subtitle font-bold text-primary flex-1">알림</p>
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-12 space-y-4">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-4">
+        {/* 상단 배너 광고 */}
+        <KakaoAdFit
+          unit="DAN-iVBs4WEVxAqEzceP"
+          width={320}
+          height={50}
+          className="mx-auto my-4"
+        />
+
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="w-6 h-6 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
           </div>
         ) : !hasAnything ? (
-          <div className="flex flex-col items-center justify-center py-16 text-[#9E9A95]">
+          <div className="flex flex-col items-center justify-center py-16 text-tertiary">
             <BellIcon className="w-10 h-10 mb-3 opacity-20" />
-            <p className="text-[14px] font-semibold">알림이 없어요</p>
-            <p className="text-[13px] mt-1">새로운 알림이 오면 여기서 확인할 수 있어요</p>
+            <p className="text-body-emphasis">알림이 없어요</p>
+            <p className="text-body mt-1">새로운 알림이 오면 여기서 확인할 수 있어요</p>
           </div>
         ) : (
           <>
             {/* 스마트 알림 */}
             {smartAlerts.length > 0 && (
               <div>
-                <p className="text-[12px] font-bold text-[#9E9A95] mb-2 uppercase tracking-wide">오늘의 리마인더</p>
+                <p className="text-caption font-bold text-tertiary mb-2 uppercase tracking-wide">오늘의 리마인더</p>
                 <div className="space-y-2">
                   {smartAlerts.map(a => (
                     <Link key={a.key} href={a.href}
                       className="flex items-center gap-3 bg-white rounded-xl border border-[#FFDDC8] p-3.5 active:bg-[var(--color-page-bg)]">
                       <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] shrink-0" />
-                      <p className="text-[13px] text-[#1A1918] flex-1 font-medium">{a.text}</p>
-                      <span className="text-[#9E9A95] text-[12px]">→</span>
+                      <p className="text-body text-primary flex-1 font-medium">{a.text}</p>
+                      <span className="text-tertiary text-caption">→</span>
                     </Link>
                   ))}
                 </div>
@@ -171,7 +181,8 @@ export default function NotificationsPage() {
             {/* 푸시 알림 내역 */}
             {notifications.length > 0 && (
               <div>
-                <p className="text-[12px] font-bold text-[#9E9A95] mb-2 uppercase tracking-wide">알림 내역</p>
+                <p className="text-caption font-bold text-tertiary mb-2 uppercase tracking-wide">알림 내역</p>
+
                 <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
                   {notifications.map((n, i) => {
                     const isUnread = unreadIds.has(n.id)
@@ -185,9 +196,9 @@ export default function NotificationsPage() {
                             }
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-[13px] leading-snug ${isUnread ? 'font-semibold text-[#1A1918]' : 'font-medium text-[#6B6966]'}`}>{n.title}</p>
-                            {n.body && <p className="text-[12px] text-[#9E9A95] mt-0.5 leading-snug">{n.body}</p>}
-                            <p className="text-[11px] text-[#C4BFB9] mt-1">
+                            <p className={`text-body leading-snug ${isUnread ? 'font-semibold text-primary' : 'font-medium text-secondary'}`}>{n.title}</p>
+                            {n.body && <p className="text-caption text-tertiary mt-0.5 leading-snug">{n.body}</p>}
+                            <p className="text-label text-muted mt-1">
                               {new Date(n.sent_at).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>

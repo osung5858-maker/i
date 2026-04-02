@@ -23,14 +23,14 @@ export default function PoopSheet({ open, onClose, onSelect }: Props) {
           <button
             key={opt.value}
             onClick={() => onSelect(opt.value)}
-            className="w-full h-14 rounded-xl bg-[#f5f5f5] flex items-center justify-center gap-2 text-sm font-semibold text-[#0A0B0D] active:bg-[#0052FF] active:text-white transition-colors"
+            className="w-full h-14 rounded-xl bg-[#f5f5f5] flex items-center justify-center gap-2 text-sm font-semibold text-primary active:bg-[#0052FF] active:text-white transition-colors"
           >
             {opt.icon} {opt.label}
           </button>
         ))}
         <button
           onClick={() => onSelect(null)}
-          className="w-full h-12 rounded-xl text-sm font-medium text-[#9B9B9B] active:opacity-70"
+          className="w-full h-12 rounded-xl text-sm font-medium text-tertiary active:opacity-70"
         >
           건너뛰기
         </button>

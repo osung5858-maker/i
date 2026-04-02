@@ -55,7 +55,7 @@ export default function SplashScreen({ onFinish, duration = 4000 }: SplashScreen
 
         {/* 타이틀 */}
         <h1
-          className="text-[32px] font-bold text-[#3D2E26] tracking-tight transition-all duration-500 delay-300"
+          className="text-display font-bold text-[#3D2E26] tracking-tight transition-all duration-500 delay-300"
           style={{
             opacity: phase === 'enter' ? 0 : 1,
             transform: phase === 'enter' ? 'translateY(10px)' : 'translateY(0)',
@@ -66,7 +66,7 @@ export default function SplashScreen({ onFinish, duration = 4000 }: SplashScreen
 
         {/* 서브타이틀 */}
         <p
-          className="mt-2 text-[15px] text-[#8B7468] font-medium transition-all duration-500 delay-500"
+          className="mt-2 text-subtitle text-[#8B7468] font-medium transition-all duration-500 delay-500"
           style={{
             opacity: phase === 'enter' ? 0 : 1,
             transform: phase === 'enter' ? 'translateY(10px)' : 'translateY(0)',

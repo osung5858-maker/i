@@ -21,7 +21,7 @@ export default function GlobalToast() {
 
   return (
     <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[100] animate-[fadeIn_0.2s_ease-out]">
-      <div className="bg-[#212124]/90 text-white px-5 py-2.5 rounded-xl text-[13px] font-medium shadow-lg backdrop-blur-sm max-w-[320px] text-center">
+      <div className="bg-[#1A1A1A] px-5 py-2.5 rounded-xl text-body font-bold shadow-[0_8px_30px_rgba(0,0,0,0.3)] max-w-[320px] text-center" style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
         {message}
       </div>
     </div>

@@ -92,17 +92,17 @@ export default function TroubleshootCard({ ageMonths }: Props) {
         {/* 헤더 */}
         <div className={`${uc.bg} ${uc.border} border rounded-2xl p-4`}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[15px] font-bold text-[#1A1918]">{result.title}</p>
-            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${uc.text} ${uc.bg}`}>
+            <p className="text-subtitle text-primary">{result.title}</p>
+            <span className={`px-2.5 py-0.5 rounded-full text-label font-semibold ${uc.text} ${uc.bg}`}>
               {uc.label}
             </span>
           </div>
-          <p className="text-[13px] text-[#2D7A4A]">{result.reassurance}</p>
+          <p className="text-body text-[#2D7A4A]">{result.reassurance}</p>
         </div>
 
         {/* 체크리스트 */}
         <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
-          <p className="text-[13px] font-bold text-[#212124] mb-3">먼저 확인하세요</p>
+          <p className="text-body font-bold text-primary mb-3">먼저 확인하세요</p>
           <div className="space-y-2">
             {result.checklist.map((item, i) => (
               <label key={i} className="flex items-start gap-3 py-1.5 cursor-pointer active:opacity-70">
@@ -121,8 +121,8 @@ export default function TroubleshootCard({ ageMonths }: Props) {
                   )}
                 </div>
                 <div onClick={() => toggleCheck(i)}>
-                  <p className={`text-[13px] font-medium ${checkedItems.has(i) ? 'text-[#9E9A95] line-through' : 'text-[#212124]'}`}>{item.item}</p>
-                  <p className="text-[12px] text-[#6B6966]">{item.detail}</p>
+                  <p className={`text-body font-medium ${checkedItems.has(i) ? 'text-tertiary line-through' : 'text-primary'}`}>{item.item}</p>
+                  <p className="text-caption text-secondary">{item.detail}</p>
                 </div>
               </label>
             ))}
@@ -131,16 +131,16 @@ export default function TroubleshootCard({ ageMonths }: Props) {
 
         {/* 단계별 대응 */}
         <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
-          <p className="text-[13px] font-bold text-[#212124] mb-3">단계별 대응 가이드</p>
+          <p className="text-body font-bold text-primary mb-3">단계별 대응 가이드</p>
           <div className="space-y-3">
             {result.steps.map((s) => (
               <div key={s.step} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-[var(--color-accent-bg)] flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-[12px] font-bold text-[var(--color-primary)]">{s.step}</span>
+                  <span className="text-caption font-bold text-[var(--color-primary)]">{s.step}</span>
                 </div>
                 <div>
-                  <p className="text-[13px] font-semibold text-[#1A1918]">{s.action}</p>
-                  <p className="text-[12px] text-[#6B6966] leading-relaxed">{s.detail}</p>
+                  <p className="text-body font-semibold text-primary">{s.action}</p>
+                  <p className="text-caption text-secondary leading-relaxed">{s.detail}</p>
                 </div>
               </div>
             ))}
@@ -150,20 +150,20 @@ export default function TroubleshootCard({ ageMonths }: Props) {
         {/* 응급 신호 */}
         {result.emergencySign && (
           <div className="bg-[#FDE8E8] rounded-2xl border border-[#F5C6C6] p-4">
-            <p className="text-[13px] font-bold text-[#D05050] mb-1">이럴 때는 즉시 병원으로</p>
-            <p className="text-[13px] text-[#8B4513]">{result.emergencySign}</p>
-            <a href="tel:119" className="inline-flex items-center gap-1 mt-2 text-[13px] font-semibold text-[#D05050]"><PhoneIcon className="w-3.5 h-3.5" /> 119 전화하기</a>
+            <p className="text-body font-bold text-[#D05050] mb-1">이럴 때는 즉시 병원으로</p>
+            <p className="text-body text-[#8B4513]">{result.emergencySign}</p>
+            <a href="tel:119" className="inline-flex items-center gap-1 mt-2 text-body font-semibold text-[#D05050]"><PhoneIcon className="w-3.5 h-3.5" /> 119 전화하기</a>
           </div>
         )}
 
         {/* 추가 팁 */}
         {result.relatedTip && (
           <div className="p-3 rounded-xl bg-[#F0F4FF] border border-[#D5DFEF]">
-            <p className="text-[12px] text-[#4A6FA5]">{result.relatedTip}</p>
+            <p className="text-caption text-[#4A6FA5]">{result.relatedTip}</p>
           </div>
         )}
 
-        <p className="text-[11px] text-[#9E9A95] text-center">참고용 정보예요. 걱정되시면 소아과 상담을 추천드려요.</p>
+        <p className="text-label text-tertiary text-center">참고용 정보예요. 걱정되시면 소아과 상담을 추천드려요.</p>
 
         {/* 공유하기 + 다른 상황 보기 */}
         <div className="flex gap-2">
@@ -173,13 +173,13 @@ export default function TroubleshootCard({ ageMonths }: Props) {
               if (navigator.share) navigator.share({ title: result.title, text }).catch(() => {})
               else if (navigator.clipboard) navigator.clipboard.writeText(text)
             }}
-            className="flex-1 py-2.5 text-[13px] text-[var(--color-primary)] font-semibold text-center"
+            className="flex-1 py-2.5 text-body text-[var(--color-primary)] font-semibold text-center"
           >
             공유하기
           </button>
           <button
             onClick={() => { setResult(null); setShowCustom(false) }}
-            className="flex-1 py-2.5 text-[13px] text-[var(--color-primary)] font-semibold text-center"
+            className="flex-1 py-2.5 text-body text-[var(--color-primary)] font-semibold text-center"
           >
             다른 상황 보기
           </button>
@@ -193,7 +193,7 @@ export default function TroubleshootCard({ ageMonths }: Props) {
     return (
       <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-5 text-center">
         <div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-[13px] text-[#6B6966]">AI가 대응 가이드를 준비하고 있어요...</p>
+        <p className="text-body text-secondary">AI가 대응 가이드를 준비하고 있어요...</p>
       </div>
     )
   }
@@ -204,7 +204,7 @@ export default function TroubleshootCard({ ageMonths }: Props) {
       <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center gap-1.5 mb-3">
           <WarningIcon className="w-4 h-4 text-[#D05050]" />
-          <h3 className="text-[14px] font-bold text-[#212124]">어떤 상황인가요?</h3>
+          <h3 className="text-body-emphasis font-bold text-primary">어떤 상황인가요?</h3>
         </div>
         <div className="grid grid-cols-2 gap-2">
           {PRESETS.map((preset) => (
@@ -213,8 +213,8 @@ export default function TroubleshootCard({ ageMonths }: Props) {
               onClick={() => fetchTroubleshoot(preset.situation)}
               className="flex items-center gap-2 p-3 rounded-xl bg-[var(--color-page-bg)] border border-transparent hover:border-[var(--color-primary)]/30 active:bg-[#E8E4DF] text-left transition-colors"
             >
-              <preset.Icon className="w-5 h-5 shrink-0 text-[#6B6966]" />
-              <span className="text-[13px] text-[#1A1918] font-medium">{preset.label}</span>
+              <preset.Icon className="w-5 h-5 shrink-0 text-secondary" />
+              <span className="text-body text-primary font-medium">{preset.label}</span>
             </button>
           ))}
         </div>
@@ -224,7 +224,7 @@ export default function TroubleshootCard({ ageMonths }: Props) {
       {!showCustom ? (
         <button
           onClick={() => setShowCustom(true)}
-          className="w-full py-2.5 bg-white rounded-2xl border border-[#D5D0CA] text-[13px] text-[#6B6966] text-center active:bg-[#F5F1EC]"
+          className="w-full py-2.5 bg-white rounded-2xl border border-[#D5D0CA] text-body text-secondary text-center active:bg-[#F5F1EC]"
         >
           다른 상황 직접 입력하기
         </button>
@@ -234,15 +234,15 @@ export default function TroubleshootCard({ ageMonths }: Props) {
             value={customInput}
             onChange={(e) => setCustomInput(e.target.value)}
             placeholder="예: 아이가 밤에 자꾸 깨서 울어요..."
-            className="w-full h-20 text-[13px] bg-[var(--color-page-bg)] rounded-xl p-3 resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+            className="w-full h-20 text-body bg-[var(--color-page-bg)] rounded-xl p-3 resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
             maxLength={200}
           />
           <div className="flex justify-end gap-2 mt-2">
-            <button onClick={() => setShowCustom(false)} className="px-3 py-1.5 text-[13px] text-[#6B6966]">취소</button>
+            <button onClick={() => setShowCustom(false)} className="px-3 py-1.5 text-body text-secondary">취소</button>
             <button
               onClick={() => { if (customInput.trim()) fetchTroubleshoot(customInput.trim()) }}
               disabled={!customInput.trim()}
-              className="px-4 py-1.5 bg-[var(--color-primary)] text-white text-[13px] rounded-lg font-semibold disabled:opacity-40"
+              className="px-4 py-1.5 bg-[var(--color-primary)] text-white rounded-lg font-semibold disabled:opacity-40"
             >
               AI 분석
             </button>

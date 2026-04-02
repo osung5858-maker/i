@@ -26,10 +26,10 @@
   --color-border: #E8E4DF;
   --color-border-light: #F0EDE8;
 
-  --color-text-primary: #1A1918;
+  --color-text-primary: #3A3836;
   --color-text-secondary: #6B6966;
-  --color-text-tertiary: #9E9A95;
-  --color-text-muted: #C4C0BB;
+  --color-text-tertiary: #6B6966;
+  --color-text-muted: #9E9A95;
 
   /* 모드별 Accent */
   --color-preparing: #FFB5A7;
@@ -56,8 +56,8 @@
   --neutral-500: #6B6966;
   --neutral-600: #52504E;
   --neutral-700: #3A3836;
-  --neutral-800: #262524;
-  --neutral-900: #1A1918;
+  --neutral-800: #3A3836;
+  --neutral-900: #3A3836;
 
   /* Surface Tokens (배경/표면) */
   --surface-primary: #FFFFFF;
@@ -83,15 +83,16 @@
   --spacing-12: 48px;
   --spacing-16: 64px;
 
-  /* Typography Scale */
-  --text-xs: 10px;
-  --text-sm: 12px;
-  --text-base: 13px;
-  --text-md: 14px;
-  --text-lg: 15px;
-  --text-xl: 18px;
-  --text-2xl: 24px;
-  --text-3xl: 32px;
+  /* Typography Scale - 가독성 개선 (최소 11px) */
+  --text-xs: 11px;      /* 라벨, 작은 텍스트 */
+  --text-sm: 12px;      /* 캡션, 메타 정보 */
+  --text-base: 13px;    /* 기본 본문 */
+  --text-md: 14px;      /* 본문 강조 */
+  --text-lg: 15px;      /* 소제목 */
+  --text-xl: 18px;      /* 카드 제목 */
+  --text-2xl: 20px;     /* 섹션 제목 */
+  --text-3xl: 24px;     /* 페이지 제목 */
+  --text-4xl: 32px;     /* 히어로, 랜딩 */
 
   /* Font Weight */
   --font-normal: 400;
@@ -203,7 +204,18 @@ body {
 /* 다크 모드는 향후 전체 리팩토링 시 적용 예정 */
 /* .dark 클래스 변수는 globals.css 상단에 정의되어 있음 */
 
-/* ===== Semantic Typography Classes ===== */
+/* ===== Semantic Typography Classes - 개선 버전 ===== */
+
+/* Display (히어로, 랜딩) */
+.text-display {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  font-family: var(--font-display);
+  color: var(--color-text-primary);
+}
+
+/* Heading 1 (페이지 제목) */
 .text-heading-1 {
   font-size: var(--text-3xl);
   font-weight: var(--font-bold);
@@ -212,6 +224,7 @@ body {
   color: var(--color-text-primary);
 }
 
+/* Heading 2 (섹션 제목) */
 .text-heading-2 {
   font-size: var(--text-2xl);
   font-weight: var(--font-bold);
@@ -220,6 +233,7 @@ body {
   color: var(--color-text-primary);
 }
 
+/* Heading 3 (카드 제목) */
 .text-heading-3 {
   font-size: var(--text-xl);
   font-weight: var(--font-bold);
@@ -228,14 +242,15 @@ body {
   color: var(--color-text-primary);
 }
 
+/* Subtitle (소제목, 강조) */
 .text-subtitle {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
   line-height: var(--leading-snug);
-  font-family: var(--font-accent);
   color: var(--color-text-primary);
 }
 
+/* Body (기본 본문) */
 .text-body {
   font-size: var(--text-base);
   font-weight: var(--font-normal);
@@ -243,14 +258,15 @@ body {
   color: var(--color-text-secondary);
 }
 
+/* Body Emphasis (본문 강조) */
 .text-body-emphasis {
   font-size: var(--text-md);
   font-weight: var(--font-semibold);
   line-height: var(--leading-normal);
-  font-family: var(--font-accent);
   color: var(--color-text-primary);
 }
 
+/* Caption (캡션, 메타 정보) */
 .text-caption {
   font-size: var(--text-sm);
   font-weight: var(--font-normal);
@@ -258,6 +274,7 @@ body {
   color: var(--color-text-tertiary);
 }
 
+/* Caption Bold (강조 캡션) */
 .text-caption-bold {
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
@@ -265,6 +282,7 @@ body {
   color: var(--color-text-secondary);
 }
 
+/* Label (라벨, 작은 텍스트) */
 .text-label {
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
@@ -272,6 +290,23 @@ body {
   color: var(--color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+/* ===== Color Utility Classes ===== */
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-tertiary {
+  color: var(--color-text-tertiary);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
 }
 
 /* BNB 하단 safe area */
@@ -566,6 +601,12 @@ a:focus-visible {
   50%       { box-shadow: 0 4px 36px rgba(232,147,122,0.70), 0 0 0 6px rgba(232,147,122,0.12); }
 }
 .cta-glow { animation: ctaGlow 2.8s ease-in-out infinite; }
+
+/* ===== Glassmorphism Header ===== */
+.backdrop-blur-xl {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
 
 /* ===== Micro Interactions ===== */
 

@@ -46,16 +46,6 @@ const TABS_BY_MODE: Record<string, Tab[]> = {
 }
 
 // 월령별 기록 카테고리 생성
-function getAgeMonths(): number {
-  if (typeof window === 'undefined') return 6
-  const childBirth = localStorage.getItem('dodam_child_birthdate')
-  if (!childBirth) return 6 // 기본값
-  const birth = new Date(childBirth)
-  if (isNaN(birth.getTime())) return 6 // 잘못된 날짜 형식 → 기본값
-  const now = new Date()
-  return Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth()))
-}
-
 function buildCategories(ageMonths: number): RecordCategory[] {
   const cats: RecordCategory[] = []
 
@@ -63,24 +53,34 @@ function buildCategories(ageMonths: number): RecordCategory[] {
   const eatItems: RecordItem[] = []
   if (ageMonths < 13) { // 모유는 12개월까지
     eatItems.push(
-      { type: 'breast_left',  label: '모유(왼)', tags: { side: 'left'  }, isDuration: true },
-      { type: 'breast_right', label: '모유(오)', tags: { side: 'right' }, isDuration: true },
+      { type: 'breast_left',  label: '모유 왼쪽', baseType: 'breast', tags: { side: 'left'  }, isDuration: true },
+      { type: 'breast_right', label: '모유 오른쪽', baseType: 'breast', tags: { side: 'right' }, isDuration: true },
     )
   }
   if (ageMonths < 13) { // 분유
-    eatItems.push({ type: 'feed', label: '분유',
-      step3: [{ label: '60', value: 60, unit: 'ml' }, { label: '90', value: 90, unit: 'ml' }, { label: '120', value: 120, unit: 'ml' }, { label: '150', value: 150, unit: 'ml' }, { label: '180', value: 180, unit: 'ml' }] })
+    eatItems.push({ type: 'feed', label: '분유', isSlider: true })
   }
 
-  if (ageMonths < 3) { // 유축 초기 2~3개월
+  if (ageMonths < 13) { // 유축 - 모유 수유 기간 동안
     eatItems.push(
-      { type: 'pump_left',  label: '유축(왼)', tags: { side: 'left'  }, isDuration: true },
-      { type: 'pump_right', label: '유축(오)', tags: { side: 'right' }, isDuration: true },
+      { type: 'pump_left',  label: '유축 왼쪽', baseType: 'pump', tags: { side: 'left'  }, isDuration: true },
+      { type: 'pump_right', label: '유축 오른쪽', baseType: 'pump', tags: { side: 'right' }, isDuration: true },
     )
   }
-  if (ageMonths >= 6) { // 이유식 (6개월~)
+
+  // 이유식 - 주차별 세분화
+  if (ageMonths >= 4 && ageMonths < 6) { // 4~5개월: 초기 이유식 준비 (쌀미음만)
+    eatItems.push({ type: 'babyfood', label: '이유식',
+      step3: [{ label: '쌀미음', value: 'rice' }] })
+  } else if (ageMonths >= 6 && ageMonths < 9) { // 6~8개월: 초기 이유식 (쌀미음, 야채죽)
+    eatItems.push({ type: 'babyfood', label: '이유식',
+      step3: [{ label: '쌀미음', value: 'rice' }, { label: '야채죽', value: 'veggie' }, { label: '과일', value: 'fruit' }] })
+  } else if (ageMonths >= 9 && ageMonths < 12) { // 9~11개월: 중기 이유식 (고기죽 추가)
     eatItems.push({ type: 'babyfood', label: '이유식',
       step3: [{ label: '쌀미음', value: 'rice' }, { label: '야채죽', value: 'veggie' }, { label: '고기죽', value: 'meat' }, { label: '과일', value: 'fruit' }, { label: '기타', value: 'etc' }] })
+  } else if (ageMonths >= 12 && ageMonths < 13) { // 12개월: 후기 이유식
+    eatItems.push({ type: 'babyfood', label: '이유식',
+      step3: [{ label: '야채죽', value: 'veggie' }, { label: '고기죽', value: 'meat' }, { label: '과일', value: 'fruit' }, { label: '기타', value: 'etc' }] })
   }
   if (ageMonths >= 9) { // 간식 (9개월~)
     eatItems.push({ type: 'snack', label: '간식' })
@@ -91,12 +91,12 @@ function buildCategories(ageMonths: number): RecordCategory[] {
   }
   cats.push({ key: 'eat', label: ageMonths >= 13 ? '먹기' : '수유', color: 'var(--color-primary)', items: eatItems })
 
-  // 잠 — 시간대 자동 분기 (20시~7시: 밤잠, 나머지: 낮잠)
+  // 잠 — 항상 'sleep' 타입으로 통일, sleepType 태그로 구분
   const hour = new Date().getHours()
   const isNight = hour >= 20 || hour < 7
   cats.push({ key: 'sleep', label: '잠', color: '#6366F1',
     items: [
-      { type: isNight ? 'night_sleep' : 'nap', label: isNight ? '밤잠' : '낮잠', baseType: 'sleep', tags: { sleepType: isNight ? 'night' : 'nap' }, isDuration: true },
+      { type: 'sleep', label: isNight ? '밤잠' : '낮잠', baseType: 'sleep', tags: { sleepType: isNight ? 'night' : 'nap' }, isDuration: true },
     ] })
 
   // 기저귀 — 항상
@@ -211,13 +211,14 @@ interface RecordCategory {
 const RECORD_CATEGORIES: RecordCategory[] = [
   { key: 'eat', label: '수유', color: 'var(--color-primary)',
     items: [
-      { type: 'breast_left', label: '모유(왼)', baseType: 'feed', tags: { side: 'left' }, isDuration: true },
-      { type: 'breast_right', label: '모유(오)', baseType: 'feed', tags: { side: 'right' }, isDuration: true },
+      { type: 'breast_left', label: '모유 왼쪽', baseType: 'breast', tags: { side: 'left' }, isDuration: true },
+      { type: 'breast_right', label: '모유 오른쪽', baseType: 'breast', tags: { side: 'right' }, isDuration: true },
       { type: 'feed', label: '분유',
         step3: [{ label: '60', value: 60, unit: 'ml' }, { label: '90', value: 90, unit: 'ml' }, { label: '120', value: 120, unit: 'ml' }, { label: '150', value: 150, unit: 'ml' }, { label: '180', value: 180, unit: 'ml' }] },
       { type: 'babyfood', label: '이유식',
         step3: [{ label: '쌀미음', value: 'rice' }, { label: '야채죽', value: 'veggie' }, { label: '고기죽', value: 'meat' }, { label: '과일', value: 'fruit' }, { label: '기타', value: 'etc' }] },
-      { type: 'pump', label: '유축', isDuration: true },
+      { type: 'pump_left', label: '유축 왼쪽', baseType: 'pump', tags: { side: 'left' }, isDuration: true },
+      { type: 'pump_right', label: '유축 오른쪽', baseType: 'pump', tags: { side: 'right' }, isDuration: true },
     ]
   },
   { key: 'sleep', label: '잠', color: '#6366F1',
@@ -245,7 +246,7 @@ const RECORD_CATEGORIES: RecordCategory[] = [
 function BottomNavComponent() {
   const pathname = usePathname()
   const [fabOpen, setFabOpen] = useState(false)
-  const [mode, setMode] = useState('parenting') // SSR 일관성 — useEffect에서 실제 모드 설정
+  const [mode, setMode] = useState<string>('parenting')
 
   // 앱 시작 시 데이터 자동 백업 + 복원
   useEffect(() => {
@@ -253,16 +254,17 @@ function BottomNavComponent() {
     autoBackup()
   }, [])
 
-  // pathname 기반 모드 자동 감지 (localStorage보다 우선)
-  // /waiting은 preparing/pregnant 공유 경로 → localStorage로 판단
+  // 초기 모드 설정 및 pathname 기반 모드 자동 감지
   useEffect(() => {
+    // 초기 로드 시 localStorage에서 모드 복원
+    const saved = localStorage.getItem('dodam_mode')
+
     if (pathname?.startsWith('/preparing')) {
       setMode('preparing')
     } else if (pathname?.startsWith('/pregnant')) {
       setMode('pregnant')
-    } else {
-      const saved = localStorage.getItem('dodam_mode')
-      if (saved) setMode(saved)
+    } else if (saved) {
+      setMode(saved)
     }
   }, [pathname])
 
@@ -278,21 +280,34 @@ function BottomNavComponent() {
     })
   }, [mode])
 
-  const tabs = TABS_BY_MODE[mode] || TABS_BY_MODE.parenting
-  const DYNAMIC_CATEGORIES = mode === 'pregnant' ? buildPregnantCategories(pregnancyWeeks) : mode === 'preparing' ? buildPreparingCategories() : buildCategories(getAgeMonths())
-
-  // 디버깅: 모드와 카테고리 확인
+  const [ageMonths, setAgeMonths] = useState(0)
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('BottomNav DEBUG:', {
-        pathname,
-        mode,
-        categoriesCount: DYNAMIC_CATEGORIES.length,
-        categories: DYNAMIC_CATEGORIES.map(c => c.label),
-        fabOpen
-      })
-    }
-  }, [mode, pathname, DYNAMIC_CATEGORIES, fabOpen])
+    if (mode !== 'parenting') return
+    getSecure('dodam_child_birthdate').then(v => {
+      if (!v) { setAgeMonths(0); return }
+      const birth = new Date(v)
+      if (isNaN(birth.getTime())) { setAgeMonths(0); return }
+      const now = new Date()
+      const months = Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth()))
+      setAgeMonths(months)
+    })
+  }, [mode])
+
+  const tabs = TABS_BY_MODE[mode] || TABS_BY_MODE.parenting
+  const DYNAMIC_CATEGORIES = mode === 'pregnant' ? buildPregnantCategories(pregnancyWeeks) : mode === 'preparing' ? buildPreparingCategories() : buildCategories(ageMonths)
+
+  // 디버깅: 모드와 카테고리 확인 (필요시 활성화)
+  // useEffect(() => {
+  //   if (process.env.NODE_ENV === 'development') {
+  //     console.log('BottomNav DEBUG:', {
+  //       pathname,
+  //       mode,
+  //       categoriesCount: DYNAMIC_CATEGORIES.length,
+  //       categories: DYNAMIC_CATEGORIES.map(c => c.label),
+  //       fabOpen
+  //     })
+  //   }
+  // }, [mode, pathname, DYNAMIC_CATEGORIES, fabOpen])
 
   // 다른 페이지로 이동하면 FAB + 모든 depth 상태 리셋
   useEffect(() => {
@@ -357,15 +372,17 @@ function BottomNavComponent() {
     const _td = new Date()
     const localToday = `${_td.getFullYear()}-${String(_td.getMonth()+1).padStart(2,'0')}-${String(_td.getDate()).padStart(2,'0')}`
 
-    // preg_ 타입: 토스트 즉시 → DB 비동기
+    // preg_ 타입: 토스트 즉시 → DB 비동기 (pregnant/page가 처리 안 한 경우만)
     if (type.startsWith('preg_') && type !== 'preg_journal') {
       const PREG_LABELS: Record<string, string> = {
         preg_mood: '기분', preg_fetal_move: '태동', preg_weight: '체중', preg_edema: '부종',
         preg_water: '물 마시기', preg_walk: '걷기', preg_suppl: '영양제', preg_stretch: '스트레칭',
         preg_folic: '엽산', preg_iron: '철분', preg_dha: 'DHA', preg_calcium: '칼슘', preg_vitd: '비타민D',
       }
-      // 토스트 즉시 표시
-      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${PREG_LABELS[type] || type} 기록됐어요` } }))
+      // 토스트 표시 (page가 처리 안 한 경우만)
+      if (!(event.detail as any)._handled) {
+        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${PREG_LABELS[type] || type} 기록됐어요` } }))
+      }
       // DB 저장 비동기
       try {
         const supabase = createClient()
@@ -410,9 +427,12 @@ function BottomNavComponent() {
           const done: string[] = JSON.parse(localStorage.getItem(doneKey) || '[]')
           if (!done.includes(specificType)) { done.push(specificType); localStorage.setItem(doneKey, JSON.stringify(done)) }
         } catch { /* */ }
-        // 이벤트 + 토스트 즉시
+        // 이벤트 즉시
         window.dispatchEvent(new CustomEvent('dodam-prep-done', { detail: { type: specificType, date: localToday, mood: moodVal } }))
-        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '기분이 기록됐어요' } }))
+        // 토스트 (preparing/page가 처리 안 한 경우만)
+        if (!(event.detail as any)._handled) {
+          window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '기분이 기록됐어요' } }))
+        }
         // DB 비동기 (당일 중복 방지)
         try {
           const supabase = createClient()
@@ -440,9 +460,12 @@ function BottomNavComponent() {
             if (!tsMap[type]) { tsMap[type] = new Date().toISOString(); localStorage.setItem(`dodam_prep_ts_${localToday}`, JSON.stringify(tsMap)) }
           }
         } catch { /* */ }
-        // 이벤트 + 토스트 즉시
+        // 이벤트 즉시
         window.dispatchEvent(new CustomEvent('dodam-prep-done', { detail: { type, date: localToday } }))
-        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${PREP_LABELS[type] || type} 완료!` } }))
+        // 토스트 (preparing/page가 처리 안 한 경우만)
+        if (!(event.detail as any)._handled) {
+          window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${PREP_LABELS[type] || type} 완료!` } }))
+        }
         // DB 비동기 (당일 중복 방지)
         try {
           const supabase = createClient()
@@ -465,12 +488,19 @@ function BottomNavComponent() {
       const CARE_LABELS: Record<string, string> = {
         feed: '분유', poop: '배변', pee: '소변', sleep: '수면', temp: '체온',
         bath: '목욕', medication: '투약', babyfood: '이유식', snack: '간식', toddler_meal: '유아식',
+        pump: '유축',
       }
       const BABYFOOD_SUB: Record<string, string> = { rice: '쌀미음', veggie: '야채죽', meat: '고기죽', fruit: '과일', etc: '기타' }
-      const careLabel = type === 'babyfood' && (extra?.tags as any)?.subtype
+      let careLabel = type === 'babyfood' && (extra?.tags as any)?.subtype
         ? `이유식 ${BABYFOOD_SUB[(extra?.tags as any).subtype] || ''}`
         : type === 'feed' && extra?.amount_ml ? `분유 ${extra?.amount_ml}ml`
         : (CARE_LABELS[type] || '기록')
+      // pump/feed의 side 태그 반영
+      if ((type === 'pump' || type === 'feed') && extra?.tags) {
+        const side = (extra.tags as any).side
+        if (side === 'left') careLabel = type === 'pump' ? '유축(왼쪽)' : '모유(왼쪽)'
+        else if (side === 'right') careLabel = type === 'pump' ? '유축(오른쪽)' : '모유(오른쪽)'
+      }
       window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${careLabel} 완료!` } }))
       try {
         const supabase = createClient()
@@ -551,7 +581,8 @@ function BottomNavComponent() {
     if (!activeSession) return
     if (navigator.vibrate) navigator.vibrate([30, 50, 30])
 
-    const recordType = activeSession.baseType || activeSession.type
+    // 원본 type을 저장 (breast_left, breast_right 등을 그대로 유지)
+    const recordType = activeSession.type
     const startTs = new Date(activeSession.startTs).toISOString()
     const endTs = new Date().toISOString()
     const mins = Math.round((Date.now() - activeSession.startTs) / 60000)
@@ -587,10 +618,14 @@ function BottomNavComponent() {
           const children = await supabase.from('children').select('id').eq('user_id', user.id).limit(1)
           const childId = children.data?.[0]?.id
           if (childId) {
+            // pump_left/pump_right → pump, breast_left/breast_right → feed 변환
+            const dbType = recordType === 'pump_left' || recordType === 'pump_right' ? 'pump'
+              : recordType === 'breast_left' || recordType === 'breast_right' ? 'feed'
+              : recordType
             await supabase.from('events').insert({
               child_id: childId,
               recorder_id: user.id,
-              type: recordType,
+              type: dbType,
               start_ts: startTs,
               end_ts: endTs,
               tags: activeSession.tags || undefined,
@@ -606,8 +641,8 @@ function BottomNavComponent() {
 
     // 토스트 표시 (세부 타입 라벨 우선)
     const sessionLabels: Record<string, string> = {
-      breast_left: '모유(왼)', breast_right: '모유(오)',
-      pump_left: '유축(왼)', pump_right: '유축(오)',
+      breast_left: '모유 왼쪽', breast_right: '모유 오른쪽',
+      pump_left: '유축 왼쪽', pump_right: '유축 오른쪽',
       bath: '목욕', sleep: '수면', nap: '낮잠', night_sleep: '밤잠',
       prep_meditate: '명상', prep_music: '음악감상',
       preg_stretch: '스트레칭', preg_meditate: '명상',
@@ -646,8 +681,8 @@ function BottomNavComponent() {
           // 1단계: 카테고리
           return (
             <>
-              <div className="fixed inset-0 z-[60] bg-black/50" onClick={() => { setFabOpen(false); setSelectedCategory(null); setSelectedItem(null); setTempSlider(null); setMemoItem(null); setMemoText('') }} />
-              <div className="fixed z-[70] bottom-[80px] left-1/2" style={{ maxWidth: 430 }}>
+              <div className="fixed inset-0 z-[60] bg-black/30" onClick={() => { setFabOpen(false); setSelectedCategory(null); setSelectedItem(null); setTempSlider(null); setMemoItem(null); setMemoText('') }} />
+              <div className="fixed z-[70] bottom-[80px] left-1/2 -translate-x-1/2" style={{ maxWidth: 430 }}>
                 <div className="relative" style={{ width: 0, height: 0 }}>
                   {DYNAMIC_CATEGORIES.map((cat, i) => (
                     <div key={cat.key} className="absolute flex flex-col items-center gap-1.5"
@@ -662,7 +697,7 @@ function BottomNavComponent() {
                         }
                         else if (cat.items.length === 1) handleQuickRecord(cat.items[0].type)
                         else setSelectedCategory(cat.key)
-                      }} className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.25)] active:scale-90 transition-transform bg-white">
+                      }} className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.35)] active:scale-90 transition-transform bg-white border-2 border-white">
                         {(() => {
                           const k = cat.key
                           const node =
@@ -682,7 +717,7 @@ function BottomNavComponent() {
                           return <span style={{ color: cat.color }}>{node}</span>
                         })()}
                       </button>
-                      <span className="text-[12px] font-bold text-white whitespace-nowrap bg-black/50 px-2 py-0.5 rounded-full">{cat.label}</span>
+                      <span className="text-caption font-bold whitespace-nowrap bg-white px-2 py-0.5 rounded-full shadow-md border border-[#E8E4DF]" style={{ color: '#000000' }}>{cat.label}</span>
                     </div>
                   ))}
                 </div>
@@ -706,7 +741,7 @@ function BottomNavComponent() {
 
           return (
             <>
-              <div className="fixed inset-0 z-[60] bg-black/50" onClick={() => { setFabOpen(false); setSelectedCategory(null); setTempSlider(null) }} />
+              <div className="fixed inset-0 z-[60] bg-black/30" onClick={() => { setFabOpen(false); setSelectedCategory(null); setTempSlider(null) }} />
               <div className="fixed z-[70] bottom-[80px] left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-[390px]">
                 <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.25)] p-5" style={{ animation: 'fabItemPop 0.25s both cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
 
@@ -714,9 +749,9 @@ function BottomNavComponent() {
                     <>
                       <div className="text-center mb-4">
                         <span className="text-[42px] font-bold tabular-nums" style={{ color: tempColor }}>{tempValue.toFixed(1)}</span>
-                        <span className="text-[18px] font-medium text-[#9E9A95] ml-1">°C</span>
-                        {isDanger && <p className="text-[12px] font-bold text-red-500 mt-1">고열 주의</p>}
-                        {isHigh && !isDanger && <p className="text-[12px] font-bold text-amber-500 mt-1">미열</p>}
+                        <span className="text-heading-3 font-medium text-tertiary ml-1">°C</span>
+                        {isDanger && <p className="text-caption font-bold text-red-500 mt-1">고열 주의</p>}
+                        {isHigh && !isDanger && <p className="text-caption font-bold text-amber-500 mt-1">미열</p>}
                       </div>
                       <div className="px-1 mb-4">
                         <input type="range" min={35.0} max={42.0} step={0.1} value={tempValue}
@@ -724,23 +759,23 @@ function BottomNavComponent() {
                           className="w-full h-2 rounded-full appearance-none cursor-pointer"
                           style={{ background: `linear-gradient(to right, #10B981 0%, #10B981 ${((37.5 - 35) / 7) * 100}%, #F59E0B ${((37.5 - 35) / 7) * 100}%, #F59E0B ${((38.5 - 35) / 7) * 100}%, #EF4444 ${((38.5 - 35) / 7) * 100}%, #EF4444 100%)` }}
                         />
-                        <div className="flex justify-between text-[10px] text-[#9E9A95] mt-1 px-0.5">
+                        <div className="flex justify-between text-label text-tertiary mt-1 px-0.5">
                           <span>35.0</span><span>36.5</span><span>37.5</span><span>38.5</span><span>42.0</span>
                         </div>
                       </div>
                       <div className="flex gap-1.5 mb-4">
                         {[36.5, 37.0, 37.5, 38.0, 38.5].map((v) => (
                           <button key={v} onClick={() => setTempValue(v)}
-                            className="flex-1 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95"
+                            className="flex-1 py-2 rounded-xl text-body font-bold transition-all active:scale-95"
                             style={{ backgroundColor: tempValue === v ? tempColor : '#F5F3F0', color: tempValue === v ? 'white' : '#6B6966' }}>
                             {v.toFixed(1)}
                           </button>
                         ))}
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-[14px] font-medium text-[#6B6966] bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
+                        <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-body-emphasis font-medium text-secondary bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
                         <button onClick={() => { handleQuickRecord('temp', { tags: { celsius: tempValue } }); setTempSlider(null) }}
-                          className="flex-[2] py-3 rounded-xl text-[14px] font-bold text-white active:scale-95 transition-transform" style={{ background: tempColor }}>
+                          className="flex-[2] py-3 rounded-xl text-body-emphasis font-bold text-white active:scale-95 transition-transform" style={{ background: tempColor }}>
                           {tempValue.toFixed(1)}°C 기록
                         </button>
                       </div>
@@ -751,7 +786,7 @@ function BottomNavComponent() {
                     <>
                       <div className="text-center mb-4">
                         <span className="text-[42px] font-bold tabular-nums" style={{ color: feedColor }}>{feedValue}</span>
-                        <span className="text-[18px] font-medium text-[#9E9A95] ml-1">ml</span>
+                        <span className="text-heading-3 font-medium text-tertiary ml-1">ml</span>
                       </div>
                       <div className="px-1 mb-4">
                         <input type="range" min={10} max={300} step={10} value={feedValue}
@@ -759,23 +794,23 @@ function BottomNavComponent() {
                           className="w-full h-2 rounded-full appearance-none cursor-pointer"
                           style={{ background: `linear-gradient(to right, var(--color-primary) ${((feedValue - 10) / 290) * 100}%, #E8E4DF ${((feedValue - 10) / 290) * 100}%)` }}
                         />
-                        <div className="flex justify-between text-[10px] text-[#9E9A95] mt-1 px-0.5">
+                        <div className="flex justify-between text-label text-tertiary mt-1 px-0.5">
                           <span>10</span><span>100</span><span>200</span><span>300ml</span>
                         </div>
                       </div>
                       <div className="flex gap-1.5 mb-4">
                         {[60, 90, 120, 150, 180, 240].map((v) => (
                           <button key={v} onClick={() => setFeedValue(v)}
-                            className="flex-1 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95"
+                            className="flex-1 py-2 rounded-xl text-body font-bold transition-all active:scale-95"
                             style={{ backgroundColor: feedValue === v ? 'var(--color-primary)' : '#F5F3F0', color: feedValue === v ? 'white' : '#6B6966' }}>
                             {v}
                           </button>
                         ))}
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-[14px] font-medium text-[#6B6966] bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
+                        <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-body-emphasis font-medium text-secondary bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
                         <button onClick={() => { handleQuickRecord('feed', { amount_ml: feedValue }); setTempSlider(null) }}
-                          className="flex-[2] py-3 rounded-xl text-[14px] font-bold text-white active:scale-95 transition-transform" style={{ background: 'var(--color-primary)' }}>
+                          className="flex-[2] py-3 rounded-xl text-body-emphasis font-bold text-white active:scale-95 transition-transform" style={{ background: 'var(--color-primary)' }}>
                           분유 {feedValue}ml 기록
                         </button>
                       </div>
@@ -786,7 +821,7 @@ function BottomNavComponent() {
                     <>
                       <div className="text-center mb-4">
                         <span className="text-[42px] font-bold tabular-nums" style={{ color: 'var(--color-primary)' }}>{weightValue.toFixed(1)}</span>
-                        <span className="text-[18px] font-medium text-[#9E9A95] ml-1">kg</span>
+                        <span className="text-heading-3 font-medium text-tertiary ml-1">kg</span>
                       </div>
                       <div className="px-1 mb-4">
                         <input type="range" min={40} max={120} step={0.1} value={weightValue}
@@ -794,23 +829,23 @@ function BottomNavComponent() {
                           className="w-full h-2 rounded-full appearance-none cursor-pointer"
                           style={{ background: `linear-gradient(to right, var(--color-primary) ${((weightValue - 40) / 80) * 100}%, #E8E4DF ${((weightValue - 40) / 80) * 100}%)` }}
                         />
-                        <div className="flex justify-between text-[10px] text-[#9E9A95] mt-1 px-0.5">
+                        <div className="flex justify-between text-label text-tertiary mt-1 px-0.5">
                           <span>40</span><span>60</span><span>80</span><span>100</span><span>120kg</span>
                         </div>
                       </div>
                       <div className="flex gap-1.5 mb-4">
                         {[50, 55, 60, 65, 70, 75].map((v) => (
                           <button key={v} onClick={() => setWeightValue(v)}
-                            className="flex-1 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95"
+                            className="flex-1 py-2 rounded-xl text-body font-bold transition-all active:scale-95"
                             style={{ backgroundColor: Math.abs(weightValue - v) < 0.05 ? 'var(--color-primary)' : '#F5F3F0', color: Math.abs(weightValue - v) < 0.05 ? 'white' : '#6B6966' }}>
                             {v}
                           </button>
                         ))}
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-[14px] font-medium text-[#6B6966] bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
+                        <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-body-emphasis font-medium text-secondary bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
                         <button onClick={() => { handleQuickRecord('preg_weight', { tags: { kg: weightValue } }); setTempSlider(null) }}
-                          className="flex-[2] py-3 rounded-xl text-[14px] font-bold text-white active:scale-95 transition-transform" style={{ background: 'var(--color-primary)' }}>
+                          className="flex-[2] py-3 rounded-xl text-body-emphasis font-bold text-white active:scale-95 transition-transform" style={{ background: 'var(--color-primary)' }}>
                           {weightValue.toFixed(1)}kg 기록
                         </button>
                       </div>
@@ -827,23 +862,23 @@ function BottomNavComponent() {
         if (memoItem) {
           return (
             <>
-              <div className="fixed inset-0 z-[60] bg-black/50" onClick={() => { setFabOpen(false); setSelectedCategory(null); setMemoItem(null); setMemoText('') }} />
+              <div className="fixed inset-0 z-[60] bg-black/30" onClick={() => { setFabOpen(false); setSelectedCategory(null); setMemoItem(null); setMemoText('') }} />
               <div className="fixed z-[70] bottom-[80px] left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-[390px]">
                 <div className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.25)] p-5" style={{ animation: 'fabItemPop 0.25s both cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
-                  <p className="text-[15px] font-bold text-[#1A1918] mb-3">투약 기록</p>
+                  <p className="text-subtitle text-primary mb-3">투약 기록</p>
                   <input
                     type="text" placeholder="약 이름 (선택)" value={memoText}
                     onChange={(e) => setMemoText(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-[#E8E4DF] bg-[#FAFAF8] text-[14px] text-[#1A1918] placeholder-[#C4C0BB] focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-4"
+                    className="w-full px-4 py-3 rounded-xl border border-[#E8E4DF] bg-[#FAFAF8] text-body-emphasis text-primary placeholder-[#C4C0BB] focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-4"
                     autoFocus
                   />
                   <div className="flex gap-2">
-                    <button onClick={() => { setMemoItem(null); setMemoText('') }} className="flex-1 py-3 rounded-xl text-[14px] font-medium text-[#6B6966] bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
+                    <button onClick={() => { setMemoItem(null); setMemoText('') }} className="flex-1 py-3 rounded-xl text-body-emphasis font-medium text-secondary bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
                     <button onClick={() => {
                       const extra: Record<string, unknown> = memoText.trim() ? { tags: { medicine: memoText.trim() } } : {}
                       handleQuickRecord('medication', extra)
                       setMemoItem(null); setMemoText('')
-                    }} className="flex-[2] py-3 rounded-xl text-[14px] font-bold text-white active:scale-95 transition-transform" style={{ background: '#D08068' }}>
+                    }} className="flex-[2] py-3 rounded-xl text-body-emphasis font-bold text-white active:scale-95 transition-transform" style={{ background: '#D08068' }}>
                       투약 기록
                     </button>
                   </div>
@@ -860,8 +895,8 @@ function BottomNavComponent() {
           const presets = item.step3
           return (
             <>
-              <div className="fixed inset-0 z-[60] bg-black/50" onClick={() => { setFabOpen(false); setSelectedCategory(null); setSelectedItem(null) }} />
-              <div className="fixed z-[70] bottom-[80px] left-1/2" style={{ maxWidth: 430 }}>
+              <div className="fixed inset-0 z-[60] bg-black/30" onClick={() => { setFabOpen(false); setSelectedCategory(null); setSelectedItem(null) }} />
+              <div className="fixed z-[70] bottom-[80px] left-1/2 -translate-x-1/2" style={{ maxWidth: 430 }}>
                 <div className="relative" style={{ width: 0, height: 0 }}>
                   {presets.map((p, i) => {
                     const presetArc = arcPositions(presets.length)
@@ -881,9 +916,9 @@ function BottomNavComponent() {
                           else extra.tags = { ...(extra.tags as any || {}), subtype: p.value }
                           handleQuickRecord(recordType, extra)
                         }} className="w-14 h-14 rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.25)] active:scale-90 transition-transform bg-white">
-                          <span className="text-[15px] font-bold text-[var(--color-primary)]">{p.label}</span>
+                          <span className="text-subtitle text-[var(--color-primary)]">{p.label}</span>
                         </button>
-                        <span className="text-[12px] font-bold text-white bg-black/50 px-1.5 py-0.5 rounded-full">{p.unit || ''}</span>
+                        <span className="text-caption font-bold bg-white px-1.5 py-0.5 rounded-full shadow-md border border-[#E8E4DF]" style={{ color: '#000000' }}>{p.unit || ''}</span>
                       </div>
                     )
                   })}
@@ -898,7 +933,7 @@ function BottomNavComponent() {
         if (!cat) return null
         return (
           <>
-            <div className="fixed inset-0 z-[60] bg-black/50" onClick={() => { setFabOpen(false); setSelectedCategory(null) }} />
+            <div className="fixed inset-0 z-[60] bg-black/30" onClick={() => { setFabOpen(false); setSelectedCategory(null) }} />
             <div className="fixed z-[70] bottom-[80px] left-1/2" style={{ maxWidth: 430 }}>
               <div className="relative" style={{ width: 0, height: 0 }}>
                 {cat.items.map((item, i) => {
@@ -929,7 +964,7 @@ function BottomNavComponent() {
                           if (item.tags) extra.tags = item.tags
                           handleQuickRecord(recordType, extra)
                         }
-                      }} className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.25)] active:scale-90 transition-transform bg-white">
+                      }} className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.35)] active:scale-90 transition-transform bg-white border-2 border-white">
                         {(() => {
                           const t = item.type
                           const node =
@@ -977,7 +1012,7 @@ function BottomNavComponent() {
                           return <span style={{ color: item.color || cat.color }}>{node}</span>
                         })()}
                       </button>
-                      <span className="text-[12px] font-bold text-white whitespace-nowrap bg-black/50 px-2 py-0.5 rounded-full">{item.label}</span>
+                      <span className="text-caption font-bold whitespace-nowrap bg-white px-2 py-0.5 rounded-full shadow-md border border-[#E8E4DF]" style={{ color: '#000000' }}>{item.label}</span>
                     </div>
                   )
                 })}
@@ -988,7 +1023,7 @@ function BottomNavComponent() {
       })()}
 
       {/* BNB 바 — Pill Style */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[65] pt-3 pr-5 pb-[max(20px,env(safe-area-inset-bottom))] pl-5" style={{ overflow: 'visible' }}>
+      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[65] px-5 pb-[env(safe-area-inset-bottom)]" style={{ overflow: 'visible' }}>
         <div className="flex items-center h-[62px] rounded-[36px] bg-white/95 backdrop-blur-lg border border-[#E8E4DF]/60 p-1" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.08)', overflow: 'visible' }}>
           <>
               {tabs.slice(0, 2).map((tab) => (
@@ -1012,19 +1047,18 @@ function BottomNavComponent() {
                         animation: 'fabSessionPulse 2s ease-in-out infinite',
                       }}
                     >
-                      <span className="text-white text-[15px] font-bold tabular-nums leading-tight">
+                      <span className="text-white text-subtitle tabular-nums leading-tight">
                         {formatElapsed(elapsed)}
                       </span>
                       <span className="text-white/90 text-[9px] font-semibold leading-tight">종료</span>
                     </div>
-                    <span className="text-[10px] mt-0.5 font-medium whitespace-nowrap" style={{ color: activeSession.color }}>
+                    <span className="text-label mt-0.5 font-medium whitespace-nowrap" style={{ color: activeSession.color }}>
                       {activeSession.label}
                     </span>
                   </button>
                 ) : (
                   <button
                     onClick={() => {
-                      if (process.env.NODE_ENV === 'development') console.log('FAB clicked', { memoItem, tempSlider, selectedItem, selectedCategory, fabOpen })
                       if (navigator.vibrate) navigator.vibrate(30)
                       if (memoItem) { setMemoItem(null); setMemoText('') }
                       else if (tempSlider) setTempSlider(null)
@@ -1053,7 +1087,7 @@ function BottomNavComponent() {
                         <div className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-white" style={{ animation: 'fabSparkle 2.5s ease-in-out infinite', boxShadow: '0 0 4px rgba(255,255,255,0.8)' }} />
                       </div>
                     )}
-                    <span className={`text-[10px] mt-0.5 font-medium ${fabOpen ? 'text-[#212124]' : 'text-[var(--color-primary)]'}`}>
+                    <span className={`text-label mt-0.5 font-medium ${fabOpen ? 'text-primary' : 'text-[var(--color-primary)]'}`}>
                       기록
                     </span>
                   </button>
@@ -1100,7 +1134,7 @@ function BottomNavComponent() {
             onClick={e => e.stopPropagation()}>
             <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
             <div className="px-5 pb-5">
-              <p className="text-[15px] font-bold text-[#1A1918] mb-3 flex items-center gap-1.5">
+              <p className="text-subtitle text-primary mb-3 flex items-center gap-1.5">
                 <BookOpenIcon className="w-4 h-4" />
                 기다림 일기
               </p>
@@ -1110,14 +1144,14 @@ function BottomNavComponent() {
                   : ['아이에게 한마디', '오늘의 감사', '나에게 응원', '임신 기원', '기다림의 마음']
                 ).map(chip => (
                   <button key={chip} onClick={() => setJournalText(prev => prev ? prev + ' ' + chip : chip)}
-                    className="shrink-0 px-3 py-1.5 rounded-full bg-[#F0EBFF] text-[12px] font-medium text-[#7C3AED]">{chip}</button>
+                    className="shrink-0 px-3 py-1.5 rounded-full bg-[#F0EBFF] text-caption font-medium text-[#7C3AED]">{chip}</button>
                 ))}
               </div>
               <textarea value={journalText} onChange={e => setJournalText(e.target.value.slice(0, 500))}
                 placeholder={journalType === 'preg_journal' ? '우리 아기에게, 오늘의 마음을 전해요' : '아직 만나지 못한 아이에게, 오늘의 마음을 전해요'}
-                className="w-full h-28 text-[14px] p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[#A78BFA]"
+                className="w-full h-28 text-body-emphasis p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[#A78BFA]"
                 autoFocus />
-              <p className="text-right text-[12px] text-[#9E9A95] mt-1">{journalText.length}/500</p>
+              <p className="text-right text-caption text-tertiary mt-1">{journalText.length}/500</p>
               <button onClick={async () => {
                 if (!journalText.trim()) return
                 const storageKey = journalType === 'preg_journal' ? 'dodam_preg_diary' : 'dodam_prep_journal'
@@ -1162,7 +1196,7 @@ function BottomNavComponent() {
                   setJournalLoading(false)
                 }
               }} disabled={!journalText.trim() || journalLoading}
-                className={`w-full py-3.5 rounded-xl text-[15px] font-bold mt-2 ${journalText.trim() && !journalLoading ? 'text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}
+                className={`w-full py-3.5 rounded-xl text-subtitle mt-2 ${journalText.trim() && !journalLoading ? 'text-white' : 'bg-[#E8E4DF] text-tertiary'}`}
                 style={journalText.trim() && !journalLoading ? { background: '#A78BFA' } : {}}>
                 {journalLoading ? '저장 중...' : '저장하기'}
               </button>
@@ -1196,8 +1230,8 @@ const GRID_ICON_MAP: Record<string, React.ReactNode> = {
   note: <NoteIcon className="w-6 h-6" />,
 }
 
-function RecordGrid({ onRecord }: { onRecord: (type: string, extra?: Record<string, unknown>) => void }) {
-  const ALL_ITEMS = buildCategories(getAgeMonths()).flatMap(cat => cat.items.map(item => ({ ...item, catColor: cat.color })))
+function RecordGrid({ onRecord, ageMonths }: { onRecord: (type: string, extra?: Record<string, unknown>) => void; ageMonths: number }) {
+  const ALL_ITEMS = buildCategories(ageMonths).flatMap(cat => cat.items.map(item => ({ ...item, catColor: cat.color })))
   return (
     <div className="grid grid-cols-4 gap-2">
       {ALL_ITEMS.map(item => (
@@ -1208,7 +1242,7 @@ function RecordGrid({ onRecord }: { onRecord: (type: string, extra?: Record<stri
           onRecord(recordType, extra)
         }} className="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-[var(--color-page-bg)] active:bg-[#ECECEC] active:scale-95">
           <span className="text-xl" style={{ color: item.catColor }}>{GRID_ICON_MAP[item.type] || <NoteIcon className="w-6 h-6" />}</span>
-          <span className="text-[13px] font-medium text-[#1A1918]">{item.label}</span>
+          <span className="text-body font-medium text-primary">{item.label}</span>
         </button>
       ))}
     </div>
@@ -1229,8 +1263,8 @@ function NavTab({ tab, pathname, 'data-guide': dataGuide }: { tab: Tab; pathname
         isActive ? 'bg-[var(--color-primary)]' : ''
       }`}
     >
-      <Icon className={`w-[18px] h-[18px] transition-colors ${isActive ? 'text-white' : 'text-[#9E9A95]'}`} />
-      <span className={`text-[10px] font-medium transition-colors uppercase tracking-wide ${isActive ? 'text-white' : 'text-[#9E9A95]'}`}>
+      <Icon className={`w-[18px] h-[18px] transition-colors ${isActive ? 'text-white' : 'text-tertiary'}`} />
+      <span className={`text-label font-medium transition-colors uppercase tracking-wide ${isActive ? 'text-white' : 'text-tertiary'}`}>
         {tab.label}
       </span>
     </Link>

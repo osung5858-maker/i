@@ -18,14 +18,14 @@ export default function FeedSheet({ open, onClose, onSelect }: Props) {
           <button
             key={ml}
             onClick={() => onSelect(ml)}
-            className="h-12 rounded-xl bg-[#f5f5f5] text-sm font-semibold text-[#0A0B0D] active:bg-[#0052FF] active:text-white transition-colors"
+            className="h-12 rounded-xl bg-[#f5f5f5] text-sm font-semibold text-primary active:bg-[#0052FF] active:text-white transition-colors"
           >
             {ml}ml
           </button>
         ))}
         <button
           onClick={() => onSelect(null)}
-          className="h-12 rounded-xl bg-[#f5f5f5] text-sm font-medium text-[#9B9B9B] active:bg-[#0052FF] active:text-white transition-colors"
+          className="h-12 rounded-xl bg-[#f5f5f5] text-sm font-medium text-tertiary active:bg-[#0052FF] active:text-white transition-colors"
         >
           건너뛰기
         </button>

@@ -42,9 +42,9 @@ export default function MonthlyCalendar({ events }: Props) {
   return (
     <div className="bg-white rounded-2xl p-4 border border-[#E8E4DF]">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[14px] font-bold text-[#212124] flex items-center gap-1"><CalendarIcon className="w-4 h-4" /> {monthName} 도담 스토리</h3>
+        <h3 className="text-body-emphasis font-bold text-primary flex items-center gap-1"><CalendarIcon className="w-4 h-4" /> {monthName} 도담 스토리</h3>
         <div className="flex items-center gap-1.5">
-          <span className={`text-[14px] font-bold ${rate === 100 ? 'text-[var(--color-primary)]' : 'text-[#212124]'}`}>
+          <span className={`text-body-emphasis font-bold ${rate === 100 ? 'text-[var(--color-primary)]' : 'text-primary'}`}>
             {rate}%
           </span>
           {rate === 100 && <TrophyIcon className="w-4 h-4 text-[var(--color-primary)]" />}
@@ -54,7 +54,7 @@ export default function MonthlyCalendar({ events }: Props) {
       {/* 요일 헤더 */}
       <div className="grid grid-cols-7 gap-1 mb-1">
         {WEEKDAYS.map((d) => (
-          <div key={d} className="text-center text-[13px] text-[#9E9A95] font-medium">{d}</div>
+          <div key={d} className="text-center text-body text-tertiary font-medium">{d}</div>
         ))}
       </div>
 
@@ -75,14 +75,14 @@ export default function MonthlyCalendar({ events }: Props) {
           return (
             <div
               key={dateStr}
-              className={`aspect-square rounded-lg flex items-center justify-center text-[14px] font-medium transition-colors ${
+              className={`aspect-square rounded-lg flex items-center justify-center text-body-emphasis font-medium transition-colors ${
                 isToday
                   ? 'bg-[var(--color-primary)] text-white font-bold'
                   : hasRecord
                     ? 'bg-[var(--color-accent-bg)] text-[var(--color-primary)]'
                     : isPast
-                      ? 'bg-[#FFF0E6] text-[#D89575]'
-                      : 'bg-[#F0EDE8] text-[#9E9A95]'
+                      ? 'bg-[var(--color-primary-bg)] text-[var(--color-primary)]/60'
+                      : 'bg-[var(--color-surface-alt)] text-tertiary'
               }`}
             >
               {day}
@@ -95,20 +95,20 @@ export default function MonthlyCalendar({ events }: Props) {
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1">
           <div className="w-2.5 h-2.5 rounded-sm bg-[var(--color-accent-bg)]" />
-          <span className="text-[13px] text-[#6B6966]">기록 있음</span>
+          <span className="text-body text-secondary">기록 있음</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-sm bg-[#FFF0E6]" />
-          <span className="text-[13px] text-[#6B6966]">빈 날</span>
+          <div className="w-2.5 h-2.5 rounded-sm bg-[var(--color-primary-bg)]" />
+          <span className="text-body text-secondary">빈 날</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-sm bg-[#F0EDE8]" />
-          <span className="text-[13px] text-[#6B6966]">미래</span>
+          <div className="w-2.5 h-2.5 rounded-sm bg-[var(--color-surface-alt)]" />
+          <span className="text-body text-secondary">미래</span>
         </div>
       </div>
 
       {rate < 100 && pastDates.length > 0 && (
-        <p className="text-center text-[13px] text-[#6B6966] mt-2">
+        <p className="text-center text-body text-secondary mt-2">
           {rate >= 90
             ? `완벽한 ${monthName}까지 ${pastDates.length - recordedCount}일만 채우면 돼요!`
             : `${monthName}에 ${recordedCount}일 기록했어요`

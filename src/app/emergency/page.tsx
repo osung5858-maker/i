@@ -193,25 +193,25 @@ export default function EmergencyPage() {
               <p className="text-sm text-white/70">소아과 · 어린이병원 · 대학병원 응급실</p>
             </div>
           </div>
-          <a href="tel:119" className="block w-full py-2.5 bg-white rounded-xl text-center text-[#E53935] font-bold text-[14px] active:opacity-80 mb-2">
+          <a href="tel:119" className="block w-full py-2.5 bg-white rounded-xl text-center text-[#E53935] font-bold text-body-emphasis active:opacity-80 mb-2">
             119 응급 전화 바로 걸기
           </a>
           <div className="grid grid-cols-2 gap-1.5 mb-2">
-            <a href="tel:1339" className="block py-2 bg-white/20 rounded-lg text-center text-white text-[13px] font-semibold active:opacity-70">
+            <a href="tel:1339" className="block py-2 bg-white/20 rounded-lg text-center text-white text-body font-semibold active:opacity-70">
               응급의료정보 1339
             </a>
-            <a href="tel:15779060" className="block py-2 bg-white/20 rounded-lg text-center text-white text-[13px] font-semibold active:opacity-70">
+            <a href="tel:15779060" className="block py-2 bg-white/20 rounded-lg text-center text-white text-body font-semibold active:opacity-70">
               중독신고 1577-9060
             </a>
-            <a href="tel:15771391" className="block py-2 bg-white/20 rounded-lg text-center text-white text-[13px] font-semibold active:opacity-70">
+            <a href="tel:15771391" className="block py-2 bg-white/20 rounded-lg text-center text-white text-body font-semibold active:opacity-70">
               아동학대 1577-1391
             </a>
-            <a href="tel:#7575" className="block py-2 bg-white/20 rounded-lg text-center text-white text-[13px] font-semibold active:opacity-70">
+            <a href="tel:#7575" className="block py-2 bg-white/20 rounded-lg text-center text-white text-body font-semibold active:opacity-70">
               야간소아상담 #7575
             </a>
           </div>
           <div className="bg-white/15 rounded-lg px-3 py-2">
-            <p className="text-[14px] text-white/80 leading-relaxed">아래 목록은 참고용입니다. 정확하지 않을 수 있으니 방문 전 전화로 확인해주세요. 응급 상황에는 119를 먼저 이용해주세요.</p>
+            <p className="text-body-emphasis text-white/80 leading-relaxed">아래 목록은 참고용입니다. 정확하지 않을 수 있으니 방문 전 전화로 확인해주세요. 응급 상황에는 119를 먼저 이용해주세요.</p>
           </div>
         </div>
       </div>
@@ -220,7 +220,7 @@ export default function EmergencyPage() {
         {/* 공동양육자 알림 배너 */}
         {notified && (
           <div className="mx-4 mb-2 p-3 rounded-xl bg-blue-50 border border-blue-200">
-            <p className="text-[14px] text-blue-700 font-medium">
+            <p className="text-body-emphasis text-blue-700 font-medium">
               공동양육자에게 응급 알림을 보냈어요 (앱 내 알림 + 카카오톡)
             </p>
           </div>
@@ -246,23 +246,23 @@ export default function EmergencyPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-10 h-10 border-3 border-[#E53935]/20 border-t-[#E53935] rounded-full animate-spin" />
-            <p className="text-sm text-[#9B9B9B] mt-3">주변 소아과를 찾고 있어요...</p>
+            <p className="text-sm text-tertiary mt-3">주변 소아과를 찾고 있어요...</p>
           </div>
         ) : clinics.length === 0 ? (
           /* 결과 없음 */
           <div className="flex flex-col items-center justify-center py-16 mx-4">
             <div className="w-16 h-16 rounded-2xl bg-[#f0f0f0] flex items-center justify-center mb-4">
-              <MapIcon className="w-8 h-8 text-[#9B9B9B]" />
+              <MapIcon className="w-8 h-8 text-tertiary" />
             </div>
-            <p className="text-base font-semibold text-[#0A0B0D]">근처에 영업 중인 소아과가 없어요</p>
-            <p className="text-sm text-[#9B9B9B] mt-1">검색 범위를 넓혀볼까요?</p>
+            <p className="text-base font-semibold text-primary">근처에 영업 중인 소아과가 없어요</p>
+            <p className="text-sm text-tertiary mt-1">검색 범위를 넓혀볼까요?</p>
             <div className="flex gap-3 mt-4">
               <button
                 onClick={() => setRadius(5)}
                 className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 ${
                   radius === 5
                     ? 'bg-[var(--color-primary)] text-white'
-                    : 'bg-white border border-[#E8E4DF] text-[#0A0B0D]'
+                    : 'bg-white border border-[#E8E4DF] text-primary'
                 }`}
               >
                 5km
@@ -272,7 +272,7 @@ export default function EmergencyPage() {
                 className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 ${
                   radius === 10
                     ? 'bg-[var(--color-primary)] text-white'
-                    : 'bg-white border border-[#E8E4DF] text-[#0A0B0D]'
+                    : 'bg-white border border-[#E8E4DF] text-primary'
                 }`}
               >
                 10km
@@ -286,7 +286,7 @@ export default function EmergencyPage() {
             <div className="flex gap-1.5 mb-3 overflow-x-auto hide-scrollbar">
               {EMERGENCY_CATEGORIES.map(c => (
                 <button key={c.key} onClick={() => setCategory(c.key)}
-                  className={`shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-colors ${category === c.key ? 'bg-[#E53935] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-caption font-semibold transition-colors ${category === c.key ? 'bg-[#E53935] text-white' : 'bg-white text-secondary border border-[#E8E4DF]'}`}>
                   {c.label} {c.key !== 'all' && `(${clinics.filter(cl => c.key === 'pediatric' ? cl.tag === '소아과' : c.key === 'hospital' ? cl.tag === '어린이병원' : cl.tag === '응급실').length})`}
                 </button>
               ))}
@@ -303,14 +303,14 @@ export default function EmergencyPage() {
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
-                      <h3 className="text-[15px] font-bold text-[#0A0B0D]">{clinic.name}</h3>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                      <h3 className="text-subtitle text-primary">{clinic.name}</h3>
+                      <span className={`text-label px-1.5 py-0.5 rounded-full font-bold ${
                         clinic.tag === '응급실' ? 'bg-[#FDE8E8] text-[#D05050]' :
                         clinic.tag === '어린이병원' ? 'bg-[#FFF0E6] text-[#C4913E]' :
                         'bg-[#E8F5EE] text-[#2D7A4A]'
                       }`}>{clinic.tag}</span>
                     </div>
-                    <p className="text-[12px] text-[#6B6966]">{clinic.address}</p>
+                    <p className="text-caption text-secondary">{clinic.address}</p>
                   </div>
                   <span className="text-lg font-bold text-[#E53935] shrink-0 ml-2">
                     {clinic.distance_km}km
@@ -318,7 +318,7 @@ export default function EmergencyPage() {
                 </div>
 
                 {/* 주소 */}
-                <p className="text-xs text-[#9B9B9B] mb-3">{clinic.address}</p>
+                <p className="text-xs text-tertiary mb-3">{clinic.address}</p>
 
                 {/* 버튼 */}
                 <div className="flex gap-2">
@@ -344,7 +344,7 @@ export default function EmergencyPage() {
         {/* 반경 선택 */}
         {clinics.length > 0 && (
           <div className="flex items-center justify-center gap-2 mt-4">
-            <span className="text-xs text-[#9B9B9B]">검색 범위:</span>
+            <span className="text-xs text-tertiary">검색 범위:</span>
             {[3, 5, 10].map((r) => (
               <button
                 key={r}
@@ -352,7 +352,7 @@ export default function EmergencyPage() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   radius === r
                     ? 'bg-[#E53935] text-white'
-                    : 'bg-white text-[#9B9B9B] border border-[#E8E4DF]'
+                    : 'bg-white text-tertiary border border-[#E8E4DF]'
                 }`}
               >
                 {r}km

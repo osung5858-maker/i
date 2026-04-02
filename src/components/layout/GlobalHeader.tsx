@@ -169,68 +169,81 @@ function GlobalHeaderComponent() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white" style={{ boxShadow: 'var(--shadow-md)' }}>
-        <div className="flex items-center justify-between max-w-lg mx-auto w-full" style={{ height: '72px', padding: '0 var(--spacing-5)' }}>
-          {/* 좌측: 유저 프로필 + 텍스트 */}
-          <div className="flex items-center min-w-0" style={{ gap: 'var(--spacing-3)' }}>
-            {/* 유저 프로필 아바타 */}
-            <Link
-              href="/settings"
-              className="w-11 h-11 rounded-full overflow-hidden relative shrink-0 active:opacity-80"
-              style={{ backgroundColor: 'var(--surface-tertiary)' }}
-              aria-label="설정으로 이동"
-            >
-              {data?.userAvatar ? (
-                <Image src={data.userAvatar} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg, #F2C4A0 0%, #D08068 100%)' }}>
-                  <span className="text-white font-bold" style={{ fontSize: 'var(--text-lg)' }}>{data?.userName?.charAt(0) || '나'}</span>
-                </div>
-              )}
-            </Link>
-
-            {/* 텍스트 */}
-            <Link href={homeHref} className="flex flex-col min-w-0 active:opacity-70" style={{ gap: '2px' }}>
-              {mode === 'parenting' && (
-                <>
-                  <span className="text-caption" style={{ lineHeight: 'var(--leading-tight)' }}>{getGreeting()}</span>
-                  <span className="text-subtitle" style={{ lineHeight: 'var(--leading-tight)' }}>{data.name} · {getDaysOld() ?? 0}일</span>
-                </>
-              )}
-              {mode === 'pregnant' && (
-                <>
-                  <span className="text-caption" style={{ lineHeight: 'var(--leading-tight)' }}>{data.trimester} · D-{data.daysLeft}</span>
-                  <span className="text-subtitle" style={{ lineHeight: 'var(--leading-tight)' }}>{data.week}주차</span>
-                </>
-              )}
-              {mode === 'preparing' && (
-                <>
-                  <span className="text-[12px] text-[#9E9A95] leading-tight">{data.phase || '임신 준비'}</span>
-                  <span className="text-[15px] font-bold text-[#1A1918] leading-tight">{data.cycleDay ? `주기 ${data.cycleDay}일째` : '임신 준비 중'}</span>
-                </>
-              )}
-            </Link>
-          </div>
-
-          {/* 우측: 야간 + 알림 */}
-          <div className="flex items-center gap-2 shrink-0">
-            {mode === 'parenting' && isNight && (
-              <Link href="/lullaby" className="w-8 h-8 rounded-full bg-[#1A1918] flex items-center justify-center active:opacity-80">
-                <MoonIcon className="w-3.5 h-3.5 text-white" />
+      {/* 카드 플로팅형 헤더 */}
+      <header className="sticky top-0 z-40 pointer-events-none" style={{
+        paddingTop: '12px'
+      }}>
+        <div className="max-w-lg mx-auto w-full px-4 pointer-events-auto">
+          <div className="bg-white rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.08)]" style={{
+            height: '72px',
+            padding: '0 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            {/* 좌측: 아바타 + 텍스트 */}
+            <div className="flex items-center min-w-0" style={{ gap: '12px' }}>
+              {/* 아바타 */}
+              <Link
+                href="/settings"
+                className="w-11 h-11 rounded-full overflow-hidden relative shrink-0 active:opacity-80"
+                style={{ backgroundColor: 'var(--surface-tertiary)' }}
+                aria-label="설정으로 이동"
+              >
+                {data?.userAvatar ? (
+                  <Image src={data.userAvatar} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center"
+                    style={{ background: 'linear-gradient(135deg, #F2C4A0 0%, #D08068 100%)' }}>
+                    <span className="text-white font-bold" style={{ fontSize: '18px' }}>{data?.userName?.charAt(0) || '나'}</span>
+                  </div>
+                )}
               </Link>
-            )}
-            <Link
-              href="/notifications"
-              className="relative w-8 h-8 rounded-full bg-[#F0EDE8] flex items-center justify-center active:bg-[#ECECEC]"
-            >
-              <BellIcon className="w-4 h-4 text-[#212124]" />
-              {(unreadCount + smartAlertCount) > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-[#FF4D4D] rounded-full border-2 border-white" />
+
+              {/* 텍스트 */}
+              <Link href={homeHref} className="flex flex-col min-w-0 active:opacity-70" style={{ gap: '2px' }}>
+                {mode === 'parenting' && (
+                  <>
+                    <span className="text-[12px] font-medium text-[#6D6C6A] leading-tight">{getGreeting()}</span>
+                    <span className="text-[15px] font-semibold text-[#1A1918] leading-tight">{data.name} · {getDaysOld() ?? 0}일</span>
+                  </>
+                )}
+                {mode === 'pregnant' && (
+                  <>
+                    <span className="text-[12px] font-medium text-[#6D6C6A] leading-tight">{data.trimester} · D-{data.daysLeft}</span>
+                    <span className="text-[15px] font-semibold text-[#1A1918] leading-tight">{data.week}주차</span>
+                  </>
+                )}
+                {mode === 'preparing' && (
+                  <>
+                    <span className="text-[12px] font-medium text-[#6D6C6A] leading-tight">{data.phase || '임신 준비'}</span>
+                    <span className="text-[15px] font-semibold text-[#1A1918] leading-tight">{data.cycleDay ? `주기 ${data.cycleDay}일째` : '임신 준비 중'}</span>
+                  </>
+                )}
+              </Link>
+            </div>
+
+            {/* 우측: 야간 + 알림 */}
+            <div className="flex items-center gap-2 shrink-0">
+              {mode === 'parenting' && isNight && (
+                <Link href="/lullaby" className="w-9 h-9 rounded-full bg-[#1A1918] flex items-center justify-center active:opacity-80 shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
+                  <MoonIcon className="w-4 h-4 text-white" />
+                </Link>
               )}
-            </Link>
+              <Link
+                href="/notifications"
+                className="relative w-9 h-9 rounded-full bg-[#F5F4F1] flex items-center justify-center active:bg-[#ECECEC]"
+              >
+                <BellIcon className="w-[18px] h-[18px] text-primary" />
+                {(unreadCount + smartAlertCount) > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-[9px] h-[9px] bg-[#D08068] rounded-full border-2 border-white" />
+                )}
+              </Link>
+            </div>
           </div>
         </div>
+        {/* 하단 여백 */}
+        <div style={{ height: '12px' }} />
       </header>
 
       {/* 아바타 선택 바텀시트 */}
@@ -243,9 +256,9 @@ function GlobalHeaderComponent() {
             <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
 
             <div className="px-5 pb-2 flex items-center justify-between">
-              <p className="text-[15px] font-bold text-[#1A1918]">프로필 사진 변경</p>
+              <p className="text-subtitle text-primary">프로필 사진 변경</p>
               <button onClick={() => setShowAvatarPicker(false)} className="w-8 h-8 rounded-full bg-[#F0EDE8] flex items-center justify-center">
-                <XIcon className="w-4 h-4 text-[#6B6966]" />
+                <XIcon className="w-4 h-4 text-secondary" />
               </button>
             </div>
 
@@ -277,7 +290,7 @@ function GlobalHeaderComponent() {
             <div className="px-5 pb-[max(20px,env(safe-area-inset-bottom))]">
               <button
                 onClick={() => handleAvatarSave(selectedAvatar || PROFILE_AVATARS[0])}
-                className="w-full py-3 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold active:opacity-80"
+                className="w-full py-3 rounded-xl bg-[var(--color-primary)] text-white active:opacity-80"
               >
                 이 사진으로 변경하기
               </button>

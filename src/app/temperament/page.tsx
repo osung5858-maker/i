@@ -26,14 +26,14 @@ function getAgeMonths(birthdate: string): number {
 function ScoreBar({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="text-[13px] text-[#6B6966] w-14 shrink-0">{label}</span>
+      <span className="text-body text-secondary w-14 shrink-0">{label}</span>
       <div className="flex-1 h-3 bg-[#F0EDE8] rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"
           style={{ width: `${Math.min(100, Math.max(5, value))}%`, backgroundColor: color }}
         />
       </div>
-      <span className="text-[13px] font-semibold text-[#1A1918] w-8 text-right">{value}</span>
+      <span className="text-body font-semibold text-primary w-8 text-right">{value}</span>
     </div>
   )
 }
@@ -192,33 +192,33 @@ export default function TemperamentPage() {
         {/* Intro */}
         {!result && !analyzing && (
           <div className="pt-8 text-center space-y-4">
-            <h2 className="text-[18px] font-bold text-[#1A1918]">
+            <h2 className="text-heading-3 text-primary">
               {child?.name ? `${child.name}의 기질 유형은?` : '우리 아이 기질 유형은?'}
             </h2>
-            <p className="text-[14px] text-[#6B6966] leading-relaxed">
+            <p className="text-body-emphasis text-secondary leading-relaxed">
               수면, 수유, 활동 패턴을 AI가 분석해서<br />아이의 기질 유형을 알려드려요.
             </p>
             {error && (
-              <div className="bg-[#FFF5F5] border border-[#FFCCC7] rounded-xl p-4 text-[13px] text-[#D05050]">
+              <div className="bg-[#FFF5F5] border border-[#FFCCC7] rounded-xl p-4 text-body text-[#D05050]">
                 {error}
               </div>
             )}
             <button
               onClick={analyze}
-              className="w-full py-3.5 rounded-xl font-semibold text-white text-[15px]"
+              className="w-full py-3.5 rounded-xl font-semibold text-white text-subtitle"
               style={{ backgroundColor: 'var(--color-primary)' }}
             >
               기질 분석 시작하기
             </button>
-            <p className="text-[12px] text-[#9E9A95]">최근 30일 기록을 기반으로 분석해요 (최소 7일 필요)</p>
+            <p className="text-caption text-tertiary">최근 30일 기록을 기반으로 분석해요 (최소 7일 필요)</p>
           </div>
         )}
 
         {/* Analyzing */}
         {analyzing && (
           <div className="pt-16 text-center space-y-4">
-            <p className="text-[15px] font-semibold text-[#1A1918]">패턴을 분석하고 있어요...</p>
-            <p className="text-[13px] text-[#6B6966]">{dayCount}일간의 기록을 살펴보는 중</p>
+            <p className="text-subtitle text-primary">패턴을 분석하고 있어요...</p>
+            <p className="text-body text-secondary">{dayCount}일간의 기록을 살펴보는 중</p>
             <div className="w-8 h-8 border-3 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto" />
           </div>
         )}
@@ -231,19 +231,19 @@ export default function TemperamentPage() {
               className="rounded-2xl p-6 text-center space-y-3"
               style={{ backgroundColor: (typeColors[result.type] || '#FFB347') + '15' }}
             >
-              <h2 className="text-[20px] font-bold text-[#1A1918]">{result.title}</h2>
+              <h2 className="text-heading-2 text-primary">{result.title}</h2>
               <div
-                className="inline-block px-4 py-1.5 rounded-full text-[13px] font-semibold text-white"
+                className="inline-block px-4 py-1.5 rounded-full text-body font-semibold text-white"
                 style={{ backgroundColor: typeColors[result.type] || '#FFB347' }}
               >
                 {result.type}
               </div>
-              <p className="text-[14px] text-[#4A4845] leading-relaxed">{result.description}</p>
+              <p className="text-body-emphasis text-[#4A4845] leading-relaxed">{result.description}</p>
             </div>
 
             {/* Scores */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-3">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">기질 분석 차트</h3>
+              <h3 className="text-subtitle text-primary">기질 분석 차트</h3>
               <ScoreBar label="규칙성" value={result.scores.regularity} color="#FFB347" />
               <ScoreBar label="활동량" value={result.scores.activity} color="#4ECDC4" />
               <ScoreBar label="적응성" value={result.scores.adaptability} color="#7B68EE" />
@@ -252,12 +252,12 @@ export default function TemperamentPage() {
 
             {/* Strengths */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-3">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">우리 아이 강점</h3>
+              <h3 className="text-subtitle text-primary">우리 아이 강점</h3>
               <div className="space-y-2">
                 {result.strengths.map((s, i) => (
                   <div key={i} className="flex items-start gap-2">
                     <span className="text-[var(--color-primary)] mt-0.5">•</span>
-                    <p className="text-[14px] text-[#4A4845]">{s}</p>
+                    <p className="text-body-emphasis text-[#4A4845]">{s}</p>
                   </div>
                 ))}
               </div>
@@ -265,12 +265,12 @@ export default function TemperamentPage() {
 
             {/* Parenting Tips */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-3">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">육아 꿀팁</h3>
+              <h3 className="text-subtitle text-primary">육아 꿀팁</h3>
               <div className="space-y-2">
                 {result.parentingTips.map((t, i) => (
                   <div key={i} className="flex items-start gap-2">
-                    <span className="bg-[var(--color-primary-bg)] text-[var(--color-primary)] text-[12px] font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                    <p className="text-[14px] text-[#4A4845]">{t}</p>
+                    <span className="bg-[var(--color-primary-bg)] text-[var(--color-primary)] text-caption font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                    <p className="text-body-emphasis text-[#4A4845]">{t}</p>
                   </div>
                 ))}
               </div>
@@ -278,13 +278,13 @@ export default function TemperamentPage() {
 
             {/* Fun Fact */}
             <div className="bg-[#FFF8F0] rounded-xl p-4">
-              <p className="text-[13px] text-[#8B7355]">{result.funFact}</p>
+              <p className="text-body text-[#8B7355]">{result.funFact}</p>
             </div>
 
             {/* Retry */}
             <button
               onClick={() => { setResult(null); analyze() }}
-              className="w-full py-3 rounded-xl font-semibold text-[var(--color-primary)] border-2 border-[var(--color-primary)] text-[15px]"
+              className="w-full py-3 rounded-xl font-semibold text-[var(--color-primary)] border-2 border-[var(--color-primary)] text-subtitle"
             >
               다시 분석하기
             </button>

@@ -77,10 +77,10 @@ export default function EmergencyCard({ events }: Props) {
       <div className="flex items-start gap-3">
         <span className="shrink-0"><AlertIcon className={`w-5 h-5 ${isCritical ? 'text-red-600' : 'text-orange-600'}`} /></span>
         <div className="flex-1">
-          <p className={`text-[14px] font-bold ${isCritical ? 'text-red-600' : 'text-orange-600'}`}>
+          <p className={`text-body-emphasis font-bold ${isCritical ? 'text-red-600' : 'text-orange-600'}`}>
             체온 {celsius}°C {isCritical ? '— 고열이에요!' : '— 미열이에요'}
           </p>
-          <p className="text-[14px] text-[#6B6966] mt-1">
+          <p className="text-body-emphasis text-secondary mt-1">
             {isCritical
               ? '가까운 소아과를 확인해보세요.'
               : '경과를 살펴보세요. 38.5°C 이상이면 소아과 방문을 권해요.'}
@@ -88,7 +88,7 @@ export default function EmergencyCard({ events }: Props) {
           <div className="flex gap-2 mt-2">
             <Link
               href="/emergency"
-              className={`inline-flex items-center gap-1 text-[14px] font-semibold ${
+              className={`inline-flex items-center gap-1 text-body-emphasis ${
                 isCritical ? 'text-red-600' : 'text-orange-600'
               }`}
             >
@@ -98,19 +98,19 @@ export default function EmergencyCard({ events }: Props) {
               <button
                 onClick={() => notifyCaregivers(celsius)}
                 disabled={notifying}
-                className="text-[13px] font-semibold text-[#5B4A8A] bg-[#F0EDF6] px-2.5 py-0.5 rounded-full"
+                className="text-body font-semibold text-[#5B4A8A] bg-[#F0EDF6] px-2.5 py-0.5 rounded-full"
               >
                 {notifying ? '전송 중...' : '공동양육자 알리기'}
               </button>
             ) : (
-              <span className="text-[12px] text-[#2D7A4A] font-medium">전송 완료</span>
+              <span className="text-caption text-[#2D7A4A] font-medium">전송 완료</span>
             )}
           </div>
-          <p className="text-[14px] text-[#9E9A95] mt-2">
+          <p className="text-body-emphasis text-tertiary mt-2">
             참고용 정보예요. 걱정되시면 소아과 상담을 추천드려요.
           </p>
         </div>
-        <button onClick={() => setDismissed(true)} className="text-[#9E9A95] p-1"><XIcon className="w-4 h-4" /></button>
+        <button onClick={() => setDismissed(true)} className="text-tertiary p-1"><XIcon className="w-4 h-4" /></button>
       </div>
     </div>
   )

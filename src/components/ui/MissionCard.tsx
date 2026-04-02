@@ -155,7 +155,7 @@ function MissionCard({ mode }: { mode: Mode }) {
   return (
     <>
       <div
-        className={`rounded-2xl border transition-all duration-300 ${sent ? 'bg-[#FFF0E6] border-[var(--color-primary)]/30' : 'dodam-card-flat'}`}
+        className={`rounded-2xl border transition-all duration-300 ${sent ? 'bg-[var(--color-primary-bg)] border-[var(--color-primary)]/30' : 'dodam-card-flat'}`}
         style={{ padding: 'var(--spacing-4)', boxShadow: 'var(--shadow-sm)' }}
       >
         {/* 헤더 */}
@@ -168,9 +168,8 @@ function MissionCard({ mode }: { mode: Mode }) {
             {level && <span className="text-label" style={{ color: 'var(--neutral-400)' }}>{level}</span>}
             {streak > 0 && (
               <span
-                className="text-label font-bold text-[var(--color-primary)] rounded-full"
+                className="text-label font-bold text-[var(--color-primary)] rounded-full bg-[var(--color-primary-bg)]"
                 style={{
-                  backgroundColor: '#FFF0E6',
                   padding: '2px var(--spacing-2)'
                 }}
               >
@@ -192,22 +191,22 @@ function MissionCard({ mode }: { mode: Mode }) {
 
         {/* 미션 내용 */}
         <div className="flex items-start gap-3 mb-3">
-          <span className="text-[32px] leading-none">{mission.emoji}</span>
+          <span className="text-display leading-none">{mission.emoji}</span>
           <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-bold text-[#1A1918]">{mission.title}</p>
-            <p className="text-[12px] text-[#6B6966] mt-0.5">{mission.desc}</p>
+            <p className="text-subtitle text-primary">{mission.title}</p>
+            <p className="text-caption text-secondary mt-0.5">{mission.desc}</p>
           </div>
         </div>
 
         {/* 미리보기 말풍선 */}
         <div className="bg-[#F5F1EC] rounded-xl rounded-tl-sm px-3 py-2 mb-3">
-          <p className="text-[12px] text-[#6B6966] leading-relaxed">{mission.sendMsg}</p>
+          <p className="text-caption text-secondary leading-relaxed">{mission.sendMsg}</p>
         </div>
 
         {/* 전송 버튼 */}
         <button
           onClick={handleSend}
-          className={`w-full py-2.5 rounded-xl text-[14px] font-bold transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95
+          className={`w-full py-2.5 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95
             ${sent
               ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20'
               : 'bg-[var(--color-primary)] text-white'
@@ -225,14 +224,14 @@ function MissionCard({ mode }: { mode: Mode }) {
             onClick={e => e.stopPropagation()}
           >
             <p className="text-[48px] mb-2">{milestone.emoji}</p>
-            <p className="text-[20px] font-bold text-[#1A1918] mb-1">{milestone.title}</p>
-            <p className="text-[14px] text-[#6B6966] whitespace-pre-line mb-4">{milestone.msg}</p>
+            <p className="text-heading-2 text-primary mb-1">{milestone.title}</p>
+            <p className="text-body-emphasis text-secondary whitespace-pre-line mb-4">{milestone.msg}</p>
             <div className="inline-flex items-center gap-1.5 bg-[var(--color-primary-bg)] px-4 py-2 rounded-full mb-5">
-              <span className="text-[13px] font-bold text-[var(--color-primary)]">🏷️ {milestone.badge} 달성</span>
+              <span className="text-body font-bold text-[var(--color-primary)]">🏷️ {milestone.badge} 달성</span>
             </div>
             <button
               onClick={() => setMilestone(null)}
-              className="w-full py-3 bg-[var(--color-primary)] text-white text-[15px] font-bold rounded-2xl active:opacity-80"
+              className="w-full py-3 bg-[var(--color-primary)] text-white rounded-2xl active:opacity-80"
             >
               계속 이어가기
             </button>

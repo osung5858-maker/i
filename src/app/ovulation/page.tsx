@@ -36,7 +36,7 @@ function DatePicker({ value, onChange }: { value: string; onChange: (v: string) 
     onChange(dateStr)
   }, [year, month, day]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const sel = 'flex-1 appearance-none bg-[var(--color-page-bg)] border border-[#E8E4DF] rounded-xl px-3 py-2.5 text-[14px] text-[#1A1918] text-center focus:outline-none focus:border-[var(--color-primary)]'
+  const sel = 'flex-1 appearance-none bg-[var(--color-page-bg)] border border-[#E8E4DF] rounded-xl px-3 py-2.5 text-body-emphasis text-primary text-center focus:outline-none focus:border-[var(--color-primary)]'
 
   return (
     <div className="flex gap-2">
@@ -109,12 +109,12 @@ export default function OvulationPage() {
       {/* 헤더 */}
       <div className="sticky top-[72px] z-30 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
         <div className="flex items-center h-12 px-4 max-w-lg mx-auto gap-3">
-          <button onClick={() => router.back()} className="w-8 h-8 rounded-full flex items-center justify-center text-[#1A1918] active:bg-[#F0EDE8]">
+          <button onClick={() => router.back()} className="w-8 h-8 rounded-full flex items-center justify-center text-primary active:bg-[#F0EDE8]">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          <p className="text-[16px] font-bold text-[#1A1918] flex-1">배란일 계산기</p>
+          <p className="text-subtitle font-bold text-primary flex-1">배란일 계산기</p>
         </div>
       </div>
 
@@ -122,13 +122,13 @@ export default function OvulationPage() {
         {/* 입력 카드 */}
         <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4 space-y-4">
           <div>
-            <p className="text-[12px] font-bold text-[#6B6966] mb-1.5">마지막 생리 시작일</p>
+            <p className="text-caption font-bold text-secondary mb-1.5">마지막 생리 시작일</p>
             <DatePicker value={lastPeriod} onChange={v => { setLastPeriod(v); localStorage.setItem('dodam_last_period', v) }} />
           </div>
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <p className="text-[12px] font-bold text-[#6B6966]">생리 주기</p>
-              <p className="text-[13px] font-bold text-[var(--color-primary)]">{cycleLength}일</p>
+              <p className="text-caption font-bold text-secondary">생리 주기</p>
+              <p className="text-body font-bold text-[var(--color-primary)]">{cycleLength}일</p>
             </div>
             <input
               type="range"
@@ -137,7 +137,7 @@ export default function OvulationPage() {
               onMouseUp={handleSave} onTouchEnd={handleSave}
               className="w-full accent-[var(--color-primary)]"
             />
-            <div className="flex justify-between text-[11px] text-[#C4BFB9] mt-0.5">
+            <div className="flex justify-between text-label text-muted mt-0.5">
               <span>21일</span><span>28일</span><span>35일</span>
             </div>
           </div>
@@ -148,10 +148,10 @@ export default function OvulationPage() {
           <>
             {/* 현재 상태 배너 */}
             <div className="rounded-2xl px-4 py-3.5" style={{ background: STATUS_INFO[result.status].bg }}>
-              <p className="text-[15px] font-bold" style={{ color: STATUS_INFO[result.status].color }}>
+              <p className="text-subtitle" style={{ color: STATUS_INFO[result.status].color }}>
                 {STATUS_INFO[result.status].label}
               </p>
-              <p className="text-[12px] text-[#6B6966] mt-0.5">{STATUS_INFO[result.status].desc}</p>
+              <p className="text-caption text-secondary mt-0.5">{STATUS_INFO[result.status].desc}</p>
             </div>
 
             {/* 날짜 카드 4개 */}
@@ -163,16 +163,16 @@ export default function OvulationPage() {
                 { label: '다음 생리 예정', value: fmt(result.nextPeriod), sub: `${diffDays(new Date(), result.nextPeriod)}일 후`, color: '#E8937A', bg: '#FFF0E6' },
               ].map(c => (
                 <div key={c.label} className="rounded-2xl px-3.5 py-3" style={{ background: c.bg }}>
-                  <p className="text-[11px] font-medium text-[#9E9A95]">{c.label}</p>
-                  <p className="text-[16px] font-bold mt-0.5" style={{ color: c.color }}>{c.value}</p>
-                  <p className="text-[11px] font-medium mt-0.5" style={{ color: c.color }}>{c.sub}</p>
+                  <p className="text-label font-medium text-tertiary">{c.label}</p>
+                  <p className="text-subtitle font-bold mt-0.5" style={{ color: c.color }}>{c.value}</p>
+                  <p className="text-label font-medium mt-0.5" style={{ color: c.color }}>{c.sub}</p>
                 </div>
               ))}
             </div>
 
             {/* 타임라인 */}
             <div className="bg-white rounded-2xl border border-[#E8E4DF] p-4">
-              <p className="text-[13px] font-bold text-[#1A1918] mb-3">이번 주기 타임라인</p>
+              <p className="text-body font-bold text-primary mb-3">이번 주기 타임라인</p>
               <div className="space-y-2.5">
                 {[
                   { label: '생리', date: new Date(lastPeriod), color: '#E8937A', icon: '🔴' },
@@ -188,11 +188,11 @@ export default function OvulationPage() {
                     <div key={i} className={`flex items-center gap-3 ${isPast && !isToday ? 'opacity-40' : ''}`}>
                       <span className="text-base w-6 text-center shrink-0">{t.icon}</span>
                       <div className="flex-1">
-                        <p className={`text-[13px] font-medium ${isToday ? 'font-bold' : ''}`} style={{ color: isToday ? t.color : '#1A1918' }}>
-                          {t.label} {isToday && <span className="text-[11px]">← 오늘</span>}
+                        <p className={`text-body font-medium ${isToday ? 'font-bold' : ''}`} style={{ color: isToday ? t.color : '#1A1918' }}>
+                          {t.label} {isToday && <span className="text-label">← 오늘</span>}
                         </p>
                       </div>
-                      <p className="text-[12px] text-[#6B6966] shrink-0">{fmt(t.date)}</p>
+                      <p className="text-caption text-secondary shrink-0">{fmt(t.date)}</p>
                     </div>
                   )
                 })}
@@ -201,7 +201,7 @@ export default function OvulationPage() {
 
             {/* 안내 */}
             <div className="bg-[#F5F1EC] rounded-2xl px-4 py-3">
-              <p className="text-[11px] text-[#9E9A95] leading-relaxed">
+              <p className="text-label text-tertiary leading-relaxed">
                 ※ 이 계산기는 평균 주기 기반의 참고용 정보예요. 실제 배란일은 개인차가 있으며, 정확한 확인은 배란 테스트기나 산부인과 초음파를 권장해요.
               </p>
             </div>
@@ -209,9 +209,9 @@ export default function OvulationPage() {
         )}
 
         {!lastPeriod && (
-          <div className="flex flex-col items-center justify-center py-12 text-[#9E9A95]">
-            <p className="text-[14px] font-semibold">마지막 생리 시작일을 입력해주세요</p>
-            <p className="text-[13px] mt-1">배란일과 가임기를 자동으로 계산해드려요</p>
+          <div className="flex flex-col items-center justify-center py-12 text-tertiary">
+            <p className="text-body-emphasis">마지막 생리 시작일을 입력해주세요</p>
+            <p className="text-body mt-1">배란일과 가임기를 자동으로 계산해드려요</p>
           </div>
         )}
       </div>

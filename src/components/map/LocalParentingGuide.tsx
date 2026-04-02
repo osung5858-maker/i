@@ -20,11 +20,11 @@ interface GuideData {
 
 function tipCategoryIcon(category: string) {
   switch (category) {
-    case 'health': return <HospitalIcon className="w-4 h-4 text-[#6B6966]" />
-    case 'play': return <ActivityIcon className="w-4 h-4 text-[#6B6966]" />
-    case 'nursing': return <BottleIcon className="w-4 h-4 text-[#6B6966]" />
-    case 'culture': return <BookOpenIcon className="w-4 h-4 text-[#6B6966]" />
-    default: return <BuildingIcon className="w-4 h-4 text-[#6B6966]" />
+    case 'health': return <HospitalIcon className="w-4 h-4 text-secondary" />
+    case 'play': return <ActivityIcon className="w-4 h-4 text-secondary" />
+    case 'nursing': return <BottleIcon className="w-4 h-4 text-secondary" />
+    case 'culture': return <BookOpenIcon className="w-4 h-4 text-secondary" />
+    default: return <BuildingIcon className="w-4 h-4 text-secondary" />
   }
 }
 
@@ -107,10 +107,10 @@ export default function LocalParentingGuide() {
             <BuildingIcon className="w-5 h-5 text-[var(--color-primary)]" />
           </div>
           <div className="flex-1">
-            <p className="text-[14px] font-bold text-[#1A1918]">동네 육아 AI 가이드</p>
-            <p className="text-[12px] text-[#6B6966]">내 위치 기반 맞춤 육아 정보 보기</p>
+            <p className="text-body-emphasis font-bold text-primary">동네 육아 AI 가이드</p>
+            <p className="text-caption text-secondary">내 위치 기반 맞춤 육아 정보 보기</p>
           </div>
-          <span className="text-[13px] text-[var(--color-primary)] font-semibold shrink-0">보기</span>
+          <span className="text-body text-[var(--color-primary)] font-semibold shrink-0">보기</span>
         </div>
       </button>
     )
@@ -120,7 +120,7 @@ export default function LocalParentingGuide() {
     return (
       <div className="bg-white rounded-2xl border border-[#D5D0CA] p-5 text-center">
         <div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-[13px] text-[#6B6966]">동네 육아 가이드 준비 중...</p>
+        <p className="text-body text-secondary">동네 육아 가이드 준비 중...</p>
       </div>
     )
   }
@@ -134,10 +134,10 @@ export default function LocalParentingGuide() {
           <BuildingIcon className="w-5 h-5 text-[var(--color-primary)]" />
         </div>
         <div className="flex-1 min-w-0 text-left">
-          <p className="text-[14px] font-bold text-[#1A1918]">{guide.areaName} 육아 가이드</p>
-          <p className="text-[12px] text-[#6B6966] line-clamp-1">{guide.summary}</p>
+          <p className="text-body-emphasis font-bold text-primary">{guide.areaName} 육아 가이드</p>
+          <p className="text-caption text-secondary line-clamp-1">{guide.summary}</p>
         </div>
-        <span className="text-[13px] text-[#9E9A95]">{expanded ? '접기' : '펼치기'}</span>
+        <span className="text-body text-tertiary">{expanded ? '접기' : '펼치기'}</span>
       </button>
 
       {expanded && (
@@ -146,27 +146,27 @@ export default function LocalParentingGuide() {
             <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl bg-[var(--color-page-bg)]">
               <span className="shrink-0 mt-0.5">{tipCategoryIcon(tip.category)}</span>
               <div>
-                <p className="text-[13px] font-semibold text-[#1A1918]">{tip.title}</p>
-                <p className="text-[12px] text-[#6B6966] leading-relaxed">{tip.description}</p>
+                <p className="text-body font-semibold text-primary">{tip.title}</p>
+                <p className="text-caption text-secondary leading-relaxed">{tip.description}</p>
               </div>
             </div>
           ))}
 
           {guide.nearbyHighlight && (
             <div className="p-3 rounded-xl bg-[#FFF8F3] border border-[#F0E4D8]">
-              <p className="text-[12px] text-[#C4A35A] font-medium mb-0.5">근처 추천</p>
-              <p className="text-[13px] text-[#5A5854]">{guide.nearbyHighlight}</p>
+              <p className="text-caption text-[#C4A35A] font-medium mb-0.5">근처 추천</p>
+              <p className="text-body text-[#5A5854]">{guide.nearbyHighlight}</p>
             </div>
           )}
 
           {guide.seasonalTip && (
             <div className="p-3 rounded-xl bg-[#F0F4FF] border border-[#D5DFEF]">
-              <p className="text-[12px] text-[#4A6FA5] font-medium mb-0.5">이달의 팁</p>
-              <p className="text-[13px] text-[#4A4744]">{guide.seasonalTip}</p>
+              <p className="text-caption text-[#4A6FA5] font-medium mb-0.5">이달의 팁</p>
+              <p className="text-body text-[#4A4744]">{guide.seasonalTip}</p>
             </div>
           )}
 
-          <button onClick={fetchGuide} className="w-full text-center text-[12px] text-[#9E9A95] py-1">
+          <button onClick={fetchGuide} className="w-full text-center text-caption text-tertiary py-1">
             새로고침
           </button>
         </div>

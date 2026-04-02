@@ -442,7 +442,7 @@ export default function CryPage() {
         {/* Idle State */}
         {phase === 'idle' && !result && (
           <div className="pt-8 text-center space-y-6">
-            <p className="text-[15px] text-[#6B6966]">{'\uC544\uAE30\uAC00 \uC6B8\uACE0 \uC788\uB098\uC694?'}</p>
+            <p className="text-subtitle text-secondary">{'\uC544\uAE30\uAC00 \uC6B8\uACE0 \uC788\uB098\uC694?'}</p>
 
             {/* Mic button */}
             <button
@@ -458,16 +458,16 @@ export default function CryPage() {
               </svg>
             </button>
 
-            <p className="text-[13px] text-[#9E9A95]">{'\uD0ED\uD558\uBA74 5\uCD08\uAC04 \uB179\uC74C\uD574\uC694'}</p>
+            <p className="text-body text-tertiary">{'\uD0ED\uD558\uBA74 5\uCD08\uAC04 \uB179\uC74C\uD574\uC694'}</p>
 
             {micPermission === 'denied' && (
-              <div className="bg-[#FFF5F5] border border-[#FFCCC7] rounded-xl p-4 text-[13px] text-[#D05050]">
+              <div className="bg-[#FFF5F5] border border-[#FFCCC7] rounded-xl p-4 text-body text-[#D05050]">
                 {'\uB9C8\uC774\uD06C \uAD8C\uD55C\uC774 \uCC28\uB2E8\uB418\uC5C8\uC5B4\uC694. \uBE0C\uB77C\uC6B0\uC800 \uC124\uC815\uC5D0\uC11C \uB9C8\uC774\uD06C\uB97C \uD5C8\uC6A9\uD574\uC8FC\uC138\uC694.'}
               </div>
             )}
 
             {error && (
-              <div className="bg-[#FFF5F5] border border-[#FFCCC7] rounded-xl p-4 text-[13px] text-[#D05050]">
+              <div className="bg-[#FFF5F5] border border-[#FFCCC7] rounded-xl p-4 text-body text-[#D05050]">
                 {error}
               </div>
             )}
@@ -477,7 +477,7 @@ export default function CryPage() {
         {/* Recording State */}
         {phase === 'recording' && (
           <div className="pt-12 text-center space-y-6">
-            <p className="text-[15px] font-semibold text-[#1A1918]">{'\uB179\uC74C \uC911...'}</p>
+            <p className="text-subtitle text-primary">{'\uB179\uC74C \uC911...'}</p>
 
             {/* Pulsing mic */}
             <div className="relative w-28 h-28 mx-auto">
@@ -493,11 +493,11 @@ export default function CryPage() {
                 className="relative w-28 h-28 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: 'var(--color-primary)' }}
               >
-                <span className="text-white text-[32px] font-bold">{countdown}</span>
+                <span className="text-white text-display font-bold">{countdown}</span>
               </div>
             </div>
 
-            <p className="text-[13px] text-[#6B6966]">{'\uC544\uC774\uC758 \uC6B8\uC74C \uC18C\uB9AC\uB97C \uB4E3\uACE0 \uC788\uC5B4\uC694'}</p>
+            <p className="text-body text-secondary">{'\uC544\uC774\uC758 \uC6B8\uC74C \uC18C\uB9AC\uB97C \uB4E3\uACE0 \uC788\uC5B4\uC694'}</p>
 
             {/* Progress bar */}
             <div className="w-48 h-2 bg-[#F0EDE8] rounded-full mx-auto overflow-hidden">
@@ -516,8 +516,8 @@ export default function CryPage() {
         {phase === 'analyzing' && (
           <div className="pt-16 text-center space-y-4">
             <div className="text-5xl animate-bounce">{'\uD83D\uDD0D'}</div>
-            <p className="text-[15px] font-semibold text-[#1A1918]">{'\uBD84\uC11D \uC911...'}</p>
-            <p className="text-[13px] text-[#6B6966]">{'\uC6B8\uC74C \uD328\uD134\uC744 \uBD84\uC11D\uD558\uACE0 \uC788\uC5B4\uC694'}</p>
+            <p className="text-subtitle text-primary">{'\uBD84\uC11D \uC911...'}</p>
+            <p className="text-body text-secondary">{'\uC6B8\uC74C \uD328\uD134\uC744 \uBD84\uC11D\uD558\uACE0 \uC788\uC5B4\uC694'}</p>
             <div className="w-8 h-8 border-3 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto" />
           </div>
         )}
@@ -530,12 +530,12 @@ export default function CryPage() {
               style={{ backgroundColor: CRY_TYPES[result.type].color + '15' }}
             >
               <div className="text-5xl">{result.emoji}</div>
-              <h2 className="text-[20px] font-bold text-[#1A1918]">{result.label}</h2>
-              <p className="text-[14px] text-[#4A4845] leading-relaxed">{`"${result.advice}"`}</p>
+              <h2 className="text-heading-2 text-primary">{result.label}</h2>
+              <p className="text-body-emphasis text-[#4A4845] leading-relaxed">{`"${result.advice}"`}</p>
 
               {/* Confidence dots */}
               <div className="flex items-center justify-center gap-1 pt-1">
-                <span className="text-[13px] text-[#6B6966] mr-1">{'\uC2E0\uB8B0\uB3C4:'}</span>
+                <span className="text-body text-secondary mr-1">{'\uC2E0\uB8B0\uB3C4:'}</span>
                 {[1, 2, 3, 4, 5].map(i => (
                   <div
                     key={i}
@@ -552,12 +552,12 @@ export default function CryPage() {
 
             {/* Analysis reasons */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-3">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">{'\uD83D\uDCCA \uBD84\uC11D \uADFC\uAC70'}</h3>
+              <h3 className="text-subtitle text-primary">{'\uD83D\uDCCA \uBD84\uC11D \uADFC\uAC70'}</h3>
               <div className="space-y-2">
                 {result.reasons.map((reason, i) => (
                   <div key={i} className="flex items-start gap-2">
                     <span className="text-[var(--color-primary)] mt-0.5">{'\u00B7'}</span>
-                    <p className="text-[14px] text-[#4A4845]">{reason}</p>
+                    <p className="text-body-emphasis text-[#4A4845]">{reason}</p>
                   </div>
                 ))}
               </div>
@@ -565,7 +565,7 @@ export default function CryPage() {
 
             {/* Info note */}
             <div className="bg-[#FFF8E1] rounded-xl p-3">
-              <p className="text-[12px] text-[#8D6E00] leading-relaxed">
+              <p className="text-caption text-[#8D6E00] leading-relaxed">
                 {'\u26A0\uFE0F \uC774 \uACB0\uACFC\uB294 \uC74C\uD5A5 \uD328\uD134\uACFC \uC721\uC544 \uAE30\uB85D\uC744 \uAE30\uBC18\uC73C\uB85C \uD55C \uCC38\uACE0\uC6A9 \uBD84\uC11D\uC774\uC5D0\uC694. \uC544\uC774\uAC00 \uC9C0\uC18D\uC801\uC73C\uB85C \uC6B8\uAC70\uB098 \uC774\uC0C1 \uC99D\uC0C1\uC774 \uC788\uC73C\uBA74 \uC18C\uC544\uACFC\uC5D0 \uC0C1\uB2F4\uD574\uC8FC\uC138\uC694.'}
               </p>
             </div>
@@ -573,7 +573,7 @@ export default function CryPage() {
             {/* Retry button */}
             <button
               onClick={resetToIdle}
-              className="w-full py-3 rounded-xl font-semibold text-[var(--color-primary)] border-2 border-[var(--color-primary)] text-[15px]"
+              className="w-full py-3 rounded-xl font-semibold text-[var(--color-primary)] border-2 border-[var(--color-primary)] text-subtitle"
             >
               {'\uB2E4\uC2DC \uB179\uC74C\uD558\uAE30'}
             </button>
@@ -583,17 +583,17 @@ export default function CryPage() {
         {/* History */}
         {log.length > 0 && phase !== 'recording' && phase !== 'analyzing' && (
           <div className="space-y-2 pt-2">
-            <p className="text-[13px] font-bold text-[#1A1918]">{`\uCD5C\uADFC \uBD84\uC11D (${log.length})`}</p>
+            <p className="text-body font-bold text-primary">{`\uCD5C\uADFC \uBD84\uC11D (${log.length})`}</p>
             <div className="bg-white rounded-xl border border-[#D5D0CA] overflow-hidden">
               {log.map((entry, i) => (
                 <div
                   key={entry.id}
                   className={`flex items-center gap-3 px-4 py-3 ${i > 0 ? 'border-t border-[#E8E4DF]' : ''}`}
                 >
-                  <span className="text-[24px] shrink-0">{entry.result.emoji}</span>
+                  <span className="text-heading-1 shrink-0">{entry.result.emoji}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-medium text-[#1A1918]">{entry.result.label}</p>
-                    <p className="text-[11px] text-[#9E9A95]">{formatDate(entry.timestamp)} {formatTime(entry.timestamp)}</p>
+                    <p className="text-body-emphasis font-medium text-primary">{entry.result.label}</p>
+                    <p className="text-label text-tertiary">{formatDate(entry.timestamp)} {formatTime(entry.timestamp)}</p>
                   </div>
                   <div className="flex gap-0.5 shrink-0">
                     {[1, 2, 3, 4, 5].map(d => (

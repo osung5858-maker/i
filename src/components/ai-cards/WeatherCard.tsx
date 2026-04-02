@@ -195,36 +195,36 @@ export default function WeatherCard() {
   return (
     <div className="mx-4 mb-3 p-3.5 rounded-2xl bg-white border border-[#ECECEC]">
       <div className="flex items-center gap-3">
-        <WeatherSvgIcon type={weather.iconType} className="w-7 h-7 text-[#6B6966]" />
+        <WeatherSvgIcon type={weather.iconType} className="w-7 h-7 text-secondary" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-[15px] font-bold text-[#212124]">{weather.temp}°C</span>
-            <span className="text-[13px] text-[#9B9B9B]">체감 {weather.feelsLike}°C</span>
-            <span className="text-[13px] text-[#6B6966]">{weather.condition}</span>
+            <span className="text-subtitle text-primary">{weather.temp}°C</span>
+            <span className="text-body text-tertiary">체감 {weather.feelsLike}°C</span>
+            <span className="text-body text-secondary">{weather.condition}</span>
           </div>
-          <p className="text-[13px] text-[#4A4744] mt-0.5 font-medium">{weather.suggestion}</p>
+          <p className="text-body text-[#4A4744] mt-0.5 font-medium">{weather.suggestion}</p>
         </div>
       </div>
 
       {/* 하단 태그들 */}
       <div className="flex flex-wrap gap-1.5 mt-2.5">
         {pm10Info && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ backgroundColor: `${pm10Info.color}15`, color: pm10Info.color }}>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-label font-medium" style={{ backgroundColor: `${pm10Info.color}15`, color: pm10Info.color }}>
             미세먼지 {pm10Info.label}
           </span>
         )}
         {weather.uvIndex !== undefined && weather.uvIndex >= 6 && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#FEF3E8] text-[#D08068]">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-label font-medium bg-[#FEF3E8] text-[#D08068]">
             UV {weather.uvIndex} {weather.uvIndex >= 8 ? '매우강함' : '강함'}
           </span>
         )}
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#F0F4FF] text-[#4A6FA5]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-label font-medium bg-[#F0F4FF] text-[#4A6FA5]">
           습도 {weather.humidity}%
         </span>
       </div>
 
       {/* 육아 맞춤 팁 */}
-      <p className="text-[12px] text-[#7A7672] mt-2 pl-0.5">
+      <p className="text-caption text-[#7A7672] mt-2 pl-0.5">
         {weather.babyTip}
       </p>
     </div>

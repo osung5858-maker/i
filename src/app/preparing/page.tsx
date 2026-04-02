@@ -65,19 +65,19 @@ function BirthDatePicker({ value, onChange }: { value: string; onChange: (v: str
 
   return (
     <div className="flex gap-2">
-      <select value={year} onChange={e => update(e.target.value, month, day)} className="flex-[2] h-11 rounded-xl border border-[#E8E4DF] px-2 text-[13px] bg-white">
+      <select value={year} onChange={e => update(e.target.value, month, day)} className="flex-[2] h-11 rounded-xl border border-[#E8E4DF] px-2 text-body bg-white">
         <option value="">년</option>
         {Array.from({ length: 40 }, (_, i) => CURRENT_YEAR - 20 - i).map(y => (
           <option key={y} value={String(y)}>{y}</option>
         ))}
       </select>
-      <select value={month} onChange={e => update(year, e.target.value, day)} className="flex-1 h-11 rounded-xl border border-[#E8E4DF] px-2 text-[13px] bg-white">
+      <select value={month} onChange={e => update(year, e.target.value, day)} className="flex-1 h-11 rounded-xl border border-[#E8E4DF] px-2 text-body bg-white">
         <option value="">월</option>
         {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
           <option key={m} value={String(m)}>{m}월</option>
         ))}
       </select>
-      <select value={day} onChange={e => update(year, month, e.target.value)} className="flex-1 h-11 rounded-xl border border-[#E8E4DF] px-2 text-[13px] bg-white">
+      <select value={day} onChange={e => update(year, month, e.target.value)} className="flex-1 h-11 rounded-xl border border-[#E8E4DF] px-2 text-body bg-white">
         <option value="">일</option>
         {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
           <option key={d} value={String(d)}>{d}일</option>
@@ -94,8 +94,8 @@ function AITypingDisplay({ briefing, onRefresh, onShare }: { briefing: any; onRe
   return (
     <div>
       <div className="flex items-start gap-2">
-        <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center shrink-0 mt-0.5">
-          <span className="text-[13px] text-white font-bold">AI</span>
+        <div className="w-8 h-8 rounded-xl bg-[var(--color-primary)] flex items-center justify-center shrink-0 shadow-[0_1px_4px_rgba(0,0,0,0.1)]">
+          <span className="text-body text-white font-bold">AI</span>
         </div>
         <div className="flex-1">
           {/* 요약: 첫 문장 볼드 + 나머지 일반 */}
@@ -106,29 +106,29 @@ function AITypingDisplay({ briefing, onRefresh, onShare }: { briefing: any; onRe
             const rest = firstDot > 0 ? text.slice(firstDot + 1).trim() : text.slice(50).trim()
             return (
               <div className="whitespace-pre-line">
-                <span className="text-[15px] font-bold text-[#1A1918] leading-snug">{headline}</span>
-                {rest && <span className="text-[14px] text-[#4A4744] leading-relaxed"> {rest}</span>}
+                <span className="text-subtitle text-primary leading-snug">{headline}</span>
+                {rest && <span className="text-body-emphasis text-[#4A4744] leading-relaxed"> {rest}</span>}
               </div>
             )
           })()}
 
           {/* 상세 (펼치기) */}
           {expanded && (
-            <div className="mt-2 space-y-2 bg-white/60 rounded-lg p-2.5">
-              <p className="text-[13px] text-[#4A4744] leading-relaxed">{briefing.mainAdvice}</p>
-              {briefing.cycleInsight && <p className="text-[13px] text-[#4A4744] leading-relaxed">{briefing.cycleInsight}</p>}
-              {briefing.emotionalCare && <p className="text-[13px] text-[#4A4744] leading-relaxed">{briefing.emotionalCare}</p>}
-              {briefing.nutritionTip && <p className="text-[13px] text-[#4A4744] leading-relaxed">{briefing.nutritionTip}</p>}
-              {briefing.partnerTip && <p className="text-[13px] text-[#4A4744] leading-relaxed">{briefing.partnerTip}</p>}
+            <div className="mt-2 space-y-2 bg-white/60 rounded-lg p-2.5 border border-[var(--color-accent-bg)]">
+              <p className="text-body text-[#4A4744] leading-relaxed">{briefing.mainAdvice}</p>
+              {briefing.cycleInsight && <p className="text-body text-[#4A4744] leading-relaxed">{briefing.cycleInsight}</p>}
+              {briefing.emotionalCare && <p className="text-body text-[#4A4744] leading-relaxed">{briefing.emotionalCare}</p>}
+              {briefing.nutritionTip && <p className="text-body text-[#4A4744] leading-relaxed">{briefing.nutritionTip}</p>}
+              {briefing.partnerTip && <p className="text-body text-[#4A4744] leading-relaxed">{briefing.partnerTip}</p>}
             </div>
           )}
 
           <div className="flex items-center gap-3 mt-2">
-            <button onClick={() => setExpanded(!expanded)} className="text-[13px] text-[var(--color-primary)] font-medium">
+            <button onClick={() => setExpanded(!expanded)} className="text-body text-[var(--color-primary)] font-medium">
               {expanded ? '접기 ▲' : '자세히 보기 ▼'}
             </button>
-            <button onClick={onRefresh} className="text-[13px] text-[#9E9A95]">다시 받기</button>
-            <button onClick={onShare} className="text-[13px] text-[var(--color-primary)]">공유</button>
+            <button onClick={onRefresh} className="text-body text-tertiary">다시 받기</button>
+            <button onClick={onShare} className="text-body text-[var(--color-primary)]">공유</button>
           </div>
         </div>
       </div>
@@ -170,8 +170,8 @@ function PreparingMealCard({ phase }: { phase: string }) {
           <SparkleIcon className="w-4.5 h-4.5 text-[#4A6FA5]" />
         </div>
         <div className="flex-1">
-          <p className="text-[14px] font-semibold text-[#1A1918]">{phaseKo[phase] || phase} 맞춤 식단</p>
-          <p className="text-[13px] text-[#9E9A95]">AI 오늘의 식단 추천받기</p>
+          <p className="text-body-emphasis text-primary">{phaseKo[phase] || phase} 맞춤 식단</p>
+          <p className="text-body text-tertiary">AI 오늘의 식단 추천받기</p>
         </div>
       </button>
     )
@@ -180,7 +180,7 @@ function PreparingMealCard({ phase }: { phase: string }) {
     return (
       <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 flex items-center gap-2.5">
         <div className="w-5 h-5 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
-        <p className="text-[13px] text-[#6B6966]">AI가 {phaseKo[phase] || ''} 맞춤 식단을 추천 중...</p>
+        <p className="text-body text-secondary">AI가 {phaseKo[phase] || ''} 맞춤 식단을 추천 중...</p>
       </div>
     )
   }
@@ -191,22 +191,22 @@ function PreparingMealCard({ phase }: { phase: string }) {
           <SparkleIcon className="w-4.5 h-4.5 text-[#4A6FA5]" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-semibold text-[#1A1918]">{phaseKo[phase] || phase} · 오늘의 식단</p>
-          <p className="text-[13px] text-[#6B6966] truncate">{meal.breakfast?.menu} · {meal.lunch?.menu}</p>
+          <p className="text-body-emphasis text-primary">{phaseKo[phase] || phase} · 오늘의 식단</p>
+          <p className="text-body text-secondary truncate">{meal.breakfast?.menu} · {meal.lunch?.menu}</p>
         </div>
-        <span className="text-[12px] text-[#9E9A95]">{expanded ? '접기' : '펼치기'}</span>
+        <span className="text-caption text-tertiary">{expanded ? '접기' : '펼치기'}</span>
       </button>
       {expanded && (
         <div className="px-3 pb-3 space-y-2">
           {[{ label: '아침', data: meal.breakfast }, { label: '점심', data: meal.lunch }, { label: '저녁', data: meal.dinner }, { label: '간식', data: meal.snack }].map(m => m.data && (
             <div key={m.label} className="p-2.5 rounded-lg bg-[var(--color-page-bg)]">
-              <p className="text-[12px] font-semibold text-[#6B6966]">{m.label}</p>
-              <p className="text-[13px] font-medium text-[#1A1918] mt-0.5">{m.data.menu}</p>
-              <p className="text-[11px] text-[#9E9A95]">{m.data.reason}</p>
+              <p className="text-caption font-semibold text-secondary">{m.label}</p>
+              <p className="text-body font-medium text-primary mt-0.5">{m.data.menu}</p>
+              <p className="text-label text-tertiary">{m.data.reason}</p>
             </div>
           ))}
-          {meal.keyNutrient && <p className="text-[12px] text-[var(--color-primary)] font-medium px-1">핵심 영양소: {meal.keyNutrient}</p>}
-          <button onClick={fetchMeal} className="w-full py-1.5 text-[11px] text-[#6B6966] bg-[var(--color-page-bg)] rounded-lg active:bg-[#E8E4DF]">다른 식단</button>
+          {meal.keyNutrient && <p className="text-caption text-[var(--color-primary)] font-medium px-1">핵심 영양소: {meal.keyNutrient}</p>}
+          <button onClick={fetchMeal} className="w-full py-1.5 text-label text-secondary bg-[var(--color-page-bg)] rounded-lg active:bg-[#E8E4DF]">다른 식단</button>
         </div>
       )}
     </div>
@@ -247,9 +247,29 @@ export default function PreparingPage() {
   }, [])
   const SUPPL_DEFAULT: Record<string, number> = { folic: 0, vitd: 0, iron: 0, omega3: 0 }
   const [supplements, setSupplements] = useState<Record<string, number>>({ ...SUPPL_DEFAULT })
-  const [todayMood, setTodayMood] = useState<string>('')
-  const [motherBirth, setMotherBirth] = useState<string>('')
-  const [fatherBirth, setFatherBirth] = useState<string>('')
+  const [todayMood, setTodayMood] = useState<string>(() => {
+    if (typeof window === 'undefined') return ''
+    const _d = new Date()
+    const todayKey = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`
+    const moodRaw = localStorage.getItem(`dodam_mood_${todayKey}`)
+    if (moodRaw) {
+      try {
+        const parsed = JSON.parse(moodRaw)
+        return typeof parsed === 'object' ? parsed.mood : parsed
+      } catch {
+        return moodRaw
+      }
+    }
+    return ''
+  })
+  const [motherBirth, setMotherBirth] = useState<string>(() => {
+    if (typeof window === 'undefined') return ''
+    return localStorage.getItem('dodam_mother_birth') || ''
+  })
+  const [fatherBirth, setFatherBirth] = useState<string>(() => {
+    if (typeof window === 'undefined') return ''
+    return localStorage.getItem('dodam_father_birth') || ''
+  })
   const calcAge = (birth: string) => {
     if (!birth) return 0
     const b = new Date(birth)
@@ -309,12 +329,15 @@ export default function PreparingPage() {
       }
       setPrepTodayDone(prev => prev.includes(type) ? prev : [...prev, type])
     }
-    // prep_journal은 dodam-record에서 직접 처리 (BottomNav 저장 후 dispatch)
+    // dodam-record 이벤트 처리 (FAB에서 기록 완료 시)
     const recordHandler = (e: Event) => {
       const detail = (e as CustomEvent).detail as any
-      if (detail.type === 'prep_journal') {
+      const type = detail.type as string
+
+      // prep_ 타입이면 모두 처리
+      if (type?.startsWith('prep_')) {
         detail._handled = true
-        setPrepTodayDone(prev => prev.includes('prep_journal') ? prev : [...prev, 'prep_journal'])
+        setPrepTodayDone(prev => prev.includes(type) ? prev : [...prev, type])
       }
     }
     window.addEventListener('dodam-prep-done', prepDoneHandler)
@@ -571,20 +594,20 @@ export default function PreparingPage() {
 
     return (
       <div className="min-h-[100dvh] bg-white">
-        <div data-guide="cycle-setup" className="max-w-xs mx-auto pt-12 pb-20 px-6">
-          <h1 className="text-[22px] font-bold text-[#1A1918] mb-1">기본 정보</h1>
-          <p className="text-[13px] text-[#6B6966] mb-6">맞춤 조언을 위해 필요해요</p>
+        <div data-guide="cycle-setup" className="max-w-xs mx-auto pt-12 pb-0 px-6">
+          <h1 className="text-heading-2 font-bold text-primary mb-1">기본 정보</h1>
+          <p className="text-body text-secondary mb-6">맞춤 조언을 위해 필요해요</p>
 
           {/* 나는 누구? */}
           <div className="mb-5">
-            <p className="text-[14px] font-semibold text-[#6B6966] mb-2">나는</p>
+            <p className="text-body-emphasis text-secondary mb-2">나는</p>
             <div className="flex gap-2">
               <button onClick={() => setMyRole('mom')}
-                className={`flex-1 py-3 rounded-xl text-[14px] font-semibold ${myRole === 'mom' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
+                className={`flex-1 py-3 rounded-xl text-body-emphasis ${myRole === 'mom' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
                 예비맘
               </button>
               <button onClick={() => setMyRole('dad')}
-                className={`flex-1 py-3 rounded-xl text-[14px] font-semibold ${myRole === 'dad' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
+                className={`flex-1 py-3 rounded-xl text-body-emphasis ${myRole === 'dad' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
                 예비파파
               </button>
             </div>
@@ -592,7 +615,7 @@ export default function PreparingPage() {
 
           {/* 내 생년월일 */}
           <div className="mb-5">
-            <p className="text-[14px] font-semibold text-[#6B6966] mb-1">내 생년월일 {myAge > 0 ? <span className="text-[var(--color-primary)] font-bold">{myAge}세</span> : null}</p>
+            <p className="text-body-emphasis text-secondary mb-1">내 생년월일 {myAge > 0 ? <span className="text-[var(--color-primary)] font-bold">{myAge}세</span> : null}</p>
             <BirthDatePicker value={myBirth} onChange={setMyBirth} />
           </div>
 
@@ -600,13 +623,13 @@ export default function PreparingPage() {
           {myRole === 'mom' && (
             <>
               <div className="mb-5">
-                <p className="text-[14px] font-semibold text-[#6B6966] mb-1">마지막 생리 시작일</p>
-                <input type="date" value={tempPeriod} onChange={(e) => setTempPeriod(e.target.value)} className="w-full h-12 rounded-xl border border-[#E8E4DF] px-4 text-[14px]" />
+                <p className="text-body-emphasis text-secondary mb-1">마지막 생리 시작일</p>
+                <input type="date" value={tempPeriod} onChange={(e) => setTempPeriod(e.target.value)} className="w-full h-12 rounded-xl border border-[#E8E4DF] px-4 text-body-emphasis" />
               </div>
               <div className="mb-5">
-                <p className="text-[14px] font-semibold text-[#6B6966] mb-1">평균 주기 <span className="text-[var(--color-primary)] font-bold">{tempCycleLen}일</span></p>
+                <p className="text-body-emphasis text-secondary mb-1">평균 주기 <span className="text-[var(--color-primary)] font-bold">{tempCycleLen}일</span></p>
                 <input type="range" min={21} max={40} value={tempCycleLen} onChange={(e) => setTempCycleLen(Number(e.target.value))} className="w-full accent-[var(--color-primary)]" />
-                <div className="flex justify-between text-[13px] text-[#9E9A95]"><span>21일</span><span>28일</span><span>40일</span></div>
+                <div className="flex justify-between text-body text-tertiary"><span>21일</span><span>28일</span><span>40일</span></div>
               </div>
             </>
           )}
@@ -614,16 +637,16 @@ export default function PreparingPage() {
           {/* 예비파파는 아내 초대 유도 */}
           {myRole === 'dad' && !tempPeriod && (
             <div className="mb-5 bg-[#F0F9F4] rounded-xl p-4 text-center">
-              <p className="text-[13px] font-semibold text-[var(--color-primary)] mb-1">아내를 초대하세요</p>
-              <p className="text-[13px] text-[#6B6966] mb-3">아내가 생리 주기를 입력하면 더 정확한 조언을 받을 수 있어요</p>
-              <a href="/settings/caregivers/invite" className="inline-block px-4 py-2 bg-[var(--color-primary)] text-white text-[14px] font-semibold rounded-xl">아내 초대하기</a>
+              <p className="text-body font-semibold text-[var(--color-primary)] mb-1">아내를 초대하세요</p>
+              <p className="text-body text-secondary mb-3">아내가 생리 주기를 입력하면 더 정확한 조언을 받을 수 있어요</p>
+              <a href="/settings/caregivers/invite" className="inline-block px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl">아내 초대하기</a>
             </div>
           )}
 
           <button
             onClick={handleSaveCycleSetup}
             disabled={myRole === 'mom' ? !tempPeriod : !myBirth}
-            className={`w-full py-3 rounded-xl text-[14px] font-semibold ${(myRole === 'mom' ? tempPeriod : myBirth) ? 'bg-[var(--color-primary)] text-white active:opacity-80' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}
+            className={`w-full py-3 rounded-xl text-body-emphasis ${(myRole === 'mom' ? tempPeriod : myBirth) ? 'bg-[var(--color-primary)] text-white active:opacity-80' : 'bg-[#E8E4DF] text-tertiary'}`}
           >
             완료
           </button>
@@ -643,21 +666,21 @@ export default function PreparingPage() {
     <div className="bg-[var(--color-page-bg)]">
       {/* 헤더는 GlobalHeader (layout.tsx)에서 처리 */}
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-3 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-24 space-y-3">
 
-        {/* ━━━ 1. AI 히어로 — CTA 형태 ━━━ */}
+        {/* ━━━ 1. AI 데일리 케어 — 육아 모드 스타일 ━━━ */}
         {cycle && (
-          <div data-guide="ai-briefing" className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-4">
+          <div data-guide="ai-briefing" className="dodam-card-accent bg-gradient-to-br from-white via-[var(--color-primary-bg)] to-[var(--color-primary-bg)] border border-white/80">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <SparkleIcon className="w-4 h-4 text-[#C4913E]" />
-                <p className="text-[14px] font-bold text-[#1A1918]">오늘의 AI 케어</p>
+                <SparkleIcon className="w-4 h-4 text-[var(--color-primary)]" />
+                <p className="text-body-emphasis font-bold text-primary">AI 데일리 케어</p>
               </div>
-              {aiBriefing?.todayScore ? (
-                <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
-                  <span className="text-[13px] font-bold text-white">{aiBriefing.todayScore}</span>
+              {aiBriefing?.todayScore && (
+                <div className="px-2.5 py-0.5 rounded-full bg-[var(--color-primary)] flex items-center gap-1">
+                  <span className="text-body font-bold text-white">{aiBriefing.todayScore}점</span>
                 </div>
-              ) : null}
+              )}
             </div>
 
             {/* 오늘 요약 */}
@@ -667,15 +690,16 @@ export default function PreparingPage() {
               return (
                 <div className="flex gap-2 mb-3">
                   {[
-                    { label: '기분', value: todayMood ? (MOOD_LABELS[todayMood] ?? todayMood) : '-', Icon: HeartFilledIcon, color: '#FF8FAB' },
-                    { label: '영양제', value: `${supplCount}개`, Icon: PillIcon, color: '#10B981' },
-                    { label: '운동', value: `${exerciseCount}회`, Icon: WalkIcon, color: '#F59E0B' },
+                    { label: '기분', value: todayMood ? (MOOD_LABELS[todayMood] ?? todayMood) : '-', Icon: HeartFilledIcon, colorClass: 'text-pink-400', bgClass: 'bg-pink-50' },
+                    { label: '영양제', value: `${supplCount}개`, Icon: PillIcon, colorClass: 'text-green-500', bgClass: 'bg-green-50' },
+                    { label: '운동', value: `${exerciseCount}회`, Icon: WalkIcon, colorClass: 'text-amber-500', bgClass: 'bg-amber-50' },
                   ].map(s => (
-                    <div key={s.label} className="flex-1 bg-white/60 rounded-lg py-2 text-center border border-white/80">
-                      <p className="text-[14px] font-bold flex items-center justify-center gap-1" style={{ color: s.color }}>
-                        <s.Icon className="w-4 h-4" /> {s.value}
-                      </p>
-                      <p className="text-[13px] text-[#9E9A95]">{s.label}</p>
+                    <div key={s.label} className="flex-1 bg-white/80 rounded-lg py-2 text-center border border-white shadow-sm">
+                      <div className="flex items-center justify-center gap-1">
+                        <s.Icon className={`w-4 h-4 ${s.colorClass}`} />
+                        <p className={`text-body-emphasis font-bold ${s.colorClass}`}>{s.value}</p>
+                      </div>
+                      <p className="text-body text-tertiary">{s.label}</p>
                     </div>
                   ))}
                 </div>
@@ -683,39 +707,54 @@ export default function PreparingPage() {
             })()}
 
             {aiError && (
-              <div className="bg-[#FFF0E6] rounded-lg p-2 mb-2">
-                <p className="text-[13px] text-[#D08068]">{aiError}</p>
+              <div className="bg-red-50 border border-red-100 rounded-xl p-3 mb-3">
+                <p className="text-body text-red-600">{aiError}</p>
               </div>
             )}
 
             {aiLoading ? (
-              <div className="py-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center"><span className="text-[14px] text-white">AI</span></div>
-                  <div className="flex gap-1"><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: '0s' }} /><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }} /><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} /></div>
+              <div className="bg-white/80 rounded-xl p-4 border border-white shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+                    <span className="text-body-emphasis font-bold text-white">AI</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="w-2 h-2 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+                      <span className="w-2 h-2 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }} />
+                      <span className="w-2 h-2 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} />
+                    </div>
+                    <p className="text-body text-tertiary">AI가 분석 중이예요...</p>
+                  </div>
                 </div>
               </div>
             ) : aiBriefing ? (
               <AITypingDisplay briefing={aiBriefing} onRefresh={() => fetchAIBriefing(true)} onShare={() => shareAIAdvice(aiBriefing.summary || aiBriefing.greeting || '', aiBriefing.mainAdvice, getCyclePhase())} />
             ) : (
-              <div className="text-center py-3">
-                <p className="text-[13px] text-[#1A1918] mb-2">오늘의 맞춤 조언을 받아보세요</p>
-                <button onClick={() => fetchAIBriefing()} className="px-6 py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 shadow-[0_2px_12px_rgba(61,138,90,0.3)]">
-                  AI 조언 받기
-                </button>
-              </div>
+              <button
+                onClick={() => fetchAIBriefing()}
+                className="w-full py-3 bg-[var(--color-primary)] text-white font-bold text-[15px] rounded-xl active:opacity-80 transition-opacity"
+              >
+                AI 케어받기
+              </button>
             )}
 
             {/* 착상 기다리는 중 인라인 */}
             {showTWW && (
-              <div className="mt-3 pt-3 border-t border-[var(--color-accent-bg)]/50">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-[13px] font-semibold text-[#1A1918]">착상 기다리는 중 D+{dpo}</p>
-                  <p className="text-[14px] text-[var(--color-primary)]">{Math.round((dpo / 14) * 100)}%</p>
+              <div className="mt-3 pt-3 border-t border-white/50">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-body-emphasis text-primary">착상 기다리는 중 D+{dpo}</p>
+                  <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-body font-bold text-[var(--color-primary)]">
+                    {Math.round((dpo / 14) * 100)}%
+                  </span>
                 </div>
-                <div className="w-full h-1.5 bg-white/50 rounded-full">
-                  <div className="h-full bg-[var(--color-primary)] rounded-full" style={{ width: `${Math.min((dpo / 14) * 100, 100)}%` }} />
+                <div className="w-full h-2 bg-white/60 rounded-full overflow-hidden shadow-inner">
+                  <div
+                    className="h-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min((dpo / 14) * 100, 100)}%` }}
+                  />
                 </div>
+                <p className="text-label text-tertiary mt-1.5 text-center">14일 중 {dpo}일째</p>
               </div>
             )}
           </div>
@@ -749,19 +788,19 @@ export default function PreparingPage() {
             return tb - ta
           })
           const eventList = prepTodayDone.length > 0 ? (
-            <div className="max-h-[200px] overflow-y-auto hide-scrollbar">
+            <div className="max-h-[200px] overflow-y-auto overflow-x-hidden hide-scrollbar">
               {sortedDone.map(type => {
                 const cfg = PREP_CFG[type]
                 if (!cfg) return null
                 const time = fmt(todayTsMap[type])
                 return (
                   <div key={type} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
-                    <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{time || '—'}</span>
+                    <span className="text-caption text-tertiary w-10 shrink-0 text-right font-mono">{time || '—'}</span>
                     <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
                       <cfg.Icon className="w-3.5 h-3.5" />
                     </div>
-                    <span className="text-[13px] text-[#1A1918]">
-                      {cfg.cat && <span className="text-[#9E9A95] font-normal mr-1">{cfg.cat}</span>}
+                    <span className="text-body text-primary flex-1 min-w-0 truncate">
+                      {cfg.cat && <span className="text-tertiary font-normal mr-1">{cfg.cat}</span>}
                       <span className="font-semibold">{cfg.label}</span>
                     </span>
                   </div>
@@ -771,7 +810,7 @@ export default function PreparingPage() {
           ) : null
           const headerRight = (
             <Link href={`/prep-records/${today}`}>
-              <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
+              <span className="text-body text-[var(--color-primary)] font-medium">전체보기 →</span>
             </Link>
           )
           return (
@@ -791,19 +830,19 @@ export default function PreparingPage() {
         <form onSubmit={e => { e.preventDefault(); if (foodQuery.trim()) router.push(`/food-check?q=${encodeURIComponent(foodQuery.trim())}`) }}
           className="flex items-center gap-2 bg-white rounded-xl border border-[#E8E4DF] p-2.5">
           <div className="w-8 h-8 rounded-full bg-[#FFF8F3] flex items-center justify-center shrink-0">
-            <span className="text-[16px]">🍽️</span>
+            <span className="text-subtitle">🍽️</span>
           </div>
           <input
             type="text"
             value={foodQuery}
             onChange={e => setFoodQuery(e.target.value)}
             placeholder="이 음식 먹어도 되나요? 검색"
-            className="flex-1 text-[13px] bg-transparent outline-none text-[#1A1918] placeholder:text-[#9E9A95]"
+            className="flex-1 text-body bg-transparent outline-none text-primary placeholder:text-tertiary"
           />
           {foodQuery.trim() ? (
-            <button type="submit" className="shrink-0 px-3 py-1 rounded-lg bg-[var(--color-primary)] text-white text-[12px] font-semibold">확인</button>
+            <button type="submit" className="shrink-0 px-3 py-1 rounded-lg bg-[var(--color-primary)] text-white text-caption font-semibold">확인</button>
           ) : (
-            <span className="text-[12px] text-[#9E9A95] shrink-0">AI 확인</span>
+            <span className="text-caption text-tertiary shrink-0">AI 확인</span>
           )}
         </form>
 
@@ -822,8 +861,8 @@ export default function PreparingPage() {
             prob = Math.max(5, Math.min(45, prob))
             return (
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 text-center">
-                <p className="text-[13px] text-[#6B6966]">임신 가능성</p>
-                <p className="text-[22px] font-bold text-[var(--color-primary)] mt-1">{prob}%</p>
+                <p className="text-body text-secondary">임신 가능성</p>
+                <p className="text-heading-2 font-bold text-[var(--color-primary)] mt-1">{prob}%</p>
                 <div className="w-full h-1.5 bg-[#E8E4DF] rounded-full mt-1.5">
                   <div className="h-full bg-[var(--color-primary)] rounded-full" style={{ width: `${prob}%` }} />
                 </div>
@@ -869,9 +908,9 @@ export default function PreparingPage() {
 
             return (
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 text-center">
-                <p className="text-[13px] text-[#6B6966]">{label}</p>
-                <p className="text-[22px] font-bold mt-1" style={{ color: valueColor }}>{valueText}</p>
-                <p className="text-[12px] text-[#9E9A95] mt-1">{ovDateStr}</p>
+                <p className="text-body text-secondary">{label}</p>
+                <p className="text-heading-2 font-bold mt-1" style={{ color: valueColor }}>{valueText}</p>
+                <p className="text-caption text-tertiary mt-1">{ovDateStr}</p>
               </div>
             )
           })()}
@@ -893,7 +932,7 @@ export default function PreparingPage() {
               <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[var(--color-page-bg)]">
                 <item.Icon className="w-5 h-5 text-[var(--color-primary)]" />
               </div>
-              <p className="text-[12px] font-semibold text-[#1A1918] text-center leading-tight">{item.title}</p>
+              <p className="text-caption font-semibold text-primary text-center leading-tight">{item.title}</p>
             </Link>
           ))}
         </div>
@@ -901,7 +940,7 @@ export default function PreparingPage() {
 
       {/* 토스트 */}
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1A1918]/80 text-white text-[13px] font-medium px-4 py-2.5 rounded-xl shadow-lg animate-[fadeIn_0.15s_ease-out]">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1A1918]/80 text-white text-body font-medium px-4 py-2.5 rounded-xl shadow-lg animate-[fadeIn_0.15s_ease-out]">
           {toast}
         </div>
       )}

@@ -132,37 +132,37 @@ export default function GrowthSimPage() {
         {!result && !predicting && (
           <div className="pt-8 space-y-6">
             <div className="text-center space-y-3">
-              <h2 className="text-[18px] font-bold text-[#1A1918]">
+              <h2 className="text-heading-3 text-primary">
                 AI가 알려주는 우리 아이 미래
               </h2>
-              <p className="text-[14px] text-[#6B6966] leading-relaxed">
+              <p className="text-body-emphasis text-secondary leading-relaxed">
                 현재 월령과 예측 시점을 선택하면<br />발달 변화를 예측해드려요
               </p>
             </div>
 
             {/* Current Age */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-3">
-              <label className="text-[14px] font-semibold text-[#1A1918]">현재 월령</label>
+              <label className="text-body-emphasis text-primary">현재 월령</label>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setCurrentAge(Math.max(0, currentAge - 1))}
-                  className="w-10 h-10 rounded-xl border border-[#D5D0CA] flex items-center justify-center text-[18px] text-[#6B6966] active:bg-[#F0EDE8]"
+                  className="w-10 h-10 rounded-xl border border-[#D5D0CA] flex items-center justify-center text-heading-3 text-secondary active:bg-[#F0EDE8]"
                 >
                   -
                 </button>
                 <div className="flex-1 text-center">
-                  <span className="text-[28px] font-bold text-[#1A1918]">{currentAge}</span>
-                  <span className="text-[14px] text-[#6B6966] ml-1">개월</span>
+                  <span className="text-heading-1 font-bold text-primary">{currentAge}</span>
+                  <span className="text-body-emphasis text-secondary ml-1">개월</span>
                 </div>
                 <button
                   onClick={() => setCurrentAge(Math.min(72, currentAge + 1))}
-                  className="w-10 h-10 rounded-xl border border-[#D5D0CA] flex items-center justify-center text-[18px] text-[#6B6966] active:bg-[#F0EDE8]"
+                  className="w-10 h-10 rounded-xl border border-[#D5D0CA] flex items-center justify-center text-heading-3 text-secondary active:bg-[#F0EDE8]"
                 >
                   +
                 </button>
               </div>
               {child && (
-                <p className="text-[12px] text-[#9E9A95] text-center">
+                <p className="text-caption text-tertiary text-center">
                   {child.name}의 생년월일 기준으로 자동 설정됨
                 </p>
               )}
@@ -170,16 +170,16 @@ export default function GrowthSimPage() {
 
             {/* Target Selection */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-3">
-              <label className="text-[14px] font-semibold text-[#1A1918]">예측 시점</label>
+              <label className="text-body-emphasis text-primary">예측 시점</label>
               <div className="grid grid-cols-3 gap-2">
                 {TARGET_OPTIONS.map((opt) => (
                   <button
                     key={opt.months}
                     onClick={() => setSelectedTarget(opt.months)}
-                    className={`py-3 rounded-xl text-[14px] font-semibold transition-colors ${
+                    className={`py-3 rounded-xl text-body-emphasis transition-colors ${
                       selectedTarget === opt.months
                         ? 'text-white'
-                        : 'bg-[#F0EDE8] text-[#6B6966] active:bg-[#E8E4DF]'
+                        : 'bg-[#F0EDE8] text-secondary active:bg-[#E8E4DF]'
                     }`}
                     style={selectedTarget === opt.months ? { backgroundColor: 'var(--color-primary)' } : undefined}
                   >
@@ -187,66 +187,66 @@ export default function GrowthSimPage() {
                   </button>
                 ))}
               </div>
-              <p className="text-[13px] text-[#9E9A95] text-center">
+              <p className="text-body text-tertiary text-center">
                 {futureLabel} 때의 모습을 예측해요
               </p>
             </div>
 
             {/* Parent Heights (optional) */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-3">
-              <label className="text-[14px] font-semibold text-[#1A1918]">부모 키 (선택)</label>
-              <p className="text-[12px] text-[#9E9A95]">입력하면 유전적 예상 최종 키도 계산해요</p>
+              <label className="text-body-emphasis text-primary">부모 키 (선택)</label>
+              <p className="text-caption text-tertiary">입력하면 유전적 예상 최종 키도 계산해요</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-[12px] text-[#6B6966] mb-1">엄마 키</p>
+                  <p className="text-caption text-secondary mb-1">엄마 키</p>
                   <div className="flex items-center gap-1">
                     <input
                       type="number"
                       value={motherHeight || ''}
                       onChange={e => { const v = Number(e.target.value); setMotherHeight(v); localStorage.setItem('dodam_mother_height', String(v)) }}
                       placeholder="162"
-                      className="w-full h-10 px-3 rounded-lg border border-[#E8E4DF] text-[14px] text-center focus:outline-none focus:border-[var(--color-primary)]"
+                      className="w-full h-10 px-3 rounded-lg border border-[#E8E4DF] text-body-emphasis text-center focus:outline-none focus:border-[var(--color-primary)]"
                     />
-                    <span className="text-[13px] text-[#9E9A95] shrink-0">cm</span>
+                    <span className="text-body text-tertiary shrink-0">cm</span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-[12px] text-[#6B6966] mb-1">아빠 키</p>
+                  <p className="text-caption text-secondary mb-1">아빠 키</p>
                   <div className="flex items-center gap-1">
                     <input
                       type="number"
                       value={fatherHeight || ''}
                       onChange={e => { const v = Number(e.target.value); setFatherHeight(v); localStorage.setItem('dodam_father_height', String(v)) }}
                       placeholder="175"
-                      className="w-full h-10 px-3 rounded-lg border border-[#E8E4DF] text-[14px] text-center focus:outline-none focus:border-[var(--color-primary)]"
+                      className="w-full h-10 px-3 rounded-lg border border-[#E8E4DF] text-body-emphasis text-center focus:outline-none focus:border-[var(--color-primary)]"
                     />
-                    <span className="text-[13px] text-[#9E9A95] shrink-0">cm</span>
+                    <span className="text-body text-tertiary shrink-0">cm</span>
                   </div>
                 </div>
               </div>
               {motherHeight > 0 && fatherHeight > 0 && (
                 <div className="bg-[var(--color-primary-bg)] rounded-lg p-3 text-center">
-                  <p className="text-[12px] text-[#6B6966]">유전적 예상 최종 키</p>
-                  <p className="text-[16px] font-bold text-[var(--color-primary)]">
+                  <p className="text-caption text-secondary">유전적 예상 최종 키</p>
+                  <p className="text-subtitle font-bold text-[var(--color-primary)]">
                     {child?.sex === 'female'
                       ? `약 ${Math.round((motherHeight + fatherHeight - 13) / 2)}cm`
                       : `약 ${Math.round((motherHeight + fatherHeight + 13) / 2)}cm`
                     }
                   </p>
-                  <p className="text-[11px] text-[#9E9A95] mt-0.5">CMH 공식 기반 (±5cm 오차 가능)</p>
+                  <p className="text-label text-tertiary mt-0.5">CMH 공식 기반 (±5cm 오차 가능)</p>
                 </div>
               )}
             </div>
 
             {error && (
-              <div className="bg-[#FFF5F5] border border-[#FFCCC7] rounded-xl p-4 text-[13px] text-[#D05050]">
+              <div className="bg-[#FFF5F5] border border-[#FFCCC7] rounded-xl p-4 text-body text-[#D05050]">
                 {error}
               </div>
             )}
 
             <button
               onClick={predict}
-              className="w-full py-3.5 rounded-xl font-semibold text-white text-[15px]"
+              className="w-full py-3.5 rounded-xl font-semibold text-white text-subtitle"
               style={{ backgroundColor: 'var(--color-primary)' }}
             >
               예측하기
@@ -257,8 +257,8 @@ export default function GrowthSimPage() {
         {/* Predicting */}
         {predicting && (
           <div className="pt-16 text-center space-y-4">
-            <p className="text-[15px] font-semibold text-[#1A1918]">성장을 예측하고 있어요...</p>
-            <p className="text-[13px] text-[#6B6966]">WHO 성장 기준 데이터를 분석 중</p>
+            <p className="text-subtitle text-primary">성장을 예측하고 있어요...</p>
+            <p className="text-body text-secondary">WHO 성장 기준 데이터를 분석 중</p>
             <div className="w-8 h-8 border-3 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto" />
           </div>
         )}
@@ -269,26 +269,26 @@ export default function GrowthSimPage() {
             {/* Header Card */}
             <div className="pt-4">
               <div className="rounded-2xl p-6 text-center space-y-2" style={{ backgroundColor: 'var(--color-primary-bg)' }}>
-                <h2 className="text-[18px] font-bold text-[#1A1918]">
+                <h2 className="text-heading-3 text-primary">
                   {selectedTarget <= 6 ? `${selectedTarget}개월 후` : selectedTarget <= 12 ? '1년 후' : '3년 후'} ({result.targetAge})
                 </h2>
                 {child?.name && (
-                  <p className="text-[14px] text-[#6B6966]">{child.name}의 예측 성장 모습</p>
+                  <p className="text-body-emphasis text-secondary">{child.name}의 예측 성장 모습</p>
                 )}
               </div>
             </div>
 
             {/* Physical Changes */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-4">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">신체 변화</h3>
+              <h3 className="text-subtitle text-primary">신체 변화</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-[#F0EDE8] rounded-xl p-3 text-center">
-                  <p className="text-[12px] text-[#6B6966]">키</p>
-                  <p className="text-[16px] font-bold text-[#1A1918]">{result.physical.height}</p>
+                  <p className="text-caption text-secondary">키</p>
+                  <p className="text-subtitle font-bold text-primary">{result.physical.height}</p>
                 </div>
                 <div className="bg-[#F0EDE8] rounded-xl p-3 text-center">
-                  <p className="text-[12px] text-[#6B6966]">몸무게</p>
-                  <p className="text-[16px] font-bold text-[#1A1918]">{result.physical.weight}</p>
+                  <p className="text-caption text-secondary">몸무게</p>
+                  <p className="text-subtitle font-bold text-primary">{result.physical.weight}</p>
                 </div>
               </div>
               {result.physical.changes && result.physical.changes.length > 0 && (
@@ -296,7 +296,7 @@ export default function GrowthSimPage() {
                   {result.physical.changes.map((c, i) => (
                     <div key={i} className="flex items-start gap-2">
                       <span className="text-[var(--color-primary)] mt-0.5 shrink-0">·</span>
-                      <p className="text-[14px] text-[#4A4845]">{c}</p>
+                      <p className="text-body-emphasis text-[#4A4845]">{c}</p>
                     </div>
                   ))}
                 </div>
@@ -305,14 +305,14 @@ export default function GrowthSimPage() {
 
             {/* Milestones */}
             <div className="bg-white rounded-xl border border-[#D5D0CA] p-5 space-y-3">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">발달 마일스톤</h3>
+              <h3 className="text-subtitle text-primary">발달 마일스톤</h3>
               <div className="space-y-2">
                 {result.milestones.map((m, i) => (
                   <div key={i} className="flex items-start gap-2">
-                    <span className="bg-[var(--color-primary-bg)] text-[var(--color-primary)] text-[12px] font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="bg-[var(--color-primary-bg)] text-[var(--color-primary)] text-caption font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                       {i + 1}
                     </span>
-                    <p className="text-[14px] text-[#4A4845]">{m}</p>
+                    <p className="text-body-emphasis text-[#4A4845]">{m}</p>
                   </div>
                 ))}
               </div>
@@ -320,24 +320,24 @@ export default function GrowthSimPage() {
 
             {/* Fun Facts */}
             <div className="bg-[#FFF8F0] rounded-xl p-5 space-y-3">
-              <h3 className="text-[15px] font-bold text-[#1A1918]">재미있는 사실</h3>
+              <h3 className="text-subtitle text-primary">재미있는 사실</h3>
               <div className="space-y-2">
                 {result.funFacts.map((f, i) => (
-                  <p key={i} className="text-[13px] text-[#8B7355]">· {f}</p>
+                  <p key={i} className="text-body text-[#8B7355]">· {f}</p>
                 ))}
               </div>
             </div>
 
             {/* Parent Tip */}
             <div className="bg-[var(--color-primary-bg)] rounded-xl p-4">
-              <p className="text-[13px] text-[var(--color-primary)] font-semibold">육아 팁</p>
-              <p className="text-[14px] text-[#4A4845] mt-1">{result.parentTip}</p>
+              <p className="text-body text-[var(--color-primary)] font-semibold">육아 팁</p>
+              <p className="text-body-emphasis text-[#4A4845] mt-1">{result.parentTip}</p>
             </div>
 
             {/* Retry */}
             <button
               onClick={() => { setResult(null) }}
-              className="w-full py-3 rounded-xl font-semibold text-[var(--color-primary)] border-2 border-[var(--color-primary)] text-[15px]"
+              className="w-full py-3 rounded-xl font-semibold text-[var(--color-primary)] border-2 border-[var(--color-primary)] text-subtitle"
             >
               다시 예측하기
             </button>

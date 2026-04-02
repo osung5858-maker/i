@@ -97,23 +97,23 @@ function MealRows({ meal, mode }: { meal: MealData; mode: string }) {
             {/* 끼니 레이블 */}
             <div className="w-8 shrink-0 flex flex-col items-center gap-1 pt-0.5">
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: MEAL_COLOR[m.key] }} />
-              <span className="text-[10px] font-medium text-[#9E9A95]">{m.key}</span>
+              <span className="text-label font-medium text-tertiary">{m.key}</span>
             </div>
             {/* 내용 */}
             <div className="flex-1 min-w-0">
               {/* 태그 줄 */}
               <div className="flex items-center gap-1 mb-1">
                 {cuisine && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded font-medium text-[#6B6966]" style={{ backgroundColor: cuisine.bg }}>
+                  <span className="text-label px-1.5 py-0.5 rounded font-medium text-secondary" style={{ backgroundColor: cuisine.bg }}>
                     {cuisine.label}
                   </span>
                 )}
                 {m.data!.calories && (
-                  <span className="text-[10px] text-[#9E9A95]">{m.data!.calories}kcal</span>
+                  <span className="text-label text-tertiary">{m.data!.calories}kcal</span>
                 )}
               </div>
               {/* 메뉴 전체 */}
-              <p className="text-[12px] text-[#1A1918] leading-snug">
+              <p className="text-caption text-primary leading-snug">
                 {[m.data!.menu, ...sides].join(' · ')}
               </p>
             </div>
@@ -126,8 +126,8 @@ function MealRows({ meal, mode }: { meal: MealData; mode: string }) {
       })}
       {(meal.keyNutrient || meal.avoid) && (
         <div className="flex gap-2 pt-2 flex-wrap">
-          {meal.keyNutrient && <span className="text-[10px] text-[#2D7A4A] bg-[#F0F9F4] px-2 py-1 rounded-full">{meal.keyNutrient}</span>}
-          {meal.avoid && <span className="text-[10px] text-[#D08068] bg-[#FDF2F2] px-2 py-1 rounded-full">⚠ {meal.avoid}</span>}
+          {meal.keyNutrient && <span className="text-label text-[#2D7A4A] bg-[#F0F9F4] px-2 py-1 rounded-full">{meal.keyNutrient}</span>}
+          {meal.avoid && <span className="text-label text-[#D08068] bg-[#FDF2F2] px-2 py-1 rounded-full">⚠ {meal.avoid}</span>}
         </div>
       )}
     </>
@@ -198,16 +198,19 @@ export default function AIMealCard({ mode, value, phase }: Props) {
   // 미요청 상태 (아이 식단 기준)
   if (!childMeal && !childLoading) {
     return (
-      <button onClick={fetchChildMeal} className="w-full bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-2xl border border-[#E8E4DF] p-4 text-left active:opacity-90">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-full bg-white/80 flex items-center justify-center shrink-0 shadow-sm">
-            <SparkleIcon className="w-5 h-5 text-[var(--color-primary)]" />
+      <button onClick={fetchChildMeal} className="w-full bg-[var(--color-primary-bg)] rounded-2xl border border-[var(--color-primary)]/20 shadow-[0_4px_16px_rgba(0,0,0,0.06)] p-5 text-left active:scale-[0.98] transition-transform">
+        <div className="flex items-center gap-3.5">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white to-white/90 flex items-center justify-center shrink-0 shadow-[0_2px_12px_rgba(45,122,74,0.15)]">
+            <SparkleIcon className="w-7 h-7 text-[var(--color-primary)]" />
           </div>
           <div className="flex-1">
-            <p className="text-[14px] font-bold text-[#1A1918]">AI 오늘의 식단</p>
-            <p className="text-[12px] text-[#9E9A95] mt-0.5">{isParenting ? '아이 + 양육자' : label} · 맞춤 추천받기</p>
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-subtitle text-primary">AI 오늘의 식단</p>
+              <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-label font-bold">AI 맞춤</span>
+            </div>
+            <p className="text-body text-secondary">{isParenting ? '아이 + 양육자 맞춤 구성' : label} · 탭해서 확인</p>
           </div>
-          <div className="px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white text-[11px] font-bold">추천</div>
+          <div className="px-3.5 py-2 rounded-xl bg-[var(--color-primary)] text-white text-caption font-bold shadow-[0_2px_8px_rgba(45,122,74,0.25)]">추천</div>
         </div>
       </button>
     )
@@ -215,12 +218,12 @@ export default function AIMealCard({ mode, value, phase }: Props) {
 
   if (childLoading && !childMeal) {
     return (
-      <div className="bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-2xl border border-[#E8E4DF] p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
+      <div className="bg-[var(--color-primary-bg)] rounded-2xl border border-[var(--color-primary)]/20 shadow-[0_4px_16px_rgba(0,0,0,0.06)] p-5">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 border-[3px] border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
           <div>
-            <p className="text-[13px] font-semibold text-[#1A1918]">AI가 식단을 구성하고 있어요</p>
-            <p className="text-[11px] text-[#9E9A95]">{label} 맞춤 분석 중...</p>
+            <p className="text-body-emphasis font-bold text-primary">AI가 식단을 구성하고 있어요</p>
+            <p className="text-caption text-secondary mt-0.5">{label} 맞춤 분석 중...</p>
           </div>
         </div>
       </div>
@@ -230,22 +233,26 @@ export default function AIMealCard({ mode, value, phase }: Props) {
   const mealForHeader = activeMeal || childMeal
 
   return (
-    <div className="rounded-2xl border border-[#E8E4DF] overflow-hidden bg-white">
+    <div className="rounded-2xl border border-[var(--color-primary)]/20 overflow-hidden bg-white shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
       {/* 헤더 */}
-      <button onClick={() => setExpanded(v => !v)} className="w-full bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] p-3.5 flex items-center gap-3 text-left active:opacity-90">
-        <div className="w-9 h-9 rounded-full bg-white/80 flex items-center justify-center shrink-0 shadow-sm">
-          <SparkleIcon className="w-4 h-4 text-[var(--color-primary)]" />
+      <button onClick={() => setExpanded(v => !v)} className="w-full bg-[var(--color-primary-bg)] p-4 flex items-center gap-3.5 text-left active:opacity-90 transition-opacity">
+        <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-[0_2px_12px_rgba(45,122,74,0.15)]">
+          <SparkleIcon className="w-6 h-6 text-[var(--color-primary)]" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="text-[13px] font-bold text-[#1A1918]">AI 식단 제안</p>
-            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold">AI</span>
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <p className="text-body-emphasis font-bold text-primary">AI 식단 제안</p>
+            <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-label font-bold">AI 맞춤</span>
           </div>
-          <p className="text-[12px] text-[#6B6966] mt-0.5">
-            {isParenting ? '아이 · 양육자 맞춤 구성' : `${[childMeal?.breakfast, childMeal?.lunch, childMeal?.dinner, childMeal?.snack].filter(Boolean).length}끼 맞춤 구성`} · 탭해서 확인
+          <p className="text-caption text-secondary">
+            {isParenting ? '아이 · 양육자 맞춤 구성' : `${[childMeal?.breakfast, childMeal?.lunch, childMeal?.dinner, childMeal?.snack].filter(Boolean).length}끼 맞춤 구성`} · 탭해서 {expanded ? '접기' : '확인'}
           </p>
         </div>
-        <span className="text-[11px] text-[#9E9A95] shrink-0">{expanded ? '접기' : '펼치기'}</span>
+        <div className={`w-6 h-6 rounded-full bg-white/60 flex items-center justify-center shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}>
+          <svg className="w-3 h-3 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </button>
 
       {expanded && (
@@ -255,10 +262,10 @@ export default function AIMealCard({ mode, value, phase }: Props) {
             <div className="flex gap-1.5 mb-3">
               <button
                 onClick={() => setActiveTab('child')}
-                className={`flex-1 py-1.5 rounded-lg text-[12px] font-semibold transition-colors ${
+                className={`flex-1 py-1.5 rounded-lg text-caption font-semibold transition-colors ${
                   activeTab === 'child'
                     ? 'bg-[var(--color-primary)] text-white'
-                    : 'bg-[#F5F3F0] text-[#6B6966]'
+                    : 'bg-[#F5F3F0] text-secondary'
                 }`}
               >
                 🍼 아이 식단
@@ -268,10 +275,10 @@ export default function AIMealCard({ mode, value, phase }: Props) {
                   setActiveTab('caregiver')
                   if (!caregiverMeal && !caregiverLoading) fetchCaregiverMeal()
                 }}
-                className={`flex-1 py-1.5 rounded-lg text-[12px] font-semibold transition-colors ${
+                className={`flex-1 py-1.5 rounded-lg text-caption font-semibold transition-colors ${
                   activeTab === 'caregiver'
                     ? 'bg-[var(--color-primary)] text-white'
-                    : 'bg-[#F5F3F0] text-[#6B6966]'
+                    : 'bg-[#F5F3F0] text-secondary'
                 }`}
               >
                 🧑 양육자 식단
@@ -283,7 +290,7 @@ export default function AIMealCard({ mode, value, phase }: Props) {
           {activeLoading ? (
             <div className="flex items-center gap-2 py-4">
               <div className="w-6 h-6 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
-              <p className="text-[12px] text-[#9E9A95]">AI가 식단을 구성하고 있어요...</p>
+              <p className="text-caption text-tertiary">AI가 식단을 구성하고 있어요...</p>
             </div>
           ) : activeMeal ? (
             <MealRows meal={activeMeal} mode={mode} />
@@ -291,13 +298,13 @@ export default function AIMealCard({ mode, value, phase }: Props) {
 
           {/* 액션 */}
           <div className="flex gap-1.5 pt-3">
-            <button onClick={fetchActive} className="flex-1 py-2 text-[11px] text-[#6B6966] font-medium bg-[#F5F3F0] rounded-lg active:bg-[#E8E4DF]">다른 식단</button>
+            <button onClick={fetchActive} className="flex-1 py-2 text-label text-secondary font-medium bg-[var(--color-surface-alt)] rounded-lg active:bg-[var(--color-border)]">다른 식단</button>
             <button
               onClick={() => shareMealPlan(value, activeMeal?.breakfast?.menu || '', activeMeal?.lunch?.menu || '', activeMeal?.snack?.menu || '')}
-              className="flex-1 py-2 text-[11px] text-[var(--color-primary)] font-semibold bg-[#FFF0E6] rounded-lg active:bg-[#FFE0CC]"
+              className="flex-1 py-2 text-label text-[var(--color-primary)] font-semibold bg-[var(--color-primary-bg)] rounded-lg active:opacity-80"
             >카톡 공유</button>
             {isParenting && activeTab === 'child' && (
-              <Link href="/babyfood" className="flex-1 py-2 text-[11px] text-[var(--color-primary)] font-medium bg-[#F0F4FF] rounded-lg text-center active:bg-[#D5DFEF]">가이드</Link>
+              <Link href="/babyfood" className="flex-1 py-2 text-label text-blue-600 font-medium bg-blue-50 rounded-lg text-center active:bg-blue-100">가이드</Link>
             )}
           </div>
         </div>

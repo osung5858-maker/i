@@ -15,11 +15,11 @@ export default function NotFound() {
           404
         </h1>
 
-        <h2 className="text-xl font-bold text-[#1A1918] mb-2">
+        <h2 className="text-xl font-bold text-primary mb-2">
           페이지를 찾을 수 없어요
         </h2>
 
-        <p className="text-sm text-[#6B6966] mb-8">
+        <p className="text-sm text-secondary mb-8">
           요청하신 페이지가 존재하지 않거나<br />
           주소가 변경되었을 수 있습니다.
         </p>
@@ -35,7 +35,7 @@ export default function NotFound() {
 
           <button
             onClick={() => window.history.back()}
-            className="w-full py-3 px-4 rounded-xl bg-[#E8E4DF] text-[#1A1918] font-semibold active:opacity-80 flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 rounded-xl bg-[#E8E4DF] text-primary font-semibold active:opacity-80 flex items-center justify-center gap-2"
           >
             <ArrowLeftIcon className="w-5 h-5" />
             이전 페이지로
@@ -43,20 +43,20 @@ export default function NotFound() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-[#E8E4DF]">
-          <p className="text-xs text-[#9E9A95] mb-3">
+          <p className="text-xs text-tertiary mb-3">
             자주 찾는 메뉴
           </p>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <Link href="/record" className="py-2 px-3 rounded-lg bg-[var(--color-page-bg)] text-[#6B6966] active:bg-[#E8E4DF]">
+            <Link href="/record" className="py-2 px-3 rounded-lg bg-[var(--color-page-bg)] text-secondary active:bg-[#E8E4DF]">
               기록
             </Link>
-            <Link href="/growth" className="py-2 px-3 rounded-lg bg-[var(--color-page-bg)] text-[#6B6966] active:bg-[#E8E4DF]">
+            <Link href="/growth" className="py-2 px-3 rounded-lg bg-[var(--color-page-bg)] text-secondary active:bg-[#E8E4DF]">
               성장
             </Link>
-            <Link href="/guide" className="py-2 px-3 rounded-lg bg-[var(--color-page-bg)] text-[#6B6966] active:bg-[#E8E4DF]">
+            <Link href="/guide" className="py-2 px-3 rounded-lg bg-[var(--color-page-bg)] text-secondary active:bg-[#E8E4DF]">
               가이드
             </Link>
-            <Link href="/community" className="py-2 px-3 rounded-lg bg-[var(--color-page-bg)] text-[#6B6966] active:bg-[#E8E4DF]">
+            <Link href="/community" className="py-2 px-3 rounded-lg bg-[var(--color-page-bg)] text-secondary active:bg-[#E8E4DF]">
               커뮤니티
             </Link>
           </div>

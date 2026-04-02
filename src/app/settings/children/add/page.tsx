@@ -67,10 +67,10 @@ export default function AddChildPage() {
       {/* 헤더 */}
       <header className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-xl">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-[#9B9B9B] text-sm">
+          <button onClick={() => router.back()} className="text-tertiary text-sm">
             취소
           </button>
-          <h1 className="text-[15px] font-bold text-[#0A0B0D]">도담이 등록</h1>
+          <h1 className="text-subtitle text-primary">도담이 등록</h1>
           <div className="w-8" />
         </div>
       </header>
@@ -113,7 +113,7 @@ export default function AddChildPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="도담이"
             maxLength={20}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-[15px] text-[#0A0B0D] placeholder-[#9B9B9B] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary placeholder-[#9B9B9B] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
           />
         </div>
 
@@ -127,7 +127,7 @@ export default function AddChildPage() {
             value={birthdate}
             onChange={(e) => setBirthdate(e.target.value)}
             max={new Date().toISOString().split('T')[0]}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-[15px] text-[#0A0B0D] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
           />
         </div>
 
@@ -173,7 +173,7 @@ export default function AddChildPage() {
           <button
             type="submit"
             disabled={loading || !birthdate}
-            className="w-full h-[52px] rounded-xl font-semibold text-[15px] transition-all active:scale-[0.98] disabled:opacity-40 bg-[var(--color-primary)] text-white shadow-[0_4px_12px_rgba(0,82,255,0.3)]"
+            className="w-full h-[52px] rounded-xl font-semibold text-subtitle transition-all active:scale-[0.98] disabled:opacity-40 bg-[var(--color-primary)] text-white shadow-[0_4px_12px_rgba(0,82,255,0.3)]"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
@@ -181,7 +181,7 @@ export default function AddChildPage() {
               '도담이 등록하기'
             )}
           </button>
-          <p className="text-xs text-[#9B9B9B] text-center mt-3">
+          <p className="text-xs text-tertiary text-center mt-3">
             이름과 성별은 나중에 변경할 수 있어요
           </p>
         </div>

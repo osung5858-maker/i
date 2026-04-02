@@ -376,14 +376,14 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xl font-bold text-[#212124]">{pct}%</span>
+            <span className="text-xl font-bold text-primary">{pct}%</span>
           </div>
         </div>
         <div>
-          <h3 className="text-[15px] font-bold text-[#212124]">{ageMonths}개월 발달 체크</h3>
-          <p className="text-[13px] text-[#4A4744] mt-1">{done}/{total} 항목 달성</p>
-          <p className="text-[12px] text-[#7A7672] mt-0.5">아이마다 속도가 달라요</p>
-          <button onClick={() => shareDevelopment('우리 아이', ageMonths, done, total)} className="text-[12px] text-[var(--color-primary)] font-semibold mt-1">공유</button>
+          <h3 className="text-subtitle text-primary">{ageMonths}개월 발달 체크</h3>
+          <p className="text-body text-[#4A4744] mt-1">{done}/{total} 항목 달성</p>
+          <p className="text-caption text-[#7A7672] mt-0.5">아이마다 속도가 달라요</p>
+          <button onClick={() => shareDevelopment('우리 아이', ageMonths, done, total)} className="text-caption text-[var(--color-primary)] font-semibold mt-1">공유</button>
         </div>
       </div>
 
@@ -393,8 +393,8 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
         return (
           <div key={cat} className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
             <div className="flex items-center gap-1.5 mb-3">
-              <info.Icon className="w-4 h-4 text-[#6B6966]" />
-              <h4 className="text-[13px] font-bold text-[#212124]">{info.label}</h4>
+              <info.Icon className="w-4 h-4 text-secondary" />
+              <h4 className="text-body font-bold text-primary">{info.label}</h4>
             </div>
             <div className="space-y-2">
               {items.map((m) => (
@@ -417,10 +417,10 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
                     )}
                   </div>
                   <span
-                    className={`text-[13px] leading-snug ${
+                    className={`text-body leading-snug ${
                       checked.has(m.id)
-                        ? 'text-[#9E9A95] line-through'
-                        : 'text-[#212124]'
+                        ? 'text-tertiary line-through'
+                        : 'text-primary'
                     }`}
                     onClick={() => toggle(m.id)}
                   >
@@ -437,25 +437,25 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
       <div className="bg-white rounded-2xl border-l-4 border-l-[var(--color-primary)] border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center gap-1.5 mb-2">
           <SparkleIcon className="w-3.5 h-3.5 text-[var(--color-primary)]" />
-          <h3 className="text-[13px] font-bold text-[var(--color-primary)]">AI 발달 인사이트</h3>
+          <h3 className="text-body font-bold text-[var(--color-primary)]">AI 발달 인사이트</h3>
         </div>
-        <p className="text-[13px] text-[#212124] leading-relaxed">{insight}</p>
-        <p className="text-[12px] text-[#7A7672] mt-3">아이마다 발달 시기가 달라요. 참고용이며, 걱정되시면 소아과 상담을 추천드려요.</p>
+        <p className="text-body text-primary leading-relaxed">{insight}</p>
+        <p className="text-caption text-[#7A7672] mt-3">아이마다 발달 시기가 달라요. 참고용이며, 걱정되시면 소아과 상담을 추천드려요.</p>
       </div>
 
       {/* Recommended Activities */}
       <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center gap-1.5 mb-3">
           <SparkleIcon className="w-3.5 h-3.5 text-[var(--color-primary)]" />
-          <h3 className="text-[13px] font-bold text-[#212124]">추천 놀이</h3>
+          <h3 className="text-body font-bold text-primary">추천 놀이</h3>
         </div>
         <div className="space-y-2">
           {activities.map((act, i) => (
             <div key={i} className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-[#FEF0E8] flex items-center justify-center shrink-0">
-                <span className="text-[14px] font-bold text-[var(--color-primary)]">{i + 1}</span>
+                <span className="text-body-emphasis font-bold text-[var(--color-primary)]">{i + 1}</span>
               </div>
-              <span className="text-[13px] text-[#212124]">{act}</span>
+              <span className="text-body text-primary">{act}</span>
             </div>
           ))}
         </div>
@@ -465,11 +465,11 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
       <div className="bg-[#F0F9F4] rounded-2xl border border-[#D5E8DC] p-4">
         <div className="flex items-center gap-1.5 mb-3">
           <HeartFilledIcon className="w-4 h-4 text-[#2D7A4A]" />
-          <h3 className="text-[13px] font-bold text-[#2D7A4A]">알고 계셨나요?</h3>
+          <h3 className="text-body font-bold text-[#2D7A4A]">알고 계셨나요?</h3>
         </div>
         <div className="space-y-2.5">
           {reassurance.map((stat, i) => (
-            <p key={i} className="text-[13px] text-[#3D6B4E] leading-relaxed flex items-start gap-2">
+            <p key={i} className="text-body text-[#3D6B4E] leading-relaxed flex items-start gap-2">
               <span className="shrink-0 mt-0.5 w-1.5 h-1.5 rounded-full bg-[#2D7A4A]/40" />
               {stat}
             </p>
@@ -481,20 +481,20 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
       {catchUpTips.length > 0 && pct < 100 && (
         <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
           <div className="flex items-center gap-1.5 mb-3">
-            <TargetIcon className="w-4 h-4 text-[#212124]" />
-            <h3 className="text-[13px] font-bold text-[#212124]">발달 자극 팁</h3>
+            <TargetIcon className="w-4 h-4 text-primary" />
+            <h3 className="text-body font-bold text-primary">발달 자극 팁</h3>
           </div>
           <div className="space-y-2">
             {catchUpTips.map((tip, i) => (
               <div key={i} className="flex items-start gap-2 py-1">
                 <div className="w-5 h-5 rounded-full bg-[#FEF0E8] flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-[11px] font-bold text-[var(--color-primary)]">{i + 1}</span>
+                  <span className="text-label font-bold text-[var(--color-primary)]">{i + 1}</span>
                 </div>
-                <p className="text-[13px] text-[#4A4744] leading-relaxed">{tip}</p>
+                <p className="text-body text-[#4A4744] leading-relaxed">{tip}</p>
               </div>
             ))}
           </div>
-          <p className="text-[12px] text-[#9E9A95] mt-3">매일 조금씩, 놀이를 통해 자연스럽게 경험하면 돼요.</p>
+          <p className="text-caption text-tertiary mt-3">매일 조금씩, 놀이를 통해 자연스럽게 경험하면 돼요.</p>
         </div>
       )}
 
@@ -506,14 +506,14 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
             className="flex items-center justify-between w-full"
           >
             <div className="flex items-center gap-1.5">
-              <StethoscopeIcon className="w-4 h-4 text-[#6B6966]" />
-              <h3 className="text-[13px] font-bold text-[#212124]">소아과 상담 권장 신호</h3>
+              <StethoscopeIcon className="w-4 h-4 text-secondary" />
+              <h3 className="text-body font-bold text-primary">소아과 상담 권장 신호</h3>
             </div>
-            <span className="text-[13px] text-[#7A7672]">{showRedFlags ? '접기' : '펼치기'}</span>
+            <span className="text-body text-[#7A7672]">{showRedFlags ? '접기' : '펼치기'}</span>
           </button>
           {showRedFlags && (
             <div className="mt-3">
-              <p className="text-[12px] text-[#7A7672] mb-2.5">아래 항목이 지속되면 소아과 상담을 추천드려요.</p>
+              <p className="text-caption text-[#7A7672] mb-2.5">아래 항목이 지속되면 소아과 상담을 추천드려요.</p>
               <div className="space-y-2">
                 {redFlags.map((rf, i) => {
                   const catInfo = CATEGORY_ICONS[rf.category]
@@ -521,14 +521,14 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
                     <div key={i} className="flex items-start gap-2 py-1 px-3 rounded-xl bg-[#FFF8F5] border border-[#F5E6E0]">
                       {catInfo?.Icon && <catInfo.Icon className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#8B4513]" />}
                       <div>
-                        <p className="text-[13px] text-[#8B4513] leading-relaxed">{rf.flag}</p>
-                        <p className="text-[11px] text-[#B8860B] mt-0.5">{catInfo?.label} 영역</p>
+                        <p className="text-body text-[#8B4513] leading-relaxed">{rf.flag}</p>
+                        <p className="text-label text-[#B8860B] mt-0.5">{catInfo?.label} 영역</p>
                       </div>
                     </div>
                   )
                 })}
               </div>
-              <p className="text-[12px] text-[#D08068] mt-3 font-medium">이 신호는 참고용이며, 반드시 전문의 상담을 받으세요.</p>
+              <p className="text-caption text-[#D08068] mt-3 font-medium">이 신호는 참고용이며, 반드시 전문의 상담을 받으세요.</p>
             </div>
           )}
         </div>
@@ -542,14 +542,14 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
         >
           <div className="flex items-center gap-1.5">
             <HospitalIcon className="w-3.5 h-3.5" />
-            <h3 className="text-[13px] font-bold text-[#212124]">검진 시 질문 추천</h3>
+            <h3 className="text-body font-bold text-primary">검진 시 질문 추천</h3>
           </div>
-          <span className="text-[13px] text-[#7A7672]">{showQuestions ? '접기' : '펼치기'}</span>
+          <span className="text-body text-[#7A7672]">{showQuestions ? '접기' : '펼치기'}</span>
         </button>
         {showQuestions && (
           <div className="mt-3 space-y-2">
             {checkupQuestions.map((q, i) => (
-              <p key={i} className="text-[13px] text-[#5A5854] leading-relaxed pl-2 border-l-2 border-[#E8E6E1]">
+              <p key={i} className="text-body text-[#5A5854] leading-relaxed pl-2 border-l-2 border-[#E8E6E1]">
                 {q}
               </p>
             ))}

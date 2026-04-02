@@ -24,11 +24,11 @@ export default function Error({
           <span className="text-3xl">😢</span>
         </div>
 
-        <h1 className="text-xl font-bold text-[#1A1918] mb-2">
+        <h1 className="text-xl font-bold text-primary mb-2">
           앗, 문제가 발생했어요
         </h1>
 
-        <p className="text-sm text-[#6B6966] mb-6">
+        <p className="text-sm text-secondary mb-6">
           예상치 못한 오류가 발생했습니다.<br />
           잠시 후 다시 시도해주세요.
         </p>
@@ -52,14 +52,14 @@ export default function Error({
 
           <a
             href="/"
-            className="w-full py-3 px-4 rounded-xl bg-[#E8E4DF] text-[#1A1918] font-semibold active:opacity-80"
+            className="w-full py-3 px-4 rounded-xl bg-[#E8E4DF] text-primary font-semibold active:opacity-80"
           >
             홈으로 돌아가기
           </a>
         </div>
 
         {error.digest && (
-          <p className="mt-4 text-xs text-[#9E9A95]">
+          <p className="mt-4 text-xs text-tertiary">
             오류 ID: {error.digest}
           </p>
         )}

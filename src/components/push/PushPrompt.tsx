@@ -97,10 +97,10 @@ export default function PushPrompt({ message, show = true }: Props) {
           <BellIcon className="w-5 h-5 text-[var(--color-primary)]" />
         </div>
         <div className="flex-1">
-          <p className="text-[14px] font-bold text-[#1A1918]">
+          <p className="text-body-emphasis font-bold text-primary">
             {message || '다음 수유 시간을 알려드릴까요?'}
           </p>
-          <p className="text-[13px] text-[#6B6966] mt-0.5 leading-relaxed">
+          <p className="text-body text-secondary mt-0.5 leading-relaxed">
             AI가 예측한 수유·수면 시간에 맞춰 알림을 보내드려요
           </p>
 
@@ -108,13 +108,13 @@ export default function PushPrompt({ message, show = true }: Props) {
             <button
               onClick={handleSubscribe}
               disabled={subscribing}
-              className="flex-1 py-2 rounded-lg bg-[var(--color-primary)] text-white text-[13px] font-semibold active:opacity-80"
+              className="flex-1 py-2 rounded-lg bg-[var(--color-primary)] text-white font-semibold active:opacity-80"
             >
               {subscribing ? '설정 중...' : '좋아요'}
             </button>
             <button
               onClick={handleLater}
-              className="px-3 py-2 rounded-lg text-[13px] text-[#6B6966] active:bg-[#F0EDE8]"
+              className="px-3 py-2 rounded-lg text-body text-secondary active:bg-[#F0EDE8]"
             >
               나중에
             </button>
@@ -122,7 +122,7 @@ export default function PushPrompt({ message, show = true }: Props) {
 
           <button
             onClick={handleNever}
-            className="text-[11px] text-[#D0CCC7] mt-2 active:text-[#9E9A95]"
+            className="text-label text-[#D0CCC7] mt-2 active:text-tertiary"
           >
             다시 묻지 않기
           </button>

@@ -80,10 +80,10 @@ export default function StreakCard({ mode }: { mode: string }) {
         <div className="flex items-center gap-2">
           {streak >= 3 ? <SparkleIcon className="w-5 h-5 text-[var(--color-primary)]" /> : <SproutIcon className="w-5 h-5 text-[var(--color-primary)]" />}
           <div>
-            <p className="text-[13px] font-bold text-[#1A1918]">
+            <p className="text-body font-bold text-primary">
               {streak > 0 ? `${streak}일 연속 기록 중!` : '오늘 첫 기록을 남겨보세요'}
             </p>
-            <p className="text-[14px] text-[#6B6966]">총 {totalDays}일 기록</p>
+            <p className="text-body-emphasis text-secondary">총 {totalDays}일 기록</p>
           </div>
         </div>
 
@@ -101,10 +101,10 @@ export default function StreakCard({ mode }: { mode: string }) {
       {nextUnlock && (
         <div className="mt-2 pt-2 border-t border-[#E8E4DF]">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-[14px] text-[#6B6966]">
+            <p className="text-body-emphasis text-secondary">
               <span className="inline-flex items-center gap-1">{aiUnlocked ? <UnlockIcon className="w-3.5 h-3.5 inline" /> : <LockIcon className="w-3.5 h-3.5 inline" />} {nextUnlock.label}</span>
             </p>
-            <p className="text-[14px] text-[var(--color-primary)] font-semibold">{nextUnlock.days}일 남음</p>
+            <p className="text-body-emphasis text-[var(--color-primary)] font-semibold">{nextUnlock.days}일 남음</p>
           </div>
           <div className="w-full h-1.5 bg-[#E8E4DF] rounded-full">
             <div className="h-full bg-[var(--color-primary)] rounded-full transition-all" style={{ width: `${(nextUnlock.current / nextUnlock.target) * 100}%` }} />

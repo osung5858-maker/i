@@ -2,29 +2,16 @@
 
 import { useMemo } from 'react'
 import type { CareEvent } from '@/types'
-import { SproutIcon, SparkleIcon } from '@/components/ui/Icons'
+import { SparkleIcon } from '@/components/ui/Icons'
+import { calculateStreak } from '@/lib/utils/streak'
 
 interface Props {
   events: CareEvent[]
 }
 
-function getConsecutiveDays(events: CareEvent[]): number {
-  const dates = new Set(events.map((e) => new Date(e.start_ts).toISOString().split('T')[0]))
-  let streak = 0
-  const today = new Date()
-
-  for (let i = 0; i < 365; i++) {
-    const d = new Date(today)
-    d.setDate(d.getDate() - i)
-    const key = d.toISOString().split('T')[0]
-    if (dates.has(key)) streak++
-    else break
-  }
-  return streak
-}
-
 export default function RewardBanner({ events }: Props) {
-  const streak = useMemo(() => getConsecutiveDays(events), [events])
+  const streakData = useMemo(() => calculateStreak(events), [events])
+  const streak = streakData.current
 
   if (streak < 1) return null
 
@@ -43,16 +30,16 @@ export default function RewardBanner({ events }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[14px] font-bold text-[var(--color-primary)] flex items-center gap-1"><SparkleIcon className="w-4 h-4" /> {streak}일 연속 기록 중</span>
+            <span className="text-body-emphasis font-bold text-[var(--color-primary)] flex items-center gap-1"><SparkleIcon className="w-4 h-4" /> {streak}일 연속 기록 중</span>
           </div>
           {currentBadge && (
-            <p className="text-[13px] text-[#C68A2E] mt-0.5">{currentBadge.label}</p>
+            <p className="text-body text-[#C68A2E] mt-0.5">{currentBadge.label}</p>
           )}
         </div>
         {nextBadge && (
           <div className="text-right">
-            <p className="text-[14px] text-[#9E9A95]">다음 배지까지</p>
-            <p className="text-[13px] font-bold text-[var(--color-primary)]">{nextBadge.days - streak}일</p>
+            <p className="text-body-emphasis text-tertiary">다음 배지까지</p>
+            <p className="text-body font-bold text-[var(--color-primary)]">{nextBadge.days - streak}일</p>
           </div>
         )}
       </div>

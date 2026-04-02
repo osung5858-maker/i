@@ -91,15 +91,15 @@ export default function WriteReviewPage() {
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col">
       <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-sm text-[#9B9B9B] shrink-0">취소</button>
-        <h1 className="text-[15px] font-bold text-[#0A0B0D] truncate mx-3">리뷰 쓰기</h1>
+        <button onClick={() => router.back()} className="text-sm text-tertiary shrink-0">취소</button>
+        <h1 className="text-subtitle text-primary truncate mx-3">리뷰 쓰기</h1>
         <div className="w-8" />
       </div>
 
       <div className="flex-1 px-6 pt-6 max-w-lg mx-auto w-full">
         {/* 별점 */}
         <div className="text-center mb-6">
-          <p className="text-xs text-[#9B9B9B] mb-3">별점을 선택해주세요</p>
+          <p className="text-xs text-tertiary mb-3">별점을 선택해주세요</p>
           <div className="flex justify-center gap-2">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -123,7 +123,7 @@ export default function WriteReviewPage() {
             placeholder="육아하면서 느낀 솔직한 후기를 남겨주세요 (10자 이상)"
             maxLength={500}
             rows={5}
-            className="w-full p-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-[15px] text-[#0A0B0D] placeholder-[#c0c0c0] resize-none focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+            className="w-full p-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary placeholder-[#c0c0c0] resize-none focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
           />
           <div className="flex justify-between mt-1.5">
             <span className={`text-xs ${content.length < 10 && content.length > 0 ? 'text-red-500' : 'text-[#c0c0c0]'}`}>
@@ -157,7 +157,7 @@ export default function WriteReviewPage() {
 
         {/* 아이 나이 */}
         {childAgeMonths !== null && (
-          <p className="text-xs text-[#9B9B9B]">
+          <p className="text-xs text-tertiary">
             방문 시 아이 나이: {childAgeMonths}개월 (자동 입력)
           </p>
         )}
@@ -174,7 +174,7 @@ export default function WriteReviewPage() {
         <button
           onClick={handleSubmit}
           disabled={loading || !isValid}
-          className={`w-full py-3.5 rounded-xl text-[15px] font-bold transition-colors max-w-lg mx-auto block ${isValid ? 'bg-[var(--color-primary)] text-white active:bg-[#2D6B45]' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}
+          className={`w-full py-3.5 rounded-xl text-subtitle transition-colors max-w-lg mx-auto block ${isValid ? 'bg-[var(--color-primary)] text-white active:bg-[#2D6B45]' : 'bg-[#E8E4DF] text-tertiary'}`}
         >
           {loading ? '등록 중...' : '리뷰 등록'}
         </button>

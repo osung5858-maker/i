@@ -91,31 +91,31 @@ function FoodCheckPageInner() {
 
         {/* 모드 표시 */}
         <div className="flex items-center gap-2 px-1">
-          <span className="text-[12px] text-[#9E9A95]">현재 모드</span>
-          <span className="text-[12px] font-semibold text-[var(--color-primary)] bg-[var(--color-accent-bg)] px-2 py-0.5 rounded-full">{modeLabel}</span>
+          <span className="text-caption text-tertiary">현재 모드</span>
+          <span className="text-caption font-semibold text-[var(--color-primary)] bg-[var(--color-accent-bg)] px-2 py-0.5 rounded-full">{modeLabel}</span>
         </div>
 
         {/* 검색 입력 */}
         <form onSubmit={handleSubmit}>
           <div className="flex gap-2">
             <div className="flex-1 relative">
-              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9E9A95]" />
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary" />
               <input
                 ref={inputRef}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder="음식 이름을 입력하세요 (예: 회, 카페인)"
-                className="w-full pl-9 pr-9 py-3 rounded-xl border border-[#E8E4DF] bg-white text-[14px] outline-none focus:border-[var(--color-primary)] transition-colors"
+                className="w-full pl-9 pr-9 py-3 rounded-xl border border-[#E8E4DF] bg-white text-body-emphasis outline-none focus:border-[var(--color-primary)] transition-colors"
               />
               {input && (
                 <button type="button" onClick={() => { setInput(''); setResult(null); setError(null) }}
                   className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <XIcon className="w-4 h-4 text-[#9E9A95]" />
+                  <XIcon className="w-4 h-4 text-tertiary" />
                 </button>
               )}
             </div>
             <button type="submit" disabled={!input.trim() || loading}
-              className="px-4 py-3 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold active:opacity-80 disabled:opacity-40 shrink-0 transition-opacity">
+              className="px-4 py-3 rounded-xl bg-[var(--color-primary)] text-white active:opacity-80 disabled:opacity-40 shrink-0 transition-opacity">
               확인
             </button>
           </div>
@@ -125,14 +125,14 @@ function FoodCheckPageInner() {
         {loading && (
           <div className="bg-white rounded-2xl border border-[#E8E4DF] p-6 flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
-            <p className="text-[13px] text-[#6B6966]">AI가 확인하고 있어요...</p>
+            <p className="text-body text-secondary">AI가 확인하고 있어요...</p>
           </div>
         )}
 
         {/* 에러 */}
         {error && (
           <div className="bg-[#FFF1F2] rounded-xl border border-[#FCA5A5] p-4">
-            <p className="text-[13px] text-[#991B1B]">{error}</p>
+            <p className="text-body text-[#991B1B]">{error}</p>
           </div>
         )}
 
@@ -146,30 +146,30 @@ function FoodCheckPageInner() {
                 <div className="flex items-center gap-3">
                   <span className="text-[40px] leading-none">{result.emoji}</span>
                   <div>
-                    <p className="text-[16px] font-bold text-[#1A1918]">{result.food}</p>
-                    <p className="text-[13px] font-medium mt-0.5" style={{ color: cfg.text }}>{result.summary}</p>
+                    <p className="text-subtitle font-bold text-primary">{result.food}</p>
+                    <p className="text-body font-medium mt-0.5" style={{ color: cfg.text }}>{result.summary}</p>
                   </div>
                 </div>
-                <span className="shrink-0 px-2.5 py-1 rounded-full text-[12px] font-bold text-white" style={{ backgroundColor: cfg.badge }}>
+                <span className="shrink-0 px-2.5 py-1 rounded-full text-caption font-bold text-white" style={{ backgroundColor: cfg.badge }}>
                   {cfg.label}
                 </span>
               </div>
 
               {/* 이유 */}
               <div className="bg-white/60 rounded-xl p-3">
-                <p className="text-[12px] font-semibold text-[#1A1918] mb-1 flex items-center gap-1">
+                <p className="text-caption font-semibold text-primary mb-1 flex items-center gap-1">
                   <SparkleIcon className="w-3.5 h-3.5 text-[var(--color-primary)]" /> AI 설명
                 </p>
-                <p className="text-[13px] text-[#4A4744] leading-relaxed">{result.reason}</p>
+                <p className="text-body text-[#4A4744] leading-relaxed">{result.reason}</p>
               </div>
 
               {/* 팁 */}
               <div className="flex items-start gap-2">
-                <span className="text-[14px] mt-0.5">💡</span>
-                <p className="text-[12px] text-[#6B6966] leading-relaxed">{result.tip}</p>
+                <span className="text-body-emphasis mt-0.5">💡</span>
+                <p className="text-caption text-secondary leading-relaxed">{result.tip}</p>
               </div>
 
-              <p className="text-[10px] text-[#9E9A95] text-center">AI 응답은 참고용입니다. 의심되면 담당 의사에게 확인하세요.</p>
+              <p className="text-label text-tertiary text-center">AI 응답은 참고용입니다. 의심되면 담당 의사에게 확인하세요.</p>
             </div>
           )
         })()}
@@ -177,11 +177,11 @@ function FoodCheckPageInner() {
         {/* 최근 검색 */}
         {!result && !loading && recent.length > 0 && (
           <div>
-            <p className="text-[12px] text-[#9E9A95] mb-2 px-1">최근 검색</p>
+            <p className="text-caption text-tertiary mb-2 px-1">최근 검색</p>
             <div className="flex flex-wrap gap-2">
               {recent.map(food => (
                 <button key={food} onClick={() => { setInput(food); check(food) }}
-                  className="px-3 py-1.5 rounded-full bg-white border border-[#E8E4DF] text-[13px] text-[#4A4744] active:bg-[#F5F3F0] transition-colors">
+                  className="px-3 py-1.5 rounded-full bg-white border border-[#E8E4DF] text-body text-[#4A4744] active:bg-[#F5F3F0] transition-colors">
                   {food}
                 </button>
               ))}
@@ -192,7 +192,7 @@ function FoodCheckPageInner() {
         {/* 자주 묻는 음식 */}
         {!result && !loading && (
           <div>
-            <p className="text-[12px] text-[#9E9A95] mb-2 px-1">자주 묻는 음식</p>
+            <p className="text-caption text-tertiary mb-2 px-1">자주 묻는 음식</p>
             <div className="flex flex-wrap gap-2">
               {(mode === 'pregnant'
                 ? ['회·초밥', '커피', '삼겹살', '참치캔', '치즈', '꿀', '아이스크림', '라면', '매운 음식', '홍삼']
@@ -201,7 +201,7 @@ function FoodCheckPageInner() {
                 : ['꿀', '생우유', '견과류', '달걀', '새우·갑각류', '땅콩', '밀가루', '이유식 재료', '돼지고기', '소고기']
               ).map(food => (
                 <button key={food} onClick={() => { setInput(food); check(food) }}
-                  className="px-3 py-1.5 rounded-full bg-white border border-[#E8E4DF] text-[13px] text-[#4A4744] active:bg-[#F5F3F0] transition-colors">
+                  className="px-3 py-1.5 rounded-full bg-white border border-[#E8E4DF] text-body text-[#4A4744] active:bg-[#F5F3F0] transition-colors">
                   {food}
                 </button>
               ))}

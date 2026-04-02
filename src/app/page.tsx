@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/ui/Toast'
-import { BellIcon, ChevronRightIcon, BottleIcon, MoonIcon, PoopIcon, DropletIcon, ThermometerIcon, PillIcon, NoteIcon, SyringeIcon, BowlIcon, ChartIcon, SparkleIcon, BuildingIcon, BabyIcon, BathIcon, PumpIcon, CookieIcon, RiceIcon, ActivityIcon, CompassIcon } from '@/components/ui/Icons'
+import { BellIcon, ChevronRightIcon, BottleIcon, MoonIcon, PoopIcon, DropletIcon, ThermometerIcon, PillIcon, NoteIcon, SyringeIcon, BowlIcon, ChartIcon, SparkleIcon, BuildingIcon, BabyIcon, BathIcon, PumpIcon, CookieIcon, RiceIcon, ActivityIcon, CompassIcon, HeartFilledIcon, WalkIcon, StretchIcon, YogaIcon, ScaleIcon } from '@/components/ui/Icons'
 import { decrypt } from '@/lib/security/crypto'
 import { createClient } from '@/lib/supabase/client'
 import { shareTodayRecord } from '@/lib/kakao/share-parenting'
@@ -16,10 +16,12 @@ import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import type { RecordTile } from '@/components/ui/TodayRecordSection'
 import PushPrompt from '@/components/push/PushPrompt'
 import CareFlowCard from '@/components/care-flow/CareFlowCard'
+import KakaoAdFit from '@/components/ads/KakaoAdFit'
 
 const FeedSheet = dynamic(() => import('@/components/quick-buttons/FeedSheet'), { ssr: false })
 const PoopSheet = dynamic(() => import('@/components/quick-buttons/PoopSheet'), { ssr: false })
 const TempSheet = dynamic(() => import('@/components/quick-buttons/TempSheet'), { ssr: false })
+const FormulaModal = dynamic(() => import('@/components/quick-buttons/FormulaModal'), { ssr: false })
 const SpotlightGuide = dynamic(() => import('@/components/onboarding/SpotlightGuide'), { ssr: false })
 import { evaluateCareFlow, scheduleReminder } from '@/lib/care-flow/engine'
 import type { CareAction } from '@/lib/care-flow/engine'
@@ -31,28 +33,73 @@ import { setSecure } from '@/lib/secureStorage'
 
 // Event display constants (module-level to avoid re-creation per render)
 const EVENT_ICON_MAP: Record<string, { Icon: React.FC<{ className?: string }>; bg: string; color: string }> = {
+  // 육아 모드
   feed: { Icon: BottleIcon, bg: 'bg-[#FFF0E6]', color: 'text-[var(--color-primary)]' },
   sleep: { Icon: MoonIcon, bg: 'bg-[#E8E0F8]', color: 'text-[#7B6DB0]' },
   poop: { Icon: PoopIcon, bg: 'bg-[#FFF5E6]', color: 'text-[#C4913E]' },
   pee: { Icon: DropletIcon, bg: 'bg-[#E6F4FF]', color: 'text-[#5B9FD6]' },
   temp: { Icon: ThermometerIcon, bg: 'bg-[#FFE8E8]', color: 'text-[#D46A6A]' },
-  memo: { Icon: NoteIcon, bg: 'bg-[#F0EDE8]', color: 'text-[#9E9A95]' },
+  memo: { Icon: NoteIcon, bg: 'bg-[#F0EDE8]', color: 'text-tertiary' },
   bath: { Icon: BathIcon, bg: 'bg-[#E6F4FF]', color: 'text-[#5B9FD6]' },
   pump: { Icon: PumpIcon, bg: 'bg-[#FFF0E6]', color: 'text-[var(--color-primary)]' },
+  pump_left: { Icon: PumpIcon, bg: 'bg-[#FFF0E6]', color: 'text-[var(--color-primary)]' },
+  pump_right: { Icon: PumpIcon, bg: 'bg-[#FFF0E6]', color: 'text-[var(--color-primary)]' },
   babyfood: { Icon: BowlIcon, bg: 'bg-[#FFF8F0]', color: 'text-[#C4913E]' },
   snack: { Icon: CookieIcon, bg: 'bg-[#FFF8F0]', color: 'text-[#C4913E]' },
   toddler_meal: { Icon: RiceIcon, bg: 'bg-[#FFF8F0]', color: 'text-[#C4913E]' },
   medication: { Icon: PillIcon, bg: 'bg-[#FFECDB]', color: 'text-[#C4783E]' },
+
+  // 임신 모드
+  preg_mood: { Icon: HeartFilledIcon, bg: 'bg-[#FFE4F2]', color: 'text-[#FF8FAB]' },
+  preg_fetal_move: { Icon: BabyIcon, bg: 'bg-[#E8F5EF]', color: 'text-[#5BA882]' },
+  preg_weight: { Icon: ScaleIcon, bg: 'bg-[#FFF0E6]', color: 'text-[#D08068]' },
+  preg_stretch: { Icon: StretchIcon, bg: 'bg-[#F3E8FF]', color: 'text-[#8B5CF6]' },
+  preg_meditate: { Icon: YogaIcon, bg: 'bg-[#F3E8FF]', color: 'text-[#8B5CF6]' },
+  preg_edema: { Icon: DropletIcon, bg: 'bg-[#E6F4FF]', color: 'text-[#5B9FD6]' },
+  preg_folic: { Icon: PillIcon, bg: 'bg-[#ECFDF5]', color: 'text-[#10B981]' },
+  preg_iron: { Icon: PillIcon, bg: 'bg-[#ECFDF5]', color: 'text-[#10B981]' },
+  preg_dha: { Icon: PillIcon, bg: 'bg-[#ECFDF5]', color: 'text-[#10B981]' },
+  preg_calcium: { Icon: PillIcon, bg: 'bg-[#ECFDF5]', color: 'text-[#10B981]' },
+  preg_vitd: { Icon: PillIcon, bg: 'bg-[#ECFDF5]', color: 'text-[#10B981]' },
+  preg_journal: { Icon: NoteIcon, bg: 'bg-[#EDE9FE]', color: 'text-[#A78BFA]' },
+
+  // 임신 준비 모드
+  prep_mood: { Icon: HeartFilledIcon, bg: 'bg-[#FFE4F2]', color: 'text-[#F472B6]' },
+  prep_walk: { Icon: WalkIcon, bg: 'bg-[#FFF7ED]', color: 'text-[#F59E0B]' },
+  prep_stretch: { Icon: StretchIcon, bg: 'bg-[#FFF7ED]', color: 'text-[#F59E0B]' },
+  prep_yoga: { Icon: YogaIcon, bg: 'bg-[#FFF7ED]', color: 'text-[#F59E0B]' },
+  prep_folic: { Icon: PillIcon, bg: 'bg-[#ECFDF5]', color: 'text-[#10B981]' },
+  prep_iron: { Icon: PillIcon, bg: 'bg-[#ECFDF5]', color: 'text-[#10B981]' },
+  prep_vitd: { Icon: PillIcon, bg: 'bg-[#ECFDF5]', color: 'text-[#10B981]' },
+  prep_omega: { Icon: PillIcon, bg: 'bg-[#ECFDF5]', color: 'text-[#10B981]' },
+  prep_journal: { Icon: NoteIcon, bg: 'bg-[#EDE9FE]', color: 'text-[#A78BFA]' },
 }
-const EVENT_ICON_DEFAULT = { Icon: NoteIcon, bg: 'bg-[#F0EDE8]', color: 'text-[#9E9A95]' }
-const EVENT_LABELS: Record<string, string> = { feed: '분유', sleep: '수면', poop: '대변', pee: '소변', temp: '체온', memo: '메모', bath: '목욕', pump: '유축', babyfood: '이유식', snack: '간식', toddler_meal: '유아식', medication: '투약', night_sleep: '밤잠', nap: '낮잠', poop_normal: '대변 정상', poop_soft: '대변 묽음', poop_hard: '대변 단단' }
+const EVENT_ICON_DEFAULT = { Icon: NoteIcon, bg: 'bg-[#F0EDE8]', color: 'text-tertiary' }
+const EVENT_LABELS: Record<string, string> = {
+  // 육아 모드
+  feed: '분유', sleep: '수면', poop: '대변', pee: '소변', temp: '체온', memo: '메모', bath: '목욕', pump: '유축',
+  babyfood: '이유식', snack: '간식', toddler_meal: '유아식', medication: '투약',
+  night_sleep: '밤잠', nap: '낮잠', poop_normal: '대변 정상', poop_soft: '대변 묽음', poop_hard: '대변 단단',
+
+  // 임신 모드
+  preg_mood: '기분', preg_fetal_move: '태동', preg_weight: '체중', preg_stretch: '스트레칭',
+  preg_meditate: '명상', preg_edema: '부종', preg_folic: '엽산', preg_iron: '철분',
+  preg_dha: 'DHA', preg_calcium: '칼슘', preg_vitd: '비타민D', preg_journal: '기다림 일기',
+
+  // 임신 준비 모드
+  prep_mood: '기분', prep_walk: '걷기', prep_stretch: '스트레칭', prep_yoga: '요가',
+  prep_folic: '엽산', prep_iron: '철분', prep_vitd: '비타민D', prep_omega: '오메가3', prep_journal: '기다림 일기',
+}
 const BABYFOOD_LABELS: Record<string, string> = { rice: '쌀미음', veggie: '야채죽', meat: '고기죽', fruit: '과일', etc: '기타' }
 function getEventLabel(e: { type: string; tags?: Record<string, unknown> | null }): string {
-  if (e.type === 'feed' && e.tags?.side === 'left') return '모유(왼)'
-  if (e.type === 'feed' && e.tags?.side === 'right') return '모유(오)'
+  // 육아 모드
+  if (e.type === 'feed' && e.tags?.side === 'left') return '모유 왼쪽'
+  if (e.type === 'feed' && e.tags?.side === 'right') return '모유 오른쪽'
   if (e.type === 'feed' && e.tags?.amount_ml) return `분유 ${e.tags.amount_ml}ml`
-  if (e.type === 'pump' && e.tags?.side === 'left') return '유축(왼)'
-  if (e.type === 'pump' && e.tags?.side === 'right') return '유축(오)'
+  if (e.type === 'pump_left') return '유축 왼쪽'
+  if (e.type === 'pump_right') return '유축 오른쪽'
+  if (e.type === 'pump' && e.tags?.side === 'left') return '유축 왼쪽'
+  if (e.type === 'pump' && e.tags?.side === 'right') return '유축 오른쪽'
   if (e.type === 'sleep' && e.tags?.sleepType === 'nap') return '낮잠'
   if (e.type === 'sleep' && e.tags?.sleepType === 'night') return '밤잠'
   if (e.type === 'poop' && e.tags?.status === 'normal') return '대변 정상'
@@ -60,6 +107,26 @@ function getEventLabel(e: { type: string; tags?: Record<string, unknown> | null 
   if (e.type === 'poop' && e.tags?.status === 'hard') return '대변 단단'
   if (e.type === 'babyfood' && e.tags?.subtype) return `이유식 · ${BABYFOOD_LABELS[e.tags.subtype as string] || e.tags.subtype}`
   if (e.type === 'medication' && e.tags?.medicine) return `투약 · ${e.tags.medicine}`
+
+  // 임신 모드 - 기분
+  if (e.type === 'preg_mood' && e.tags?.mood === 'happy') return '행복'
+  if (e.type === 'preg_mood' && e.tags?.mood === 'excited') return '설렘'
+  if (e.type === 'preg_mood' && e.tags?.mood === 'calm') return '평온'
+  if (e.type === 'preg_mood' && e.tags?.mood === 'tired') return '피곤'
+  if (e.type === 'preg_mood' && e.tags?.mood === 'anxious') return '불안'
+  if (e.type === 'preg_mood' && e.tags?.mood === 'sick') return '아픔'
+
+  // 임신 모드 - 부종
+  if (e.type === 'preg_edema' && e.tags?.level === 'mild') return '부종'
+  if (e.type === 'preg_edema' && e.tags?.level === 'severe') return '부종 심함'
+
+  // 임신 준비 모드 - 기분
+  if (e.type === 'prep_mood' && e.tags?.mood === 'happy') return '행복'
+  if (e.type === 'prep_mood' && e.tags?.mood === 'excited') return '설렘'
+  if (e.type === 'prep_mood' && e.tags?.mood === 'calm') return '평온'
+  if (e.type === 'prep_mood' && e.tags?.mood === 'tired') return '피곤'
+  if (e.type === 'prep_mood' && e.tags?.mood === 'anxious') return '불안'
+
   return EVENT_LABELS[e.type] || e.type
 }
 const NEXT_VACCINES: Record<number, string> = { 0: 'BCG', 1: 'B형간염 2차', 2: 'DTaP 1차', 4: 'DTaP 2차', 6: 'DTaP 3차', 12: 'MMR', 15: '수두', 24: '일본뇌염' }
@@ -96,6 +163,7 @@ export default function HomePage() {
   const [feedSheetOpen, setFeedSheetOpen] = useState(false)
   const [poopSheetOpen, setPoopSheetOpen] = useState(false)
   const [tempSheetOpen, setTempSheetOpen] = useState(false)
+  const [formulaModalOpen, setFormulaModalOpen] = useState(false)
   const [pendingEventId, setPendingEventId] = useState<string | null>(null)
   const { isOnline, pendingCount, syncing } = useOfflineSync()
   const [showGuide, setShowGuide] = useState(false)
@@ -281,20 +349,36 @@ export default function HomePage() {
     if (!rawType) return
     const { type: _, ...extra } = detail
 
+    // 분유(feed) → 모달 열기 (체온처럼 처리)
+    if (rawType === 'feed' && !extra.amount_ml && !extra.tags) {
+      setFormulaModalOpen(true)
+      return
+    }
+
     // 타입 매핑: FAB의 세부 타입 → DB 이벤트 타입
     const typeMap: Record<string, EventType> = {
+      // 육아 모드
       breast_left: 'feed', breast_right: 'feed',
       pump_left: 'pump', pump_right: 'pump',
       poop_normal: 'poop', poop_soft: 'poop', poop_hard: 'poop',
       night_sleep: 'sleep', nap: 'sleep',
       note: 'memo',
+
+      // 임신 모드
+      preg_mood_happy: 'preg_mood', preg_mood_excited: 'preg_mood', preg_mood_calm: 'preg_mood',
+      preg_mood_tired: 'preg_mood', preg_mood_anxious: 'preg_mood', preg_mood_sick: 'preg_mood',
+      preg_edema_mild: 'preg_edema', preg_edema_severe: 'preg_edema',
+
+      // 임신 준비 모드
+      prep_mood_happy: 'prep_mood', prep_mood_excited: 'prep_mood', prep_mood_calm: 'prep_mood',
+      prep_mood_tired: 'prep_mood', prep_mood_anxious: 'prep_mood',
     }
     const eventType = (typeMap[rawType] || rawType) as EventType
 
     // 라벨 매핑 (세부 타입 우선)
     const labelMap: Record<string, string> = {
-      breast_left: '모유(왼)', breast_right: '모유(오)',
-      pump_left: '유축(왼)', pump_right: '유축(오)',
+      breast_left: '모유 왼쪽', breast_right: '모유 오른쪽',
+      pump_left: '유축 왼쪽', pump_right: '유축 오른쪽',
       feed: '분유', poop: '배변', pee: '소변', sleep: '수면',
       temp: '체온', memo: '메모', bath: '목욕', pump: '유축',
       babyfood: '이유식', snack: '간식', toddler_meal: '유아식', medication: '투약',
@@ -315,7 +399,13 @@ export default function HomePage() {
       }
       if (navigator.vibrate) navigator.vibrate([30, 50, 30])
       const { data, error } = await supabase.from('events').insert(eventData).select().single()
-      const durationLabel = labelMap[rawType] || labelMap[eventType] || eventType
+      let durationLabel = labelMap[rawType] || labelMap[eventType] || eventType
+      // pump/feed의 경우 side 태그 반영
+      if ((eventType === 'pump' || eventType === 'feed') && extra.tags) {
+        const tags = extra.tags as Record<string, unknown>
+        if (tags.side === 'left') durationLabel = eventType === 'pump' ? '유축 왼쪽' : '모유 왼쪽'
+        else if (tags.side === 'right') durationLabel = eventType === 'pump' ? '유축 오른쪽' : '모유 오른쪽'
+      }
       const mins = Math.round((new Date(extra.end_ts as string).getTime() - new Date(extra.start_ts as string).getTime()) / 60000)
       if (error) {
         const offline = { id: crypto.randomUUID(), ...eventData, synced: false, created_at: new Date().toISOString() }
@@ -339,7 +429,13 @@ export default function HomePage() {
         const celsius = (extra.tags as Record<string, unknown>)?.celsius
         const subtype = (extra.tags as Record<string, unknown>)?.subtype as string | undefined
         const amount = extra.amount_ml as number | undefined
-        const detailLabel = labelMap[rawType] || labelMap[eventType] || eventType
+        let detailLabel = labelMap[rawType] || labelMap[eventType] || eventType
+        // pump/feed의 경우 side 태그 반영
+        if ((eventType === 'pump' || eventType === 'feed') && extra.tags) {
+          const tags = extra.tags as Record<string, unknown>
+          if (tags.side === 'left') detailLabel = eventType === 'pump' ? '유축 왼쪽' : '모유 왼쪽'
+          else if (tags.side === 'right') detailLabel = eventType === 'pump' ? '유축 오른쪽' : '모유 오른쪽'
+        }
         const msg = celsius ? `체온 ${celsius}°C 기록 완료!`
           : subtype && eventType === 'babyfood' ? `이유식 ${BABYFOOD_SUB[subtype] || subtype} 기록 완료!`
           : amount ? `${detailLabel} ${amount}ml 기록 완료!`
@@ -424,6 +520,13 @@ export default function HomePage() {
       if (celsius >= 37.5) triggerCareFlow(e, events)
     }
   }
+  const handleFormulaSubmit = async (ml: number) => {
+    setFormulaModalOpen(false)
+    const e = await insertEvent('feed', { amount_ml: ml })
+    if (e) {
+      setToast({ message: `분유 ${ml}ml 기록 완료!`, undoId: e.id })
+    }
+  }
 
   const ageMonths = child ? getAgeMonths(child.birthdate) : 0
   const { todayFeedCount, todaySleepCount, todayPoopCount } = useMemo(() => ({
@@ -454,7 +557,7 @@ export default function HomePage() {
       {/* 배너 */}
       {!isOnline && (
         <div className="bg-[#FFF8F3] px-4 py-2">
-          <p className="text-[13px] text-[var(--color-primary)] text-center font-medium">
+          <p className="text-body text-[var(--color-primary)] text-center font-medium">
             오프라인 · 기록은 저장돼요 {pendingCount > 0 && `(${pendingCount}건 대기)`}
           </p>
         </div>
@@ -462,7 +565,7 @@ export default function HomePage() {
 
       {/* 콘텐츠 */}
       <div className="bg-[var(--color-page-bg)]">
-        <div className="max-w-lg mx-auto w-full pt-4 pb-3 px-5 space-y-3">
+        <div className="max-w-lg mx-auto w-full pt-4 pb-24 px-5 space-y-3">
 
           {/* ━━━ 1. AI 히어로 ━━━ */}
           <div data-guide="ai-card">
@@ -495,7 +598,7 @@ export default function HomePage() {
             const tiles: RecordTile[] = []
             const headerRight = events.length > 0 ? (
               <Link href={`/records/${(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })()}`}>
-                <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
+                <span className="text-body text-[var(--color-primary)] font-medium">전체보기 →</span>
               </Link>
             ) : null
             const getEventCatLabel = (e: typeof events[0]): { cat: string; label: string } => {
@@ -505,7 +608,10 @@ export default function HomePage() {
               }
               if (e.type === 'feed') {
                 const side = e.tags?.side as string
-                return { cat: '수유', label: side === 'left' ? '왼쪽' : side === 'right' ? '오른쪽' : e.amount_ml ? `${e.amount_ml}ml` : '' }
+                if (side === 'left') return { cat: '모유 왼쪽', label: '' }
+                if (side === 'right') return { cat: '모유 오른쪽', label: '' }
+                if (e.amount_ml) return { cat: '분유', label: `${e.amount_ml}ml` }
+                return { cat: '수유', label: '' }
               }
               if (e.type === 'sleep') {
                 const st = e.tags?.sleepType as string
@@ -515,14 +621,23 @@ export default function HomePage() {
                 return { cat: '수면', label: mins ? `${mins}분` : '' }
               }
               if (e.type === 'temp') return { cat: '체온', label: e.tags?.celsius ? `${e.tags.celsius}°C` : '' }
-              if (e.type === 'pump') return { cat: '유축', label: e.amount_ml ? `${e.amount_ml}ml` : '' }
+              if (e.type === 'pump_left') return { cat: '유축', label: '왼쪽' }
+              if (e.type === 'pump_right') return { cat: '유축', label: '오른쪽' }
+              if (e.type === 'pump') {
+                const side = e.tags?.side as string
+                const mins = e.end_ts ? Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000) : 0
+                if (side === 'left') return { cat: '유축', label: mins ? `왼쪽 ${mins}분` : '왼쪽' }
+                if (side === 'right') return { cat: '유축', label: mins ? `오른쪽 ${mins}분` : '오른쪽' }
+                if (e.amount_ml) return { cat: '유축', label: `${e.amount_ml}ml` }
+                return { cat: '유축', label: mins ? `${mins}분` : '' }
+              }
               if (e.type === 'medication') return { cat: '투약', label: (e.tags?.medicine as string) || '' }
               if (e.type === 'babyfood') return { cat: '이유식', label: e.amount_ml ? `${e.amount_ml}ml` : '' }
               const base = EVENT_LABELS[e.type] || e.type
               return { cat: base, label: '' }
             }
             const eventList = events.length > 0 ? (
-              <div className="max-h-[200px] overflow-y-auto hide-scrollbar">
+              <div className="max-h-[200px] overflow-y-auto overflow-x-hidden hide-scrollbar">
                 {events.slice(0, 10).map((e) => {
                   const time = new Date(e.start_ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
                   const iconInfo = EVENT_ICON_MAP[e.type] || EVENT_ICON_DEFAULT
@@ -530,15 +645,15 @@ export default function HomePage() {
                   const { cat, label } = getEventCatLabel(e)
                   return (
                     <div key={e.id} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
-                      <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{time}</span>
+                      <span className="text-caption text-tertiary w-10 shrink-0 text-right font-mono">{time}</span>
                       <div className={`w-7 h-7 rounded-full ${iconInfo.bg} flex items-center justify-center shrink-0`}>
                         <iconInfo.Icon className={`w-3.5 h-3.5 ${iconInfo.color}`} />
                       </div>
-                      <span className="text-[13px] text-[#1A1918]">
-                        {label && <span className="text-[#9E9A95] font-normal mr-1">{cat}</span>}
+                      <span className="text-body text-primary flex-1 min-w-0 truncate">
+                        {label && <span className="text-tertiary font-normal mr-1">{cat}</span>}
                         <span className={`font-semibold${isAlert ? ' text-red-500' : ''}`}>{label || cat}</span>
                       </span>
-                      {isAlert && <span className="text-[10px] bg-red-50 text-red-500 px-1 py-0.5 rounded font-bold">주의</span>}
+                      {isAlert && <span className="text-label bg-red-50 text-red-500 px-1 py-0.5 rounded font-bold shrink-0">주의</span>}
                     </div>
                   )
                 })}
@@ -575,8 +690,8 @@ export default function HomePage() {
                     <SyringeIcon className={`w-4.5 h-4.5 ${urgent ? 'text-white' : 'text-[#5B9FD6]'}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold text-[#1A1918] truncate">{next ? next[1] : '접종 완료!'}</p>
-                    <p className="text-[12px] text-[#9E9A95]">
+                    <p className="text-body font-semibold text-primary truncate">{next ? next[1] : '접종 완료!'}</p>
+                    <p className="text-caption text-tertiary">
                       {dDay === null ? '다음 접종' : dDay < 0 ? `D+${Math.abs(dDay)} 지남` : dDay === 0 ? '오늘 접종일!' : `D-${dDay}`}
                     </p>
                   </div>
@@ -589,8 +704,8 @@ export default function HomePage() {
                 <ChartIcon className="w-4.5 h-4.5 text-[#4A9B6E]" />
               </div>
               <div>
-                <p className="text-[14px] font-semibold text-[#1A1918]">{ageMonths}개월</p>
-                <p className="text-[13px] text-[#9E9A95]">성장 기록</p>
+                <p className="text-body-emphasis text-primary">{ageMonths}개월</p>
+                <p className="text-body text-tertiary">성장 기록</p>
               </div>
             </Link>
           </div>
@@ -603,6 +718,14 @@ export default function HomePage() {
 
           {/* 키즈노트 — 조건부 노출 */}
           <KidsnoteCard ageMonths={ageMonths} userId={user?.id} />
+
+          {/* 카카오 AdFit 배너 */}
+          <KakaoAdFit
+            unit="DAN-N5Q1Lo0fA64Zbida"
+            width={320}
+            height={50}
+            className="mx-auto"
+          />
 
           {/* 심심풀이 */}
           <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden hover-lift">
@@ -617,7 +740,7 @@ export default function HomePage() {
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[var(--color-page-bg)]">
                     <item.Icon className="w-5 h-5 text-[var(--color-primary)]" />
                   </div>
-                  <p className="text-[12px] font-semibold text-[#1A1918] text-center leading-tight">{item.title}</p>
+                  <p className="text-caption font-semibold text-primary text-center leading-tight">{item.title}</p>
                 </Link>
               ))}
             </div>
@@ -642,10 +765,11 @@ export default function HomePage() {
         />
       )}
 
-      {/* 바텀시트 */}
+      {/* 바텀시트 & 모달 */}
       <FeedSheet open={feedSheetOpen} onClose={() => { setFeedSheetOpen(false); handleFeedSelect(null) }} onSelect={handleFeedSelect} />
       <PoopSheet open={poopSheetOpen} onClose={() => { setPoopSheetOpen(false); handlePoopSelect(null) }} onSelect={handlePoopSelect} />
       <TempSheet open={tempSheetOpen} onClose={() => setTempSheetOpen(false)} onSubmit={handleTempSubmit} />
+      <FormulaModal open={formulaModalOpen} onClose={() => setFormulaModalOpen(false)} onSubmit={handleFormulaSubmit} />
 
       {showGuide && <SpotlightGuide mode="parenting" onComplete={() => { localStorage.setItem('dodam_guide_parenting', '1'); setShowGuide(false) }} />}
     </div>
@@ -658,7 +782,7 @@ function KnImageViewer({ images, startIndex, onClose }: { images: { original: st
   return (
     <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col" onClick={onClose}>
       <div className="flex items-center justify-between px-5 pt-3 pb-2">
-        <span className="text-[13px] text-white/70">{idx + 1} / {images.length}</span>
+        <span className="text-body text-white/70">{idx + 1} / {images.length}</span>
         <button onClick={onClose} className="text-white text-xl">✕</button>
       </div>
       <div className="flex-1 flex items-center justify-center px-2"
@@ -791,19 +915,19 @@ function KidsnoteCard({ ageMonths, userId }: { ageMonths: number; userId?: strin
           <div className="flex items-center gap-3">
             <BuildingIcon className="w-6 h-6 text-[var(--color-primary)]" />
             <div>
-              <p className="text-[13px] font-bold text-[#1A1918]">
+              <p className="text-body font-bold text-primary">
                 {isPickupTime ? '오늘 알림장 확인하셨나요?' : '키즈노트 연동'}
               </p>
-              <p className="text-[13px] text-[#6B6966]">어린이집 알림장을 도담에서 확인해요</p>
+              <p className="text-body text-secondary">어린이집 알림장을 도담에서 확인해요</p>
             </div>
           </div>
-          <ChevronRightIcon className="w-4 h-4 text-[#9E9A95]" />
+          <ChevronRightIcon className="w-4 h-4 text-tertiary" />
         </Link>
         {/* 어린이집 등록 토글 */}
         {!daycare && ageMonths >= 12 && (
           <button
             onClick={() => { localStorage.setItem('dodam_daycare', 'true'); setDaycare(true) }}
-            className="mt-2.5 w-full text-center text-[12px] text-[#6B6966] py-1.5 bg-white/60 rounded-lg active:bg-white"
+            className="mt-2.5 w-full text-center text-caption text-secondary py-1.5 bg-white/60 rounded-lg active:bg-white"
           >
             우리 아이 어린이집 다녀요
           </button>
@@ -830,34 +954,34 @@ function KidsnoteCard({ ageMonths, userId }: { ageMonths: number; userId?: strin
       <div className="flex items-center justify-between mb-2">
         <Link href="/kidsnote" className="flex items-center gap-1.5 flex-1 min-w-0">
           <BuildingIcon className="w-4 h-4 text-[var(--color-primary)] shrink-0" />
-          <span className="text-[13px] font-bold text-[#1A1918]">오늘의 키즈노트</span>
+          <span className="text-body font-bold text-primary">오늘의 키즈노트</span>
           {reports.length > 0 && !cacheIsToday && (
-            <span className="text-[10px] text-[#9E9A95] bg-[#F0EDE8] px-1.5 py-0.5 rounded-full shrink-0">이전 기록</span>
+            <span className="text-label text-tertiary bg-[#F0EDE8] px-1.5 py-0.5 rounded-full shrink-0">이전 기록</span>
           )}
           {reports.length > 0 && cacheIsToday && <span className="w-2 h-2 rounded-full bg-[#D05050] shrink-0" />}
         </Link>
         <div className="flex items-center gap-1.5 shrink-0">
-          {fetchedLabel && <span className="text-[11px] text-[#9E9A95]">{fetchedLabel}</span>}
+          {fetchedLabel && <span className="text-label text-tertiary">{fetchedLabel}</span>}
           <button
             onClick={fetchReports}
             disabled={loading}
-            className="flex items-center gap-0.5 text-[11px] text-[var(--color-primary)] bg-[#E8F5E9] px-2 py-1 rounded-full active:opacity-60 disabled:opacity-40">
+            className="flex items-center gap-0.5 text-label text-[var(--color-primary)] bg-[#E8F5E9] px-2 py-1 rounded-full active:opacity-60 disabled:opacity-40">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className={loading ? 'animate-spin' : ''}>
               <polyline points="1 4 1 10 7 10" /><polyline points="23 20 23 14 17 14" />
               <path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15" />
             </svg>
             {loading ? '불러오는 중' : '새로고침'}
           </button>
-          <Link href="/kidsnote"><ChevronRightIcon className="w-4 h-4 text-[#9E9A95]" /></Link>
+          <Link href="/kidsnote"><ChevronRightIcon className="w-4 h-4 text-tertiary" /></Link>
         </div>
       </div>
 
       {!loading && knError && (
-        <p className="text-[13px] text-[#D05050] py-2 text-center">{knError}</p>
+        <p className="text-body text-[#D05050] py-2 text-center">{knError}</p>
       )}
 
       {!loading && !knError && reports.length === 0 && (
-        <p className="text-[13px] text-[#9E9A95] py-2 text-center">
+        <p className="text-body text-tertiary py-2 text-center">
           {lastFetched ? '오늘 알림장이 아직 없어요' : '새로고침을 눌러 확인해요'}
         </p>
       )}
@@ -874,11 +998,11 @@ function KidsnoteCard({ ageMonths, userId }: { ageMonths: number; userId?: strin
                 <div key={i} className="relative aspect-square cursor-pointer active:opacity-80 overflow-hidden"
                   onClick={() => { setViewerImages(allImages); setViewerStart(i) }}>
                   <Image src={img.thumbnail} alt="키즈노트 사진 썸네일" fill className="object-cover" />
-                  {i === 0 && <span className="absolute top-1 left-1 text-[13px] bg-black/50 text-white px-1 rounded">NEW</span>}
+                  {i === 0 && <span className="absolute top-1 left-1 text-body bg-black/50 text-white px-1 rounded">NEW</span>}
                 </div>
               ))}
             </div>
-            <p className="text-[14px] text-[#9E9A95] text-center mt-1.5">
+            <p className="text-body-emphasis text-tertiary text-center mt-1.5">
               {reports[0]?.created ? new Date(reports[0].created).toLocaleDateString('ko-KR') : ''}
             </p>
           </>
@@ -944,13 +1068,17 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
     setLoading(false)
   }
 
-  const statusColors: Record<string, string> = { '좋음': 'bg-[#E8F5E9] text-[#2E7D32]', '보통': 'bg-[#FFF8E1] text-[#F57F17]', '주의': 'bg-[#FFF0E6] text-[#D08068]' }
+  const statusColors: Record<string, string> = {
+    '좋음': 'bg-[var(--color-primary-bg)] text-[var(--color-primary)]',
+    '보통': 'bg-orange-50 text-orange-600',
+    '주의': 'bg-red-50 text-red-600'
+  }
 
   return (
-    <div className="dodam-card-accent bg-gradient-to-br from-white via-[#FFFBF8] to-[#F0F9F4]">
+    <div className="dodam-card-accent bg-gradient-to-br from-white via-[var(--color-primary-bg)] to-[var(--color-primary-bg)]">
       <div className="flex items-center justify-between" style={{ marginBottom: 'var(--spacing-2)' }}>
         <div className="flex items-center" style={{ gap: 'var(--spacing-2)' }}>
-          <SparkleIcon className="w-4 h-4 text-[#C4913E]" />
+          <SparkleIcon className="w-4 h-4 text-[var(--color-primary)]" />
           <p className="text-body-emphasis">AI 데일리 케어</p>
           {ai?.status && (
             <span
@@ -975,8 +1103,8 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
       <div className="flex mb-3" style={{ gap: 'var(--spacing-2)' }}>
         {[
           { label: '수유', count: todayFeedCount, Icon: BottleIcon, color: 'var(--color-primary)' },
-          { label: '수면', count: todaySleepCount, Icon: MoonIcon, color: '#7B6DB0' },
-          { label: '배변', count: todayPoopCount, Icon: PoopIcon, color: '#C4913E' },
+          { label: '수면', count: todaySleepCount, Icon: MoonIcon, color: '#5B6DFF' },
+          { label: '배변', count: todayPoopCount, Icon: PoopIcon, color: '#C68A2E' },
         ].map((s) => (
           <div
             key={s.label}
@@ -989,17 +1117,17 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
             <p className="text-body-emphasis flex items-center justify-center" style={{ color: s.color, gap: 'var(--spacing-1)' }}>
               <s.Icon className="w-4 h-4" /> {s.count}
             </p>
-            <p className="text-[13px] text-[#9E9A95]">{s.label}</p>
+            <p className="text-body text-tertiary">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* AI 분석 결과 */}
-      {loading && <p className="text-[13px] text-[#9E9A95] text-center py-2">AI가 기록을 분석하고 있어요...</p>}
+      {loading && <p className="text-body text-tertiary text-center py-2">AI가 기록을 분석하고 있어요...</p>}
 
       {!ai && !loading && (
         <button onClick={handleAiCare} disabled={events.length < 3}
-          className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-40">
+          className="w-full py-3 bg-[var(--color-primary)] text-white font-bold text-[15px] rounded-xl active:opacity-80 disabled:opacity-40">
           {events.length < 3 ? `기록 ${3 - events.length}건 더 남기면 AI 케어 가능` : 'AI 케어받기'}
         </button>
       )}
@@ -1014,8 +1142,8 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
             const rest = firstDot > 0 ? text.slice(firstDot + 1).trim() : text.slice(50).trim()
             return (
               <div>
-                <span className="text-[15px] font-bold text-[#1A1918]">{headline}</span>
-                {rest && <span className="text-[14px] text-[#4A4744]"> {rest}</span>}
+                <span className="text-subtitle text-primary">{headline}</span>
+                {rest && <span className="text-body-emphasis text-[#4A4744]"> {rest}</span>}
               </div>
             )
           })()}
@@ -1023,23 +1151,23 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
           {/* 다음 행동 + 경고 (인라인) */}
           <div className="space-y-1.5">
             {ai.nextAction && (
-              <p className="text-[13px] text-[#2E7D32] bg-[#E8F5E9] rounded-lg px-3 py-1.5">{ai.nextAction}</p>
+              <p className="text-body text-[var(--color-primary)] bg-[var(--color-primary-bg)] rounded-lg px-3 py-1.5">{ai.nextAction}</p>
             )}
             {ai.warning && (
-              <p className="text-[13px] text-[#D08068] bg-[#FFF0E6] rounded-lg px-3 py-1.5">{ai.warning}</p>
+              <p className="text-body text-red-600 bg-red-50 rounded-lg px-3 py-1.5">{ai.warning}</p>
             )}
           </div>
 
           {/* 상세 (접기) */}
           {(ai.feedAnalysis || ai.sleepAnalysis || ai.parentTip) && (
             !expanded ? (
-              <button onClick={() => setExpanded(true)} className="text-[12px] text-[var(--color-primary)]">자세히 ▼</button>
+              <button onClick={() => setExpanded(true)} className="text-caption text-[var(--color-primary)]">자세히 ▼</button>
             ) : (
-              <div className="text-[12px] text-[#6B6966] space-y-1 pt-1.5 border-t border-[var(--color-accent-bg)]/40">
+              <div className="text-caption text-secondary space-y-1 pt-1.5 border-t border-[var(--color-accent-bg)]/40">
                 {ai.feedAnalysis && <p>{ai.feedAnalysis}</p>}
                 {ai.sleepAnalysis && <p>{ai.sleepAnalysis}</p>}
                 {ai.parentTip && <p className="text-[var(--color-primary)]">{ai.parentTip}</p>}
-                <button onClick={() => setExpanded(false)} className="text-[#9E9A95]">접기 ▲</button>
+                <button onClick={() => setExpanded(false)} className="text-tertiary">접기 ▲</button>
               </div>
             )
           )}

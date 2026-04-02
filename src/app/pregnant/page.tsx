@@ -9,6 +9,7 @@ import { SparkleIcon, PenIcon, ActivityIcon, HeartFilledIcon, WalkIcon, VitaminI
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import IllustVideo from '@/components/ui/IllustVideo'
 import MissionCard from '@/components/ui/MissionCard'
+import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
 import { setSecure, getSecure } from '@/lib/secureStorage'
@@ -77,8 +78,8 @@ function PregnantAIDisplay({ briefing, onRefresh, week, daysLeft, fruitName }: {
   return (
     <div>
       <div className="flex items-start" style={{ gap: 'var(--spacing-2)' }}>
-        <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center shrink-0 mt-0.5">
-          <span className="text-caption text-white font-bold">AI</span>
+        <div className="w-8 h-8 rounded-xl bg-[var(--color-primary)] flex items-center justify-center shrink-0 shadow-[0_1px_4px_rgba(0,0,0,0.1)]">
+          <span className="text-body text-white font-bold">AI</span>
         </div>
         <div className="flex-1">
           {/* 요약: 첫 문장 볼드 + 나머지 일반 */}
@@ -97,14 +98,14 @@ function PregnantAIDisplay({ briefing, onRefresh, week, daysLeft, fruitName }: {
 
           {/* 아기 메시지 (항상) */}
           {briefing.babyMessage && (
-            <div className="bg-[#FFF8F3] rounded-lg mt-1.5" style={{ padding: 'var(--spacing-2)' }}>
-              <p className="text-caption">{briefing.babyMessage}</p>
+            <div className="bg-[var(--color-primary-bg)] rounded-lg mt-1.5 border border-[var(--color-primary)]/10" style={{ padding: 'var(--spacing-2)' }}>
+              <p className="text-caption text-[var(--color-primary)]">💬 {briefing.babyMessage}</p>
             </div>
           )}
 
           {/* 상세 (펼치기) */}
           {expanded && (
-            <div className="mt-2 bg-white/60 rounded-lg" style={{ padding: 'var(--spacing-3)', gap: 'var(--spacing-2)' }}>
+            <div className="mt-2 bg-white/60 rounded-lg border border-[var(--color-accent-bg)]" style={{ padding: 'var(--spacing-3)', gap: 'var(--spacing-2)' }}>
               {briefing.mainAdvice && <p className="text-caption text-secondary leading-relaxed">{briefing.mainAdvice}</p>}
               {briefing.weekHighlight && <p className="text-caption text-secondary leading-relaxed">{briefing.weekHighlight}</p>}
               {briefing.bodyTip && <p className="text-caption text-secondary leading-relaxed">{briefing.bodyTip}</p>}
@@ -386,10 +387,10 @@ export default function PregnantPage() {
   if (editingDate) {
     return (
       <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6">
-        <h1 className="text-[22px] font-bold text-[#1A1918] mb-2">출산 예정일이 언제인가요?</h1>
-        <p className="text-[13px] text-[#6B6966] mb-8">주차별 성장 정보를 알려드릴게요</p>
+        <h1 className="text-heading-2 font-bold text-primary mb-2">출산 예정일이 언제인가요?</h1>
+        <p className="text-body text-secondary mb-8">주차별 성장 정보를 알려드릴게요</p>
         <input type="date" value={tempDueDate} onChange={(e) => setTempDueDate(e.target.value)}
-          className="w-full max-w-xs h-[52px] rounded-xl border border-[#E8E4DF] px-4 text-[15px] text-center" />
+          className="w-full max-w-xs h-[52px] rounded-xl border border-[#E8E4DF] px-4 text-subtitle text-center" />
         <button
           onClick={async () => {
             if (tempDueDate) {
@@ -402,11 +403,11 @@ export default function PregnantPage() {
             }
           }}
           disabled={!tempDueDate}
-          className={`mt-6 w-full max-w-xs py-3 rounded-xl text-[14px] font-semibold ${tempDueDate ? 'bg-[var(--color-primary)] text-white active:opacity-80' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}
+          className={`mt-6 w-full max-w-xs py-3 rounded-xl font-semibold ${tempDueDate ? 'bg-[var(--color-primary)] text-white active:opacity-80' : 'bg-[#E8E4DF] text-tertiary'}`}
         >
           완료
         </button>
-        {dueDate && <button onClick={() => setEditingDate(false)} className="mt-3 text-[13px] text-[#6B6966]">돌아가기</button>}
+        {dueDate && <button onClick={() => setEditingDate(false)} className="mt-3 text-body text-secondary">돌아가기</button>}
       </div>
     )
   }
@@ -420,7 +421,7 @@ export default function PregnantPage() {
     <div className="bg-[var(--color-page-bg)]">
       {/* 헤더는 GlobalHeader (layout.tsx)에서 처리 */}
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-3 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-24 space-y-3">
 
         {/* ━━━ 출산 확인 (D-day 지남) ━━━ */}
         {daysLeft <= 0 && (
@@ -448,9 +449,9 @@ export default function PregnantPage() {
 
         {/* ━━━ 태명 유도 (미설정 시) ━━━ */}
         {!chosenNickname && (
-          <Link href="/name" className="dodam-card hover-lift press-feedback" style={{ background: 'linear-gradient(to right, #FFF8F3, #F0F9F4)' }}>
+          <Link href="/name" className="dodam-card hover-lift press-feedback bg-gradient-to-r from-white to-[var(--color-primary-bg)]">
             <div className="flex items-center" style={{ gap: 'var(--spacing-3)' }}>
-              <SparkleIcon className="w-6 h-6 text-[#C4913E]" />
+              <SparkleIcon className="w-6 h-6 text-[var(--color-primary)]" />
               <div className="flex-1">
                 <p className="text-caption-bold">우리 아이 태명을 지어볼까요?</p>
                 <p className="text-caption text-tertiary">AI가 예쁜 태명을 추천해드려요</p>
@@ -460,79 +461,95 @@ export default function PregnantPage() {
           </Link>
         )}
 
-        {/* ━━━ 1. AI 히어로 + 태아 ━━━ */}
-        <div data-guide="fetal-card" className="dodam-card-accent" style={{ background: 'linear-gradient(to bottom right, white, #F0F9F4)' }}>
-          {/* 태아 비주얼 — 수평 레이아웃 */}
-          <div className="flex items-center mb-3" style={{ gap: 'var(--spacing-3)' }}>
+        {/* ━━━ 1. AI 데일리 케어 ━━━ */}
+        <div data-guide="fetal-card" className="dodam-card-accent bg-gradient-to-br from-white via-[var(--color-primary-bg)] to-[var(--color-primary-bg)] border border-white/80">
+          {/* 헤더 */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <SparkleIcon className="w-4 h-4 text-[var(--color-primary)]" />
+              <p className="text-body-emphasis font-bold text-primary">AI 데일리 케어</p>
+            </div>
+            <button onClick={() => shareFetalSize(currentWeek, currentFetal.fruit, currentFetal.name, currentFetal.length, currentFetal.weight, daysLeft)} className="text-body-emphasis text-[var(--color-primary)] font-semibold press-feedback">
+              공유
+            </button>
+          </div>
+
+          {/* 태아 일러스트 + 주차 정보 */}
+          <div className="flex items-center mb-3 gap-3">
             <div className="shrink-0">
-              <BabyIllust week={currentWeek} size={100} />
+              <BabyIllust week={currentWeek} size={80} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-body-emphasis leading-tight">{currentWeek}주차 · <span className="text-[var(--color-primary)]">{currentFetal.name}</span>만해요</p>
-              <div className="flex items-center mt-0.5 mb-2" style={{ gap: 'var(--spacing-2)' }}>
-                <span className="text-caption text-tertiary">{currentFetal.length}</span>
-                <span className="text-caption text-quaternary">·</span>
-                <span className="text-caption text-tertiary">{currentFetal.weight}</span>
-                <button onClick={() => shareFetalSize(currentWeek, currentFetal.fruit, currentFetal.name, currentFetal.length, currentFetal.weight, daysLeft)} className="ml-auto text-caption text-[var(--color-primary)] font-medium press-feedback">공유</button>
-              </div>
-              {/* 오늘 스탯 */}
-              {(() => {
-                const MOOD_LABELS: Record<string, string> = { happy: '행복', calm: '평온', anxious: '불안', sick: '입덧', tired: '피곤' }
-                return (
-                  <div className="flex" style={{ gap: 'var(--spacing-2)' }}>
-                    {[
-                      { label: '기분', value: mood ? (MOOD_LABELS[mood] ?? mood) : '-', color: '#FF8FAB' },
-                      { label: '태동', value: fetalMove > 0 ? `${fetalMove}회` : '0회', color: '#5BA882' },
-                      { label: '체중', value: weight > 0 ? `${weight}kg` : '-', color: '#D08068' },
-                    ].map(s => (
-                      <div key={s.label} className="flex-1 bg-white/70 rounded-lg text-center border border-white/80" style={{ padding: 'var(--spacing-2) 0' }}>
-                        <p className="text-caption-bold leading-tight" style={{ color: s.color }}>{s.value}</p>
-                        <p className="text-label text-tertiary">{s.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                )
-              })()}
+              <p className="text-body-emphasis font-bold leading-tight mb-1">{currentWeek}주차 · <span className="text-[var(--color-primary)]">{currentFetal.name}</span>만해요</p>
+              <p className="text-body text-tertiary">{currentFetal.length} · {currentFetal.weight}</p>
             </div>
           </div>
-          {/* 아기 한마디 */}
-          <p className="text-caption text-tertiary italic text-center mb-3 px-1">
-            {currentWeek <= 12 ? '"나 여기 있어요! 열심히 자라고 있어요"' :
-             currentWeek <= 20 ? '"내가 움직이는 거 느꼈어요? 안에서 춤추고 있어요"' :
-             currentWeek <= 30 ? '"엄마 목소리가 들려요. 계속 이야기해줘요"' :
-             currentWeek <= 36 ? '"나 이제 거의 다 준비됐어요. 곧 만나요!"' :
-             '"언제든 나갈 준비 완료! 빨리 안아줘요"'}
-          </p>
 
-          {/* AI 브리핑 — 요약 + 펼치기 */}
+          {/* 오늘 스탯 */}
+          <div className="flex gap-2 mb-3">
+            {(() => {
+              const MOOD_LABELS: Record<string, string> = { happy: '행복', calm: '평온', anxious: '불안', sick: '입덧', tired: '피곤' }
+              return [
+                { label: '기분', value: mood ? (MOOD_LABELS[mood] ?? mood) : '-' },
+                { label: '태동', value: fetalMove > 0 ? `${fetalMove}회` : '0회' },
+                { label: '체중', value: weight > 0 ? `${weight}kg` : '-' },
+              ].map(s => (
+                <div key={s.label} className="flex-1 bg-white/80 rounded-lg text-center border border-white shadow-sm py-2">
+                  <p className="text-body-emphasis font-bold text-[var(--color-primary)]">{s.value}</p>
+                  <p className="text-body text-tertiary">{s.label}</p>
+                </div>
+              ))
+            })()}
+          </div>
+
+          {/* AI 브리핑 */}
           {aiLoading ? (
-            <div style={{ padding: 'var(--spacing-3) 0' }}>
-              <div className="flex items-center" style={{ gap: 'var(--spacing-2)' }}>
-                <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] flex items-center justify-center"><span className="text-caption text-white">AI</span></div>
-                <div className="flex" style={{ gap: 'var(--spacing-1)' }}><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full blink" /><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full blink" style={{ animationDelay: '0.15s' }} /><span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full blink" style={{ animationDelay: '0.3s' }} /></div>
+            <div className="bg-white/80 rounded-xl p-4 border border-white shadow-sm mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+                  <span className="text-body-emphasis font-bold text-white">AI</span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-2 h-2 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+                    <span className="w-2 h-2 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }} />
+                    <span className="w-2 h-2 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} />
+                  </div>
+                  <p className="text-body text-tertiary">AI가 분석 중이예요...</p>
+                </div>
               </div>
             </div>
           ) : aiBriefing ? (
-            <PregnantAIDisplay briefing={aiBriefing} onRefresh={() => fetchAI(true)} week={currentWeek} daysLeft={daysLeft} fruitName={currentFetal.name} />
-          ) : (
-            <div className="text-center" style={{ padding: 'var(--spacing-2) 0' }}>
-              <button onClick={() => fetchAI()} className="dodam-btn dodam-btn-primary press-feedback">AI 조언 받기</button>
+            <div className="mb-3">
+              <PregnantAIDisplay briefing={aiBriefing} onRefresh={() => fetchAI(true)} week={currentWeek} daysLeft={daysLeft} fruitName={currentFetal.name} />
             </div>
+          ) : (
+            <button
+              onClick={() => fetchAI()}
+              className="w-full py-3 bg-[var(--color-primary)] text-white font-bold text-[15px] rounded-xl active:opacity-80 transition-opacity mb-3"
+            >
+              AI 케어받기
+            </button>
           )}
 
-          {/* 프로그레스 + 감성 */}
-          <div className="mt-3 pt-3 border-t border-[var(--color-accent-bg)]/50">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-[14px] text-[#6B6966]">
+          {/* 임신 진행 상황 */}
+          <div className="pt-3 border-t border-white/50">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-body-emphasis text-primary">
                 {daysLeft <= 14 ? '곧 만나요!' : daysLeft <= 60 ? '조금만 더!' : '함께 자라는 중'}
               </p>
-              <p className="text-[14px] text-[var(--color-primary)]">{currentWeek}주 · D-{daysLeft}</p>
+              <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-body font-bold text-[var(--color-primary)]">
+                {Math.min(100, Math.round((currentWeek / 40) * 100))}%
+              </span>
             </div>
-            <div className="w-full h-2 bg-white/50 rounded-full">
-              <div className="h-full bg-[var(--color-primary)] rounded-full transition-all" style={{ width: `${Math.min(100, (currentWeek / 40) * 100)}%` }} />
+            <div className="w-full h-2 bg-white/60 rounded-full overflow-hidden shadow-inner">
+              <div
+                className="h-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, (currentWeek / 40) * 100)}%` }}
+              />
             </div>
-            <p className="text-[13px] text-[#9E9A95] mt-1 text-center">
-              {Math.min(100, Math.round((currentWeek / 40) * 100))}% 완료 · 아이를 만나는 날까지 {daysLeft}일
+            <p className="text-label text-tertiary mt-1.5 text-center">
+              {currentWeek}주차 · 출산까지 D-{daysLeft}
             </p>
           </div>
         </div>
@@ -574,17 +591,17 @@ export default function PregnantPage() {
           }
           const sortedEvents = [...pregTodayEvents].sort((a, b) => b.id - a.id)
           const eventList = pregTodayEvents.length > 0 ? (
-            <div className="max-h-[200px] overflow-y-auto hide-scrollbar">
+            <div className="max-h-[200px] overflow-y-auto overflow-x-hidden hide-scrollbar">
               {sortedEvents.map((ev) => {
                 const cfg = getEventChip(ev.type, ev.data)
                 return (
                   <div key={ev.id} className="flex items-center gap-2.5 py-2 border-b border-[#F0EDE8] last:border-0">
-                    <span className="text-[12px] text-[#9E9A95] w-10 shrink-0 text-right font-mono">{ev.timeStr}</span>
+                    <span className="text-caption text-tertiary w-10 shrink-0 text-right font-mono">{ev.timeStr}</span>
                     <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
                       <cfg.Icon className="w-3.5 h-3.5" />
                     </div>
-                    <span className="text-[13px] text-[#1A1918]">
-                      {cfg.cat && <span className="text-[#9E9A95] font-normal mr-1">{cfg.cat}</span>}
+                    <span className="text-body text-primary flex-1 min-w-0 truncate">
+                      {cfg.cat && <span className="text-tertiary font-normal mr-1">{cfg.cat}</span>}
                       <span className="font-semibold">{cfg.label}</span>
                     </span>
                   </div>
@@ -598,7 +615,7 @@ export default function PregnantPage() {
               emptyMessage="아래 버튼으로 오늘의 첫 기록을 남겨보세요"
               headerRight={
                 <Link href={`/preg-records/${today}`}>
-                  <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
+                  <span className="text-body text-[var(--color-primary)] font-medium">전체보기 →</span>
                 </Link>
               }
               footer={eventList ?? undefined}
@@ -612,18 +629,18 @@ export default function PregnantPage() {
           if (currentWeek <= 13) return (
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
-                <p className="text-[14px] text-[#6B6966]">다음 검진</p>
+                <p className="text-body-emphasis text-secondary">다음 검진</p>
                 {upcomingCheckups.length > 0 ? (
-                  <><p className="text-[14px] font-bold text-[#1A1918] mt-0.5 line-clamp-1">{upcomingCheckups[0].title}</p><p className="text-[13px] text-[var(--color-primary)]">{upcomingCheckups[0].week}주</p></>
-                ) : <p className="text-[13px] text-[#9E9A95] mt-1">완료!</p>}
+                  <><p className="text-body-emphasis font-bold text-primary mt-0.5 line-clamp-1">{upcomingCheckups[0].title}</p><p className="text-body text-[var(--color-primary)]">{upcomingCheckups[0].week}주</p></>
+                ) : <p className="text-body text-tertiary mt-1">완료!</p>}
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
-                <p className="text-[14px] text-[#6B6966]">주차</p>
-                <p className="text-[20px] font-bold text-[var(--color-primary)] mt-0.5">{currentWeek}<span className="text-[14px] text-[#9E9A95]">주</span></p>
+                <p className="text-body-emphasis text-secondary">주차</p>
+                <p className="text-heading-2 text-[var(--color-primary)] mt-0.5">{currentWeek}<span className="text-body-emphasis text-tertiary">주</span></p>
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
-                <p className="text-[14px] text-[#6B6966]">D-day</p>
-                <p className="text-[20px] font-bold text-[#1A1918] mt-0.5">{daysLeft}<span className="text-[14px] text-[#9E9A95]">일</span></p>
+                <p className="text-body-emphasis text-secondary">D-day</p>
+                <p className="text-heading-2 text-primary mt-0.5">{daysLeft}<span className="text-body-emphasis text-tertiary">일</span></p>
               </div>
             </div>
           )
@@ -631,18 +648,18 @@ export default function PregnantPage() {
           if (currentWeek <= 27) return (
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
-                <p className="text-[14px] text-[#6B6966]">다음 검진</p>
+                <p className="text-body-emphasis text-secondary">다음 검진</p>
                 {upcomingCheckups.length > 0 ? (
-                  <><p className="text-[14px] font-bold text-[#1A1918] mt-0.5 line-clamp-1">{upcomingCheckups[0].title}</p><p className="text-[13px] text-[var(--color-primary)]">{upcomingCheckups[0].week}주</p></>
-                ) : <p className="text-[13px] text-[#9E9A95] mt-1">완료!</p>}
+                  <><p className="text-body-emphasis font-bold text-primary mt-0.5 line-clamp-1">{upcomingCheckups[0].title}</p><p className="text-body text-[var(--color-primary)]">{upcomingCheckups[0].week}주</p></>
+                ) : <p className="text-body text-tertiary mt-1">완료!</p>}
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
-                <p className="text-[14px] text-[#6B6966]">오늘 태동</p>
-                <p className="text-[20px] font-bold text-[var(--color-primary)] mt-0.5">{fetalMove}<span className="text-[14px] text-[#9E9A95]">회</span></p>
+                <p className="text-body-emphasis text-secondary">오늘 태동</p>
+                <p className="text-heading-2 text-[var(--color-primary)] mt-0.5">{fetalMove}<span className="text-body-emphasis text-tertiary">회</span></p>
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
-                <p className="text-[14px] text-[#6B6966]">D-day</p>
-                <p className="text-[20px] font-bold text-[#1A1918] mt-0.5">{daysLeft}<span className="text-[14px] text-[#9E9A95]">일</span></p>
+                <p className="text-body-emphasis text-secondary">D-day</p>
+                <p className="text-heading-2 text-primary mt-0.5">{daysLeft}<span className="text-body-emphasis text-tertiary">일</span></p>
               </div>
             </div>
           )
@@ -650,19 +667,19 @@ export default function PregnantPage() {
           return (
             <div className="grid grid-cols-3 gap-2">
               <div className={`bg-white rounded-xl border p-2.5 text-center ${bagDone < bagTotal ? 'border-[var(--color-accent-bg)]' : 'border-[#E8E4DF]'}`}>
-                <p className="text-[14px] text-[#6B6966]">출산 가방</p>
-                <p className="text-[20px] font-bold text-[#1A1918] mt-0.5">{bagDone}<span className="text-[14px] text-[#9E9A95]">/{bagTotal}</span></p>
-                {bagDone < bagTotal && <p className="text-[13px] text-[var(--color-primary)]">준비하세요!</p>}
+                <p className="text-body-emphasis text-secondary">출산 가방</p>
+                <p className="text-heading-2 text-primary mt-0.5">{bagDone}<span className="text-body-emphasis text-tertiary">/{bagTotal}</span></p>
+                {bagDone < bagTotal && <p className="text-body text-[var(--color-primary)]">준비하세요!</p>}
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
-                <p className="text-[14px] text-[#6B6966]">오늘 태동</p>
-                <p className="text-[20px] font-bold text-[var(--color-primary)] mt-0.5">{fetalMove}<span className="text-[14px] text-[#9E9A95]">회</span></p>
-                {fetalMove > 0 && fetalMove < 10 && <p className="text-[13px] text-[#D08068]">10회 이상 확인</p>}
+                <p className="text-body-emphasis text-secondary">오늘 태동</p>
+                <p className="text-heading-2 text-[var(--color-primary)] mt-0.5">{fetalMove}<span className="text-body-emphasis text-tertiary">회</span></p>
+                {fetalMove > 0 && fetalMove < 10 && <p className="text-body text-[#D08068]">10회 이상 확인</p>}
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
-                <p className="text-[14px] text-[#6B6966]">D-day</p>
-                <p className={`text-[20px] font-bold mt-0.5 ${daysLeft <= 14 ? 'text-[#D08068]' : 'text-[#1A1918]'}`}>{daysLeft}<span className="text-[14px] text-[#9E9A95]">일</span></p>
-                {daysLeft <= 14 && <p className="text-[13px] text-[#D08068]">곧 만나요!</p>}
+                <p className="text-body-emphasis text-secondary">D-day</p>
+                <p className={`text-heading-2 mt-0.5 ${daysLeft <= 14 ? 'text-[#D08068]' : 'text-primary'}`}>{daysLeft}<span className="text-body-emphasis text-tertiary">일</span></p>
+                {daysLeft <= 14 && <p className="text-body text-[#D08068]">곧 만나요!</p>}
               </div>
             </div>
           )
@@ -671,43 +688,48 @@ export default function PregnantPage() {
         {/* ━━━ 4. 진통 타이머 (후기만) ━━━ */}
         {currentWeek >= 36 && (
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-2">진통 타이머</p>
+            <p className="text-body-emphasis font-bold text-primary mb-2">진통 타이머</p>
             <div className="flex items-center gap-3 mb-2">
               <button
                 onClick={contractionActive ? endContraction : startContraction}
-                className={`flex-1 py-3 rounded-xl text-[14px] font-semibold ${contractionActive ? 'bg-[#D08068] text-white animate-pulse' : 'bg-[var(--color-primary)] text-white'}`}
+                className={`flex-1 py-3 rounded-xl text-body-emphasis ${contractionActive ? 'bg-[#D08068] text-white animate-pulse' : 'bg-[var(--color-primary)] text-white'}`}
               >
                 {contractionActive ? '진통 끝' : '진통 시작'}
               </button>
               {contractions.length > 0 && (
-                <button onClick={() => setContractions([])} className="text-[13px] text-[#9E9A95]">초기화</button>
+                <button onClick={() => setContractions([])} className="text-body text-tertiary">초기화</button>
               )}
             </div>
             {lastInterval !== null && (
               <div className="bg-[var(--color-page-bg)] rounded-lg p-2 text-center">
-                <p className="text-[14px] text-[#6B6966]">마지막 간격</p>
-                <p className="text-[20px] font-bold text-[#1A1918]">{lastInterval}분</p>
-                {lastInterval <= 5 && <p className="text-[13px] text-[#D08068] font-semibold mt-1">간격이 5분 이하! 병원에 연락하세요</p>}
+                <p className="text-body-emphasis text-secondary">마지막 간격</p>
+                <p className="text-heading-2 text-primary">{lastInterval}분</p>
+                {lastInterval <= 5 && <p className="text-body text-[#D08068] font-semibold mt-1">간격이 5분 이하! 병원에 연락하세요</p>}
               </div>
             )}
-            <p className="text-[13px] text-[#9E9A95] mt-2">기록: {contractions.length}회{contractions.length >= 3 ? ` · 평균 ${Math.round(contractions.slice(1).reduce((sum, c, i) => sum + (c.start - contractions[i].start), 0) / ((contractions.length - 1) * 60000))}분 간격` : ''}</p>
+            <p className="text-body text-tertiary mt-2">기록: {contractions.length}회{contractions.length >= 3 ? ` · 평균 ${Math.round(contractions.slice(1).reduce((sum, c, i) => sum + (c.start - contractions[i].start), 0) / ((contractions.length - 1) * 60000))}분 간격` : ''}</p>
           </div>
         )}
+
+        {/* AI 식단 카드 */}
+        <AIMealCard mode="pregnant" value={currentWeek} />
 
         {/* 부부 미션 카드 */}
         <MissionCard mode="pregnant" />
 
         {/* 기다림 페이지 바로가기 */}
-        <Link href="/waiting" className="dodam-card text-center hover-lift press-feedback">
-          <p className="text-caption-bold">검진 · 혜택 · 준비물 보기 →</p>
-          <p className="text-caption text-tertiary mt-0.5">기다림 페이지에서 확인하세요</p>
+        <Link href="/waiting" className="block w-full">
+          <div className="dodam-card text-center hover-lift press-feedback relative overflow-hidden">
+            <p className="text-body-emphasis font-bold text-primary">검진 · 혜택 · 준비물 보기 →</p>
+            <p className="text-body text-tertiary mt-0.5">기다림 페이지에서 확인하세요</p>
+          </div>
         </Link>
 
       </div>
 
       {/* 토스트 */}
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1A1918]/80 text-white text-[13px] font-medium px-4 py-2.5 rounded-xl shadow-lg animate-[fadeIn_0.15s_ease-out]">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1A1918]/80 text-white text-body font-medium px-4 py-2.5 rounded-xl shadow-lg animate-[fadeIn_0.15s_ease-out]">
           {toast}
         </div>
       )}

@@ -29,10 +29,10 @@ export default function FeedbackForm() {
   return (
     <section className="px-6 py-16 sm:py-20 lg:py-28 bg-white">
       <div className="max-w-lg lg:max-w-2xl mx-auto">
-        <h2 className="text-center text-[20px] sm:text-[28px] lg:text-[36px] font-bold text-[#1A1918] mb-3">
+        <h2 className="text-center text-heading-2 sm:text-heading-1 lg:text-display font-bold text-primary mb-3">
           의견을 들려주세요
         </h2>
-        <p className="text-center text-[14px] lg:text-[16px] text-[#6B6966] mb-10 lg:mb-12">
+        <p className="text-center text-body-emphasis lg:text-subtitle text-secondary mb-10 lg:mb-12">
           더 좋은 도담을 만드는 데 큰 힘이 돼요
         </p>
 
@@ -42,7 +42,7 @@ export default function FeedbackForm() {
             <button
               key={p}
               onClick={() => setPreset(prev => prev === p ? '' : p)}
-              className="px-4 py-2 lg:px-5 lg:py-2.5 rounded-full text-[13px] lg:text-[14px] font-medium transition-all"
+              className="px-4 py-2 lg:px-5 lg:py-2.5 rounded-full text-body lg:text-body-emphasis font-medium transition-all"
               style={{
                 backgroundColor: preset === p ? '#E8937A' : '#F5F3F0',
                 color: preset === p ? '#fff' : '#6B6966',
@@ -59,7 +59,7 @@ export default function FeedbackForm() {
           onChange={e => setMessage(e.target.value)}
           placeholder="자유롭게 적어주세요..."
           rows={4}
-          className="w-full p-4 lg:p-5 rounded-2xl border border-[#E8E4DF] bg-[#FAFAF8] text-[14px] lg:text-[16px] text-[#1A1918] placeholder-[#C4C0BB] resize-none focus:outline-none focus:border-[#E8937A] transition-colors"
+          className="w-full p-4 lg:p-5 rounded-2xl border border-[#E8E4DF] bg-[#FAFAF8] text-body-emphasis lg:text-subtitle text-primary placeholder-[#C4C0BB] resize-none focus:outline-none focus:border-[#E8937A] transition-colors"
         />
 
         {/* 보내기 */}
@@ -67,7 +67,7 @@ export default function FeedbackForm() {
           <button
             onClick={handleSend}
             disabled={!message.trim()}
-            className="px-8 py-3.5 lg:px-10 lg:py-4 rounded-full font-semibold text-white text-[15px] lg:text-[16px] active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-8 py-3.5 lg:px-10 lg:py-4 rounded-full font-semibold text-white text-subtitle lg:text-subtitle active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: message.trim() ? 'linear-gradient(135deg, #E8937A, #D47B62)' : '#C4C0BB' }}
           >
             {sent ? '메일 앱에서 보내주세요!' : '의견 보내기'}

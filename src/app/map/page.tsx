@@ -92,7 +92,7 @@ function MapPageInner() {
     <div className="min-h-[calc(100dvh-144px)] bg-[#f5f5f5] flex flex-col">
       {/* 헤더 */}
       <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full text-center">
-        <h1 className="text-[15px] font-bold text-[#0A0B0D]">동네 육아 지도</h1>
+        <h1 className="text-subtitle text-primary">동네 육아 지도</h1>
       </div>
 
       {/* 카카오맵 */}
@@ -106,7 +106,7 @@ function MapPageInner() {
           <div className="absolute inset-0 flex items-center justify-center bg-[#f5f5f5]">
             <div className="text-center">
               <MapIcon className="w-8 h-8 text-[#c0c0c0] mx-auto mb-2" />
-              <p className="text-xs text-[#9B9B9B]">지도를 불러오는 중...</p>
+              <p className="text-xs text-tertiary">지도를 불러오는 중...</p>
             </div>
           </div>
         )}
@@ -145,10 +145,10 @@ function MapPageInner() {
         ) : places.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-2xl bg-[#f0f0f0] flex items-center justify-center mb-3">
-              <MapIcon className="w-8 h-8 text-[#9B9B9B]" />
+              <MapIcon className="w-8 h-8 text-tertiary" />
             </div>
-            <p className="text-sm font-semibold text-[#0A0B0D]">주변에 장소가 없어요</p>
-            <p className="text-xs text-[#9B9B9B] mt-1">다른 카테고리를 선택해보세요</p>
+            <p className="text-sm font-semibold text-primary">주변에 장소가 없어요</p>
+            <p className="text-xs text-tertiary mt-1">다른 카테고리를 선택해보세요</p>
           </div>
         ) : (
           <div className="mt-3 mx-4 space-y-3">
@@ -163,20 +163,20 @@ function MapPageInner() {
                   className="w-full text-left active:opacity-70 transition-opacity"
                 >
                   <div className="flex items-start justify-between mb-1">
-                    <h3 className="text-[15px] font-bold text-[#212124]">
+                    <h3 className="text-subtitle text-primary">
                       {place.name}
                     </h3>
                     {place.distance && (
-                      <span className="text-[14px] font-semibold text-[var(--color-primary)] shrink-0 ml-2">
+                      <span className="text-body-emphasis text-[var(--color-primary)] shrink-0 ml-2">
                         {place.distance}
                       </span>
                     )}
                   </div>
-                  <p className="text-[14px] text-[#6B6966] mb-0.5">{place.address}</p>
+                  <p className="text-body-emphasis text-secondary mb-0.5">{place.address}</p>
                   {place.phone && (
-                    <p className="text-[14px] text-[#6B6B6B]">{place.phone}</p>
+                    <p className="text-body-emphasis text-[#6B6B6B]">{place.phone}</p>
                   )}
-                  <p className="text-[14px] text-[#9E9A95] mt-1">{place.category}</p>
+                  <p className="text-body-emphasis text-tertiary mt-1">{place.category}</p>
                 </button>
 
                 {/* 액션 버튼 */}
@@ -184,20 +184,20 @@ function MapPageInner() {
                   {place.phone && (
                     <button
                       onClick={() => handleCall(place.phone)}
-                      className="flex-1 h-10 rounded-xl text-[14px] font-semibold border border-[var(--color-primary)] text-[var(--color-primary)] active:scale-95 transition-transform flex items-center justify-center gap-1"
+                      className="flex-1 h-10 rounded-xl text-body-emphasis border border-[var(--color-primary)] text-[var(--color-primary)] active:scale-95 transition-transform flex items-center justify-center gap-1"
                     >
                       전화
                     </button>
                   )}
                   <button
                     onClick={() => handleNavigate(place)}
-                    className="flex-1 h-10 rounded-xl text-[14px] font-semibold bg-[var(--color-primary)] text-white active:scale-95 transition-transform flex items-center justify-center gap-1"
+                    className="flex-1 h-10 rounded-xl text-body-emphasis bg-[var(--color-primary)] text-white active:scale-95 transition-transform flex items-center justify-center gap-1"
                   >
                     길찾기
                   </button>
                   <button
                     onClick={() => handlePlaceTap(place)}
-                    className="h-10 px-3 rounded-xl text-[14px] font-semibold border border-[#ECECEC] text-[#6B6966] active:scale-95 transition-transform flex items-center justify-center"
+                    className="h-10 px-3 rounded-xl text-body-emphasis border border-[#ECECEC] text-secondary active:scale-95 transition-transform flex items-center justify-center"
                   >
                     리뷰
                   </button>

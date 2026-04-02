@@ -83,8 +83,8 @@ export default function RecordDetailPage() {
     <div className="fixed inset-0 flex flex-col bg-[#f5f5f5] overflow-hidden">
       {/* 헤더 — 고정 */}
       <div className="shrink-0 sticky top-0 z-40 bg-[#f5f5f5] border-b border-[#E8E4DF] px-5 max-w-lg mx-auto w-full flex items-center justify-between h-12">
-        <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">뒤로</button>
-        <h1 className="text-[15px] font-bold text-[#0A0B0D]">기록 상세</h1>
+        <button onClick={() => router.back()} className="text-sm text-tertiary">뒤로</button>
+        <h1 className="text-subtitle text-primary">기록 상세</h1>
         <div className="w-8" />
       </div>
 
@@ -94,9 +94,9 @@ export default function RecordDetailPage() {
           onClick={() => router.push(`/records/${prevDate}`)}
           className="w-9 h-9 rounded-xl bg-white border border-[#E8E4DF] flex items-center justify-center active:scale-95 transition-transform"
         >
-          <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B] rotate-180" />
+          <ChevronRightIcon className="w-4 h-4 text-tertiary rotate-180" />
         </button>
-        <p className="text-sm font-semibold text-[#0A0B0D]">
+        <p className="text-sm font-semibold text-primary">
           {formatDateKr(dateStr)}
           {isToday && <span className="text-[var(--color-primary)] ml-1">오늘</span>}
         </p>
@@ -105,7 +105,7 @@ export default function RecordDetailPage() {
           disabled={!canGoNext}
           className="w-9 h-9 rounded-xl bg-white border border-[#E8E4DF] flex items-center justify-center active:scale-95 transition-transform disabled:opacity-30"
         >
-          <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+          <ChevronRightIcon className="w-4 h-4 text-tertiary" />
         </button>
       </div>
 
@@ -114,15 +114,15 @@ export default function RecordDetailPage() {
         {/* 요약 — 4칸 고정 균등 분배 */}
         <div className="mx-4 mb-3 grid grid-cols-4 gap-2">
           {[
-            { label: '수유', value: feedCount > 0 ? `${feedCount}회` : '-', sub: feedTotal > 0 ? `${feedTotal}ml` : null, bg: 'bg-blue-50', border: 'border-blue-100', labelColor: 'text-blue-500', valueColor: feedCount > 0 ? 'text-blue-600' : 'text-[#C4C0BB]' },
-            { label: '수면', value: sleepCount > 0 ? `${sleepCount}회` : '-', sub: null, bg: 'bg-indigo-50', border: 'border-indigo-100', labelColor: 'text-indigo-500', valueColor: sleepCount > 0 ? 'text-indigo-600' : 'text-[#C4C0BB]' },
-            { label: '대변', value: poopCount > 0 ? `${poopCount}회` : '-', sub: null, bg: 'bg-amber-50', border: 'border-amber-100', labelColor: 'text-amber-600', valueColor: poopCount > 0 ? 'text-amber-700' : 'text-[#C4C0BB]' },
-            { label: '소변', value: peeCount > 0 ? `${peeCount}회` : '-', sub: null, bg: 'bg-cyan-50', border: 'border-cyan-100', labelColor: 'text-cyan-500', valueColor: peeCount > 0 ? 'text-cyan-600' : 'text-[#C4C0BB]' },
+            { label: '수유', value: feedCount > 0 ? `${feedCount}회` : '-', sub: feedTotal > 0 ? `${feedTotal}ml` : null, bg: 'bg-blue-50', border: 'border-blue-100', labelColor: 'text-blue-500', valueColor: feedCount > 0 ? 'text-blue-600' : 'text-muted' },
+            { label: '수면', value: sleepCount > 0 ? `${sleepCount}회` : '-', sub: null, bg: 'bg-indigo-50', border: 'border-indigo-100', labelColor: 'text-indigo-500', valueColor: sleepCount > 0 ? 'text-indigo-600' : 'text-muted' },
+            { label: '대변', value: poopCount > 0 ? `${poopCount}회` : '-', sub: null, bg: 'bg-amber-50', border: 'border-amber-100', labelColor: 'text-amber-600', valueColor: poopCount > 0 ? 'text-amber-700' : 'text-muted' },
+            { label: '소변', value: peeCount > 0 ? `${peeCount}회` : '-', sub: null, bg: 'bg-cyan-50', border: 'border-cyan-100', labelColor: 'text-cyan-500', valueColor: peeCount > 0 ? 'text-cyan-600' : 'text-muted' },
           ].map((c) => (
             <div key={c.label} className={`py-2.5 rounded-xl ${c.bg} border ${c.border} text-center`}>
-              <p className={`text-[12px] font-medium ${c.labelColor}`}>{c.label}</p>
-              <p className={`text-[13px] font-bold ${c.valueColor} mt-0.5`}>{c.value}</p>
-              {c.sub && <p className="text-[11px] text-[#9B9B9B] mt-0.5">{c.sub}</p>}
+              <p className={`text-caption font-medium ${c.labelColor}`}>{c.label}</p>
+              <p className={`text-body font-bold ${c.valueColor} mt-0.5`}>{c.value}</p>
+              {c.sub && <p className="text-label text-tertiary mt-0.5">{c.sub}</p>}
             </div>
           ))}
         </div>

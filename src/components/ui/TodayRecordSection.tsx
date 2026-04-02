@@ -37,9 +37,10 @@ export default function TodayRecordSection({ count, tiles, chips, emptyMessage, 
         <p className="text-body-emphasis">오늘 기록</p>
         {count > 0 && (
           <span
-            className="text-label text-white rounded-full"
+            className="rounded-full font-semibold text-label"
             style={{
               backgroundColor: 'var(--color-primary)',
+              color: '#FFFFFF',
               padding: '2px var(--spacing-2)'
             }}
           >

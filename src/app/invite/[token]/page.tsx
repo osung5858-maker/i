@@ -82,7 +82,7 @@ export default function InviteAcceptPage() {
       {status === 'loading' && (
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
-          <p className="text-[13px] text-[#6B6966]">초대를 확인하는 중이에요...</p>
+          <p className="text-body text-secondary">초대를 확인하는 중이에요...</p>
         </div>
       )}
 
@@ -91,21 +91,21 @@ export default function InviteAcceptPage() {
           <div className="w-20 h-20 rounded-full bg-[#FFF0E6] flex items-center justify-center mx-auto mb-6">
             <EnvelopeIcon className="w-10 h-10 text-[#D08068]" />
           </div>
-          <h1 className="text-[22px] font-bold text-[#212124] mb-2">
+          <h1 className="text-heading-2 font-bold text-primary mb-2">
             {childName}의 가족이 되어주세요
           </h1>
-          <p className="text-[14px] text-[#6B6966] leading-relaxed mb-8">
+          <p className="text-body-emphasis text-secondary leading-relaxed mb-8">
             함께 기록하면 더 도담해요.<br />
             아이의 기록을 함께 볼 수 있어요.
           </p>
           <button
             onClick={handleAccept}
             disabled={processing}
-            className="w-full h-[52px] rounded-2xl font-semibold text-[15px] bg-[var(--color-primary)] text-white active:scale-[0.98] transition-transform disabled:opacity-50"
+            className="w-full h-[52px] rounded-2xl font-semibold text-subtitle bg-[var(--color-primary)] text-white active:scale-[0.98] transition-transform disabled:opacity-50"
           >
             {processing ? '연결하는 중...' : '수락하기'}
           </button>
-          <p className="text-[13px] text-[#9E9A95] mt-4">
+          <p className="text-body text-tertiary mt-4">
             카카오 로그인이 필요할 수 있어요
           </p>
         </div>
@@ -114,10 +114,10 @@ export default function InviteAcceptPage() {
       {status === 'expired' && (
         <div className="text-center">
           <div className="w-16 h-16 rounded-full bg-[#F0EDE8] flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-[#9E9A95]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <svg className="w-7 h-7 text-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
-          <h1 className="text-[18px] font-bold text-[#212124] mb-1">초대가 만료되었어요</h1>
-          <p className="text-[13px] text-[#6B6966]">다시 초대해달라고 해주세요</p>
+          <h1 className="text-heading-3 text-primary mb-1">초대가 만료되었어요</h1>
+          <p className="text-body text-secondary">다시 초대해달라고 해주세요</p>
         </div>
       )}
 
@@ -126,8 +126,8 @@ export default function InviteAcceptPage() {
           <div className="w-16 h-16 rounded-full bg-[#E8F5E9] flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-[var(--color-primary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
           </div>
-          <h1 className="text-[18px] font-bold text-[#212124] mb-1">이미 연결되었어요!</h1>
-          <button onClick={() => window.location.href = '/'} className="mt-4 text-[14px] font-semibold text-[var(--color-primary)]">
+          <h1 className="text-heading-3 text-primary mb-1">이미 연결되었어요!</h1>
+          <button onClick={() => window.location.href = '/'} className="mt-4 text-body-emphasis text-[var(--color-primary)]">
             홈으로 가기
           </button>
         </div>
@@ -135,8 +135,8 @@ export default function InviteAcceptPage() {
 
       {status === 'error' && (
         <div className="text-center">
-          <h1 className="text-[18px] font-bold text-[#212124] mb-1">오류가 발생했어요</h1>
-          <p className="text-[13px] text-[#6B6966]">다시 시도해주세요</p>
+          <h1 className="text-heading-3 text-primary mb-1">오류가 발생했어요</h1>
+          <p className="text-body text-secondary">다시 시도해주세요</p>
         </div>
       )}
     </div>

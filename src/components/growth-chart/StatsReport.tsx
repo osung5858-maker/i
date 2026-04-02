@@ -42,7 +42,7 @@ function BarChart({ data, maxVal, color }: { data: { label: string; value: numbe
     <div className="flex items-end gap-1.5 h-32 px-1">
       {data.map((d, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-1">
-          <span className="text-[13px] font-bold text-[#1A1918]">{d.value || ''}</span>
+          <span className="text-body font-bold text-primary">{d.value || ''}</span>
           <div
             className="w-full rounded-t-lg transition-all duration-500"
             style={{
@@ -51,7 +51,7 @@ function BarChart({ data, maxVal, color }: { data: { label: string; value: numbe
               minHeight: d.value > 0 ? 8 : 3,
             }}
           />
-          <span className="text-[12px] font-medium text-[#4A4744]">{d.label}</span>
+          <span className="text-caption font-medium text-[#4A4744]">{d.label}</span>
         </div>
       ))}
     </div>
@@ -106,8 +106,8 @@ function SleepHeatmap({ events, dates }: { events: CareEvent[]; dates: string[] 
         <div className="flex gap-2">
           {weeklySummary.map((w, i) => (
             <div key={i} className="flex-1 text-center bg-[#F0EDF6] rounded-lg py-2">
-              <p className="text-[11px] text-[#6B6966]">{w.label}</p>
-              <p className="text-[14px] font-bold text-[#4A5AE8]">{w.hours}h</p>
+              <p className="text-label text-secondary">{w.label}</p>
+              <p className="text-body-emphasis font-bold text-[#4A5AE8]">{w.hours}h</p>
             </div>
           ))}
         </div>
@@ -117,12 +117,12 @@ function SleepHeatmap({ events, dates }: { events: CareEvent[]; dates: string[] 
           <div className="flex gap-0.5">
             <div className="w-6" />
             {[0, 3, 6, 9, 12, 15, 18, 21].map((h) => (
-              <div key={h} className="flex-1 text-[11px] text-[#6B6966] font-medium text-center">{h}</div>
+              <div key={h} className="flex-1 text-label text-secondary font-medium text-center">{h}</div>
             ))}
           </div>
           {displayDates.map((date) => (
             <div key={date} className="flex items-center gap-0.5 mb-0.5">
-              <span className="w-6 text-[11px] text-[#4A4744] font-medium shrink-0">{getDayLabel(date)}</span>
+              <span className="w-6 text-label text-[#4A4744] font-medium shrink-0">{getDayLabel(date)}</span>
               <div className="flex-1 flex gap-px">
                 {Array.from({ length: 24 }, (_, h) => (
                   <div
@@ -137,7 +137,7 @@ function SleepHeatmap({ events, dates }: { events: CareEvent[]; dates: string[] 
             </div>
           ))}
           {dates.length > 14 && (
-            <p className="text-[11px] text-[#7A7672] mt-1 text-center">최근 7일 수면 패턴</p>
+            <p className="text-label text-[#7A7672] mt-1 text-center">최근 7일 수면 패턴</p>
           )}
         </div>
       </div>
@@ -287,7 +287,7 @@ export default function StatsReport({ events, ageMonths }: Props) {
           <button
             key={tab.key}
             onClick={() => setPeriod(tab.key)}
-            className={`px-4 py-1.5 rounded-full text-[14px] font-semibold transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-body-emphasis transition-colors ${
               period === tab.key
                 ? 'bg-[var(--color-primary)] text-white'
                 : 'bg-[#D5D0CA] text-[#4A4744]'
@@ -302,21 +302,21 @@ export default function StatsReport({ events, ageMonths }: Props) {
       <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <h3 className="text-[15px] font-bold text-[#212124] flex items-center gap-1.5"><BottleIcon className="w-4 h-4" /> 수유</h3>
+            <h3 className="text-subtitle text-primary flex items-center gap-1.5"><BottleIcon className="w-4 h-4" /> 수유</h3>
             {feedTrend && (
-              <span className="text-[12px] font-semibold" style={{ color: feedTrend.color }}>
+              <span className="text-caption font-semibold" style={{ color: feedTrend.color }}>
                 {feedTrend.arrow} {feedTrend.delta}%
               </span>
             )}
           </div>
-          <span className="text-[14px] text-[#2D7A4A] font-bold">하루 평균 {avgFeed}회</span>
+          <span className="text-body-emphasis text-[#2D7A4A] font-bold">하루 평균 {avgFeed}회</span>
         </div>
         {period !== 'daily' ? (
           <BarChart data={feedData} maxVal={maxFeed} color="var(--color-primary)" />
         ) : (
           <div className="text-center py-6">
             <p className="text-3xl font-bold text-[var(--color-primary)]">{feedData[0]?.value || 0}<span className="text-sm text-[#4A4744] ml-1">회</span></p>
-            <p className="text-[13px] text-[#4A4744] mt-1">오늘 수유</p>
+            <p className="text-body text-[#4A4744] mt-1">오늘 수유</p>
           </div>
         )}
       </div>
@@ -324,15 +324,15 @@ export default function StatsReport({ events, ageMonths }: Props) {
       {/* 수면 카드 */}
       <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[15px] font-bold text-[#212124] flex items-center gap-1.5"><MoonIcon className="w-4 h-4" /> 수면</h3>
-          <span className="text-[14px] text-[#4A5AE8] font-bold">평균 {avgSleep}시간</span>
+          <h3 className="text-subtitle text-primary flex items-center gap-1.5"><MoonIcon className="w-4 h-4" /> 수면</h3>
+          <span className="text-body-emphasis text-[#4A5AE8] font-bold">평균 {avgSleep}시간</span>
         </div>
         {period !== 'daily' ? (
           <SleepHeatmap events={events} dates={dates} />
         ) : (
           <div className="text-center py-6">
             <p className="text-3xl font-bold text-[#5B6DFF]">{avgSleep}<span className="text-sm text-[#4A4744] ml-1">시간</span></p>
-            <p className="text-[13px] text-[#4A4744] mt-1">오늘 수면</p>
+            <p className="text-body text-[#4A4744] mt-1">오늘 수면</p>
           </div>
         )}
       </div>
@@ -341,14 +341,14 @@ export default function StatsReport({ events, ageMonths }: Props) {
       <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <h3 className="text-[15px] font-bold text-[#212124] flex items-center gap-1.5"><DiaperIcon className="w-4 h-4" /> 배변</h3>
+            <h3 className="text-subtitle text-primary flex items-center gap-1.5"><DiaperIcon className="w-4 h-4" /> 배변</h3>
             {poopTrend && (
-              <span className="text-[12px] font-semibold" style={{ color: poopTrend.color }}>
+              <span className="text-caption font-semibold" style={{ color: poopTrend.color }}>
                 {poopTrend.arrow} {poopTrend.delta}%
               </span>
             )}
           </div>
-          <span className="text-[14px] text-[#A87420] font-bold">
+          <span className="text-body-emphasis text-[#A87420] font-bold">
             하루 평균 {(poopData.reduce((a, b) => a + b.value, 0) / Math.max(dates.filter((d) => (grouped[d] || []).length > 0).length, 1)).toFixed(1)}회
           </span>
         </div>
@@ -357,7 +357,7 @@ export default function StatsReport({ events, ageMonths }: Props) {
         ) : (
           <div className="text-center py-6">
             <p className="text-3xl font-bold text-[#C68A2E]">{poopData[0]?.value || 0}<span className="text-sm text-[#4A4744] ml-1">회</span></p>
-            <p className="text-[13px] text-[#4A4744] mt-1">오늘 배변</p>
+            <p className="text-body text-[#4A4744] mt-1">오늘 배변</p>
           </div>
         )}
       </div>
@@ -366,14 +366,14 @@ export default function StatsReport({ events, ageMonths }: Props) {
       <div className="bg-white rounded-2xl border-l-4 border-l-[var(--color-primary)] border border-[#D5D0CA] shadow-sm p-4">
         <div className="flex items-center gap-1.5 mb-2">
           <SparkleIcon className="w-3.5 h-3.5 text-[var(--color-primary)]" />
-          <h3 className="text-[13px] font-bold text-[var(--color-primary)]">AI 인사이트</h3>
+          <h3 className="text-body font-bold text-[var(--color-primary)]">AI 인사이트</h3>
         </div>
         <div className="space-y-2">
           {insights.map((insight, i) => (
-            <p key={i} className="text-[13px] text-[#212124] leading-relaxed">• {insight}</p>
+            <p key={i} className="text-body text-primary leading-relaxed">• {insight}</p>
           ))}
         </div>
-        <p className="text-[12px] text-[#7A7672] mt-3">참고용 정보예요. 걱정되시면 소아과 상담을 추천드려요.</p>
+        <p className="text-caption text-[#7A7672] mt-3">참고용 정보예요. 걱정되시면 소아과 상담을 추천드려요.</p>
       </div>
 
       {/* 공유 버튼 */}
@@ -408,7 +408,7 @@ export default function StatsReport({ events, ageMonths }: Props) {
             window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '공유 기능을 사용할 수 없어요' } }))
           }
         }}
-        className="w-full py-3 text-[13px] font-semibold text-[var(--color-primary)] text-center active:opacity-70"
+        className="w-full py-3 text-body font-semibold text-[var(--color-primary)] text-center active:opacity-70"
       >
         <span className="inline-flex items-center gap-1"><ShareIcon className="w-4 h-4 inline" /> 리포트 공유하기</span>
       </button>

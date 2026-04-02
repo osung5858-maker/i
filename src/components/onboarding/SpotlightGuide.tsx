@@ -251,8 +251,8 @@ export default function SpotlightGuide({ mode, onComplete }: Props) {
       {/* 말풍선 */}
       <div style={tooltipStyle} onClick={e => e.stopPropagation()}>
         <div className="bg-white rounded-2xl p-5 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
-          <p className="text-[16px] font-bold text-[#1A1918] mb-1">{current.title}</p>
-          <p className="text-[14px] text-[#6B6966] leading-relaxed">{current.desc}</p>
+          <p className="text-subtitle font-bold text-primary mb-1">{current.title}</p>
+          <p className="text-body-emphasis text-secondary leading-relaxed">{current.desc}</p>
 
           <div className="flex items-center justify-between mt-4">
             {/* 스텝 인디케이터 */}
@@ -270,13 +270,13 @@ export default function SpotlightGuide({ mode, onComplete }: Props) {
             <div className="flex items-center gap-3">
               <button
                 onClick={(e) => { e.stopPropagation(); onComplete() }}
-                className="text-[13px] text-[#9E9A95] active:opacity-60"
+                className="text-body text-tertiary active:opacity-60"
               >
                 건너뛰기
               </button>
               <button
                 onClick={handleNext}
-                className="px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-[13px] font-semibold active:opacity-80"
+                className="px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white font-semibold active:opacity-80"
               >
                 {isLast ? '완료' : '다음'}
               </button>

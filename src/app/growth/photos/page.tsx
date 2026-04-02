@@ -88,11 +88,11 @@ export default function PhotoTimelapsePage() {
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-white">
       <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-[13px] text-[#6B6966] shrink-0">뒤로</button>
-        <h1 className="text-[15px] font-bold text-[#212124] truncate mx-3">사진 타임랩스</h1>
+        <button onClick={() => router.back()} className="text-body text-secondary shrink-0">뒤로</button>
+        <h1 className="text-subtitle text-primary truncate mx-3">사진 타임랩스</h1>
         <button
           onClick={() => fileRef.current?.click()}
-          className="text-[13px] font-semibold text-[var(--color-primary)] whitespace-nowrap shrink-0"
+          className="text-body font-semibold text-[var(--color-primary)] whitespace-nowrap shrink-0"
         >
           + 추가
         </button>
@@ -121,7 +121,7 @@ export default function PhotoTimelapsePage() {
                 />
               )}
               {playing && (
-                <div className="absolute bottom-3 left-3 px-2 py-1 rounded-lg bg-black/50 text-white text-[13px]">
+                <div className="absolute bottom-3 left-3 px-2 py-1 rounded-lg bg-black/50 text-white text-body">
                   {currentIndex + 1} / {photos.length}
                 </div>
               )}
@@ -129,7 +129,7 @@ export default function PhotoTimelapsePage() {
             <button
               onClick={handlePlay}
               disabled={playing}
-              className="w-full h-11 rounded-xl bg-[var(--color-primary)] text-white text-[13px] font-semibold mt-3 active:scale-[0.98] transition-transform disabled:opacity-50"
+              className="w-full h-11 rounded-xl bg-[var(--color-primary)] text-white font-semibold mt-3 active:scale-[0.98] transition-transform disabled:opacity-50"
             >
               {playing ? '재생 중...' : '▶ 타임랩스 재생'}
             </button>
@@ -140,28 +140,28 @@ export default function PhotoTimelapsePage() {
         {photos.length === 0 ? (
           <div className="py-16 text-center">
             <IllustVideo src="/images/illustrations/empty-no-photos.webm" className="w-48 h-48 mx-auto mb-4" />
-            <p className="text-[14px] font-semibold text-[#212124]">아직 사진이 없어요</p>
-            <p className="text-[14px] text-[#6B6966] mt-1">매월 같은 포즈로 사진을 찍어보세요</p>
+            <p className="text-body-emphasis text-primary">아직 사진이 없어요</p>
+            <p className="text-body-emphasis text-secondary mt-1">매월 같은 포즈로 사진을 찍어보세요</p>
             <button
               onClick={() => fileRef.current?.click()}
-              className="mt-4 px-6 py-2.5 rounded-xl bg-[var(--color-primary)] text-white text-[13px] font-semibold active:scale-95 transition-transform"
+              className="mt-4 px-6 py-2.5 rounded-xl bg-[var(--color-primary)] text-white font-semibold active:scale-95 transition-transform"
             >
               첫 사진 추가
             </button>
           </div>
         ) : (
           <>
-            <p className="text-[13px] font-bold text-[#212124] mb-2">사진 {photos.length}장</p>
+            <p className="text-body font-bold text-primary mb-2">사진 {photos.length}장</p>
             <div className="grid grid-cols-3 gap-2">
               {photos.map((photo) => (
                 <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden bg-[#F0EDE8]">
                   <Image src={photo.url} alt="" fill className="object-cover" />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 px-2 py-1">
-                    <p className="text-[14px] text-white">{photo.date}</p>
+                    <p className="text-body-emphasis text-white">{photo.date}</p>
                   </div>
                   <button
                     onClick={() => handleDelete(photo.id)}
-                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white text-[14px] flex items-center justify-center"
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white text-body-emphasis flex items-center justify-center"
                   >
                     ✕
                   </button>
@@ -171,7 +171,7 @@ export default function PhotoTimelapsePage() {
           </>
         )}
 
-        <p className="text-[13px] text-[#9E9A95] text-center mt-6">
+        <p className="text-body text-tertiary text-center mt-6">
           매월 같은 장소, 같은 포즈로 사진을 찍으면<br />타임랩스가 더 멋져요!
         </p>
       </div>

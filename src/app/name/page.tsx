@@ -188,13 +188,13 @@ export default function NamePage() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
           </button>
           <div className="flex-1 text-center">
-            <p className="text-[15px] font-bold text-[#1A1918]">이름 짓기</p>
+            <p className="text-subtitle text-primary">이름 짓기</p>
           </div>
           <div className="w-10" />
         </div>
       </header>
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#1A1918] text-white text-[13px] font-medium px-4 py-2.5 rounded-full shadow-lg whitespace-nowrap animate-[fadeIn_0.2s]">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#1A1918] text-white text-body font-medium px-4 py-2.5 rounded-full shadow-lg whitespace-nowrap animate-[fadeIn_0.2s]">
           {toast}
         </div>
       )}
@@ -209,7 +209,7 @@ export default function NamePage() {
             { key: 'analyze' as Tab, label: '이름 분석' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setError(null) }}
-              className={`shrink-0 px-4 py-2 rounded-xl text-[13px] font-semibold ${tab === t.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
+              className={`shrink-0 px-4 py-2 rounded-xl text-body font-semibold ${tab === t.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-secondary border border-[#E8E4DF]'}`}>
               {t.label}
             </button>
           ))}
@@ -217,13 +217,13 @@ export default function NamePage() {
 
         {error && (
           <div className="bg-[#FFF0E6] rounded-xl p-3 mb-3">
-            <p className="text-[13px] text-[#D08068]">
+            <p className="text-body text-[#D08068]">
               {error.includes('429') || error.includes('바빠') ? 'AI 서버가 바빠요. 잠시 후 다시 시도해주세요.' :
                error.includes('parse') ? 'AI 응답 처리 중 오류가 발생했어요. 다시 시도해주세요.' :
                error.includes('quota') ? 'API 사용량 초과. 잠시 후 다시 시도해주세요.' :
                error}
             </p>
-            <button onClick={() => setError(null)} className="text-[12px] text-[var(--color-primary)] font-semibold mt-1">닫기</button>
+            <button onClick={() => setError(null)} className="text-caption text-[var(--color-primary)] font-semibold mt-1">닫기</button>
           </div>
         )}
 
@@ -233,19 +233,19 @@ export default function NamePage() {
             {chosenNickname && (
               <div className="bg-gradient-to-r from-[#FFF8F3] to-[#F0F9F4] rounded-xl border border-[#FFDDC8]/60 px-4 py-3 flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] text-[#9E9A95] font-medium">결정된 태명</p>
-                  <p className="text-[16px] font-bold text-[#1A1918]">{chosenNickname}</p>
+                  <p className="text-label text-tertiary font-medium">결정된 태명</p>
+                  <p className="text-subtitle font-bold text-primary">{chosenNickname}</p>
                 </div>
-                <button onClick={() => chooseNickname(chosenNickname)} className="text-[12px] text-[#9E9A95] px-2 py-1 rounded-lg border border-[#E8E4DF] bg-white">취소</button>
+                <button onClick={() => chooseNickname(chosenNickname)} className="text-caption text-tertiary px-2 py-1 rounded-lg border border-[#E8E4DF] bg-white">취소</button>
               </div>
             )}
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-              <p className="text-[14px] font-bold text-[#1A1918] mb-3 flex items-center gap-1"><StarIcon className="w-4 h-4 text-[#C4913E]" /> 태명 추천받기</p>
-              <p className="text-[14px] text-[#6B6966] mb-1">어떤 아이로 자라길 바라나요?</p>
+              <p className="text-body-emphasis font-bold text-primary mb-3 flex items-center gap-1"><StarIcon className="w-4 h-4 text-[#C4913E]" /> 태명 추천받기</p>
+              <p className="text-body-emphasis text-secondary mb-1">어떤 아이로 자라길 바라나요?</p>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {THEMES.map(t => (
                   <button key={t} onClick={() => setNickTheme(t)}
-                    className={`px-3 py-1.5 rounded-full text-[13px] ${nickTheme === t ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
+                    className={`px-3 py-1.5 rounded-full text-body ${nickTheme === t ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
                     {t}
                   </button>
                 ))}
@@ -253,13 +253,13 @@ export default function NamePage() {
               <div className="flex gap-1.5 mb-3">
                 {['모름', '남아', '여아'].map(g => (
                   <button key={g} onClick={() => setNickGender(g)}
-                    className={`flex-1 py-1.5 rounded-lg text-[14px] ${nickGender === g ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
+                    className={`flex-1 py-1.5 rounded-lg text-body-emphasis ${nickGender === g ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
                     {g}
                   </button>
                 ))}
               </div>
               <button onClick={fetchNickname} disabled={loading}
-                className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                className="w-full py-2.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                 {loading ? 'AI가 고민 중...' : '태명 추천받기'}
               </button>
             </div>
@@ -270,23 +270,23 @@ export default function NamePage() {
               return (
                 <div key={i} className={`bg-white rounded-xl border p-4 transition-all ${isChosen ? 'border-[var(--color-primary)] shadow-sm' : 'border-[#E8E4DF]'}`}>
                   <div className="flex items-start justify-between mb-2">
-                    <p className="text-[18px] font-bold text-[#1A1918]">{n.name}</p>
+                    <p className="text-heading-3 text-primary">{n.name}</p>
                     <button
                       onClick={() => chooseNickname(n.name)}
-                      className={`text-[12px] px-2.5 py-1 rounded-full font-semibold transition-colors ${isChosen ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-accent-bg)] text-[var(--color-primary)]'}`}
+                      className={`text-caption px-2.5 py-1 rounded-full font-semibold transition-colors ${isChosen ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-accent-bg)] text-[var(--color-primary)]'}`}
                     >
                       {isChosen ? '✓ 결정됨' : '결정'}
                     </button>
                   </div>
-                  <p className="text-[14px] text-[#1A1918] mb-2">{n.meaning}</p>
+                  <p className="text-body-emphasis text-primary mb-2">{n.meaning}</p>
                   <div className="flex gap-2">
-                    <span className="text-[13px] text-[#6B6966] bg-[var(--color-page-bg)] px-2 py-0.5 rounded">{n.origin}</span>
-                    <span className="text-[13px] text-[#6B6966] bg-[var(--color-page-bg)] px-2 py-0.5 rounded">{n.vibe}</span>
+                    <span className="text-body text-secondary bg-[var(--color-page-bg)] px-2 py-0.5 rounded">{n.origin}</span>
+                    <span className="text-body text-secondary bg-[var(--color-page-bg)] px-2 py-0.5 rounded">{n.vibe}</span>
                   </div>
                 </div>
               )
             })}
-            {nickResult?.tip && <p className="text-[13px] text-[#6B6966] text-center">{nickResult.tip}</p>}
+            {nickResult?.tip && <p className="text-body text-secondary text-center">{nickResult.tip}</p>}
           </div>
         )}
 
@@ -294,23 +294,23 @@ export default function NamePage() {
         {tab === 'suggest' && (
           <div className="space-y-3">
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-              <p className="text-[14px] font-bold text-[#1A1918] mb-1 flex items-center gap-1"><SparkleIcon className="w-4 h-4 text-[#C4913E]" /> AI 이름 추천</p>
+              <p className="text-body-emphasis font-bold text-primary mb-1 flex items-center gap-1"><SparkleIcon className="w-4 h-4 text-[#C4913E]" /> AI 이름 추천</p>
               <div className="flex gap-2 mb-3">
-                <a href="https://baby-name.kr/" target="_blank" rel="noopener noreferrer" className="text-[13px] text-[var(--color-primary)] px-2 py-0.5 bg-[#F0F9F4] rounded-full">인기 이름 순위</a>
-                <a href="https://www.namechart.kr/" target="_blank" rel="noopener noreferrer" className="text-[13px] text-[var(--color-primary)] px-2 py-0.5 bg-[#F0F9F4] rounded-full">이름 차트</a>
+                <a href="https://baby-name.kr/" target="_blank" rel="noopener noreferrer" className="text-body text-[var(--color-primary)] px-2 py-0.5 bg-[#F0F9F4] rounded-full">인기 이름 순위</a>
+                <a href="https://www.namechart.kr/" target="_blank" rel="noopener noreferrer" className="text-body text-[var(--color-primary)] px-2 py-0.5 bg-[#F0F9F4] rounded-full">이름 차트</a>
               </div>
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div>
-                  <p className="text-[14px] text-[#6B6966] mb-1">성</p>
+                  <p className="text-body-emphasis text-secondary mb-1">성</p>
                   <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="김"
-                    className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-[14px]" />
+                    className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-body-emphasis" />
                 </div>
                 <div>
-                  <p className="text-[14px] text-[#6B6966] mb-1">글자 수</p>
+                  <p className="text-body-emphasis text-secondary mb-1">글자 수</p>
                   <div className="flex gap-1.5">
                     {[2, 3].map(n => (
                       <button key={n} onClick={() => setSyllables(n)}
-                        className={`flex-1 h-10 rounded-lg text-[13px] ${syllables === n ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
+                        className={`flex-1 h-10 rounded-lg text-body ${syllables === n ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
                         {n}글자
                       </button>
                     ))}
@@ -320,22 +320,22 @@ export default function NamePage() {
               <div className="flex gap-1.5 mb-3">
                 {['모름', '남아', '여아'].map(g => (
                   <button key={g} onClick={() => setSuggestGender(g)}
-                    className={`flex-1 py-1.5 rounded-lg text-[14px] ${suggestGender === g ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
+                    className={`flex-1 py-1.5 rounded-lg text-body-emphasis ${suggestGender === g ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
                     {g}
                   </button>
                 ))}
               </div>
-              <p className="text-[14px] text-[#6B6966] mb-1">희망 의미</p>
+              <p className="text-body-emphasis text-secondary mb-1">희망 의미</p>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {THEMES.map(t => (
                   <button key={t} onClick={() => setSuggestTheme(t)}
-                    className={`px-3 py-1.5 rounded-full text-[13px] ${suggestTheme === t ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[#6B6966]'}`}>
+                    className={`px-3 py-1.5 rounded-full text-body ${suggestTheme === t ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
                     {t}
                   </button>
                 ))}
               </div>
               <button onClick={fetchSuggest} disabled={loading}
-                className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                className="w-full py-2.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                 {loading ? 'AI가 이름을 짓는 중...' : '이름 추천받기'}
               </button>
             </div>
@@ -345,11 +345,11 @@ export default function NamePage() {
               <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <p className="text-[18px] font-bold text-[#1A1918]">{lastName}{n.name}</p>
+                    <p className="text-heading-3 text-primary">{lastName}{n.name}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-full bg-[#F0F9F4] flex items-center justify-center">
-                      <span className="text-[14px] font-bold text-[var(--color-primary)]">{n.score}</span>
+                      <span className="text-body-emphasis font-bold text-[var(--color-primary)]">{n.score}</span>
                     </div>
                   </div>
                 </div>
@@ -359,23 +359,23 @@ export default function NamePage() {
                   <div className="mb-2 space-y-1">
                     {n.hanjaOptions.map((h: any, j: number) => (
                       <div key={j} className="flex items-center gap-2 p-2 bg-[var(--color-page-bg)] rounded-lg">
-                        <span className="text-[14px] font-semibold text-[#1A1918]">{h.hanja}</span>
-                        <p className="text-[14px] text-[#6B6966] flex-1">{h.meaning}</p>
+                        <span className="text-body-emphasis text-primary">{h.hanja}</span>
+                        <p className="text-body-emphasis text-secondary flex-1">{h.meaning}</p>
                       </div>
                     ))}
                   </div>
                 ) : n.hanja ? (
-                  <p className="text-[13px] text-[#6B6966] mb-2">{n.hanja}</p>
+                  <p className="text-body text-secondary mb-2">{n.hanja}</p>
                 ) : null}
 
-                <p className="text-[14px] text-[#1A1918] mb-2">{n.meaning}</p>
+                <p className="text-body-emphasis text-primary mb-2">{n.meaning}</p>
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="text-[14px] px-2 py-0.5 rounded bg-[#F0F9F4] text-[var(--color-primary)]">{n.fiveElements}</span>
-                  <span className="text-[14px] px-2 py-0.5 rounded bg-[var(--color-page-bg)] text-[#6B6966]">{n.pronunciation}</span>
-                  <span className="text-[14px] px-2 py-0.5 rounded bg-[var(--color-page-bg)] text-[#6B6966]">{n.uniqueness}</span>
-                  {n.popularity && <span className="text-[14px] px-2 py-0.5 rounded bg-[#FFF8F3] text-[#C4A35A] flex items-center gap-0.5"><ChartIcon className="w-3.5 h-3.5 inline" /> {n.popularity}</span>}
+                  <span className="text-body-emphasis px-2 py-0.5 rounded bg-[#F0F9F4] text-[var(--color-primary)]">{n.fiveElements}</span>
+                  <span className="text-body-emphasis px-2 py-0.5 rounded bg-[var(--color-page-bg)] text-secondary">{n.pronunciation}</span>
+                  <span className="text-body-emphasis px-2 py-0.5 rounded bg-[var(--color-page-bg)] text-secondary">{n.uniqueness}</span>
+                  {n.popularity && <span className="text-body-emphasis px-2 py-0.5 rounded bg-[#FFF8F3] text-[#C4A35A] flex items-center gap-0.5"><ChartIcon className="w-3.5 h-3.5 inline" /> {n.popularity}</span>}
                 </div>
-                {n.scoreDetail && <p className="text-[14px] text-[#9E9A95] mt-1">{n.scoreDetail}</p>}
+                {n.scoreDetail && <p className="text-body-emphasis text-tertiary mt-1">{n.scoreDetail}</p>}
               </div>
             ))}
           </div>
@@ -385,17 +385,17 @@ export default function NamePage() {
         {tab === 'compare' && (
           <div className="space-y-3">
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-              <p className="text-[14px] font-bold text-[#1A1918] mb-1 flex items-center gap-1"><TrophyIcon className="w-4 h-4 text-[#C4913E]" /> 이름 후보 비교</p>
-              <p className="text-[13px] text-[#6B6966] mb-3">원하는 이름을 입력하면 AI가 비교 분석해드려요</p>
+              <p className="text-body-emphasis font-bold text-primary mb-1 flex items-center gap-1"><TrophyIcon className="w-4 h-4 text-[#C4913E]" /> 이름 후보 비교</p>
+              <p className="text-body text-secondary mb-3">원하는 이름을 입력하면 AI가 비교 분석해드려요</p>
 
               <div className="space-y-2 mb-3">
                 {compareNames.map((name, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <span className="text-[14px] text-[#9E9A95] w-5">{i + 1}.</span>
+                    <span className="text-body-emphasis text-tertiary w-5">{i + 1}.</span>
                     <input value={name} onChange={e => updateCompareName(i, e.target.value)} placeholder={`후보 ${i + 1}`}
-                      className="flex-1 h-10 rounded-lg border border-[#E8E4DF] px-3 text-[14px]" />
+                      className="flex-1 h-10 rounded-lg border border-[#E8E4DF] px-3 text-body-emphasis" />
                     {compareNames.length > 2 && (
-                      <button onClick={() => setCompareNames(compareNames.filter((_, j) => j !== i))} className="text-[#9E9A95]"><XIcon className="w-4 h-4" /></button>
+                      <button onClick={() => setCompareNames(compareNames.filter((_, j) => j !== i))} className="text-tertiary"><XIcon className="w-4 h-4" /></button>
                     )}
                   </div>
                 ))}
@@ -403,11 +403,11 @@ export default function NamePage() {
 
               <div className="flex gap-2 mb-3">
                 {compareNames.length < 6 && (
-                  <button onClick={addCompareSlot} className="flex-1 py-2 rounded-lg border border-dashed border-[#AEB1B9] text-[14px] text-[#6B6966]">+ 후보 추가</button>
+                  <button onClick={addCompareSlot} className="flex-1 py-2 rounded-lg border border-dashed border-[#AEB1B9] text-body-emphasis text-secondary">+ 후보 추가</button>
                 )}
                 <div className="flex-1">
                   <input value={compareBirthYear} onChange={e => setCompareBirthYear(e.target.value)} placeholder="출생 연도 (선택)"
-                    className="w-full h-9 rounded-lg border border-[#E8E4DF] px-3 text-[14px]" />
+                    className="w-full h-9 rounded-lg border border-[#E8E4DF] px-3 text-body-emphasis" />
                 </div>
               </div>
 
@@ -418,7 +418,7 @@ export default function NamePage() {
               )}
 
               <button onClick={fetchCompare} disabled={loading}
-                className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                className="w-full py-2.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                 {loading ? 'AI가 비교 분석 중...' : '비교 분석하기'}
               </button>
             </div>
@@ -431,36 +431,36 @@ export default function NamePage() {
                   <div key={i} className={`bg-white rounded-xl border ${r.rank === 1 ? 'border-[var(--color-accent-bg)] bg-gradient-to-br from-white to-[#F0F9F4]' : 'border-[#E8E4DF]'} p-4`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[14px] font-bold ${
-                          r.rank === 1 ? 'bg-[var(--color-primary)] text-white' : r.rank === 2 ? 'bg-[#C4A35A] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-body-emphasis font-bold ${
+                          r.rank === 1 ? 'bg-[var(--color-primary)] text-white' : r.rank === 2 ? 'bg-[#C4A35A] text-white' : 'bg-[#E8E4DF] text-secondary'
                         }`}>{r.rank}</div>
                         <div>
-                          <p className="text-[16px] font-bold text-[#1A1918]">{r.name}</p>
-                          {r.hanja && <p className="text-[14px] text-[#9E9A95]">{r.hanja}</p>}
+                          <p className="text-subtitle font-bold text-primary">{r.name}</p>
+                          {r.hanja && <p className="text-body-emphasis text-tertiary">{r.hanja}</p>}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${r.rank === 1 ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-page-bg)]'}`}>
-                          <span className={`text-[14px] font-bold ${r.rank === 1 ? 'text-white' : 'text-[#1A1918]'}`}>{r.score}</span>
+                          <span className={`text-body-emphasis font-bold ${r.rank === 1 ? 'text-white' : 'text-primary'}`}>{r.score}</span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-[14px] text-[#1A1918] mb-1">{r.meaning}</p>
+                    <p className="text-body-emphasis text-primary mb-1">{r.meaning}</p>
                     <div className="flex flex-wrap gap-1.5 mb-1">
-                      <span className="text-[14px] px-2 py-0.5 rounded bg-[#F0F9F4] text-[var(--color-primary)]">{r.fiveElements}</span>
-                      <span className="text-[14px] px-2 py-0.5 rounded bg-[var(--color-page-bg)] text-[#6B6966]">{r.pronunciation}</span>
-                      <span className="text-[14px] px-2 py-0.5 rounded bg-[var(--color-page-bg)] text-[#6B6966]">{r.strokes}</span>
+                      <span className="text-body-emphasis px-2 py-0.5 rounded bg-[#F0F9F4] text-[var(--color-primary)]">{r.fiveElements}</span>
+                      <span className="text-body-emphasis px-2 py-0.5 rounded bg-[var(--color-page-bg)] text-secondary">{r.pronunciation}</span>
+                      <span className="text-body-emphasis px-2 py-0.5 rounded bg-[var(--color-page-bg)] text-secondary">{r.strokes}</span>
                     </div>
-                    {r.highlight && <p className="text-[13px] text-[var(--color-primary)]">{r.highlight}</p>}
+                    {r.highlight && <p className="text-body text-[var(--color-primary)]">{r.highlight}</p>}
                   </div>
                 ))}
 
                 {/* 종합 추천 */}
                 {compareResult.recommendation && (
                   <div className="bg-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-4">
-                    <p className="text-[13px] font-bold text-[var(--color-primary)] mb-1 flex items-center gap-1"><TrophyIcon className="w-3.5 h-3.5" /> AI 추천</p>
-                    <p className="text-[14px] text-[#1A1918] leading-relaxed">{compareResult.recommendation}</p>
-                    {compareResult.tip && <p className="text-[14px] text-[#6B6966] mt-2">{compareResult.tip}</p>}
+                    <p className="text-body font-bold text-[var(--color-primary)] mb-1 flex items-center gap-1"><TrophyIcon className="w-3.5 h-3.5" /> AI 추천</p>
+                    <p className="text-body-emphasis text-primary leading-relaxed">{compareResult.recommendation}</p>
+                    {compareResult.tip && <p className="text-body-emphasis text-secondary mt-2">{compareResult.tip}</p>}
                   </div>
                 )}
               </>
@@ -474,22 +474,22 @@ export default function NamePage() {
             {/* 1단계: 이름 입력 */}
             {hanjaStep === 'input' && (
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-                <p className="text-[14px] font-bold text-[#1A1918] mb-3 flex items-center gap-1"><SearchIcon className="w-4 h-4" /> 이름 분석</p>
-                <p className="text-[13px] text-[#6B6966] mb-3">한자를 선택하고 음양오행 · 획수 · 발음 종합 분석</p>
+                <p className="text-body-emphasis font-bold text-primary mb-3 flex items-center gap-1"><SearchIcon className="w-4 h-4" /> 이름 분석</p>
+                <p className="text-body text-secondary mb-3">한자를 선택하고 음양오행 · 획수 · 발음 종합 분석</p>
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div>
-                    <p className="text-[14px] text-[#6B6966] mb-1">이름 (성 포함)</p>
+                    <p className="text-body-emphasis text-secondary mb-1">이름 (성 포함)</p>
                     <input value={analyzeName} onChange={e => setAnalyzeName(e.target.value)} placeholder="김도담"
-                      className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-[14px]" />
+                      className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-body-emphasis" />
                   </div>
                   <div>
-                    <p className="text-[14px] text-[#6B6966] mb-1">출생 연도 (선택)</p>
+                    <p className="text-body-emphasis text-secondary mb-1">출생 연도 (선택)</p>
                     <input value={birthYear} onChange={e => setBirthYear(e.target.value)} placeholder="2026"
-                      className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-[14px]" />
+                      className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-body-emphasis" />
                   </div>
                 </div>
                 <button onClick={fetchHanjaOptions} disabled={loading}
-                  className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                  className="w-full py-2.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                   {loading ? '한자 후보 조회 중...' : '한자 선택하기 →'}
                 </button>
               </div>
@@ -499,38 +499,38 @@ export default function NamePage() {
             {hanjaStep === 'select' && hanjaOptions && (
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-[14px] font-bold text-[#1A1918]">한자 선택</p>
-                  <button onClick={() => setHanjaStep('input')} className="text-[13px] text-[#6B6966]">← 다시 입력</button>
+                  <p className="text-body-emphasis font-bold text-primary">한자 선택</p>
+                  <button onClick={() => setHanjaStep('input')} className="text-body text-secondary">← 다시 입력</button>
                 </div>
-                <p className="text-[13px] text-[#6B6966] mb-3">각 글자의 한자를 선택해주세요</p>
+                <p className="text-body text-secondary mb-3">각 글자의 한자를 선택해주세요</p>
 
                 {/* 성 */}
                 <div className="mb-4">
-                  <p className="text-[14px] font-semibold text-[#1A1918] mb-1.5">
+                  <p className="text-body-emphasis text-primary mb-1.5">
                     {hanjaOptions.surname} → {hanjaOptions.surnameHanja || '?'}
-                    <span className="text-[14px] text-[#6B6966] ml-1">(성)</span>
+                    <span className="text-body-emphasis text-secondary ml-1">(성)</span>
                   </p>
                 </div>
 
                 {/* 이름 글자별 */}
                 {hanjaOptions.characters?.map((c: any, cIdx: number) => (
                   <div key={cIdx} className="mb-4">
-                    <p className="text-[14px] font-semibold text-[#1A1918] mb-1.5">{c.char}</p>
+                    <p className="text-body-emphasis text-primary mb-1.5">{c.char}</p>
                     <div className="space-y-1">
                       {c.options?.map((opt: any, oIdx: number) => (
                         <button key={oIdx} onClick={() => setSelectedHanja(prev => ({ ...prev, [cIdx]: oIdx }))}
                           className={`w-full flex items-center gap-3 p-2.5 rounded-lg text-left transition-colors ${
                             (selectedHanja[cIdx] ?? 0) === oIdx ? 'bg-[#E8F5E9] border border-[var(--color-primary)]' : 'bg-[#F5F1EC] border border-transparent'
                           }`}>
-                          <span className="text-[20px] font-serif shrink-0">{opt.hanja}</span>
+                          <span className="text-heading-2 font-serif shrink-0">{opt.hanja}</span>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[14px] font-medium text-[#1A1918]">{opt.meaning}</span>
-                              {opt.popular && <span className="text-[13px] bg-[#FFE0E6] text-[#E8537A] px-1 py-0.5 rounded">인기</span>}
+                              <span className="text-body-emphasis font-medium text-primary">{opt.meaning}</span>
+                              {opt.popular && <span className="text-body bg-[#FFE0E6] text-[#E8537A] px-1 py-0.5 rounded">인기</span>}
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[13px] text-[#6B6966]">{opt.strokes}획</span>
-                              <span className="text-[13px] text-[#6B6966]">{opt.element}</span>
+                              <span className="text-body text-secondary">{opt.strokes}획</span>
+                              <span className="text-body text-secondary">{opt.element}</span>
                             </div>
                           </div>
                           {(selectedHanja[cIdx] ?? 0) === oIdx && <svg className="w-4 h-4 text-[var(--color-primary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
@@ -542,15 +542,15 @@ export default function NamePage() {
 
                 {/* 선택 결과 미리보기 */}
                 <div className="bg-[var(--color-page-bg)] rounded-lg p-3 mb-3 text-center">
-                  <span className="text-[20px] font-serif tracking-wider">
+                  <span className="text-heading-2 font-serif tracking-wider">
                     {hanjaOptions.surnameHanja}
                     {hanjaOptions.characters?.map((c: any, i: number) => c.options?.[(selectedHanja[i] ?? 0)]?.hanja || '?').join('')}
                   </span>
-                  <span className="text-[13px] text-[#6B6966] ml-2">({analyzeName})</span>
+                  <span className="text-body text-secondary ml-2">({analyzeName})</span>
                 </div>
 
                 <button onClick={fetchAnalyze} disabled={loading}
-                  className="w-full py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                  className="w-full py-2.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                   {loading ? '분석 중...' : '이 한자로 분석하기'}
                 </button>
               </div>
@@ -559,8 +559,8 @@ export default function NamePage() {
             {/* 3단계: 분석 결과 */}
             {hanjaStep === 'result' && analyzeResult && (
               <div ref={resultTopRef} className="flex items-center justify-between">
-                <button onClick={() => setHanjaStep('select')} className="text-[13px] text-[#6B6966]">← 한자 다시 선택</button>
-                <button onClick={() => { setHanjaStep('input'); setAnalyzeResult(null); setHanjaOptions(null) }} className="text-[13px] text-[#6B6966]">새 이름 분석</button>
+                <button onClick={() => setHanjaStep('select')} className="text-body text-secondary">← 한자 다시 선택</button>
+                <button onClick={() => { setHanjaStep('input'); setAnalyzeResult(null); setHanjaOptions(null) }} className="text-body text-secondary">새 이름 분석</button>
               </div>
             )}
 
@@ -568,14 +568,14 @@ export default function NamePage() {
               <>
                 {/* 총점 */}
                 <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-5 text-center">
-                  <p className="text-[13px] text-[#6B6966]">{analyzeResult.name}</p>
-                  {analyzeResult.hanja && <p className="text-[13px] text-[#9E9A95]">{analyzeResult.hanja}</p>}
+                  <p className="text-body text-secondary">{analyzeResult.name}</p>
+                  {analyzeResult.hanja && <p className="text-body text-tertiary">{analyzeResult.hanja}</p>}
                   <div className="w-20 h-20 mx-auto rounded-full bg-[var(--color-primary)] flex items-center justify-center my-3 shadow-[0_4px_20px_rgba(61,138,90,0.3)]">
-                    <span className="text-[28px] font-bold text-white">{analyzeResult.totalScore}</span>
+                    <span className="text-heading-1 font-bold text-white">{analyzeResult.totalScore}</span>
                   </div>
-                  <p className="text-[14px] text-[#6B6966]">종합 점수 (100점 만점)</p>
+                  <p className="text-body-emphasis text-secondary">종합 점수 (100점 만점)</p>
                   <div className="flex items-center justify-center gap-2 mt-2">
-                    <button onClick={() => shareNameAnalysis(analyzeResult.name, analyzeResult.hanja || '', analyzeResult.totalScore, analyzeResult.meaning || '')} className="text-[13px] text-[var(--color-primary)] font-semibold px-3 py-1 rounded-full bg-[var(--color-page-bg)]">
+                    <button onClick={() => shareNameAnalysis(analyzeResult.name, analyzeResult.hanja || '', analyzeResult.totalScore, analyzeResult.meaning || '')} className="text-body text-[var(--color-primary)] font-semibold px-3 py-1 rounded-full bg-[var(--color-page-bg)]">
                       카톡 공유
                     </button>
                   </div>
@@ -584,14 +584,14 @@ export default function NamePage() {
                 {/* 한자 획수 상세 */}
                 {analyzeResult.hanjaDetail && analyzeResult.hanjaDetail.length > 0 && (
                   <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-                    <p className="text-[13px] font-bold text-[#1A1918] mb-3 flex items-center gap-1"><PenIcon className="w-3.5 h-3.5" /> 한자 획수 (정자체 기준)</p>
+                    <p className="text-body font-bold text-primary mb-3 flex items-center gap-1"><PenIcon className="w-3.5 h-3.5" /> 한자 획수 (정자체 기준)</p>
                     <div className="flex gap-2">
                       {analyzeResult.hanjaDetail.map((h: any, i: number) => (
                         <div key={i} className="flex-1 p-2.5 rounded-xl bg-[var(--color-page-bg)] text-center">
-                          <p className="text-[18px] font-bold text-[#1A1918]">{h.char}</p>
-                          <p className="text-[12px] text-[#6B6966]">{h.reading}</p>
-                          <p className="text-[14px] font-bold text-[var(--color-primary)]">{h.strokes}획</p>
-                          <p className="text-[11px] text-[#9E9A95]">{h.element}</p>
+                          <p className="text-heading-3 text-primary">{h.char}</p>
+                          <p className="text-caption text-secondary">{h.reading}</p>
+                          <p className="text-body-emphasis font-bold text-[var(--color-primary)]">{h.strokes}획</p>
+                          <p className="text-label text-tertiary">{h.element}</p>
                         </div>
                       ))}
                     </div>
@@ -601,7 +601,7 @@ export default function NamePage() {
                 {/* 삼원(三元) 계산 상세 */}
                 {analyzeResult.strokeCalc && (
                   <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-                    <p className="text-[13px] font-bold text-[#1A1918] mb-3">삼원(三元) 수리 분석</p>
+                    <p className="text-body font-bold text-primary mb-3">삼원(三元) 수리 분석</p>
                     <div className="grid grid-cols-2 gap-2 mb-3">
                       {[
                         { key: 'wongyeok', label: '원격(천격)' },
@@ -614,10 +614,10 @@ export default function NamePage() {
                         const gilColor = d.gilhyung === '길' ? '#2D7A4A' : d.gilhyung === '흉' ? '#D05050' : '#C4A35A'
                         return (
                           <div key={g.key} className="p-2.5 rounded-xl bg-[var(--color-page-bg)]">
-                            <p className="text-[11px] text-[#9E9A95]">{g.label}</p>
+                            <p className="text-label text-tertiary">{g.label}</p>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-[15px] font-bold text-[#1A1918]">{d.value}</span>
-                              <span className="text-[12px] font-semibold" style={{ color: gilColor }}>{d.element} · {d.gilhyung}</span>
+                              <span className="text-subtitle text-primary">{d.value}</span>
+                              <span className="text-caption font-semibold" style={{ color: gilColor }}>{d.element} · {d.gilhyung}</span>
                             </div>
                           </div>
                         )
@@ -626,9 +626,9 @@ export default function NamePage() {
                     {/* 삼원오행 흐름 */}
                     {analyzeResult.strokeCalc.samwonFlow && (
                       <div className="p-3 rounded-xl bg-[#F0F4FF] border border-[#D5DFEF]">
-                        <p className="text-[12px] text-[#4A6FA5] font-medium mb-1">삼원오행 흐름</p>
-                        <p className="text-[14px] font-bold text-[#1A1918]">{analyzeResult.strokeCalc.samwonFlow}</p>
-                        <p className="text-[12px] text-[#6B6966] mt-0.5">{analyzeResult.strokeCalc.samwonResult}</p>
+                        <p className="text-caption text-[#4A6FA5] font-medium mb-1">삼원오행 흐름</p>
+                        <p className="text-body-emphasis font-bold text-primary">{analyzeResult.strokeCalc.samwonFlow}</p>
+                        <p className="text-caption text-secondary mt-0.5">{analyzeResult.strokeCalc.samwonResult}</p>
                       </div>
                     )}
                   </div>
@@ -637,16 +637,16 @@ export default function NamePage() {
                 {/* 음양조화 */}
                 {analyzeResult.yinYang && analyzeResult.yinYang.pattern && (
                   <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-                    <p className="text-[13px] font-bold text-[#1A1918] mb-2">음양 조화</p>
-                    <p className="text-[14px] font-bold text-[#1A1918] text-center mb-1">{analyzeResult.yinYang.pattern}</p>
-                    <p className="text-[12px] text-[#6B6966] text-center">{analyzeResult.yinYang.evaluation}</p>
+                    <p className="text-body font-bold text-primary mb-2">음양 조화</p>
+                    <p className="text-body-emphasis font-bold text-primary text-center mb-1">{analyzeResult.yinYang.pattern}</p>
+                    <p className="text-caption text-secondary text-center">{analyzeResult.yinYang.evaluation}</p>
                   </div>
                 )}
 
                 {/* 음양오행 레이더 차트 */}
                 {analyzeResult.fiveElements && (
                   <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-                    <p className="text-[13px] font-bold text-[#1A1918] mb-3">음양오행</p>
+                    <p className="text-body font-bold text-primary mb-3">음양오행</p>
                     <div className="flex justify-center mb-3">
                       <svg viewBox="0 0 200 200" width="200" height="200">
                         {/* 배경 오각형 (3단계) */}
@@ -697,17 +697,17 @@ export default function NamePage() {
                     {/* 범례 */}
                     <div className="flex justify-center gap-3 mb-2">
                       {ELEMENTS.map(el => (
-                        <span key={el.key} className="text-[14px]" style={{ color: el.color }}>{el.label}</span>
+                        <span key={el.key} className="text-body-emphasis" style={{ color: el.color }}>{el.label}</span>
                       ))}
                     </div>
-                    <p className="text-[13px] text-[#1A1918] text-center">{analyzeResult.fiveElements.balance}</p>
+                    <p className="text-body text-primary text-center">{analyzeResult.fiveElements.balance}</p>
                   </div>
                 )}
 
                 {/* 5대 지표 상세 점수 */}
                 {analyzeResult.scoreBreakdown && (
                   <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-                    <p className="text-[13px] font-bold text-[#1A1918] mb-3">성명학 5대 지표</p>
+                    <p className="text-body font-bold text-primary mb-3">성명학 5대 지표</p>
                     <div className="space-y-3">
                       {[
                         { key: 'pronunciationOheng', icon: '', label: '발음오행' },
@@ -722,13 +722,13 @@ export default function NamePage() {
                         return (
                           <div key={item.key}>
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-[12px] font-semibold text-[#1A1918]">{item.label}</span>
-                              <span className="text-[12px] font-bold text-[var(--color-primary)]">{data.score}/{data.max}</span>
+                              <span className="text-caption font-semibold text-primary">{item.label}</span>
+                              <span className="text-caption font-bold text-[var(--color-primary)]">{data.score}/{data.max}</span>
                             </div>
                             <div className="h-2 bg-[#E8E4DF] rounded-full overflow-hidden mb-1">
                               <div className="h-full bg-[var(--color-primary)] rounded-full transition-all" style={{ width: `${pct}%` }} />
                             </div>
-                            <p className="text-[11px] text-[#6B6966] leading-snug">{data.detail}</p>
+                            <p className="text-label text-secondary leading-snug">{data.detail}</p>
                           </div>
                         )
                       })}
@@ -738,42 +738,42 @@ export default function NamePage() {
 
                 {/* 종합 분석 */}
                 <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 space-y-2">
-                  <p className="text-[13px] font-bold text-[#1A1918] mb-2 flex items-center gap-1"><LightbulbIcon className="w-3.5 h-3.5" /> 종합 분석</p>
+                  <p className="text-body font-bold text-primary mb-2 flex items-center gap-1"><LightbulbIcon className="w-3.5 h-3.5" /> 종합 분석</p>
                   {analyzeResult.meaning && (
                     <div className="bg-[var(--color-page-bg)] rounded-lg p-3">
-                      <p className="text-[12px] font-semibold text-[#6B6966] mb-1">이름 뜻</p>
-                      <p className="text-[13px] text-[#1A1918] leading-relaxed">{analyzeResult.meaning}</p>
+                      <p className="text-caption font-semibold text-secondary mb-1">이름 뜻</p>
+                      <p className="text-body text-primary leading-relaxed">{analyzeResult.meaning}</p>
                     </div>
                   )}
                   {analyzeResult.strengths && (
                     <div className="flex gap-2">
                       <StarIcon className="w-4 h-4 shrink-0 text-[var(--color-primary)]" />
-                      <p className="text-[13px] text-[#1A1918] leading-relaxed">{analyzeResult.strengths}</p>
+                      <p className="text-body text-primary leading-relaxed">{analyzeResult.strengths}</p>
                     </div>
                   )}
                   {analyzeResult.caution && analyzeResult.caution !== '특별한 주의사항 없음' && (
                     <div className="flex gap-2">
                       <AlertIcon className="w-4 h-4 shrink-0 text-[#D08068]" />
-                      <p className="text-[13px] text-[#D08068] leading-relaxed">{analyzeResult.caution}</p>
+                      <p className="text-body text-[#D08068] leading-relaxed">{analyzeResult.caution}</p>
                     </div>
                   )}
                   {analyzeResult.overall && (
                     <div className="bg-[#F0F9F4] rounded-lg p-3 mt-2">
-                      <p className="text-[13px] text-[#1A1918] leading-relaxed">{analyzeResult.overall}</p>
+                      <p className="text-body text-primary leading-relaxed">{analyzeResult.overall}</p>
                     </div>
                   )}
                   <div className="flex gap-4 pt-2">
-                    {analyzeResult.luckyColor && <p className="text-[12px] text-[#6B6966]">행운의 색: <span className="font-semibold">{analyzeResult.luckyColor}</span></p>}
-                    {analyzeResult.luckyNumber && <p className="text-[12px] text-[#6B6966]">행운의 수: <span className="font-semibold">{analyzeResult.luckyNumber}</span></p>}
+                    {analyzeResult.luckyColor && <p className="text-caption text-secondary">행운의 색: <span className="font-semibold">{analyzeResult.luckyColor}</span></p>}
+                    {analyzeResult.luckyNumber && <p className="text-caption text-secondary">행운의 수: <span className="font-semibold">{analyzeResult.luckyNumber}</span></p>}
                   </div>
                 </div>
 
                 {/* 레거시 호환 (scoreBreakdown 없는 경우) */}
                 {!analyzeResult.scoreBreakdown && (
                   <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 space-y-2">
-                    {analyzeResult.yinYang && <div className="flex gap-2"><p className="text-[13px] text-[#1A1918]">{analyzeResult.yinYang}</p></div>}
-                    {analyzeResult.pronunciation && <div className="flex gap-2"><p className="text-[13px] text-[#1A1918]">{analyzeResult.pronunciation}</p></div>}
-                    {analyzeResult.strokes && <div className="flex gap-2"><PenIcon className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#6B6966]" /><p className="text-[13px] text-[#1A1918]">{analyzeResult.strokes}</p></div>}
+                    {analyzeResult.yinYang && <div className="flex gap-2"><p className="text-body text-primary">{analyzeResult.yinYang}</p></div>}
+                    {analyzeResult.pronunciation && <div className="flex gap-2"><p className="text-body text-primary">{analyzeResult.pronunciation}</p></div>}
+                    {analyzeResult.strokes && <div className="flex gap-2"><PenIcon className="w-3.5 h-3.5 shrink-0 mt-0.5 text-secondary" /><p className="text-body text-primary">{analyzeResult.strokes}</p></div>}
                   </div>
                 )}
               </>

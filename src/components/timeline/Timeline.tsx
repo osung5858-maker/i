@@ -7,18 +7,39 @@ const EVENT_CONFIG: Record<string, {
   icon: React.FC<{ className?: string }>
   bg: string
   iconColor: string
-  cat: string
+  cat: string | ((e: CareEvent) => string)
   label: (e: CareEvent) => string
 }> = {
+  breast: {
+    icon: BottleIcon,
+    bg: 'bg-[#FFF0E6]',
+    iconColor: 'text-[var(--color-primary)]',
+    cat: (e) => {
+      const side = e.type === 'breast_left' ? 'left'
+        : e.type === 'breast_right' ? 'right'
+        : e.tags?.side as string | undefined
+      if (side === 'left') return '모유 왼쪽'
+      if (side === 'right') return '모유 오른쪽'
+      return '모유'
+    },
+    label: (e) => {
+      const mins = e.end_ts ? Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000) : 0
+      return mins ? `${mins}분` : ''
+    },
+  },
   feed: {
     icon: BottleIcon,
     bg: 'bg-[#FFF0E6]',
     iconColor: 'text-[var(--color-primary)]',
-    cat: '수유',
-    label: (e) => {
+    cat: (e) => {
       const side = e.tags?.side as string | undefined
+      if (side === 'left') return '모유 왼쪽'
+      if (side === 'right') return '모유 오른쪽'
+      if (e.amount_ml) return '분유'
+      return '수유'
+    },
+    label: (e) => {
       const parts = [
-        side === 'left' ? '모유(왼)' : side === 'right' ? '모유(오)' : '',
         e.amount_ml ? `${e.amount_ml}ml` : '',
         e.end_ts ? `${Math.round((new Date(e.end_ts).getTime() - new Date(e.start_ts).getTime()) / 60000)}분` : '',
       ].filter(Boolean)
@@ -48,8 +69,12 @@ const EVENT_CONFIG: Record<string, {
     iconColor: 'text-[#C68A2E]',
     cat: '대변',
     label: (e) => {
-      const s = e.tags?.status as string | undefined
-      return s ? (s === 'normal' ? '정상' : s === 'soft' ? '묽음' : '단단') : ''
+      // type이 poop_normal/poop_soft/poop_hard인 경우 파싱
+      const status = e.type === 'poop_normal' ? 'normal'
+        : e.type === 'poop_soft' ? 'soft'
+        : e.type === 'poop_hard' ? 'hard'
+        : e.tags?.status as string | undefined
+      return status ? (status === 'normal' ? '정상' : status === 'soft' ? '묽음' : '단단') : ''
     },
   },
   pee: {
@@ -72,7 +97,7 @@ const EVENT_CONFIG: Record<string, {
   memo: {
     icon: NoteIcon,
     bg: 'bg-[#F0EDE8]',
-    iconColor: 'text-[#6B6966]',
+    iconColor: 'text-secondary',
     cat: '메모',
     label: (e) => {
       const msg = e.tags?.message as string | undefined
@@ -97,8 +122,17 @@ const EVENT_CONFIG: Record<string, {
     icon: PumpIcon,
     bg: 'bg-[#FFF0E6]',
     iconColor: 'text-[var(--color-primary)]',
-    cat: '유축',
-    label: (e) => e.amount_ml ? `${e.amount_ml}ml` : '',
+    cat: (e) => {
+      const side = e.type === 'pump_left' ? 'left'
+        : e.type === 'pump_right' ? 'right'
+        : e.tags?.side as string | undefined
+      if (side === 'left') return '유축 왼쪽'
+      if (side === 'right') return '유축 오른쪽'
+      return '유축'
+    },
+    label: (e) => {
+      return e.amount_ml ? `${e.amount_ml}ml` : ''
+    },
   },
   babyfood: {
     icon: BowlIcon,
@@ -152,13 +186,13 @@ export default function Timeline({ events, recorderNames = {}, onEventTap }: Pro
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <div className="w-16 h-16 rounded-full bg-[#F0EDE8] flex items-center justify-center">
-          <svg className="w-8 h-8 text-[#9E9A95]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="w-8 h-8 text-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <path d="M12 8v4l3 3" strokeLinecap="round" />
             <circle cx="12" cy="12" r="10" />
           </svg>
         </div>
-        <p className="text-[15px] font-semibold text-[#212124]">아직 기록이 없어요</p>
-        <p className="text-[13px] text-[#6B6966]">아래 버튼으로 첫 기록을 남겨보세요</p>
+        <p className="text-subtitle text-primary">아직 기록이 없어요</p>
+        <p className="text-body text-secondary">아래 버튼으로 첫 기록을 남겨보세요</p>
       </div>
     )
   }
@@ -166,10 +200,21 @@ export default function Timeline({ events, recorderNames = {}, onEventTap }: Pro
   return (
     <div className="flex flex-col px-4 gap-2 pt-3 pb-4">
       {events.map((event) => {
-        const config = EVENT_CONFIG[event.type] || EVENT_CONFIG.memo
+        // breast_left/breast_right → breast, pump_left/pump_right → pump, poop_* → poop로 매핑
+        let lookupType: string = event.type
+        if (event.type === 'breast_left' || event.type === 'breast_right') {
+          lookupType = 'breast'
+        } else if (event.type === 'pump_left' || event.type === 'pump_right') {
+          lookupType = 'pump'
+        } else if (event.type.startsWith('poop_')) {
+          lookupType = 'poop'
+        }
+
+        const config = EVENT_CONFIG[lookupType] || EVENT_CONFIG.memo
         const Icon = config.icon
         const recorderName = recorderNames[event.recorder_id] || ''
 
+        const catText = typeof config.cat === 'function' ? config.cat(event) : config.cat
         const detail = config.label(event)
         return (
           <button
@@ -182,17 +227,17 @@ export default function Timeline({ events, recorderNames = {}, onEventTap }: Pro
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-[14px] text-[#1A1918] truncate">
+              <p className="text-body-emphasis text-primary truncate">
                 {detail ? (
                   <>
-                    <span className="text-[#9E9A95] font-normal mr-1">{config.cat}</span>
+                    <span className="text-tertiary font-normal mr-1">{catText}</span>
                     <span className="font-semibold">{detail}</span>
                   </>
                 ) : (
-                  <span className="font-semibold">{config.cat}</span>
+                  <span className="font-semibold">{catText}</span>
                 )}
               </p>
-              <p className="text-[14px] text-[#6B6966]">
+              <p className="text-body-emphasis text-secondary">
                 {formatTime(event.start_ts)}
                 {recorderName && ` · ${recorderName}`}
                 {event.synced === false && ' · 동기화 대기'}

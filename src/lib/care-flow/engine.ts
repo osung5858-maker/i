@@ -240,8 +240,11 @@ export function evaluateCareFlow(
   // 복합 증상 (항상 체크)
   actions.push(...evaluateCompositeSymptoms(recentEvents))
 
+  // remind 타입은 즉시 표시하지 않고 스케줄링만 함 (리마인더 폴링 시스템에서 처리)
+  const immediateActions = actions.filter(a => a.type !== 'remind')
+
   // 우선순위 정렬
-  return actions.sort((a, b) => b.priority - a.priority)
+  return immediateActions.sort((a, b) => b.priority - a.priority)
 }
 
 // ===== 리마인더 스케줄링 =====

@@ -27,7 +27,7 @@ export default function BottomSheet({ open, onClose, title, children }: Props) {
             <div className="w-9 h-1 rounded-full bg-[#ECECEC]" />
           </div>
           {title && (
-            <p className="text-center text-[15px] font-bold text-[#212124] pb-3">{title}</p>
+            <p className="text-center text-subtitle text-primary pb-3">{title}</p>
           )}
           <div className="px-5 pb-[calc(2rem+env(safe-area-inset-bottom))]">{children}</div>
         </div>

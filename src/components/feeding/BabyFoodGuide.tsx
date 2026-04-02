@@ -79,10 +79,10 @@ export default function BabyFoodGuide() {
           <button
             key={s.id}
             onClick={() => setActiveStage(i)}
-            className={`shrink-0 px-3 py-2 rounded-xl text-[13px] font-semibold transition-colors ${
+            className={`shrink-0 px-3 py-2 rounded-xl text-body font-semibold transition-colors ${
               activeStage === i
                 ? 'bg-[var(--color-primary)] text-white'
-                : 'bg-white text-[#6B6966] border border-[#E8E4DF]'
+                : 'bg-white text-secondary border border-[#E8E4DF]'
             }`}
           >
             {s.title} ({s.age})
@@ -93,28 +93,28 @@ export default function BabyFoodGuide() {
       {/* 선택된 단계 상세 */}
       <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 space-y-4">
         <div>
-          <p className="text-[15px] font-bold text-[#1A1918]">{stage.title} 이유식</p>
-          <p className="text-[13px] text-[var(--color-primary)] font-semibold">{stage.age}</p>
+          <p className="text-subtitle text-primary">{stage.title} 이유식</p>
+          <p className="text-body text-[var(--color-primary)] font-semibold">{stage.age}</p>
         </div>
 
         {/* 식사 횟수 & 식감 */}
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-[var(--color-page-bg)] rounded-xl p-3">
-            <p className="text-[11px] text-[#9E9A95] font-semibold mb-0.5">식사 횟수</p>
-            <p className="text-[13px] text-[#1A1918]">{stage.meals}</p>
+            <p className="text-label text-tertiary font-semibold mb-0.5">식사 횟수</p>
+            <p className="text-body text-primary">{stage.meals}</p>
           </div>
           <div className="bg-[var(--color-page-bg)] rounded-xl p-3">
-            <p className="text-[11px] text-[#9E9A95] font-semibold mb-0.5">식감·크기</p>
-            <p className="text-[13px] text-[#1A1918]">{stage.texture}</p>
+            <p className="text-label text-tertiary font-semibold mb-0.5">식감·크기</p>
+            <p className="text-body text-primary">{stage.texture}</p>
           </div>
         </div>
 
         {/* 추천 식재료 */}
         <div>
-          <p className="text-[13px] font-semibold text-[#1A1918] mb-1.5">추천 식재료</p>
+          <p className="text-body font-semibold text-primary mb-1.5">추천 식재료</p>
           <div className="flex flex-wrap gap-1.5">
             {stage.recommended.map(item => (
-              <span key={item} className="text-[13px] px-2.5 py-1 rounded-full bg-[#E8F5EE] text-[var(--color-primary)] font-medium">
+              <span key={item} className="text-body px-2.5 py-1 rounded-full bg-[#E8F5EE] text-[var(--color-primary)] font-medium">
                 {item}
               </span>
             ))}
@@ -123,12 +123,12 @@ export default function BabyFoodGuide() {
 
         {/* 주의 식재료 */}
         <div>
-          <p className="text-[13px] font-semibold text-[#D08068] mb-1.5">주의사항</p>
+          <p className="text-body font-semibold text-[#D08068] mb-1.5">주의사항</p>
           <div className="space-y-1">
             {stage.caution.map(item => (
               <div key={item} className="flex items-start gap-1.5">
-                <span className="text-[#D08068] text-[11px] mt-0.5 shrink-0">⚠</span>
-                <p className="text-[13px] text-[#6B6966]">{item}</p>
+                <span className="text-[#D08068] text-label mt-0.5 shrink-0">⚠</span>
+                <p className="text-body text-secondary">{item}</p>
               </div>
             ))}
           </div>
@@ -136,8 +136,8 @@ export default function BabyFoodGuide() {
 
         {/* 다음 단계 신호 */}
         <div className="bg-[#FFF8F3] rounded-xl p-3">
-          <p className="text-[11px] text-[#9E9A95] font-semibold mb-0.5">다음 단계로 넘어가는 신호</p>
-          <p className="text-[13px] text-[#1A1918]">{stage.nextSignal}</p>
+          <p className="text-label text-tertiary font-semibold mb-0.5">다음 단계로 넘어가는 신호</p>
+          <p className="text-body text-primary">{stage.nextSignal}</p>
         </div>
       </div>
 
@@ -147,18 +147,18 @@ export default function BabyFoodGuide() {
           onClick={() => setAllergyOpen(!allergyOpen)}
           className="w-full flex items-center justify-between p-4 active:bg-[var(--color-page-bg)]"
         >
-          <p className="text-[14px] font-bold text-[#1A1918]">알레르기 주의사항</p>
-          <span className="text-[#9E9A95] text-[13px]">{allergyOpen ? '▲' : '▼'}</span>
+          <p className="text-body-emphasis font-bold text-primary">알레르기 주의사항</p>
+          <span className="text-tertiary text-body">{allergyOpen ? '▲' : '▼'}</span>
         </button>
         {allergyOpen && (
           <div className="px-4 pb-4 space-y-2.5 border-t border-[#E8E4DF] pt-3">
-            <p className="text-[12px] text-[#6B6966] mb-2">
+            <p className="text-caption text-secondary mb-2">
               새 식재료는 3일 간격으로 한 가지씩 시작하세요. 이상 반응(발진, 구토, 설사) 시 즉시 중단하고 소아과 상담을 받으세요.
             </p>
             {ALLERGY_INFO.map(a => (
               <div key={a.name} className="flex items-start gap-2 bg-[var(--color-page-bg)] rounded-xl p-2.5">
-                <span className="text-[13px] font-semibold text-[#D08068] shrink-0 w-20">{a.name}</span>
-                <p className="text-[13px] text-[#6B6966]">{a.tip}</p>
+                <span className="text-body font-semibold text-[#D08068] shrink-0 w-20">{a.name}</span>
+                <p className="text-body text-secondary">{a.tip}</p>
               </div>
             ))}
           </div>
@@ -167,8 +167,8 @@ export default function BabyFoodGuide() {
 
       {/* 일반 팁 */}
       <div className="bg-[#F0F9F4] rounded-xl p-3">
-        <p className="text-[13px] text-[var(--color-primary)] font-semibold mb-1">이유식 기본 원칙</p>
-        <ul className="text-[13px] text-[#6B6966] space-y-0.5">
+        <p className="text-body text-[var(--color-primary)] font-semibold mb-1">이유식 기본 원칙</p>
+        <ul className="text-body text-secondary space-y-0.5">
           <li>· 새 식재료는 1~2 티스푼으로 시작, 3일간 관찰</li>
           <li>· 소금·설탕·꿀은 만 1세 이전 사용 금지</li>
           <li>· 이유식 후 모유/분유 보충 수유</li>

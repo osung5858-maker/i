@@ -75,8 +75,8 @@ export default function BabyItemChecklist({ currentWeek }: { currentWeek: number
       {/* 헤더 */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <div>
-          <p className="text-[14px] font-bold text-[#1A1918]">아기 용품 체크리스트</p>
-          <p className="text-[12px] text-[#9E9A95] mt-0.5">{doneCount}/{available.length}개 준비 완료</p>
+          <p className="text-body-emphasis font-bold text-primary">아기 용품 체크리스트</p>
+          <p className="text-caption text-tertiary mt-0.5">{doneCount}/{available.length}개 준비 완료</p>
         </div>
         <div className="w-10 h-10 relative">
           <svg viewBox="0 0 36 36" className="w-10 h-10 -rotate-90">
@@ -85,7 +85,7 @@ export default function BabyItemChecklist({ currentWeek }: { currentWeek: number
               strokeDasharray={`${Math.round((doneCount / available.length) * 94.2)} 94.2`}
               strokeLinecap="round" />
           </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[var(--color-primary)]">
+          <span className="absolute inset-0 flex items-center justify-center text-label font-bold text-[var(--color-primary)]">
             {Math.round((doneCount / available.length) * 100)}%
           </span>
         </div>
@@ -95,7 +95,7 @@ export default function BabyItemChecklist({ currentWeek }: { currentWeek: number
       <div className="flex gap-1.5 px-4 pb-2 overflow-x-auto hide-scrollbar">
         {CATS.map(c => (
           <button key={c} onClick={() => setCat(c)}
-            className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${cat === c ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' : 'bg-[#F5F1EC] text-[#6B6966] border-transparent'}`}>
+            className={`shrink-0 px-2.5 py-1 rounded-full text-label font-medium border transition-colors ${cat === c ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' : 'bg-[#F5F1EC] text-secondary border-transparent'}`}>
             {c}
           </button>
         ))}
@@ -110,10 +110,10 @@ export default function BabyItemChecklist({ currentWeek }: { currentWeek: number
               {done[item.id] && <svg viewBox="0 0 12 12" className="w-3 h-3"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>}
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-[13px] font-medium ${done[item.id] ? 'line-through text-[#B0ADA9]' : 'text-[#1A1918]'}`}>{item.name}</p>
-              <p className="text-[11px] text-[#9E9A95] mt-0.5 leading-snug">{item.tip}</p>
+              <p className={`text-body font-medium ${done[item.id] ? 'line-through text-[#B0ADA9]' : 'text-primary'}`}>{item.name}</p>
+              <p className="text-label text-tertiary mt-0.5 leading-snug">{item.tip}</p>
             </div>
-            <span className="text-[10px] text-[#B0ADA9] shrink-0 mt-1">{item.cat}</span>
+            <span className="text-label text-[#B0ADA9] shrink-0 mt-1">{item.cat}</span>
           </button>
         ))}
       </div>
@@ -121,7 +121,7 @@ export default function BabyItemChecklist({ currentWeek }: { currentWeek: number
       {/* 더보기 */}
       {cat === '전체' && available.filter(i => !done[i.id]).length > 4 && (
         <button onClick={() => setExpanded(e => !e)}
-          className="w-full py-2.5 text-[12px] text-[#9E9A95] border-t border-[#F0EDE8] active:bg-[#F5F1EC]">
+          className="w-full py-2.5 text-caption text-tertiary border-t border-[#F0EDE8] active:bg-[#F5F1EC]">
           {expanded ? '접기' : `미완료 ${available.filter(i => !done[i.id]).length - 4}개 더보기`}
         </button>
       )}

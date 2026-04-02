@@ -123,10 +123,10 @@ export default function CommunityComparison({ childId, ageMonths, sex }: Props) 
   return (
     <div className="mx-4 mt-3 p-4 rounded-2xl bg-white border border-[#ECECEC]">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[13px] font-bold text-[#212124]">또래 비교</p>
+        <p className="text-body font-bold text-primary">또래 비교</p>
         <button
           onClick={() => setPercentileInfoOpen(!percentileInfoOpen)}
-          className="text-[12px] text-[var(--color-primary)] font-semibold flex items-center gap-0.5"
+          className="text-caption text-[var(--color-primary)] font-semibold flex items-center gap-0.5"
         >
           백분위수란? {percentileInfoOpen ? '▲' : '▼'}
         </button>
@@ -134,33 +134,33 @@ export default function CommunityComparison({ childId, ageMonths, sex }: Props) 
 
       {percentileInfoOpen && (
         <div className="mb-3 p-3 rounded-xl bg-[#F0F9F4] border border-[#D5E8DD] space-y-1.5">
-          <p className="text-[13px] font-semibold text-[#1A1918]">백분위수 읽는 법</p>
-          <p className="text-[12px] text-[#6B6966] leading-relaxed">
+          <p className="text-body font-semibold text-primary">백분위수 읽는 법</p>
+          <p className="text-caption text-secondary leading-relaxed">
             백분위수는 같은 월령의 아이 100명 중 우리 아이의 위치를 나타냅니다.
           </p>
           <div className="space-y-1">
             <div className="flex items-start gap-2">
-              <span className="text-[12px] font-bold text-[var(--color-primary)] shrink-0 w-10">50%</span>
-              <p className="text-[12px] text-[#6B6966]">또래 평균과 같아요</p>
+              <span className="text-caption font-bold text-[var(--color-primary)] shrink-0 w-10">50%</span>
+              <p className="text-caption text-secondary">또래 평균과 같아요</p>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-[12px] font-bold text-[var(--color-primary)] shrink-0 w-10">75%</span>
-              <p className="text-[12px] text-[#6B6966]">또래 100명 중 75번째 — 평균보다 큰 편</p>
+              <span className="text-caption font-bold text-[var(--color-primary)] shrink-0 w-10">75%</span>
+              <p className="text-caption text-secondary">또래 100명 중 75번째 — 평균보다 큰 편</p>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-[12px] font-bold text-[var(--color-primary)] shrink-0 w-10">25%</span>
-              <p className="text-[12px] text-[#6B6966]">또래 100명 중 25번째 — 평균보다 작은 편</p>
+              <span className="text-caption font-bold text-[var(--color-primary)] shrink-0 w-10">25%</span>
+              <p className="text-caption text-secondary">또래 100명 중 25번째 — 평균보다 작은 편</p>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-[12px] font-bold text-[#D08068] shrink-0 w-10">&lt;3%</span>
-              <p className="text-[12px] text-[#D08068]">소아과 상담을 권장합니다</p>
+              <span className="text-caption font-bold text-[#D08068] shrink-0 w-10">&lt;3%</span>
+              <p className="text-caption text-[#D08068]">소아과 상담을 권장합니다</p>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-[12px] font-bold text-[#D08068] shrink-0 w-10">&gt;97%</span>
-              <p className="text-[12px] text-[#D08068]">소아과 상담을 권장합니다</p>
+              <span className="text-caption font-bold text-[#D08068] shrink-0 w-10">&gt;97%</span>
+              <p className="text-caption text-[#D08068]">소아과 상담을 권장합니다</p>
             </div>
           </div>
-          <p className="text-[11px] text-[#9E9A95] mt-1">
+          <p className="text-label text-tertiary mt-1">
             WHO 국제 성장 기준표(2006) 기반. 개인차가 있으므로 추이 변화가 더 중요합니다.
           </p>
         </div>
@@ -191,15 +191,15 @@ export default function CommunityComparison({ childId, ageMonths, sex }: Props) 
       {/* 커뮤니티 평균 */}
       {data && data.communityCount >= 30 ? (
         <div className="mt-3 p-3 rounded-xl bg-[#F0EDE8]">
-          <p className="text-[13px] text-[#6B6966] mb-1">도담 사용자 평균 (동일 개월 수 {data.communityCount}명)</p>
+          <p className="text-body text-secondary mb-1">도담 사용자 평균 (동일 개월 수 {data.communityCount}명)</p>
           <div className="flex gap-4">
             {data.communityAvgWeight && (
-              <p className="text-[13px] text-[#212124]">
+              <p className="text-body text-primary">
                 몸무게 <span className="font-bold">{data.communityAvgWeight.toFixed(1)}kg</span>
               </p>
             )}
             {data.communityAvgHeight && (
-              <p className="text-[13px] text-[#212124]">
+              <p className="text-body text-primary">
                 키 <span className="font-bold">{data.communityAvgHeight.toFixed(1)}cm</span>
               </p>
             )}
@@ -207,13 +207,13 @@ export default function CommunityComparison({ childId, ageMonths, sex }: Props) 
         </div>
       ) : (
         <div className="mt-3 p-3 rounded-xl bg-[#F0EDE8] text-center">
-          <p className="text-[13px] text-[#9E9A95]">
+          <p className="text-body text-tertiary">
             도담 사용자 30명 이상 시 또래 평균 비교가 활성화돼요
           </p>
         </div>
       )}
 
-      <p className="text-[14px] text-[#9E9A95] mt-3 text-center">
+      <p className="text-body-emphasis text-tertiary mt-3 text-center">
         통계적 참고치이며, 의학적 판단의 근거가 아닙니다.
       </p>
     </div>
@@ -227,11 +227,11 @@ function ComparisonBar({ label, myValue, unit, color, percentile }: {
   return (
     <div>
       <div className="flex justify-between mb-1">
-        <span className="text-[14px] text-[#6B6966]">{label}</span>
+        <span className="text-body-emphasis text-secondary">{label}</span>
         <div className="flex items-center gap-2">
-          <span className="text-[14px] font-bold text-[#212124]">{myValue}{unit}</span>
+          <span className="text-body-emphasis font-bold text-primary">{myValue}{unit}</span>
           {percentile != null && (
-            <span className="text-[12px] font-semibold text-[var(--color-primary)] bg-[#E8F5EE] px-1.5 py-0.5 rounded">
+            <span className="text-caption font-semibold text-[var(--color-primary)] bg-[#E8F5EE] px-1.5 py-0.5 rounded">
               상위 {100 - percentile}%
             </span>
           )}
@@ -245,9 +245,9 @@ function ComparisonBar({ label, myValue, unit, color, percentile }: {
       </div>
       {percentile != null && (
         <div className="flex justify-between mt-0.5">
-          <span className="text-[11px] text-[#9E9A95]">3rd</span>
-          <span className="text-[11px] text-[#9E9A95]">50th</span>
-          <span className="text-[11px] text-[#9E9A95]">97th</span>
+          <span className="text-label text-tertiary">3rd</span>
+          <span className="text-label text-tertiary">50th</span>
+          <span className="text-label text-tertiary">97th</span>
         </div>
       )}
     </div>

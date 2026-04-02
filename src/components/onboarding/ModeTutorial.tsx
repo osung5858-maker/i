@@ -91,7 +91,7 @@ export default function ModeTutorial({ mode, onComplete }: Props) {
       <div className="flex justify-end px-5 pt-4">
         <button
           onClick={onComplete}
-          className="text-[13px] text-[#9E9A95] active:opacity-60"
+          className="text-body text-tertiary active:opacity-60"
         >
           건너뛰기
         </button>
@@ -105,10 +105,10 @@ export default function ModeTutorial({ mode, onComplete }: Props) {
           className="w-56 h-56 mb-8"
         />
 
-        <h2 className="text-[22px] font-bold text-[#1A1918] text-center mb-3">
+        <h2 className="text-heading-2 font-bold text-primary text-center mb-3">
           {current.title}
         </h2>
-        <p className="text-[15px] text-[#6B6966] text-center leading-relaxed whitespace-pre-line">
+        <p className="text-subtitle text-secondary text-center leading-relaxed whitespace-pre-line">
           {current.desc}
         </p>
       </div>
@@ -138,7 +138,7 @@ export default function ModeTutorial({ mode, onComplete }: Props) {
             if (isLast) onComplete()
             else setStep(step + 1)
           }}
-          className="w-full py-3.5 rounded-xl text-[15px] font-bold text-white active:opacity-80 transition-opacity"
+          className="w-full py-3.5 rounded-xl text-subtitle text-white active:opacity-80 transition-opacity"
           style={{ backgroundColor: current.accent }}
         >
           {isLast ? '시작하기' : '다음'}

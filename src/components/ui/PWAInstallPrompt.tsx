@@ -57,14 +57,14 @@ export default function PWAInstallPrompt() {
             <span className="text-white text-sm font-bold">도</span>
           </div>
           <div className="flex-1">
-            <p className="text-[14px] font-bold text-[#212124]">도담을 홈 화면에 추가하세요</p>
-            <p className="text-[14px] text-[#6B6966] mt-0.5">앱처럼 바로 열 수 있어요</p>
+            <p className="text-body-emphasis font-bold text-primary">도담을 홈 화면에 추가하세요</p>
+            <p className="text-body-emphasis text-secondary mt-0.5">앱처럼 바로 열 수 있어요</p>
           </div>
-          <button onClick={handleDismiss} className="text-[#9E9A95] text-xs p-1">✕</button>
+          <button onClick={handleDismiss} className="text-tertiary text-xs p-1">✕</button>
         </div>
         <button
           onClick={handleInstall}
-          className="w-full h-10 rounded-xl bg-[var(--color-primary)] text-white text-[13px] font-semibold mt-3 active:scale-[0.98] transition-transform"
+          className="w-full h-10 rounded-xl bg-[var(--color-primary)] text-white font-semibold mt-3 active:scale-[0.98] transition-transform"
         >
           홈 화면에 추가
         </button>

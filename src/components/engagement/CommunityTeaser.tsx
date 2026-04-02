@@ -46,14 +46,14 @@ export default function CommunityTeaser() {
           <ChatIcon className="w-5 h-5 text-[var(--color-primary)]" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-semibold text-[#1A1918]">
+          <p className="text-body-emphasis text-primary">
             {recentCount > 0 ? `오늘 ${recentCount}개의 수다가 올라왔어요` : '동네 수다방'}
           </p>
           {latestPost && (
-            <p className="text-[14px] text-[#6B6966] truncate">"{latestPost}"</p>
+            <p className="text-body-emphasis text-secondary truncate">&ldquo;{latestPost}&rdquo;</p>
           )}
         </div>
-        <span className="text-[#9E9A95] text-sm shrink-0">→</span>
+        <span className="text-tertiary text-sm shrink-0">→</span>
       </div>
     </Link>
   )

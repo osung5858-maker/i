@@ -140,7 +140,7 @@ export default function MilestonePage() {
     <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] pb-[env(safe-area-inset-bottom)]">
       <PageHeader title="첫 순간들" showBack />
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4">
-        <p className="text-[13px] text-[#9E9A95] text-center mb-5">
+        <p className="text-body text-tertiary text-center mb-5">
           {completedCount}/{allTypes.length}개 기록됨
         </p>
 
@@ -159,7 +159,7 @@ export default function MilestonePage() {
                     ? 'bg-[var(--color-primary)] border-[var(--color-primary)]'
                     : 'bg-white border-[#D0CCC7]'
                 }`}>
-                  <span className={done ? 'text-white' : 'text-[#9E9A95]'} style={{ fontSize: 12 }}>
+                  <span className={done ? 'text-white' : 'text-tertiary'} style={{ fontSize: 12 }}>
                     {done ? '✓' : idx + 1}
                   </span>
                 </div>
@@ -174,25 +174,25 @@ export default function MilestonePage() {
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className={done ? 'text-[var(--color-primary)]' : 'text-[#9E9A95]'}>
+                    <span className={done ? 'text-[var(--color-primary)]' : 'text-tertiary'}>
                       {getIcon(type)}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-[14px] font-semibold ${done ? 'text-[#1A1918]' : 'text-[#9E9A95]'}`}>
+                      <p className={`text-body-emphasis ${done ? 'text-primary' : 'text-tertiary'}`}>
                         {type}
                       </p>
                       {done && (
-                        <p className="text-[12px] text-[#6B6966] mt-0.5">
+                        <p className="text-caption text-secondary mt-0.5">
                           {done.date.replace(/-/g, '.')}
                           {done.note && ` — ${done.note}`}
                         </p>
                       )}
                       {!done && (
-                        <p className="text-[12px] text-[#9E9A95]">탭하여 기록하기</p>
+                        <p className="text-caption text-tertiary">탭하여 기록하기</p>
                       )}
                     </div>
                     {done && (
-                      <span className="text-[11px] text-[var(--color-primary)] font-bold shrink-0">기록됨</span>
+                      <span className="text-label text-[var(--color-primary)] font-bold shrink-0">기록됨</span>
                     )}
                   </div>
                 </button>
@@ -205,23 +205,23 @@ export default function MilestonePage() {
         <div className="mt-6">
           {showCustom ? (
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-              <p className="text-[13px] font-semibold text-[#1A1918] mb-2">직접 추가</p>
+              <p className="text-body font-semibold text-primary mb-2">직접 추가</p>
               <input
                 type="text"
                 placeholder="예: 첫 생일 파티, 첫 동물원"
                 value={customName}
                 onChange={e => setCustomName(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[#E8E4DF] text-[14px] text-[#1A1918] placeholder:text-[#9E9A95] focus:outline-none focus:border-[var(--color-primary)]"
+                className="w-full px-3 py-2 rounded-lg border border-[#E8E4DF] text-body-emphasis text-primary placeholder:text-tertiary focus:outline-none focus:border-[var(--color-primary)]"
               />
               <div className="flex gap-2 mt-3">
-                <button onClick={() => setShowCustom(false)} className="flex-1 py-2 rounded-lg text-[13px] font-semibold text-[#6B6966] bg-[#F0EDE8]">취소</button>
-                <button onClick={handleAddCustom} className="flex-1 py-2 rounded-lg text-[13px] font-semibold text-white bg-[var(--color-primary)]">추가</button>
+                <button onClick={() => setShowCustom(false)} className="flex-1 py-2 rounded-lg text-body font-semibold text-secondary bg-[#F0EDE8]">취소</button>
+                <button onClick={handleAddCustom} className="flex-1 py-2 rounded-lg text-body font-semibold text-white bg-[var(--color-primary)]">추가</button>
               </div>
             </div>
           ) : (
             <button
               onClick={() => setShowCustom(true)}
-              className="w-full py-3 rounded-xl border-2 border-dashed border-[#D0CCC7] text-[14px] font-semibold text-[#9E9A95] active:bg-[#F0EDE8] transition-colors"
+              className="w-full py-3 rounded-xl border-2 border-dashed border-[#D0CCC7] text-body-emphasis text-tertiary active:bg-[#F0EDE8] transition-colors"
             >
               + 직접 추가
             </button>
@@ -231,16 +231,16 @@ export default function MilestonePage() {
         {/* Completed timeline summary */}
         {sortedCompleted.length > 0 && (
           <div className="mt-8">
-            <p className="text-[13px] font-bold text-[#6B6966] mb-3">기록 타임라인</p>
+            <p className="text-body font-bold text-secondary mb-3">기록 타임라인</p>
             <div className="space-y-2">
               {sortedCompleted.map(m => (
                 <div key={m.id} className="flex items-center gap-3 px-3 py-2 bg-white rounded-lg border border-[#E8E4DF]">
                   <span className="text-[var(--color-primary)]">{getIcon(m.type)}</span>
                   <div className="flex-1 min-w-0">
-                    <span className="text-[13px] font-semibold text-[#1A1918]">{m.type}</span>
-                    {m.note && <span className="text-[12px] text-[#6B6966] ml-1.5">{m.note}</span>}
+                    <span className="text-body font-semibold text-primary">{m.type}</span>
+                    {m.note && <span className="text-caption text-secondary ml-1.5">{m.note}</span>}
                   </div>
-                  <span className="text-[12px] text-[#9E9A95] shrink-0">{m.date.replace(/-/g, '.')}</span>
+                  <span className="text-caption text-tertiary shrink-0">{m.date.replace(/-/g, '.')}</span>
                 </div>
               ))}
             </div>
@@ -263,35 +263,35 @@ export default function MilestonePage() {
             <div className="px-5 pb-5">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-[var(--color-primary)]">{getIcon(editing)}</span>
-                <h2 className="text-[16px] font-bold text-[#1A1918]">{editing}</h2>
+                <h2 className="text-subtitle font-bold text-primary">{editing}</h2>
               </div>
 
               {/* Date picker */}
               <label className="block mb-3">
-                <span className="text-[13px] font-semibold text-[#6B6966] mb-1 block">날짜</span>
+                <span className="text-body font-semibold text-secondary mb-1 block">날짜</span>
                 <input
                   type="date"
                   value={editDate}
                   onChange={e => setEditDate(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-[#E8E4DF] text-[14px] text-[#1A1918] focus:outline-none focus:border-[var(--color-primary)]"
+                  className="w-full px-3 py-2.5 rounded-lg border border-[#E8E4DF] text-body-emphasis text-primary focus:outline-none focus:border-[var(--color-primary)]"
                 />
               </label>
 
               {/* Note */}
               <label className="block mb-4">
-                <span className="text-[13px] font-semibold text-[#6B6966] mb-1 block">메모 (선택)</span>
+                <span className="text-body font-semibold text-secondary mb-1 block">메모 (선택)</span>
                 <textarea
                   value={editNote}
                   onChange={e => setEditNote(e.target.value)}
                   placeholder="그 순간을 기록해보세요..."
                   rows={3}
-                  className="w-full px-3 py-2.5 rounded-lg border border-[#E8E4DF] text-[14px] text-[#1A1918] placeholder:text-[#9E9A95] resize-none focus:outline-none focus:border-[var(--color-primary)]"
+                  className="w-full px-3 py-2.5 rounded-lg border border-[#E8E4DF] text-body-emphasis text-primary placeholder:text-tertiary resize-none focus:outline-none focus:border-[var(--color-primary)]"
                 />
               </label>
 
               {/* Photo/Video upload */}
               <div className="mb-4">
-                <span className="text-[13px] font-semibold text-[#6B6966] mb-1 block">사진 · 영상 (선택)</span>
+                <span className="text-body font-semibold text-secondary mb-1 block">사진 · 영상 (선택)</span>
                 {editPhoto ? (
                   <div className="relative w-full h-40 rounded-lg overflow-hidden bg-[var(--color-page-bg)]">
                     {editPhoto.match(/\.(mp4|webm|mov)$/i) ? (
@@ -299,12 +299,12 @@ export default function MilestonePage() {
                     ) : (
                       <Image src={editPhoto} alt="" fill className="object-cover" />
                     )}
-                    <button onClick={() => setEditPhoto('')} className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full text-white text-[12px] flex items-center justify-center">x</button>
+                    <button onClick={() => setEditPhoto('')} className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full text-white text-caption flex items-center justify-center">x</button>
                   </div>
                 ) : (
                   <label className="flex items-center justify-center h-20 rounded-lg border-2 border-dashed border-[#D5D0CA] cursor-pointer active:bg-[var(--color-page-bg)]">
                     <div className="text-center">
-                      <p className="text-[13px] text-[#9E9A95]">{uploading ? '업로드 중...' : '탭해서 추가'}</p>
+                      <p className="text-body text-tertiary">{uploading ? '업로드 중...' : '탭해서 추가'}</p>
                     </div>
                     <input type="file" accept="image/*,video/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
                   </label>
@@ -314,11 +314,11 @@ export default function MilestonePage() {
               {/* Actions */}
               <div className="flex gap-2">
                 {completed[editing] && (
-                  <button onClick={handleDelete} className="px-4 py-3 rounded-xl text-[14px] font-semibold text-[#D05050] bg-[#FFF0F0]">
+                  <button onClick={handleDelete} className="px-4 py-3 rounded-xl text-body-emphasis text-[#D05050] bg-[#FFF0F0]">
                     삭제
                   </button>
                 )}
-                <button onClick={handleSave} className="flex-1 py-3 rounded-xl text-[14px] font-semibold text-white bg-[var(--color-primary)] active:opacity-80">
+                <button onClick={handleSave} className="flex-1 py-3 rounded-xl text-body-emphasis text-white bg-[var(--color-primary)] active:opacity-80">
                   저장
                 </button>
               </div>

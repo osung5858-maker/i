@@ -147,6 +147,24 @@ export const COLOR_THEMES: ColorTheme[] = [
     fabGradientTo: '#5EA88A',
     fabShadow: 'rgba(94,168,138,0.35)',
   },
+  {
+    id: 'mint',
+    name: '민트 그린',
+    emoji: '*',
+    primary: '#4DB8AC',
+    primaryLight: '#6FCCC0',
+    primaryBg: '#F0FAFB',
+    accent: '#2D9B8F',
+    accentBg: '#CCEEE9',
+    gradient: 'linear-gradient(135deg, #F0FAFB 0%, #E0F5F3 50%, #D0EEE8 100%)',
+    pageBg: '#F0FAFB',
+    cardShadow: 'rgba(77,184,172,0.08)',
+    headerShadow: 'rgba(77,184,172,0.1)',
+    tabShadow: 'rgba(77,184,172,0.06)',
+    fabGradientFrom: '#B8E8E0',
+    fabGradientTo: '#4DB8AC',
+    fabShadow: 'rgba(77,184,172,0.35)',
+  },
 ]
 
 export const DEFAULT_THEME_ID = 'coral'
@@ -172,4 +190,19 @@ export function applyThemeToDOM(theme: ColorTheme) {
   root.style.setProperty('--color-fab-from', theme.fabGradientFrom)
   root.style.setProperty('--color-fab-to', theme.fabGradientTo)
   root.style.setProperty('--color-fab-shadow', theme.fabShadow)
+}
+
+// 모드별 테마 매핑 (임신 준비 / 임신 중 / 육아)
+export const MODE_THEME_MAP: Record<string, string> = {
+  preparing: 'peach',    // 피치오렌지 (임신 준비)
+  pregnant: 'amber',     // 앰버 골드 (임신 중)
+  parenting: 'sage',     // 세이지 민트 (육아)
+}
+
+// 모드에 따라 자동으로 테마 적용
+export function applyModeTheme(mode: string) {
+  const themeId = MODE_THEME_MAP[mode] || DEFAULT_THEME_ID
+  const theme = getThemeById(themeId)
+  applyThemeToDOM(theme)
+  // 모드 테마는 localStorage에 저장하지 않음 (사용자 선택 테마와 분리)
 }

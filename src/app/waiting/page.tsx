@@ -232,7 +232,7 @@ function PreparingWaitingPage() {
 
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]">
-      <div className="max-w-lg mx-auto w-full px-5 pt-5 pb-4 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-5 pb-24 space-y-3">
 
         {/* ━━━ 히어로: 기다림의 감성 ━━━ */}
         {cycle && (() => {
@@ -250,12 +250,12 @@ function PreparingWaitingPage() {
                   <div className="w-32 h-32 mx-auto mb-3 rounded-2xl overflow-hidden">
                     <video src="/images/illustrations/waiting-implant.webm" autoPlay loop muted playsInline className="w-full h-full object-cover" />
                   </div>
-                  <p className="text-[18px] font-bold text-[#1A1918]">착상을 기다리는 중</p>
-                  <p className="text-[24px] font-bold text-[var(--color-primary)] mt-1">D+{dpo}</p>
+                  <p className="text-heading-3 text-primary">착상을 기다리는 중</p>
+                  <p className="text-heading-1 text-[var(--color-primary)] mt-1">D+{dpo}</p>
                   <div className="w-full h-2 bg-[#E8E4DF] rounded-full mt-3 mb-2">
                     <div className="h-full bg-[var(--color-primary)] rounded-full transition-all" style={{ width: `${Math.min((dpo / 14) * 100, 100)}%` }} />
                   </div>
-                  <p className="text-[14px] text-[#6B6966]">
+                  <p className="text-body-emphasis text-secondary">
                     {dpo <= 3 ? '아직 이른 시기예요. 평소처럼 지내세요' :
                      dpo <= 7 ? '착상이 진행 중일 수 있어요. 무리하지 마세요' :
                      dpo <= 10 ? '조급해하지 않아도 돼요. 자신을 돌보세요' :
@@ -267,17 +267,17 @@ function PreparingWaitingPage() {
                   <div className="w-32 h-32 mx-auto mb-3 rounded-2xl overflow-hidden">
                     <video src="/images/illustrations/waiting-fertile.webm" autoPlay loop muted playsInline className="w-full h-full object-cover" />
                   </div>
-                  <p className="text-[18px] font-bold text-[var(--color-primary)]">지금 가임기예요</p>
-                  <p className="text-[14px] text-[#6B6966] mt-2">가장 좋은 시기. 도담하게 준비하고 있어요</p>
+                  <p className="text-heading-3 text-[var(--color-primary)]">지금 가임기예요</p>
+                  <p className="text-body-emphasis text-secondary mt-2">가장 좋은 시기. 도담하게 준비하고 있어요</p>
                 </>
               ) : (
                 <>
                   <div className="w-32 h-32 mx-auto mb-3 rounded-2xl overflow-hidden">
                     <video src="/images/illustrations/waiting-rest.webm" autoPlay loop muted playsInline className="w-full h-full object-cover" />
                   </div>
-                  <p className="text-[18px] font-bold text-[#1A1918]">다음 기회까지</p>
-                  <p className="text-[24px] font-bold text-[var(--color-primary)] mt-1">{daysToNext}일</p>
-                  <p className="text-[14px] text-[#6B6966] mt-2">지금은 몸과 마음을 돌보는 시간이에요</p>
+                  <p className="text-heading-3 text-primary">다음 기회까지</p>
+                  <p className="text-heading-1 text-[var(--color-primary)] mt-1">{daysToNext}일</p>
+                  <p className="text-body-emphasis text-secondary mt-2">지금은 몸과 마음을 돌보는 시간이에요</p>
                 </>
               )}
             </div>
@@ -286,17 +286,17 @@ function PreparingWaitingPage() {
 
         {/* ━━━ 임신 테스트 (항상 접근 가능) ━━━ */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <p className="text-[13px] font-bold text-[#1A1918] mb-2">임신 테스트</p>
+          <p className="text-body font-bold text-primary mb-2">임신 테스트</p>
           <div className="flex gap-2 mb-2">
-            <button onClick={() => addPregTest('양성')} className="flex-1 py-2.5 rounded-xl bg-[#F0F9F4] text-[13px] font-semibold text-[var(--color-primary)] active:opacity-80">양성 ✚</button>
-            <button onClick={() => addPregTest('음성')} className="flex-1 py-2.5 rounded-xl bg-[var(--color-page-bg)] text-[13px] font-semibold text-[#6B6966] active:opacity-80">음성 −</button>
+            <button onClick={() => addPregTest('양성')} className="flex-1 py-2.5 rounded-xl bg-[#F0F9F4] text-body font-semibold text-[var(--color-primary)] active:opacity-80">양성 ✚</button>
+            <button onClick={() => addPregTest('음성')} className="flex-1 py-2.5 rounded-xl bg-[var(--color-page-bg)] text-body font-semibold text-secondary active:opacity-80">음성 −</button>
           </div>
           {pregTests.length > 0 && (
             <div className="space-y-1">
               {pregTests.slice(0, 3).map((t, i) => (
                 <div key={i} className="flex justify-between py-1">
-                  <span className="text-[13px] text-[#6B6966]">{t.date} {t.dpo > 0 && `(D+${t.dpo})`}</span>
-                  <span className={`text-[13px] font-semibold ${t.result === '양성' ? 'text-[var(--color-primary)]' : 'text-[#6B6966]'}`}>{t.result}</span>
+                  <span className="text-body text-secondary">{t.date} {t.dpo > 0 && `(D+${t.dpo})`}</span>
+                  <span className={`text-body font-semibold ${t.result === '양성' ? 'text-[var(--color-primary)]' : 'text-secondary'}`}>{t.result}</span>
                 </div>
               ))}
             </div>
@@ -307,27 +307,27 @@ function PreparingWaitingPage() {
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <p className="text-[14px] font-bold text-[#1A1918]">기다림 일기</p>
+              <p className="text-body-emphasis font-bold text-primary">기다림 일기</p>
               {journals.length > 0 && (
-                <span className="text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-primary)' }}>
+                <span className="text-label font-bold text-white px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-primary)' }}>
                   {journals.length}
                 </span>
               )}
             </div>
             {journals.length > 0 && (
               <Link href="/prep-diary">
-                <span className="text-[13px] text-[var(--color-primary)] font-medium">전체보기 →</span>
+                <span className="text-body text-[var(--color-primary)] font-medium">전체보기 →</span>
               </Link>
             )}
           </div>
           {journals.length > 0 && (
             <div className="mb-3 p-3 bg-[var(--color-page-bg)] rounded-xl border border-[#E8E4DF]">
-              <p className="text-[11px] text-[#9E9A95] mb-1.5">
+              <p className="text-label text-tertiary mb-1.5">
                 {new Date(journals[0].date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}
               </p>
-              <p className="text-[13px] text-[#1A1918] leading-relaxed line-clamp-3">{journals[0].text}</p>
+              <p className="text-body text-primary leading-relaxed line-clamp-3">{journals[0].text}</p>
               {journals[0].comment && (
-                <p className="text-[12px] text-[var(--color-primary)] mt-2 italic leading-relaxed">{journals[0].comment}</p>
+                <p className="text-caption text-[var(--color-primary)] mt-2 italic leading-relaxed">{journals[0].comment}</p>
               )}
             </div>
           )}
@@ -337,24 +337,24 @@ function PreparingWaitingPage() {
               <PenIcon className="w-4 h-4 text-[var(--color-primary)]" />
             </div>
             <div className="flex-1 text-left">
-              <p className="text-[13px] font-bold text-[#1A1918]">오늘의 기다림 일기 쓰기</p>
-              <p className="text-[12px] text-[#9E9A95]">
+              <p className="text-body font-bold text-primary">오늘의 기다림 일기 쓰기</p>
+              <p className="text-caption text-tertiary">
                 {journals.length > 0 ? '새 일기 추가하기' : '기다림의 첫 일기를 남겨보세요'}
               </p>
             </div>
-            <span className="text-[#9E9A95] text-sm">→</span>
+            <span className="text-tertiary text-sm">→</span>
           </button>
         </div>
 
         {/* 주기 캘린더 */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex items-center justify-between mb-3">
-            <button type="button" onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1) } else setCalMonth(calMonth - 1) }} className="text-[#6B6966] px-3 py-1">←</button>
-            <p className="text-[14px] font-bold text-[#1A1918]">{calYear}년 {calMonth + 1}월</p>
-            <button type="button" onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1) } else setCalMonth(calMonth + 1) }} className="text-[#6B6966] px-3 py-1">→</button>
+            <button type="button" onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1) } else setCalMonth(calMonth - 1) }} className="text-secondary px-3 py-1">←</button>
+            <p className="text-body-emphasis font-bold text-primary">{calYear}년 {calMonth + 1}월</p>
+            <button type="button" onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1) } else setCalMonth(calMonth + 1) }} className="text-secondary px-3 py-1">→</button>
           </div>
           <div className="grid grid-cols-7 gap-1 mb-1">
-            {WEEKDAYS.map((d) => <div key={d} className="text-center text-[13px] text-[#9E9A95]">{d}</div>)}
+            {WEEKDAYS.map((d) => <div key={d} className="text-center text-body text-tertiary">{d}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-1">
             {Array.from({ length: firstDayOfWeek }, (_, i) => <div key={`e-${i}`} className="aspect-square" />)}
@@ -371,8 +371,8 @@ function PreparingWaitingPage() {
                     ;(e.target as HTMLElement).dataset.longpress = String(timer)
                   }}
                   onTouchEnd={(e) => { clearTimeout(Number((e.target as HTMLElement).dataset.longpress)) }}
-                  className={`aspect-square rounded-lg flex flex-col items-center justify-center text-[14px] font-medium relative active:scale-95 transition-transform ${
-                    isToday ? 'ring-2 ring-[var(--color-primary)]' : status === 'period' ? 'bg-[#FDE8E8] text-[#D08068]' : status === 'ovulation' ? 'bg-[var(--color-primary)] text-white' : status === 'fertile' ? 'bg-[var(--color-accent-bg)] text-[var(--color-primary)]' : 'bg-[#F0EDE8] text-[#1A1918]'
+                  className={`aspect-square rounded-lg flex flex-col items-center justify-center text-body-emphasis font-medium relative active:scale-95 transition-transform ${
+                    isToday ? 'ring-2 ring-[var(--color-primary)]' : status === 'period' ? 'bg-[#FDE8E8] text-[#D08068]' : status === 'ovulation' ? 'bg-[var(--color-primary)] text-white' : status === 'fertile' ? 'bg-[var(--color-accent-bg)] text-[var(--color-primary)]' : 'bg-[#F0EDE8] text-primary'
                   }`}>
                   {intimacyDates[ds] ? <HeartIcon className="w-3.5 h-3.5 text-[#D08068]" /> : date.getDate()}
                   {(bbtRecords[ds] || ovulationTests[ds] !== undefined) && <div className="absolute bottom-0.5 w-1 h-1 rounded-full bg-[var(--color-primary)]" />}
@@ -381,12 +381,12 @@ function PreparingWaitingPage() {
             })}
           </div>
           <div className="flex items-center justify-center gap-3 mt-3">
-            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#FDE8E8]" /><span className="text-[13px] text-[#6B6966]">생리</span></div>
-            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[var(--color-accent-bg)]" /><span className="text-[13px] text-[#6B6966]">가임기</span></div>
-            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[var(--color-primary)]" /><span className="text-[13px] text-[#6B6966]">배란일</span></div>
-            <div className="flex items-center gap-1"><HeartIcon className="w-3.5 h-3.5 text-[#D08068]" /><span className="text-[13px] text-[#6B6966]">함께한 날</span></div>
+            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[#FDE8E8]" /><span className="text-body text-secondary">생리</span></div>
+            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[var(--color-accent-bg)]" /><span className="text-body text-secondary">가임기</span></div>
+            <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-[var(--color-primary)]" /><span className="text-body text-secondary">배란일</span></div>
+            <div className="flex items-center gap-1"><HeartIcon className="w-3.5 h-3.5 text-[#D08068]" /><span className="text-body text-secondary">함께한 날</span></div>
           </div>
-          <p className="text-[13px] text-[#9E9A95] text-center mt-2">날짜 탭 = 하트 토글 · 길게 누르면 체온/배란 기록</p>
+          <p className="text-body text-tertiary text-center mt-2">날짜 탭 = 하트 토글 · 길게 누르면 체온/배란 기록</p>
         </div>
 
         {/* 날짜 기록 바텀시트 */}
@@ -395,19 +395,19 @@ function PreparingWaitingPage() {
             <div className="absolute bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white rounded-t-2xl pb-[env(safe-area-inset-bottom)]" onClick={e => e.stopPropagation()}>
               <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
               <div className="px-5 pb-5 space-y-3">
-                <p className="text-[15px] font-bold text-[#1A1918]">{selectedDate} 기록</p>
+                <p className="text-subtitle text-primary">{selectedDate} 기록</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-[#6B6966]">기초체온</span>
-                  <input type="number" step="0.01" min="35" max="38" value={bbtRecords[selectedDate] || ''} onChange={(e) => recordBBT(selectedDate, Number(e.target.value))} placeholder="36.50" className="w-24 h-10 rounded-lg border border-[#E8E4DF] px-2 text-[14px] text-right" />
+                  <span className="text-body-emphasis text-secondary">기초체온</span>
+                  <input type="number" step="0.01" min="35" max="38" value={bbtRecords[selectedDate] || ''} onChange={(e) => recordBBT(selectedDate, Number(e.target.value))} placeholder="36.50" className="w-24 h-10 rounded-lg border border-[#E8E4DF] px-2 text-body-emphasis text-right" />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-[#6B6966]">배란 테스트</span>
+                  <span className="text-body-emphasis text-secondary">배란 테스트</span>
                   <div className="flex gap-1.5">
-                    <button onClick={() => recordOvulationTest(selectedDate, true)} className={`px-3 py-1.5 rounded-xl text-[13px] ${ovulationTests[selectedDate] === true ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>양성</button>
-                    <button onClick={() => recordOvulationTest(selectedDate, false)} className={`px-3 py-1.5 rounded-xl text-[13px] ${ovulationTests[selectedDate] === false ? 'bg-[#D08068] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'}`}>음성</button>
+                    <button onClick={() => recordOvulationTest(selectedDate, true)} className={`px-3 py-1.5 rounded-xl text-body ${ovulationTests[selectedDate] === true ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-secondary'}`}>양성</button>
+                    <button onClick={() => recordOvulationTest(selectedDate, false)} className={`px-3 py-1.5 rounded-xl text-body ${ovulationTests[selectedDate] === false ? 'bg-[#D08068] text-white' : 'bg-[#E8E4DF] text-secondary'}`}>음성</button>
                   </div>
                 </div>
-                <button onClick={() => setSelectedDate(null)} className="w-full py-3 bg-[var(--color-primary)] text-white text-[14px] font-bold rounded-xl">완료</button>
+                <button onClick={() => setSelectedDate(null)} className="w-full py-3 bg-[var(--color-primary)] text-white font-bold rounded-xl">완료</button>
               </div>
             </div>
           </div>
@@ -418,27 +418,27 @@ function PreparingWaitingPage() {
           <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/40">
             <div className="bg-white rounded-2xl p-6 mx-6 max-w-sm w-full text-center shadow-xl animate-[fadeIn_0.2s_ease-out]">
               <HeartIcon className="w-10 h-10 text-[var(--color-primary)] mx-auto" />
-              <h3 className="text-[18px] font-bold text-[#1A1918] mt-3 mb-1">정말이에요?</h3>
-              <p className="text-[13px] text-[#6B6966] mb-5 leading-relaxed">
+              <h3 className="text-heading-3 text-primary mt-3 mb-1">정말이에요?</h3>
+              <p className="text-body text-secondary mb-5 leading-relaxed">
                 양성이 확인되었어요!<br />
                 임신 모드로 전환할까요?
               </p>
               <div className="space-y-2">
                 <button
                   onClick={() => { sharePositiveTest(); router.push('/celebration') }}
-                  className="w-full py-3 bg-[var(--color-primary)] text-white text-[14px] font-semibold rounded-xl active:opacity-80"
+                  className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl active:opacity-80"
                 >
                   네, 임신했어요!
                 </button>
                 <button
                   onClick={() => router.push('/celebration')}
-                  className="w-full py-2.5 text-[13px] text-[var(--color-primary)]"
+                  className="w-full py-2.5 text-body text-[var(--color-primary)]"
                 >
                   공유 없이 넘어가기
                 </button>
                 <button
                   onClick={() => setShowPregConfirm(false)}
-                  className="w-full py-2 text-[14px] text-[#6B6966]"
+                  className="w-full py-2 text-body-emphasis text-secondary"
                 >
                   아직 확인이 더 필요해요
                 </button>
@@ -450,15 +450,15 @@ function PreparingWaitingPage() {
         {/* 체크리스트 */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
           <div className="flex justify-between mb-3">
-            <p className="text-[14px] font-bold text-[#1A1918]">준비 체크리스트</p>
-            <p className="text-[13px] text-[#6B6966]">{checklist.filter((c) => checked[c.id]).length}/{checklist.length}</p>
+            <p className="text-body-emphasis font-bold text-primary">준비 체크리스트</p>
+            <p className="text-body text-secondary">{checklist.filter((c) => checked[c.id]).length}/{checklist.length}</p>
           </div>
           {checklist.map((item) => (
             <button key={item.id} onClick={() => toggleCheck(item.id)} className="w-full flex items-center gap-3 py-2 rounded-lg active:bg-[var(--color-page-bg)]">
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${checked[item.id] ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'border-[#AEB1B9]'}`}>
-                {checked[item.id] && <span className="text-white text-[14px]">✓</span>}
+                {checked[item.id] && <span className="text-white text-body-emphasis">✓</span>}
               </div>
-              <span className={`text-[13px] ${checked[item.id] ? 'text-[#9E9A95] line-through' : 'text-[#1A1918]'}`}>{item.icon} {item.title}</span>
+              <span className={`text-body ${checked[item.id] ? 'text-tertiary line-through' : 'text-primary'}`}>{item.icon} {item.title}</span>
             </button>
           ))}
         </div>
@@ -466,7 +466,7 @@ function PreparingWaitingPage() {
         {/* BBT 기초체온 차트 */}
         {Object.keys(bbtRecords).length > 0 && (
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-3">기초체온 차트</p>
+            <p className="text-body-emphasis font-bold text-primary mb-3">기초체온 차트</p>
             <div className="h-32 flex items-end gap-px">
               {(() => {
                 const sortedDates = Object.keys(bbtRecords).sort().slice(-14)
@@ -480,20 +480,20 @@ function PreparingWaitingPage() {
                   const isHigh = t >= 36.7
                   return (
                     <div key={d} className="flex-1 flex flex-col items-center gap-0.5">
-                      <span className="text-[10px] text-[#6B6966]">{t.toFixed(1)}</span>
+                      <span className="text-label text-secondary">{t.toFixed(1)}</span>
                       <div
                         className={`w-full rounded-t transition-all ${isHigh ? 'bg-[var(--color-primary)]' : 'bg-[#4A9B6E]'}`}
                         style={{ height: `${h}px` }}
                       />
-                      <span className="text-[9px] text-[#9E9A95]">{d.slice(8)}</span>
+                      <span className="text-[9px] text-tertiary">{d.slice(8)}</span>
                     </div>
                   )
                 })
               })()}
             </div>
             <div className="flex justify-between mt-2">
-              <span className="text-[11px] text-[#9E9A95]">저온기 (36.0~36.6)</span>
-              <span className="text-[11px] text-[var(--color-primary)]">고온기 (36.7+)</span>
+              <span className="text-label text-tertiary">저온기 (36.0~36.6)</span>
+              <span className="text-label text-[var(--color-primary)]">고온기 (36.7+)</span>
             </div>
             {(() => {
               const sortedDates = Object.keys(bbtRecords).sort()
@@ -502,7 +502,7 @@ function PreparingWaitingPage() {
               )
               if (shiftIdx > 0) {
                 return (
-                  <p className="text-[12px] text-[var(--color-primary)] mt-1 font-medium">
+                  <p className="text-caption text-[var(--color-primary)] mt-1 font-medium">
                     체온 상승 전환일: {sortedDates[shiftIdx]} (배란 추정)
                   </p>
                 )
@@ -515,14 +515,14 @@ function PreparingWaitingPage() {
         {/* 주기 이력 */}
         {lastPeriod && (
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-3">주기 이력</p>
+            <p className="text-body-emphasis font-bold text-primary mb-3">주기 이력</p>
             {(() => {
               const records = Object.entries(periodRecords)
                 .filter(([, v]) => v === 'start')
                 .sort(([a], [b]) => b.localeCompare(a))
                 .slice(0, 6)
               if (records.length < 2) return (
-                <p className="text-[13px] text-[#9E9A95]">생리 시작일이 2회 이상 기록되면 주기 분석이 표시됩니다.</p>
+                <p className="text-body text-tertiary">생리 시작일이 2회 이상 기록되면 주기 분석이 표시됩니다.</p>
               )
               const gaps: number[] = []
               for (let i = 1; i < records.length; i++) {
@@ -536,23 +536,23 @@ function PreparingWaitingPage() {
                 <div className="space-y-2">
                   <div className="flex gap-3">
                     <div className="flex-1 bg-[var(--color-page-bg)] rounded-lg p-2.5 text-center">
-                      <p className="text-[11px] text-[#6B6966]">평균 주기</p>
-                      <p className="text-[16px] font-bold text-[#1A1918]">{avg}일</p>
+                      <p className="text-label text-secondary">평균 주기</p>
+                      <p className="text-subtitle font-bold text-primary">{avg}일</p>
                     </div>
                     <div className="flex-1 bg-[var(--color-page-bg)] rounded-lg p-2.5 text-center">
-                      <p className="text-[11px] text-[#6B6966]">범위</p>
-                      <p className="text-[16px] font-bold text-[#1A1918]">{minG}~{maxG}일</p>
+                      <p className="text-label text-secondary">범위</p>
+                      <p className="text-subtitle font-bold text-primary">{minG}~{maxG}일</p>
                     </div>
                     <div className="flex-1 bg-[var(--color-page-bg)] rounded-lg p-2.5 text-center">
-                      <p className="text-[11px] text-[#6B6966]">기록</p>
-                      <p className="text-[16px] font-bold text-[#1A1918]">{records.length}회</p>
+                      <p className="text-label text-secondary">기록</p>
+                      <p className="text-subtitle font-bold text-primary">{records.length}회</p>
                     </div>
                   </div>
                   <div className="space-y-1">
                     {records.slice(0, 4).map(([date], i) => (
-                      <div key={date} className="flex justify-between text-[13px]">
-                        <span className="text-[#6B6966]">{date}</span>
-                        {i < gaps.length && <span className="text-[#1A1918] font-medium">{gaps[i]}일 주기</span>}
+                      <div key={date} className="flex justify-between text-body">
+                        <span className="text-secondary">{date}</span>
+                        {i < gaps.length && <span className="text-primary font-medium">{gaps[i]}일 주기</span>}
                       </div>
                     ))}
                   </div>
@@ -572,19 +572,19 @@ function PreparingWaitingPage() {
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white rounded-t-2xl pb-[env(safe-area-inset-bottom)]" onClick={e => e.stopPropagation()}>
             <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
             <div className="px-5 pb-5">
-              <p className="text-[15px] font-bold text-[#1A1918] mb-3 flex items-center gap-1.5"><PenIcon className="w-4 h-4" /> 기다림 일기</p>
+              <p className="text-subtitle text-primary mb-3 flex items-center gap-1.5"><PenIcon className="w-4 h-4" /> 기다림 일기</p>
               <div className="flex gap-1.5 overflow-x-auto hide-scrollbar mb-3">
                 {['아이에게 한마디', '오늘의 감사', '나에게 응원', '임신 기원', '기다림의 마음'].map(chip => (
                   <button key={chip} onClick={() => setJournalText(prev => prev ? prev + ' ' + chip : chip)}
-                    className="shrink-0 px-3 py-1.5 rounded-full bg-[var(--color-accent-bg)] text-[12px] font-medium text-[var(--color-primary)]">{chip}</button>
+                    className="shrink-0 px-3 py-1.5 rounded-full bg-[var(--color-accent-bg)] text-caption font-medium text-[var(--color-primary)]">{chip}</button>
                 ))}
               </div>
               <textarea value={journalText} onChange={e => setJournalText(e.target.value.slice(0, 500))}
                 placeholder="아직 만나지 못한 아이에게, 오늘의 마음을 전해요"
-                className="w-full h-28 text-[14px] p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]" autoFocus />
-              <p className="text-right text-[12px] text-[#9E9A95] mt-1">{journalText.length}/500</p>
+                className="w-full h-28 text-body-emphasis p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]" autoFocus />
+              <p className="text-right text-caption text-tertiary mt-1">{journalText.length}/500</p>
               <button onClick={saveJournal} disabled={!journalText.trim()}
-                className={`w-full py-3.5 rounded-xl text-[15px] font-bold mt-2 ${journalText.trim() ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}>
+                className={`w-full py-3.5 rounded-xl text-subtitle mt-2 ${journalText.trim() ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-tertiary'}`}>
                 저장하기
               </button>
             </div>
@@ -594,7 +594,7 @@ function PreparingWaitingPage() {
 
       {/* 토스트 */}
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1A1918]/80 text-white text-[13px] font-medium px-4 py-2.5 rounded-xl shadow-lg animate-[fadeIn_0.15s_ease-out]">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1A1918]/80 text-white text-body font-medium px-4 py-2.5 rounded-xl shadow-lg animate-[fadeIn_0.15s_ease-out]">
           {toast}
         </div>
       )}
@@ -659,7 +659,7 @@ function VerticalFetalGuide({ currentWeek }: { currentWeek: number }) {
 
   return (
     <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
-      <p className="text-[14px] font-bold text-[#1A1918] px-4 pt-4 pb-2">주차별 발달 가이드</p>
+      <p className="text-body-emphasis font-bold text-primary px-4 pt-4 pb-2">주차별 발달 가이드</p>
       <div className="relative overflow-hidden px-3 pb-3" style={{ height: CONTAINER_H }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {/* 상단 페이드 */}
         <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none" style={{ height: 36, background: 'linear-gradient(to bottom, white 0%, transparent 100%)' }} />
@@ -698,7 +698,7 @@ function VerticalFetalGuide({ currentWeek }: { currentWeek: number }) {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className={`font-bold transition-all duration-300 ${isSelected ? 'text-[13px] text-[var(--color-primary)]' : 'text-[12px] text-[#6B6966]'}`}>
+                      <span className={`font-bold transition-all duration-300 ${isSelected ? 'text-body text-[var(--color-primary)]' : 'text-caption text-secondary'}`}>
                         {w}주 · {name}
                       </span>
                       {isCurrent && (
@@ -707,12 +707,12 @@ function VerticalFetalGuide({ currentWeek }: { currentWeek: number }) {
                     </div>
                     {isSelected ? (
                       <div className="mt-1">
-                        <p className="text-[11px] text-[#4A4744]">아기: {baby}</p>
-                        <p className="text-[11px] text-[#6B6966]">엄마: {mom}</p>
-                        <p className="text-[11px] text-[var(--color-primary)] font-medium">체크: {check}</p>
+                        <p className="text-label text-[#4A4744]">아기: {baby}</p>
+                        <p className="text-label text-secondary">엄마: {mom}</p>
+                        <p className="text-label text-[var(--color-primary)] font-medium">체크: {check}</p>
                       </div>
                     ) : (
-                      <p className="text-[11px] text-[#9E9A95] mt-0.5 truncate">{baby}</p>
+                      <p className="text-label text-tertiary mt-0.5 truncate">{baby}</p>
                     )}
                   </div>
                 </div>
@@ -793,13 +793,13 @@ export function PregnantWaitingPage() {
 
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]">
-      <div className="max-w-lg mx-auto w-full px-5 pt-5 pb-4 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-5 pb-24 space-y-3">
         {/* 출산 확인 (D-day 지남) */}
         {daysLeft <= 0 && (
           <Link href="/birth" className="block bg-gradient-to-r from-[#FFF0E6] to-[#FFF8F3] rounded-xl border border-[#FFDDC8] p-5 text-center active:opacity-80">
             <IllustVideo src="/images/illustrations/h1.webm" variant="circle" className="w-20 h-20 mx-auto mb-2" />
-            <p className="text-[16px] font-bold text-[#1A1918]">{chosenNickname || '우리 아이'}, 만났나요?</p>
-            <p className="text-[13px] font-semibold text-[var(--color-primary)] mt-2">네, 만났어요! →</p>
+            <p className="text-subtitle font-bold text-primary">{chosenNickname || '우리 아이'}, 만났나요?</p>
+            <p className="text-body font-semibold text-[var(--color-primary)] mt-2">네, 만났어요! →</p>
           </Link>
         )}
 
@@ -820,19 +820,19 @@ export function PregnantWaitingPage() {
                   style={{ background: 'radial-gradient(circle, transparent 45%, rgba(255,240,228,0.55) 100%)' }} />
               </div>
             </div>
-            <p className="text-[19px] font-bold text-[#1A1918] relative">만날 날이 지났어요!</p>
+            <p className="text-[19px] font-bold text-primary relative">만날 날이 지났어요!</p>
             <p className="text-[30px] font-bold text-[var(--color-primary)] mt-1 relative">D+{Math.abs(daysLeft)}</p>
-            <p className="text-[13px] text-[#9B7060] mt-1 relative">{currentWeek}주차 · {trimester}</p>
+            <p className="text-body text-[#9B7060] mt-1 relative">{currentWeek}주차 · {trimester}</p>
           </div>
         ) : (
           <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-5 text-center">
             <video src="/images/illustrations/h1.webm" autoPlay loop muted playsInline className="w-16 h-16 object-contain mx-auto mb-2" />
-            <p className="text-[18px] font-bold text-[#1A1918]">{daysLeft <= 7 ? '이번 주에 만나요!' : '아이를 만나는 날'}</p>
-            <p className="text-[28px] font-bold text-[var(--color-primary)] mt-1">D-{daysLeft}</p>
+            <p className="text-heading-3 text-primary">{daysLeft <= 7 ? '이번 주에 만나요!' : '아이를 만나는 날'}</p>
+            <p className="text-heading-1 font-bold text-[var(--color-primary)] mt-1">D-{daysLeft}</p>
             <div className="w-full h-2 bg-[#E8E4DF] rounded-full mt-3">
               <div className="h-full bg-[var(--color-primary)] rounded-full" style={{ width: `${Math.min((currentWeek / 40) * 100, 100)}%` }} />
             </div>
-            <p className="text-[14px] text-[#6B6966] mt-2">{currentWeek}주차 · {trimester} · {Math.min(Math.round((currentWeek / 40) * 100), 100)}%</p>
+            <p className="text-body-emphasis text-secondary mt-2">{currentWeek}주차 · {trimester} · {Math.min(Math.round((currentWeek / 40) * 100), 100)}%</p>
           </div>
         )}
 
@@ -845,8 +845,8 @@ export function PregnantWaitingPage() {
               { key: 'benefit' as const, label: '혜택·준비' },
             ]).map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={`flex-1 py-2.5 text-[12px] font-semibold text-center relative transition-colors ${
-                  tab === t.key ? 'text-[var(--color-primary)] bg-[var(--color-accent-bg)]/30' : 'text-[#9E9A95]'
+                className={`flex-1 py-2.5 text-caption font-semibold text-center relative transition-colors ${
+                  tab === t.key ? 'text-[var(--color-primary)] bg-[var(--color-accent-bg)]/30' : 'text-tertiary'
                 }`}>
                 {t.label}
                 {tab === t.key && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[var(--color-primary)] rounded-full" />}
@@ -861,20 +861,20 @@ export function PregnantWaitingPage() {
               <div className="bg-[var(--color-page-bg)] rounded-xl p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <p className="text-[13px] font-bold text-[#1A1918]">기다림 일기</p>
+                    <p className="text-body font-bold text-primary">기다림 일기</p>
                     {diaries.length > 0 && (
-                      <span className="text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full bg-[var(--color-primary)]">{diaries.length}</span>
+                      <span className="text-label font-bold text-white px-1.5 py-0.5 rounded-full bg-[var(--color-primary)]">{diaries.length}</span>
                     )}
                   </div>
                   {diaries.length > 0 && (
-                    <Link href="/preg-diary"><span className="text-[12px] text-[var(--color-primary)] font-medium">전체보기 →</span></Link>
+                    <Link href="/preg-diary"><span className="text-caption text-[var(--color-primary)] font-medium">전체보기 →</span></Link>
                   )}
                 </div>
                 {diaries.length > 0 && (
                   <div className="mb-2 p-2.5 bg-white rounded-lg border border-[#E8E4DF]">
-                    <p className="text-[11px] text-[#9E9A95] mb-1">{new Date(diaries[0].date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}</p>
-                    <p className="text-[13px] text-[#1A1918] leading-relaxed line-clamp-2">{diaries[0].text}</p>
-                    {diaries[0].comment && <p className="text-[12px] text-[var(--color-primary)] mt-1 italic">{diaries[0].comment}</p>}
+                    <p className="text-label text-tertiary mb-1">{new Date(diaries[0].date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}</p>
+                    <p className="text-body text-primary leading-relaxed line-clamp-2">{diaries[0].text}</p>
+                    {diaries[0].comment && <p className="text-caption text-[var(--color-primary)] mt-1 italic">{diaries[0].comment}</p>}
                   </div>
                 )}
                 <button onClick={() => setDiarySheetOpen(true)}
@@ -883,10 +883,10 @@ export function PregnantWaitingPage() {
                     <PenIcon className="w-4 h-4 text-[var(--color-primary)]" />
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="text-[13px] font-bold text-[#1A1918]">오늘의 기다림 일기 쓰기</p>
-                    <p className="text-[12px] text-[#9E9A95]">{diaries.length > 0 ? '새 일기 추가하기' : '오늘의 첫 기다림 일기를 남겨보세요'}</p>
+                    <p className="text-body font-bold text-primary">오늘의 기다림 일기 쓰기</p>
+                    <p className="text-caption text-tertiary">{diaries.length > 0 ? '새 일기 추가하기' : '오늘의 첫 기다림 일기를 남겨보세요'}</p>
                   </div>
-                  <span className="text-[#9E9A95] text-sm">→</span>
+                  <span className="text-tertiary text-sm">→</span>
                 </button>
               </div>
 
@@ -894,15 +894,15 @@ export function PregnantWaitingPage() {
               <Link href="/name" className="flex items-center gap-3 bg-[var(--color-page-bg)] rounded-xl p-3 active:bg-[#F0EDE8]">
                 <SparkleIcon className="w-5 h-5 text-[#C4913E] shrink-0" />
                 <div className="flex-1">
-                  <p className="text-[13px] font-semibold text-[#1A1918]">이름 짓기</p>
-                  <p className="text-[12px] text-[#6B6966]">AI 추천 · 한자 · 음양오행</p>
+                  <p className="text-body font-semibold text-primary">이름 짓기</p>
+                  <p className="text-caption text-secondary">AI 추천 · 한자 · 음양오행</p>
                 </div>
-                <span className="text-[#9E9A95]">→</span>
+                <span className="text-tertiary">→</span>
               </Link>
 
               {/* 마음 체크 */}
               <Link href="/mental-check" className="block bg-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)] p-3 text-center active:opacity-80">
-                <p className="text-[13px] text-[var(--color-primary)] font-semibold">마음 체크 — 오늘 기분은 어때요?</p>
+                <p className="text-body text-[var(--color-primary)] font-semibold">마음 체크 — 오늘 기분은 어때요?</p>
               </Link>
 
               {/* 재미 콘텐츠 */}
@@ -913,8 +913,8 @@ export function PregnantWaitingPage() {
                   { href: '/fortune?tab=fortune', Icon: SparkleIcon, title: '오늘의 운세' },
                 ] as const).map(item => (
                   <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1.5 bg-[var(--color-page-bg)] rounded-xl py-3 px-2 active:opacity-80">
-                    <item.Icon className="w-5 h-5 text-[#6B6966]" />
-                    <p className="text-[12px] font-semibold text-[#1A1918] text-center leading-tight">{item.title}</p>
+                    <item.Icon className="w-5 h-5 text-secondary" />
+                    <p className="text-caption font-semibold text-primary text-center leading-tight">{item.title}</p>
                   </Link>
                 ))}
               </div>
@@ -930,15 +930,15 @@ export function PregnantWaitingPage() {
               <form onSubmit={e => { e.preventDefault(); if (foodQuery.trim()) router.push(`/food-check?q=${encodeURIComponent(foodQuery.trim())}`) }}
                 className="flex items-center gap-2 bg-[var(--color-page-bg)] rounded-xl border border-[#E8E4DF] p-2.5">
                 <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
-                  <span className="text-[16px]">🍽️</span>
+                  <span className="text-subtitle">🍽️</span>
                 </div>
                 <input type="text" value={foodQuery} onChange={e => setFoodQuery(e.target.value)}
                   placeholder="이 음식 먹어도 되나요? 검색"
-                  className="flex-1 text-[13px] bg-transparent outline-none text-[#1A1918] placeholder:text-[#9E9A95]" />
+                  className="flex-1 text-body bg-transparent outline-none text-primary placeholder:text-tertiary" />
                 {foodQuery.trim() ? (
-                  <button type="submit" className="shrink-0 px-3 py-1 rounded-lg bg-[var(--color-primary)] text-white text-[12px] font-semibold">확인</button>
+                  <button type="submit" className="shrink-0 px-3 py-1 rounded-lg bg-[var(--color-primary)] text-white text-caption font-semibold">확인</button>
                 ) : (
-                  <span className="text-[12px] text-[#9E9A95] shrink-0">AI 확인</span>
+                  <span className="text-caption text-tertiary shrink-0">AI 확인</span>
                 )}
               </form>
             </div>
@@ -960,21 +960,21 @@ export function PregnantWaitingPage() {
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white rounded-t-2xl pb-[env(safe-area-inset-bottom)]" onClick={e => e.stopPropagation()}>
             <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
             <div className="px-5 pb-5">
-              <p className="text-[15px] font-bold text-[#1A1918] mb-3 flex items-center gap-1.5"><PenIcon className="w-4 h-4" /> 기다림 일기</p>
+              <p className="text-subtitle text-primary mb-3 flex items-center gap-1.5"><PenIcon className="w-4 h-4" /> 기다림 일기</p>
               <div className="flex gap-1.5 overflow-x-auto hide-scrollbar mb-3">
                 {['아이에게 한마디', '태동 느낌', '들려준 음악', '맛있는 음식', '산책/외출'].map(text => (
                   <button key={text} onClick={() => setDiaryText(prev => prev ? prev : text + ' ')}
-                    className="shrink-0 px-2.5 py-1.5 rounded-full bg-[var(--color-page-bg)] text-[12px] text-[#6B6966]">
+                    className="shrink-0 px-2.5 py-1.5 rounded-full bg-[var(--color-page-bg)] text-caption text-secondary">
                     {text}
                   </button>
                 ))}
               </div>
               <textarea value={diaryText} onChange={e => setDiaryText(e.target.value.slice(0, 500))}
                 placeholder={`${currentWeek}주차, 오늘 아이에게 하고 싶은 말이 있나요?`}
-                className="w-full h-28 text-[14px] p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]" autoFocus />
-              <p className="text-right text-[12px] text-[#9E9A95] mt-1">{diaryText.length}/500</p>
+                className="w-full h-28 text-body-emphasis p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]" autoFocus />
+              <p className="text-right text-caption text-tertiary mt-1">{diaryText.length}/500</p>
               <button onClick={() => { saveDiary(); setDiarySheetOpen(false) }} disabled={!diaryText.trim() || diarySaving}
-                className={`w-full py-3.5 rounded-xl text-[15px] font-bold mt-2 ${diaryText.trim() && !diarySaving ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}>
+                className={`w-full py-3.5 rounded-xl text-subtitle mt-2 ${diaryText.trim() && !diarySaving ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-tertiary'}`}>
                 {diarySaving ? 'AI 코멘트 생성 중...' : '저장하기'}
               </button>
             </div>

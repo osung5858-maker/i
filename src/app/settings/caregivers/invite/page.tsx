@@ -104,8 +104,8 @@ export default function InvitePage() {
     <div className="min-h-[100dvh] bg-white flex flex-col">
       <header className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-xl">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">닫기</button>
-          <h1 className="text-[15px] font-bold text-[#0A0B0D]">가족 초대</h1>
+          <button onClick={() => router.back()} className="text-sm text-tertiary">닫기</button>
+          <h1 className="text-subtitle text-primary">가족 초대</h1>
           <div className="w-8" />
         </div>
       </header>
@@ -115,10 +115,10 @@ export default function InvitePage() {
           <HeartIcon className="w-10 h-10 text-green-600" />
         </div>
 
-        <h2 className="text-xl font-bold text-[#0A0B0D] text-center">
+        <h2 className="text-xl font-bold text-primary text-center">
           가족과 함께 기록해요
         </h2>
-        <p className="text-sm text-[#9B9B9B] text-center mt-2 leading-relaxed">
+        <p className="text-sm text-tertiary text-center mt-2 leading-relaxed">
           초대 링크를 공유하면<br />
           가족이 아이의 기록을 함께 볼 수 있어요
         </p>
@@ -127,13 +127,13 @@ export default function InvitePage() {
           <div className="w-full mt-8 space-y-3">
             {/* 링크 표시 */}
             <div className="p-3 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF]">
-              <p className="text-xs text-[#9B9B9B] truncate font-mono">{inviteLink}</p>
+              <p className="text-xs text-tertiary truncate font-mono">{inviteLink}</p>
             </div>
 
             {/* 카카오톡으로 보내기 */}
             <button
               onClick={handleShareKakao}
-              className="w-full h-[52px] rounded-xl font-semibold text-[15px] bg-[#FEE500] text-[#191919] active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+              className="w-full h-[52px] rounded-xl font-semibold text-subtitle bg-[#FEE500] text-[#191919] active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
             >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path fillRule="evenodd" clipRule="evenodd" d="M9 0.6C4.03 0.6 0 3.713 0 7.534c0 2.476 1.641 4.648 4.106 5.876l-1.05 3.886c-.093.343.3.616.59.41l4.654-3.072c.23.018.462.028.7.028 4.97 0 9-3.113 9-6.928S13.97.6 9 .6" fill="#191919"/></svg>
               카카오톡으로 초대하기
@@ -142,7 +142,7 @@ export default function InvitePage() {
             {/* 링크 복사 */}
             <button
               onClick={handleCopy}
-              className="w-full h-[48px] rounded-xl font-medium text-[15px] border border-[#E8E4DF] text-[#0A0B0D] active:scale-[0.98] transition-transform"
+              className="w-full h-[48px] rounded-xl font-medium text-subtitle border border-[#E8E4DF] text-primary active:scale-[0.98] transition-transform"
             >
               {copied ? '복사 완료!' : '링크 복사'}
             </button>
@@ -153,7 +153,7 @@ export default function InvitePage() {
           </div>
         )}
 
-        <p className="text-xs text-[#9B9B9B] mt-6 text-center">
+        <p className="text-xs text-tertiary mt-6 text-center">
           초대 링크는 7일 동안 유효합니다
         </p>
       </div>

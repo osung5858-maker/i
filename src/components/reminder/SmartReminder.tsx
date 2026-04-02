@@ -155,16 +155,16 @@ export default function SmartReminder({ events, childName }: Props) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-1.5">
             <BellIcon className="w-4 h-4" />
-            <span className="text-[13px] font-bold text-[#212124]">스마트 리마인더</span>
+            <span className="text-body font-bold text-primary">스마트 리마인더</span>
           </div>
           <div className="flex items-center gap-2">
             {notifPermission === 'default' && (
-              <button onClick={requestPermission} className="text-[12px] font-semibold text-[#5B6DFF] active:opacity-70">
+              <button onClick={requestPermission} className="text-caption font-semibold text-[#5B6DFF] active:opacity-70">
                 알림 허용
               </button>
             )}
             {notifPermission === 'granted' && (
-              <button onClick={() => setShowSettings(v => !v)} className="text-[12px] text-[var(--color-primary)] font-semibold">
+              <button onClick={() => setShowSettings(v => !v)} className="text-caption text-[var(--color-primary)] font-semibold">
                 {showSettings ? '닫기' : `${alertOffset}분 전 알림`}
               </button>
             )}
@@ -178,10 +178,10 @@ export default function SmartReminder({ events, childName }: Props) {
               <button
                 key={opt.value}
                 onClick={() => changeOffset(opt.value)}
-                className={`flex-1 py-1.5 text-[12px] font-semibold rounded-lg transition-colors ${
+                className={`flex-1 py-1.5 text-caption font-semibold rounded-lg transition-colors ${
                   alertOffset === opt.value
                     ? 'bg-[var(--color-primary)] text-white'
-                    : 'text-[#6B6966]'
+                    : 'text-secondary'
                 }`}
               >
                 {opt.label}
@@ -198,12 +198,12 @@ export default function SmartReminder({ events, childName }: Props) {
                   <BottleIcon className="w-5 h-5 text-[var(--color-primary)]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-[#212124]">다음 수유</p>
-                  <p className="text-[13px] text-[#6B6966]">
+                  <p className="text-body font-semibold text-primary">다음 수유</p>
+                  <p className="text-body text-secondary">
                     {formatTime(feedPred.predicted_ts)} · {formatTimeRemaining(feedPred.predicted_ts)}
                   </p>
                 </div>
-                <span className="text-[12px] text-[#9E9A95] shrink-0">±{feedPred.ci_minutes}분</span>
+                <span className="text-caption text-tertiary shrink-0">±{feedPred.ci_minutes}분</span>
               </div>
               {/* 프로그레스 바 */}
               {lastFeed && (
@@ -224,12 +224,12 @@ export default function SmartReminder({ events, childName }: Props) {
                   <MoonIcon className="w-5 h-5 text-[#5B6DFF]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-[#212124]">다음 낮잠</p>
-                  <p className="text-[13px] text-[#6B6966]">
+                  <p className="text-body font-semibold text-primary">다음 낮잠</p>
+                  <p className="text-body text-secondary">
                     {formatTime(sleepPred.predicted_ts)} · {formatTimeRemaining(sleepPred.predicted_ts)}
                   </p>
                 </div>
-                <span className="text-[12px] text-[#9E9A95] shrink-0">±{sleepPred.ci_minutes}분</span>
+                <span className="text-caption text-tertiary shrink-0">±{sleepPred.ci_minutes}분</span>
               </div>
               {lastSleep && (
                 <div className="mt-2.5 w-full h-1.5 bg-white/60 rounded-full overflow-hidden">
@@ -244,10 +244,10 @@ export default function SmartReminder({ events, childName }: Props) {
         </div>
 
         {notifPermission === 'granted' && (
-          <p className="text-[11px] text-[#9E9A95] mt-2.5 text-center">예상 시간 {alertOffset}분 전 + 정시에 알림을 보내드려요</p>
+          <p className="text-label text-tertiary mt-2.5 text-center">예상 시간 {alertOffset}분 전 + 정시에 알림을 보내드려요</p>
         )}
         {notifPermission === 'unsupported' && (
-          <p className="text-[11px] text-[#9E9A95] mt-2.5 text-center">이 브라우저는 알림을 지원하지 않아요</p>
+          <p className="text-label text-tertiary mt-2.5 text-center">이 브라우저는 알림을 지원하지 않아요</p>
         )}
       </div>
     </div>

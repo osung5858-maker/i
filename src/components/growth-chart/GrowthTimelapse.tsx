@@ -187,7 +187,7 @@ export default function GrowthTimelapse({ records, childName, birthdate }: Props
   if (weightRecords.length < 2) {
     return (
       <div className="p-5 rounded-2xl bg-white border border-[#E8E4DF] text-center">
-        <p className="text-sm text-[#9B9B9B]">성장 기록이 2건 이상이면 타임랩스를 볼 수 있어요</p>
+        <p className="text-sm text-tertiary">성장 기록이 2건 이상이면 타임랩스를 볼 수 있어요</p>
       </div>
     )
   }
@@ -195,7 +195,7 @@ export default function GrowthTimelapse({ records, childName, birthdate }: Props
   return (
     <div className="p-4 rounded-2xl bg-white border border-[#E8E4DF]">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-[#0A0B0D]">{childName}의 성장 타임랩스</h3>
+        <h3 className="text-sm font-bold text-primary">{childName}의 성장 타임랩스</h3>
         <button
           onClick={() => { setPlaying(true); setCurrentIndex(-1) }}
           disabled={playing}
@@ -211,8 +211,8 @@ export default function GrowthTimelapse({ records, childName, birthdate }: Props
           <button
             key={m}
             onClick={() => { setMetric(m); setCurrentIndex(-1); setPlaying(false) }}
-            className={`flex-1 py-1.5 rounded-lg text-[12px] font-semibold transition-colors ${
-              metric === m ? 'text-white' : 'bg-[#F0EDE8] text-[#6B6966]'
+            className={`flex-1 py-1.5 rounded-lg text-caption font-semibold transition-colors ${
+              metric === m ? 'text-white' : 'bg-[#F0EDE8] text-secondary'
             }`}
             style={metric === m ? { backgroundColor: METRIC_CONFIG[m].color } : {}}
           >

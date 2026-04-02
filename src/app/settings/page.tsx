@@ -97,7 +97,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[#f5f5f5]">
-      <div className="max-w-lg mx-auto w-full pb-6">
+      <div className="max-w-lg mx-auto w-full pb-28">
         {/* 프로필 카드 */}
         <div className="m-4 p-4 rounded-2xl bg-white border border-[#E8E4DF]">
           <div className="flex items-center gap-3">
@@ -109,17 +109,17 @@ export default function SettingsPage() {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-bold text-[#0A0B0D] truncate">{nickname}</p>
-              {email && <p className="text-xs text-[#9B9B9B] truncate">{email}</p>}
+              <p className="text-subtitle text-primary truncate">{nickname}</p>
+              {email && <p className="text-xs text-tertiary truncate">{email}</p>}
             </div>
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B] shrink-0" />
+            <ChevronRightIcon className="w-4 h-4 text-tertiary shrink-0" />
           </div>
         </div>
 
         {/* 아이 관리 */}
         <div className="mx-4 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
           <div className="px-5 pt-3 pb-2">
-            <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">아이 관리</p>
+            <p className="text-xs font-semibold text-tertiary uppercase tracking-wide">아이 관리</p>
           </div>
           {children.map((child) => (
             <Link
@@ -137,10 +137,10 @@ export default function SettingsPage() {
                 )}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-[#0A0B0D]">{child.name}</p>
-                <p className="text-xs text-[#9B9B9B]">{child.birthdate}</p>
+                <p className="text-sm font-semibold text-primary">{child.name}</p>
+                <p className="text-xs text-tertiary">{child.birthdate}</p>
               </div>
-              <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+              <ChevronRightIcon className="w-4 h-4 text-tertiary" />
             </Link>
           ))}
           <Link
@@ -157,7 +157,7 @@ export default function SettingsPage() {
         {/* 공동양육자 */}
         <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
           <div className="px-5 pt-3 pb-2">
-            <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">가족</p>
+            <p className="text-xs font-semibold text-tertiary uppercase tracking-wide">가족</p>
           </div>
           <Link
             href="/settings/caregivers"
@@ -166,16 +166,16 @@ export default function SettingsPage() {
             <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
               <UsersIcon className="w-5 h-5 text-green-600" />
             </div>
-            <p className="text-sm font-semibold text-[#0A0B0D]">공동양육자</p>
+            <p className="text-sm font-semibold text-primary">공동양육자</p>
             <div className="flex-1" />
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+            <ChevronRightIcon className="w-4 h-4 text-tertiary" />
           </Link>
         </div>
 
         {/* 테마 컬러 */}
         <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
           <div className="px-5 pt-3 pb-2">
-            <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">테마</p>
+            <p className="text-xs font-semibold text-tertiary uppercase tracking-wide">테마</p>
           </div>
           <div className="px-3 py-3 border-t border-[#E8E4DF]">
             <ThemeSelector />
@@ -185,7 +185,7 @@ export default function SettingsPage() {
         {/* 알림 설정 */}
         <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
           <div className="px-5 pt-3 pb-2">
-            <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">알림</p>
+            <p className="text-xs font-semibold text-tertiary uppercase tracking-wide">알림</p>
           </div>
 
           {/* 마스터 토글 */}
@@ -193,8 +193,8 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2.5">
               <BellIcon className="w-4 h-4 text-[var(--color-primary)]" />
               <div>
-                <p className="text-sm font-semibold text-[#0A0B0D]">푸시 알림</p>
-                <p className="text-xs text-[#9B9B9B]">{pushActive ? '활성화됨' : '비활성'}</p>
+                <p className="text-sm font-semibold text-primary">푸시 알림</p>
+                <p className="text-xs text-tertiary">{pushActive ? '활성화됨' : '비활성'}</p>
               </div>
             </div>
             <button
@@ -216,8 +216,8 @@ export default function SettingsPage() {
               ].filter(item => item.modes.includes(mode)).map(item => (
                 <div key={item.key} className="flex items-center justify-between px-4 py-3 border-t border-[#E8E4DF]">
                   <div>
-                    <p className="text-sm text-[#0A0B0D]">{item.label}</p>
-                    <p className="text-xs text-[#9B9B9B]">{item.desc}</p>
+                    <p className="text-sm text-primary">{item.label}</p>
+                    <p className="text-xs text-tertiary">{item.desc}</p>
                   </div>
                   <button
                     onClick={() => toggleNoti(item.key)}
@@ -230,23 +230,23 @@ export default function SettingsPage() {
 
               {/* 방해 금지 시간 */}
               <div className="px-4 py-3 border-t border-[#E8E4DF]">
-                <p className="text-sm text-[#0A0B0D] mb-2">방해 금지 시간</p>
+                <p className="text-sm text-primary mb-2">방해 금지 시간</p>
                 <div className="flex items-center gap-2">
                   <input
                     type="time"
                     value={notiSettings.dndStart}
                     onChange={e => { const next = { ...notiSettings, dndStart: e.target.value }; setNotiSettings(next); saveNotificationSettings(next) }}
-                    className="flex-1 h-9 px-2 rounded-lg border border-[#E8E4DF] text-[13px] text-center"
+                    className="flex-1 h-9 px-2 rounded-lg border border-[#E8E4DF] text-body text-center"
                   />
-                  <span className="text-[13px] text-[#9B9B9B]">~</span>
+                  <span className="text-body text-tertiary">~</span>
                   <input
                     type="time"
                     value={notiSettings.dndEnd}
                     onChange={e => { const next = { ...notiSettings, dndEnd: e.target.value }; setNotiSettings(next); saveNotificationSettings(next) }}
-                    className="flex-1 h-9 px-2 rounded-lg border border-[#E8E4DF] text-[13px] text-center"
+                    className="flex-1 h-9 px-2 rounded-lg border border-[#E8E4DF] text-body text-center"
                   />
                 </div>
-                <p className="text-xs text-[#9B9B9B] mt-1">이 시간에는 알림을 보내지 않아요</p>
+                <p className="text-xs text-tertiary mt-1">이 시간에는 알림을 보내지 않아요</p>
               </div>
             </>
           )}
@@ -255,23 +255,23 @@ export default function SettingsPage() {
         {/* 서비스 */}
         <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
           <div className="px-5 pt-3 pb-2">
-            <p className="text-xs font-semibold text-[#9B9B9B] uppercase tracking-wide">서비스</p>
+            <p className="text-xs font-semibold text-tertiary uppercase tracking-wide">서비스</p>
           </div>
           <Link href="/terms" className="flex items-center justify-between px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5]">
-            <p className="text-sm text-[#0A0B0D]">서비스 이용약관</p>
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+            <p className="text-sm text-primary">서비스 이용약관</p>
+            <ChevronRightIcon className="w-4 h-4 text-tertiary" />
           </Link>
           <Link href="/privacy" className="flex items-center justify-between px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5]">
-            <p className="text-sm text-[#0A0B0D]">개인정보처리방침</p>
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+            <p className="text-sm text-primary">개인정보처리방침</p>
+            <ChevronRightIcon className="w-4 h-4 text-tertiary" />
           </Link>
           <Link href="/feedback" className="flex items-center justify-between px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5]">
-            <p className="text-sm text-[#0A0B0D]">의견 보내기</p>
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+            <p className="text-sm text-primary">의견 보내기</p>
+            <ChevronRightIcon className="w-4 h-4 text-tertiary" />
           </Link>
           <div className="flex items-center justify-between px-4 py-3.5 border-t border-[#E8E4DF]">
-            <p className="text-sm text-[#9B9B9B]">버전</p>
-            <p className="text-sm text-[#9B9B9B]">0.1.3</p>
+            <p className="text-sm text-tertiary">버전</p>
+            <p className="text-sm text-tertiary">0.1.3</p>
           </div>
         </div>
 
@@ -281,7 +281,7 @@ export default function SettingsPage() {
             onClick={handleLogout}
             className="w-full flex items-center px-4 py-3.5 active:bg-[#f5f5f5] transition-colors"
           >
-            <p className="text-sm text-[#0A0B0D]">로그아웃</p>
+            <p className="text-sm text-primary">로그아웃</p>
           </button>
           <button
             onClick={() => setDeleteStep(1)}
@@ -300,25 +300,25 @@ export default function SettingsPage() {
                 {/* Step 1: 탈퇴 안내 */}
                 {deleteStep === 1 && (
                   <div className="space-y-4">
-                    <h3 className="text-[17px] font-bold text-[#1A1918]">정말 떠나시는 건가요?</h3>
+                    <h3 className="text-[17px] font-bold text-primary">정말 떠나시는 건가요?</h3>
                     <div className="bg-red-50 rounded-xl p-4 space-y-2">
-                      <p className="text-[13px] text-red-600 font-semibold">탈퇴 시 삭제되는 데이터:</p>
-                      <p className="text-[13px] text-[#6B6966]">• 아이 프로필 및 성장 기록</p>
-                      <p className="text-[13px] text-[#6B6966]">• 수유/수면/배변 전체 기록</p>
-                      <p className="text-[13px] text-[#6B6966]">• 커뮤니티 글 및 리뷰</p>
-                      <p className="text-[13px] text-[#6B6966]">• AI 분석 데이터</p>
+                      <p className="text-body text-red-600 font-semibold">탈퇴 시 삭제되는 데이터:</p>
+                      <p className="text-body text-secondary">• 아이 프로필 및 성장 기록</p>
+                      <p className="text-body text-secondary">• 수유/수면/배변 전체 기록</p>
+                      <p className="text-body text-secondary">• 커뮤니티 글 및 리뷰</p>
+                      <p className="text-body text-secondary">• AI 분석 데이터</p>
                     </div>
-                    <p className="text-[13px] text-[#9E9A95]">30일 유예 기간 내 재로그인하면 복구할 수 있어요.</p>
-                    <button onClick={() => setDeleteStep(2)} className="w-full py-3 bg-[#E8E4DF] text-[#6B6966] text-[14px] font-semibold rounded-xl">다음</button>
+                    <p className="text-body text-tertiary">30일 유예 기간 내 재로그인하면 복구할 수 있어요.</p>
+                    <button onClick={() => setDeleteStep(2)} className="w-full py-3 bg-[#E8E4DF] text-secondary text-body-emphasis rounded-xl">다음</button>
                   </div>
                 )}
                 {/* Step 2: 탈퇴 사유 */}
                 {deleteStep === 2 && (
                   <div className="space-y-4">
-                    <h3 className="text-[17px] font-bold text-[#1A1918]">떠나시는 이유가 궁금해요</h3>
+                    <h3 className="text-[17px] font-bold text-primary">떠나시는 이유가 궁금해요</h3>
                     {['사용하지 않아요', '다른 앱을 쓰고 있어요', '기능이 부족해요', '개인정보가 걱정돼요', '기타'].map(r => (
                       <button key={r} onClick={() => { setDeleteReason(r); setDeleteStep(3) }}
-                        className={`w-full py-3 rounded-xl text-[14px] text-left px-4 border ${deleteReason === r ? 'border-red-400 bg-red-50' : 'border-[#E8E4DF]'}`}>
+                        className={`w-full py-3 rounded-xl text-body-emphasis text-left px-4 border ${deleteReason === r ? 'border-red-400 bg-red-50' : 'border-[#E8E4DF]'}`}>
                         {r}
                       </button>
                     ))}
@@ -327,41 +327,41 @@ export default function SettingsPage() {
                 {/* Step 3: 재확인 */}
                 {deleteStep === 3 && (
                   <div className="space-y-4">
-                    <h3 className="text-[17px] font-bold text-[#1A1918]">정말 탈퇴하시겠어요?</h3>
+                    <h3 className="text-[17px] font-bold text-primary">정말 탈퇴하시겠어요?</h3>
                     <div className="bg-[var(--color-page-bg)] rounded-xl p-4">
-                      <p className="text-[13px] text-[#6B6966]">도담과 함께한 소중한 기록들이 30일 후 영구 삭제됩니다.</p>
+                      <p className="text-body text-secondary">도담과 함께한 소중한 기록들이 30일 후 영구 삭제됩니다.</p>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => setDeleteStep(0)} className="flex-1 py-3 bg-[var(--color-primary)] text-white text-[14px] font-bold rounded-xl">돌아가기</button>
-                      <button onClick={() => setDeleteStep(4)} className="flex-1 py-3 bg-[#E8E4DF] text-[#6B6966] text-[14px] font-semibold rounded-xl">계속 진행</button>
+                      <button onClick={() => setDeleteStep(0)} className="flex-1 py-3 bg-[var(--color-primary)] text-white font-bold rounded-xl">돌아가기</button>
+                      <button onClick={() => setDeleteStep(4)} className="flex-1 py-3 bg-[#E8E4DF] text-secondary text-body-emphasis rounded-xl">계속 진행</button>
                     </div>
                   </div>
                 )}
                 {/* Step 4: 텍스트 입력 확인 */}
                 {deleteStep === 4 && (
                   <div className="space-y-4">
-                    <h3 className="text-[17px] font-bold text-[#1A1918]">확인을 위해 &quot;탈퇴합니다&quot;를 입력해주세요</h3>
+                    <h3 className="text-[17px] font-bold text-primary">확인을 위해 &quot;탈퇴합니다&quot;를 입력해주세요</h3>
                     <input
                       value={deleteConfirmText}
                       onChange={e => setDeleteConfirmText(e.target.value)}
                       placeholder="탈퇴합니다"
-                      className="w-full h-12 px-4 rounded-xl border border-[#E8E4DF] text-[14px]"
+                      className="w-full h-12 px-4 rounded-xl border border-[#E8E4DF] text-body-emphasis"
                     />
                     <button
                       onClick={() => deleteConfirmText === '탈퇴합니다' && setDeleteStep(5)}
                       disabled={deleteConfirmText !== '탈퇴합니다'}
-                      className={`w-full py-3 rounded-xl text-[14px] font-semibold ${deleteConfirmText === '탈퇴합니다' ? 'bg-red-500 text-white' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}
+                      className={`w-full py-3 rounded-xl text-body-emphasis ${deleteConfirmText === '탈퇴합니다' ? 'bg-red-500 text-white' : 'bg-[#E8E4DF] text-tertiary'}`}
                     >다음</button>
                   </div>
                 )}
                 {/* Step 5: 최종 탈퇴 */}
                 {deleteStep === 5 && (
                   <div className="space-y-4 text-center">
-                    <p className="text-[15px] font-bold text-[#6B6966]">정말요?</p>
-                    <h3 className="text-[17px] font-bold text-[#1A1918]">마지막 기회예요</h3>
-                    <p className="text-[13px] text-[#6B6966]">탈퇴 버튼을 누르면 30일 유예 후 모든 데이터가 삭제됩니다.</p>
-                    <button onClick={() => setDeleteStep(0)} className="w-full py-3 bg-[var(--color-primary)] text-white text-[14px] font-bold rounded-xl">역시 남을래요!</button>
-                    <button onClick={executeDeleteAccount} className="w-full py-3 text-red-500 text-[13px]">탈퇴하기</button>
+                    <p className="text-subtitle text-secondary">정말요?</p>
+                    <h3 className="text-[17px] font-bold text-primary">마지막 기회예요</h3>
+                    <p className="text-body text-secondary">탈퇴 버튼을 누르면 30일 유예 후 모든 데이터가 삭제됩니다.</p>
+                    <button onClick={() => setDeleteStep(0)} className="w-full py-3 bg-[var(--color-primary)] text-white font-bold rounded-xl">역시 남을래요!</button>
+                    <button onClick={executeDeleteAccount} className="w-full py-3 text-red-500 text-body">탈퇴하기</button>
                   </div>
                 )}
               </div>
@@ -369,7 +369,7 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <p className="text-center text-xs text-[#9B9B9B] mt-6">
+        <p className="text-center text-xs text-tertiary mt-6">
           오늘도 도담하게
         </p>
       </div>

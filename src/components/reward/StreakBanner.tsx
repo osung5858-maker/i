@@ -126,13 +126,13 @@ export default function StreakBanner({ events, birthdate }: Props) {
         <div className="bg-gradient-to-r from-[var(--color-page-bg)] to-[#FFF5EB] rounded-2xl p-4 border border-[#F0DCC8] relative">
           <button
             onClick={() => setDismissedMilestone(milestone.days)}
-            className="absolute top-2 right-2 text-[#9E9A95] text-xs p-1"
+            className="absolute top-2 right-2 text-tertiary text-xs p-1"
           ><XIcon className="w-3 h-3" /></button>
           <div className="flex items-center gap-3">
             <TrophyIcon className="w-8 h-8 text-[#C4913E]" />
             <div>
-              <p className="text-[16px] font-bold text-[#1A1918]">{milestone.title}</p>
-              <p className="text-[14px] text-[#6B6966]">{milestone.message}</p>
+              <p className="text-subtitle font-bold text-primary">{milestone.title}</p>
+              <p className="text-body-emphasis text-secondary">{milestone.message}</p>
             </div>
           </div>
         </div>
@@ -144,8 +144,8 @@ export default function StreakBanner({ events, birthdate }: Props) {
           <div className="flex items-center gap-2">
             <SparkleIcon className="w-5 h-5 text-[var(--color-primary)]" />
             <div>
-              <p className="text-[14px] font-semibold text-[#212124]">괜찮아요, 오늘부터 다시!</p>
-              <p className="text-[13px] text-[#6B6966]">최장 {longest}일 연속 기록이 있잖아요. 오늘 하나만 기록하면 다시 시작돼요.</p>
+              <p className="text-body-emphasis text-primary">괜찮아요, 오늘부터 다시!</p>
+              <p className="text-body text-secondary">최장 {longest}일 연속 기록이 있잖아요. 오늘 하나만 기록하면 다시 시작돼요.</p>
             </div>
           </div>
         </div>
@@ -159,11 +159,11 @@ export default function StreakBanner({ events, birthdate }: Props) {
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[16px] font-bold text-[#212124]">{current}일</span>
-              <span className="text-[14px] text-[#6B6966]">연속 기록 중</span>
+              <span className="text-subtitle font-bold text-primary">{current}일</span>
+              <span className="text-body-emphasis text-secondary">연속 기록 중</span>
             </div>
             {currentBadge && (
-              <span className="text-[13px] font-medium" style={{ color: 'var(--color-primary)' }}>
+              <span className="text-body font-medium" style={{ color: 'var(--color-primary)' }}>
                 {currentBadge.name}
               </span>
             )}
@@ -172,8 +172,8 @@ export default function StreakBanner({ events, birthdate }: Props) {
 
         {nextBadge && (
           <div className="text-right">
-            <p className="text-[14px] text-[#9E9A95]">다음 배지</p>
-            <p className="text-[14px] font-semibold text-[var(--color-primary)]">
+            <p className="text-body-emphasis text-tertiary">다음 배지</p>
+            <p className="text-body-emphasis text-[var(--color-primary)]">
               {nextBadge.days - current}일 남음
             </p>
           </div>
@@ -185,9 +185,9 @@ export default function StreakBanner({ events, birthdate }: Props) {
         <div className="bg-gradient-to-r from-[#F0F9F4] to-[#E8F5FF] rounded-2xl p-3.5 border border-[#E0F0E8]">
           <div className="flex items-center gap-2 mb-1">
             <SparkleIcon className="w-3.5 h-3.5 text-[var(--color-primary)]" />
-            <span className="text-[13px] font-bold text-[var(--color-primary)]">AI 기능 해금 임박!</span>
+            <span className="text-body font-bold text-[var(--color-primary)]">AI 기능 해금 임박!</span>
           </div>
-          <p className="text-[14px] text-[#212124]">
+          <p className="text-body-emphasis text-primary">
             <span className="font-semibold">{nextAIUnlock.days - total}일</span>만 더 기록하면{' '}
             <span className="font-semibold text-[var(--color-primary)]">{nextAIUnlock.label}</span>이 열려요
           </p>

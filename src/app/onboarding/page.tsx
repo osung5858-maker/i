@@ -214,7 +214,7 @@ export default function OnboardingPage() {
           )}
         </button>
 
-        <p className="mt-2 text-xs text-[#9B9B9B] text-center leading-relaxed">
+        <p className="mt-2 text-xs text-tertiary text-center leading-relaxed">
           시작하면{' '}
           <a href="/terms" className="underline">서비스 이용약관</a>,{' '}
           <a href="/privacy" className="underline">개인정보처리방침</a>에 동의하게 됩니다.

@@ -73,7 +73,7 @@ export default function AICardFeed({ events, childName, ageMonths, mood }: Props
         id: `anomaly-${i}`,
         type: a.severity === 'info' ? 'info' : 'health',
         colorBar: a.severity === 'critical' ? 'bg-red-500' : a.severity === 'major' ? 'bg-orange-500' : 'bg-[#9B9B9B]',
-        icon: <AlertIcon className={`w-4 h-4 ${a.severity === 'critical' ? 'text-red-500' : a.severity === 'major' ? 'text-orange-500' : 'text-[#9B9B9B]'}`} />,
+        icon: <AlertIcon className={`w-4 h-4 ${a.severity === 'critical' ? 'text-red-500' : a.severity === 'major' ? 'text-orange-500' : 'text-tertiary'}`} />,
         body: a.message,
         disclaimer: a.severity !== 'info' ? '참고용 정보예요. 걱정되시면 소아과 상담을 추천드려요.' : undefined,
       })
@@ -195,63 +195,139 @@ export default function AICardFeed({ events, childName, ageMonths, mood }: Props
   if (visibleCards.length === 0) return null
 
   return (
-    <div className="px-4 space-y-2 mb-3">
-      {visibleCards.map((card) => (
-        <div
-          key={card.id}
-          className="flex rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden"
-        >
-          {/* 좌측 컬러 바 */}
-          <div className={`w-1 ${card.colorBar} shrink-0`} />
+    <>
+      <div className="px-4 space-y-3 mb-4">
+        {visibleCards.map((card, idx) => {
+          const isRoutine = card.type === 'routine'
+          const isEmotion = card.type === 'emotion'
+          const isHealth = card.type === 'health'
+          const isCritical = card.colorBar.includes('red')
 
-          {/* 내용 */}
-          <div className="flex-1 p-3.5">
-            <div className="flex items-start gap-2">
-              <span className="text-base shrink-0">{card.icon}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-[#0A0B0D] leading-relaxed">
-                  {card.body}
-                </p>
-                {card.disclaimer && (
-                  <p className="text-[14px] text-[#9B9B9B] mt-1.5">{card.disclaimer}</p>
-                )}
-                {card.type === 'health' && !feedback[card.id] && (
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => setFeedback((p) => ({ ...p, [card.id]: 'helpful' }))}
-                      className="text-[12px] px-2.5 py-1 rounded-full bg-[#E8F5EE] text-[#2D7A4A] font-medium"
-                    >
-                      도움이 됐어요
-                    </button>
-                    <button
-                      onClick={() => setFeedback((p) => ({ ...p, [card.id]: 'not_helpful' }))}
-                      className="text-[12px] px-2.5 py-1 rounded-full bg-[#F5F3F0] text-[#7A7672] font-medium"
-                    >
-                      아니요
-                    </button>
+          // 카드 타입별 그라데이션 (테마 변수 적용)
+          const gradientMap: Record<string, string> = {
+            routine: 'from-blue-50 to-white',
+            emotion: 'from-[var(--color-primary-bg)] to-white',
+            health: isCritical ? 'from-red-50 to-white' : 'from-orange-50 to-white',
+            info: 'from-[var(--color-surface-alt)] to-white',
+          }
+
+          return (
+            <div
+              key={card.id}
+              className={`rounded-2xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-gradient-to-b ${gradientMap[card.type]} border border-[#E8E4DF] dodam-ai-card`}
+              style={{
+                animation: `dodam-slideUp 0.3s ease-out ${idx * 0.1}s both`
+              }}
+            >
+              {/* 헤더 영역 */}
+              <div className="relative px-5 pt-4 pb-3">
+                <div className="flex items-start gap-3">
+                  {/* 아이콘 */}
+                  <div className={`w-12 h-12 rounded-2xl ${
+                    isRoutine ? 'bg-blue-50 shadow-[0_2px_8px_rgba(0,82,255,0.15)]' :
+                    isEmotion ? 'bg-[var(--color-primary-bg)] shadow-[0_2px_8px_var(--color-card-shadow)]' :
+                    isHealth ? (isCritical ? 'bg-red-50 shadow-[0_2px_8px_rgba(239,68,68,0.15)]' : 'bg-orange-50 shadow-[0_2px_8px_rgba(245,158,11,0.15)]') :
+                    'bg-[var(--color-surface-alt)]'
+                  } flex items-center justify-center shrink-0`}>
+                    <span className="text-xl">{card.icon}</span>
+                  </div>
+
+                  {/* 텍스트 */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-label font-bold ${
+                        isRoutine ? 'bg-blue-100 text-blue-700' :
+                        isEmotion ? 'bg-pink-100 text-pink-700' :
+                        isHealth ? (isCritical ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700') :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {isRoutine ? '루틴 예보' : isEmotion ? 'AI 케어' : isHealth ? (isCritical ? '긴급' : '건강') : '정보'}
+                      </span>
+                    </div>
+                    <p className="text-subtitle text-primary leading-snug mt-1.5">
+                      {card.body}
+                    </p>
+                  </div>
+
+                  {/* 닫기 버튼 */}
+                  <button
+                    onClick={() => setDismissed((prev) => new Set(prev).add(card.id))}
+                    className="text-muted hover:text-secondary shrink-0 p-1.5 rounded-lg hover:bg-white/50 transition-colors"
+                  >
+                    <XIcon className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* 프로그레스 바 (루틴 예보만) */}
+                {isRoutine && (
+                  <div className="mt-3">
+                    <div className="h-1.5 bg-white rounded-full overflow-hidden shadow-inner">
+                      <div
+                        className={`h-full ${card.colorBar} rounded-full transition-all duration-1000 ease-out`}
+                        style={{ width: '65%' }}
+                      />
+                    </div>
                   </div>
                 )}
-                {feedback[card.id] && (
-                  <p className="text-[12px] text-[#9E9A95] mt-2">
-                    {feedback[card.id] === 'helpful' ? '피드백 감사해요! 더 정확해질게요.' : '알겠어요, 참고할게요.'}
-                  </p>
-                )}
-                {card.id === 'location-clinic' && (
-                  <Link href="/emergency" className="inline-block mt-2 text-[13px] font-semibold text-red-600">
-                    가까운 소아과 찾기 →
-                  </Link>
-                )}
               </div>
-              <button
-                onClick={() => setDismissed((prev) => new Set(prev).add(card.id))}
-                className="text-[#c0c0c0] hover:text-[#9B9B9B] shrink-0 text-xs p-1"
-              >
-                <XIcon className="w-3 h-3" />
-              </button>
+
+              {/* 푸터 영역 */}
+              {(card.disclaimer || card.type === 'health' || card.id === 'location-clinic') && (
+                <div className="px-5 pb-4">
+                  {card.disclaimer && (
+                    <p className="text-body text-secondary leading-relaxed bg-white/60 px-3 py-2 rounded-xl border border-[#E8E4DF]/50">
+                      💡 {card.disclaimer}
+                    </p>
+                  )}
+
+                  {card.type === 'health' && !feedback[card.id] && (
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => setFeedback((p) => ({ ...p, [card.id]: 'helpful' }))}
+                        className="flex-1 text-body px-4 py-2.5 rounded-xl bg-white border border-[#E8E4DF] text-[var(--color-primary)] font-semibold active:bg-[#FAFAF8] transition-colors shadow-sm"
+                      >
+                        👍 도움됐어요
+                      </button>
+                      <button
+                        onClick={() => setFeedback((p) => ({ ...p, [card.id]: 'not_helpful' }))}
+                        className="flex-1 text-body px-4 py-2.5 rounded-xl bg-white border border-[#E8E4DF] text-secondary font-medium active:bg-[#FAFAF8] transition-colors"
+                      >
+                        아니요
+                      </button>
+                    </div>
+                  )}
+
+                  {feedback[card.id] && (
+                    <p className="text-body text-[var(--color-primary)] mt-3 font-medium">
+                      {feedback[card.id] === 'helpful' ? '✨ 피드백 감사해요! 더 정확해질게요.' : '알겠어요, 참고할게요.'}
+                    </p>
+                  )}
+
+                  {card.id === 'location-clinic' && (
+                    <Link href="/emergency" className="flex items-center justify-center gap-2 mt-3 px-4 py-3 rounded-xl bg-red-500 text-white text-body-emphasis font-bold active:bg-red-600 transition-colors shadow-lg">
+                      <HospitalIcon className="w-4 h-4" />
+                      가까운 소아과 찾기 →
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-      ))}
-    </div>
+          )
+        })}
+      </div>
+
+      <style jsx>{`
+        @keyframes dodam-slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+    </>
   )
 }

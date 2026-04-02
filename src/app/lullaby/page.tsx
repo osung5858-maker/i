@@ -428,8 +428,8 @@ export default function LullabyPage() {
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] pb-[env(safe-area-inset-bottom)]">
       <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
-        <Link href="/" className="text-[#9E9A95] text-sm">←</Link>
-        <h1 className="text-[15px] font-bold text-[#1A1918]">자장가 · 동요</h1>
+        <Link href="/" className="text-tertiary text-sm">←</Link>
+        <h1 className="text-subtitle text-primary">자장가 · 동요</h1>
         <div className="w-6" />
       </div>
 
@@ -449,8 +449,8 @@ export default function LullabyPage() {
 
         {currentTrack && !getYouTubeEmbedUrl(currentTrack) && (
           <div className="mx-5 mt-2 rounded-xl bg-white border border-[#E8E4DF] p-6 text-center">
-            <p className="text-[14px] font-medium text-[#1A1918]">{currentTrack.title}</p>
-            <p className="text-[13px] text-[#9E9A95] mt-1">재생 준비 중...</p>
+            <p className="text-body-emphasis font-medium text-primary">{currentTrack.title}</p>
+            <p className="text-body text-tertiary mt-1">재생 준비 중...</p>
           </div>
         )}
 
@@ -458,10 +458,10 @@ export default function LullabyPage() {
         {!currentTrack && (
           <div className="mx-5 mt-4 text-center">
             <MoonIcon className="w-8 h-8 mx-auto mb-2 text-[var(--color-primary)]" />
-            <p className="text-[16px] font-bold text-[#1A1918]">자장가 · 동요</p>
-            <p className="text-[14px] text-[#9E9A95] mt-1">자장가 {LULLABY_TRACKS.length}곡 · 동요 {NURSERY_TRACKS.length}곡 · 자연음 {NATURE_TRACKS.length}곡 · 백색소음 {WHITE_NOISE_TRACKS.length}종</p>
+            <p className="text-subtitle font-bold text-primary">자장가 · 동요</p>
+            <p className="text-body-emphasis text-tertiary mt-1">자장가 {LULLABY_TRACKS.length}곡 · 동요 {NURSERY_TRACKS.length}곡 · 자연음 {NATURE_TRACKS.length}곡 · 백색소음 {WHITE_NOISE_TRACKS.length}종</p>
             <div className="mt-3 px-4 py-2 bg-[var(--color-accent-bg)] rounded-lg inline-block">
-              <p className="text-[13px] text-[#6B6966]">아래에서 곡을 선택해서 재생해보세요</p>
+              <p className="text-body text-secondary">아래에서 곡을 선택해서 재생해보세요</p>
             </div>
           </div>
         )}
@@ -472,8 +472,8 @@ export default function LullabyPage() {
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`px-4 py-2 rounded-full text-[14px] font-semibold transition-colors ${
-                category === cat ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-[#9E9A95] border border-[#E8E4DF]'
+              className={`px-4 py-2 rounded-full text-body-emphasis transition-colors ${
+                category === cat ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-tertiary border border-[#E8E4DF]'
               }`}
             >
               {CATEGORY_LABELS[cat]}
@@ -498,16 +498,16 @@ export default function LullabyPage() {
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
                   isPlaying ? 'bg-[var(--color-primary)]' : 'bg-[#F0EDE8]'
                 }`}>
-                  <span className={`text-sm ${isPlaying ? 'text-white' : 'text-[#6B6966]'}`}>{isPlaying ? '||' : hasAudio ? '▶' : '—'}</span>
+                  <span className={`text-sm ${isPlaying ? 'text-white' : 'text-secondary'}`}>{isPlaying ? '||' : hasAudio ? '▶' : '—'}</span>
                 </div>
                 <div className="flex-1 text-left">
-                  <p className={`text-[13px] font-medium ${isPlaying ? 'text-[var(--color-primary)]' : 'text-[#1A1918]'}`}>
+                  <p className={`text-body font-medium ${isPlaying ? 'text-[var(--color-primary)]' : 'text-primary'}`}>
                     {track.title}
                   </p>
-                  <p className="text-[13px] text-[#9E9A95]">{track.duration}</p>
+                  <p className="text-body text-tertiary">{track.duration}</p>
                 </div>
                 {track.avgSleepMin && (
-                  <span className="text-[14px] text-[var(--color-primary)] font-semibold shrink-0">
+                  <span className="text-body-emphasis text-[var(--color-primary)] font-semibold shrink-0">
                     ~{track.avgSleepMin}분
                   </span>
                 )}
@@ -524,7 +524,7 @@ export default function LullabyPage() {
               : `https://www.youtube.com/playlist?list=${LULLABY_PLAYLIST}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[14px] text-white/40 font-medium"
+            className="text-body-emphasis text-white/40 font-medium"
           >
             YouTube에서 전체 {CATEGORY_LABELS[category]} 듣기 →
           </a>
@@ -537,8 +537,8 @@ export default function LullabyPage() {
           <div className="max-w-lg mx-auto w-full">
             <div className="flex items-center gap-3 px-5 py-3">
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium text-white truncate">{currentTrack.title}</p>
-                <p className="text-[13px] text-white/40">{CATEGORY_LABELS[currentTrack.category]}</p>
+                <p className="text-body font-medium text-white truncate">{currentTrack.title}</p>
+                <p className="text-body text-white/40">{CATEGORY_LABELS[currentTrack.category]}</p>
               </div>
               <button onClick={playNext} className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
                 <span className="text-white text-sm">⏭</span>
@@ -547,7 +547,7 @@ export default function LullabyPage() {
                 onClick={() => togglePlay(currentTrack.id)}
                 className="w-9 h-9 rounded-full bg-white flex items-center justify-center"
               >
-                <span className="text-[#1A1918] text-sm">⏹</span>
+                <span className="text-primary text-sm">⏹</span>
               </button>
             </div>
 
@@ -557,7 +557,7 @@ export default function LullabyPage() {
                   <button
                     key={t}
                     onClick={() => setTimer(t)}
-                    className={`px-3 py-1 rounded-full text-[14px] font-semibold ${
+                    className={`px-3 py-1 rounded-full text-body-emphasis ${
                       timer === t ? 'bg-[var(--color-primary)] text-white' : 'bg-[#3a3a3a] text-white/40'
                     }`}
                   >
@@ -566,7 +566,7 @@ export default function LullabyPage() {
                 ))}
               </div>
               {timerLeft !== null && (
-                <span className="text-[13px] text-white/40 font-mono">
+                <span className="text-body text-white/40 font-mono">
                   {formatTimer(timerLeft)}
                 </span>
               )}

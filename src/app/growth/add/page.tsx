@@ -79,8 +79,8 @@ export default function AddGrowthPage() {
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col">
       <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">취소</button>
-        <h1 className="text-[15px] font-bold text-[#0A0B0D]">성장 기록 추가</h1>
+        <button onClick={() => router.back()} className="text-sm text-tertiary">취소</button>
+        <h1 className="text-subtitle text-primary">성장 기록 추가</h1>
         <div className="w-8" />
       </div>
 
@@ -95,7 +95,7 @@ export default function AddGrowthPage() {
             value={measuredAt}
             onChange={(e) => setMeasuredAt(e.target.value)}
             max={new Date().toISOString().split('T')[0]}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-[15px] text-[#0A0B0D] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
           />
         </div>
 
@@ -110,7 +110,7 @@ export default function AddGrowthPage() {
             value={weightKg}
             onChange={(e) => setWeightKg(e.target.value)}
             placeholder="예: 9.8"
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-[15px] text-[#0A0B0D] placeholder-[#c0c0c0] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary placeholder-[#c0c0c0] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
           />
         </div>
 
@@ -125,7 +125,7 @@ export default function AddGrowthPage() {
             value={heightCm}
             onChange={(e) => setHeightCm(e.target.value)}
             placeholder="예: 76.5"
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-[15px] text-[#0A0B0D] placeholder-[#c0c0c0] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary placeholder-[#c0c0c0] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
           />
         </div>
 
@@ -140,7 +140,7 @@ export default function AddGrowthPage() {
             value={headCm}
             onChange={(e) => setHeadCm(e.target.value)}
             placeholder="예: 46.0"
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-[15px] text-[#0A0B0D] placeholder-[#c0c0c0] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary placeholder-[#c0c0c0] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
           />
         </div>
 
@@ -156,7 +156,7 @@ export default function AddGrowthPage() {
           <button
             type="submit"
             disabled={loading || !hasValue}
-            className="w-full h-[52px] rounded-xl font-semibold text-[15px] transition-all active:scale-[0.98] disabled:opacity-40 bg-[var(--color-primary)] text-white shadow-[0_4px_12px_rgba(0,82,255,0.3)]"
+            className="w-full h-[52px] rounded-xl font-semibold text-subtitle transition-all active:scale-[0.98] disabled:opacity-40 bg-[var(--color-primary)] text-white shadow-[0_4px_12px_rgba(0,82,255,0.3)]"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />

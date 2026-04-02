@@ -134,7 +134,7 @@ function FortuneContent() {
             { key: 'fortune' as const, label: '오늘의 운세', icon: <CardIcon className="w-3.5 h-3.5 inline mr-0.5" /> },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex-1 py-2 rounded-xl text-[13px] font-semibold ${tab === t.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
+              className={`flex-1 py-2 rounded-xl text-body font-semibold ${tab === t.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-secondary border border-[#E8E4DF]'}`}>
               {t.icon}{t.label}
             </button>
           ))}
@@ -143,7 +143,7 @@ function FortuneContent() {
         {/* 바이오리듬 */}
         {tab === 'biorhythm' && bio && (
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-3">오늘의 바이오리듬</p>
+            <p className="text-body-emphasis font-bold text-primary mb-3">오늘의 바이오리듬</p>
             {[
               { label: '신체', value: bio.physical, color: '#D08068' },
               { label: '감정', value: bio.emotional, color: 'var(--color-primary)' },
@@ -151,8 +151,8 @@ function FortuneContent() {
             ].map(b => (
               <div key={b.label} className="mb-3 last:mb-0">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[14px] text-[#1A1918]">{b.label}</span>
-                  <span className="text-[14px] font-bold" style={{ color: b.color }}>{Math.round(b.value)}%</span>
+                  <span className="text-body-emphasis text-primary">{b.label}</span>
+                  <span className="text-body-emphasis font-bold" style={{ color: b.color }}>{Math.round(b.value)}%</span>
                 </div>
                 <div className="w-full h-2 bg-[#E8E4DF] rounded-full relative">
                   <div className="absolute top-0 left-1/2 w-px h-2 bg-[#AEB1B9]" />
@@ -165,7 +165,7 @@ function FortuneContent() {
                 </div>
               </div>
             ))}
-            <p className="text-[14px] text-[#6B6966] mt-2 text-center">
+            <p className="text-body-emphasis text-secondary mt-2 text-center">
               {bio.physical > 50 && bio.emotional > 50 ? '오늘 컨디션 최고!' :
                bio.emotional < -30 ? '감정 기복이 있을 수 있어요. 쉬어가세요' :
                '도담하게 보내세요'}
@@ -184,7 +184,7 @@ function FortuneContent() {
               const starFile = getConstellationFile(constellation)
               return (
                 <div className="bg-gradient-to-br from-white to-[#FFF8F3] rounded-xl border border-[#FFDDC8]/50 p-4">
-                  <p className="text-[13px] font-bold text-[#1A1918] mb-3 text-center">엄마의 띠 · 별자리</p>
+                  <p className="text-body font-bold text-primary mb-3 text-center">엄마의 띠 · 별자리</p>
                   <div className="flex gap-3">
                     {/* 띠 */}
                     <div className="flex-1 flex flex-col items-center gap-1">
@@ -193,8 +193,8 @@ function FortuneContent() {
                           className="w-20 h-20 object-contain"
                           style={{ maskImage: 'radial-gradient(circle, black 55%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 80%)' }} />
                       )}
-                      <p className="text-[15px] font-bold text-[#1A1918]">{animal}띠</p>
-                      <p className="text-[11px] text-[#9E9A95]">{birthParts[0]}년생</p>
+                      <p className="text-subtitle text-primary">{animal}띠</p>
+                      <p className="text-label text-tertiary">{birthParts[0]}년생</p>
                     </div>
                     <div className="w-px bg-[#E8E4DF]" />
                     {/* 별자리 */}
@@ -204,8 +204,8 @@ function FortuneContent() {
                           className="w-20 h-20 object-contain"
                           style={{ maskImage: 'radial-gradient(circle, black 55%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 80%)' }} />
                       )}
-                      <p className="text-[15px] font-bold text-[#1A1918]">{constellation}</p>
-                      <p className="text-[11px] text-[#9E9A95]">{birthParts[1]}/{birthParts[2]}</p>
+                      <p className="text-subtitle text-primary">{constellation}</p>
+                      <p className="text-label text-tertiary">{birthParts[1]}/{birthParts[2]}</p>
                     </div>
                   </div>
                 </div>
@@ -221,7 +221,7 @@ function FortuneContent() {
               const starFile = getConstellationFile(constellation)
               return (
                 <div className="bg-gradient-to-br from-white to-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)]/50 p-4">
-                  <p className="text-[13px] font-bold text-[#1A1918] mb-3 text-center">아이 예상 띠 · 별자리</p>
+                  <p className="text-body font-bold text-primary mb-3 text-center">아이 예상 띠 · 별자리</p>
                   <div className="flex gap-3">
                     {/* 띠 */}
                     <div className="flex-1 flex flex-col items-center gap-1">
@@ -230,8 +230,8 @@ function FortuneContent() {
                           className="w-20 h-20 object-contain"
                           style={{ maskImage: 'radial-gradient(circle, black 55%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 80%)' }} />
                       )}
-                      <p className="text-[15px] font-bold text-[#1A1918]">{animal}띠</p>
-                      <p className="text-[11px] text-[#9E9A95]">{due.getFullYear()}년생 예정</p>
+                      <p className="text-subtitle text-primary">{animal}띠</p>
+                      <p className="text-label text-tertiary">{due.getFullYear()}년생 예정</p>
                     </div>
                     <div className="w-px bg-[#E8E4DF]" />
                     {/* 별자리 */}
@@ -241,8 +241,8 @@ function FortuneContent() {
                           className="w-20 h-20 object-contain"
                           style={{ maskImage: 'radial-gradient(circle, black 55%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 80%)' }} />
                       )}
-                      <p className="text-[15px] font-bold text-[#1A1918]">{constellation}</p>
-                      <p className="text-[11px] text-[#9E9A95]">출산 예정일 기준</p>
+                      <p className="text-subtitle text-primary">{constellation}</p>
+                      <p className="text-label text-tertiary">출산 예정일 기준</p>
                     </div>
                   </div>
                 </div>
@@ -254,21 +254,21 @@ function FortuneContent() {
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 space-y-3">
                 {fortuneResult.animalFortune && (
                   <div>
-                    <p className="text-[14px] font-bold text-[#1A1918] mb-1">{getZodiacAnimal(birthParts[0])} 오늘의 운세</p>
-                    <p className="text-[14px] text-[#6B6966] leading-relaxed">{fortuneResult.animalFortune}</p>
+                    <p className="text-body-emphasis font-bold text-primary mb-1">{getZodiacAnimal(birthParts[0])} 오늘의 운세</p>
+                    <p className="text-body-emphasis text-secondary leading-relaxed">{fortuneResult.animalFortune}</p>
                   </div>
                 )}
                 {fortuneResult.starFortune && (
                   <div className="pt-2 border-t border-[#E8E4DF]">
-                    <p className="text-[14px] font-bold text-[#1A1918] mb-1">{getConstellation(birthParts[1], birthParts[2])} 오늘의 운세</p>
-                    <p className="text-[14px] text-[#6B6966] leading-relaxed">{fortuneResult.starFortune}</p>
+                    <p className="text-body-emphasis font-bold text-primary mb-1">{getConstellation(birthParts[1], birthParts[2])} 오늘의 운세</p>
+                    <p className="text-body-emphasis text-secondary leading-relaxed">{fortuneResult.starFortune}</p>
                   </div>
                 )}
-                <p className="text-[13px] text-[#9E9A95] text-center">재미로만 봐주세요</p>
+                <p className="text-body text-tertiary text-center">재미로만 봐주세요</p>
               </div>
             ) : (
               <button onClick={fetchFortune} disabled={loading}
-                className="w-full py-3 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                className="w-full py-3 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                 {loading ? '운세 보는 중...' : '띠 · 별자리 운세 보기'}
               </button>
             )}
@@ -282,8 +282,8 @@ function FortuneContent() {
               <>
                 {/* 전체 운세 */}
                 <div className="bg-gradient-to-br from-[#FFF8F3] to-[#F0F9F4] rounded-xl border border-[#FFDDC8]/50 p-4">
-                  <p className="text-[14px] font-bold text-[#1A1918] mb-2 flex items-center gap-1"><CardIcon className="w-4 h-4" /> 오늘의 운세</p>
-                  <p className="text-[13px] text-[#1A1918] leading-relaxed">{fortuneResult.todayLuck}</p>
+                  <p className="text-body-emphasis font-bold text-primary mb-2 flex items-center gap-1"><CardIcon className="w-4 h-4" /> 오늘의 운세</p>
+                  <p className="text-body text-primary leading-relaxed">{fortuneResult.todayLuck}</p>
                 </div>
 
                 {/* 띠/별자리 운세 */}
@@ -291,14 +291,14 @@ function FortuneContent() {
                   <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 space-y-2">
                     {fortuneResult.animalFortune && (
                       <div>
-                        <p className="text-[14px] font-semibold text-[#1A1918] mb-0.5">{getZodiacAnimal(new Date(birthDate).getFullYear())} 띠 운세</p>
-                        <p className="text-[13px] text-[#6B6966] leading-relaxed">{fortuneResult.animalFortune}</p>
+                        <p className="text-body-emphasis text-primary mb-0.5">{getZodiacAnimal(new Date(birthDate).getFullYear())} 띠 운세</p>
+                        <p className="text-body text-secondary leading-relaxed">{fortuneResult.animalFortune}</p>
                       </div>
                     )}
                     {fortuneResult.starFortune && (
                       <div className="pt-2 border-t border-[#E8E4DF]">
-                        <p className="text-[14px] font-semibold text-[#1A1918] mb-0.5">{getConstellation(new Date(birthDate).getMonth() + 1, new Date(birthDate).getDate())} 운세</p>
-                        <p className="text-[13px] text-[#6B6966] leading-relaxed">{fortuneResult.starFortune}</p>
+                        <p className="text-body-emphasis text-primary mb-0.5">{getConstellation(new Date(birthDate).getMonth() + 1, new Date(birthDate).getDate())} 운세</p>
+                        <p className="text-body text-secondary leading-relaxed">{fortuneResult.starFortune}</p>
                       </div>
                     )}
                   </div>
@@ -309,52 +309,52 @@ function FortuneContent() {
                   {fortuneResult.loveLuck && (
                     <div className="flex items-start gap-2">
                       <HeartIcon className="w-4 h-4 shrink-0 text-[#D08068]" />
-                      <div><p className="text-[13px] font-semibold text-[#1A1918]">사랑/가족운</p><p className="text-[13px] text-[#6B6966]">{fortuneResult.loveLuck}</p></div>
+                      <div><p className="text-body font-semibold text-primary">사랑/가족운</p><p className="text-body text-secondary">{fortuneResult.loveLuck}</p></div>
                     </div>
                   )}
                   {fortuneResult.healthLuck && (
                     <div className="flex items-start gap-2">
                       <HeartIcon className="w-4 h-4 shrink-0 text-[var(--color-primary)]" />
-                      <div><p className="text-[13px] font-semibold text-[#1A1918]">건강운</p><p className="text-[13px] text-[#6B6966]">{fortuneResult.healthLuck}</p></div>
+                      <div><p className="text-body font-semibold text-primary">건강운</p><p className="text-body text-secondary">{fortuneResult.healthLuck}</p></div>
                     </div>
                   )}
                   {fortuneResult.moneyLuck && (
                     <div className="flex items-start gap-2">
                       <StarIcon className="w-4 h-4 shrink-0 text-[#C4A35A]" />
-                      <div><p className="text-[13px] font-semibold text-[#1A1918]">재물운</p><p className="text-[13px] text-[#6B6966]">{fortuneResult.moneyLuck}</p></div>
+                      <div><p className="text-body font-semibold text-primary">재물운</p><p className="text-body text-secondary">{fortuneResult.moneyLuck}</p></div>
                     </div>
                   )}
                 </div>
 
                 {/* 행운 아이템 */}
                 <div className="grid grid-cols-2 gap-2">
-                  {fortuneResult.luckyColor && <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 text-center"><p className="text-[13px] text-[#6B6966]">행운의 색</p><p className="text-[13px] font-bold text-[#1A1918]">{fortuneResult.luckyColor}</p></div>}
-                  {fortuneResult.luckyFood && <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 text-center"><p className="text-[13px] text-[#6B6966]">행운의 음식</p><p className="text-[13px] font-bold text-[#1A1918]">{fortuneResult.luckyFood}</p></div>}
-                  {fortuneResult.luckyNumber && <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 text-center"><p className="text-[13px] text-[#6B6966]">행운의 숫자</p><p className="text-[13px] font-bold text-[#1A1918]">{fortuneResult.luckyNumber}</p></div>}
-                  {fortuneResult.luckyTime && <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 text-center"><p className="text-[13px] text-[#6B6966]">행운의 시간</p><p className="text-[13px] font-bold text-[#1A1918]">{fortuneResult.luckyTime}</p></div>}
+                  {fortuneResult.luckyColor && <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 text-center"><p className="text-body text-secondary">행운의 색</p><p className="text-body font-bold text-primary">{fortuneResult.luckyColor}</p></div>}
+                  {fortuneResult.luckyFood && <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 text-center"><p className="text-body text-secondary">행운의 음식</p><p className="text-body font-bold text-primary">{fortuneResult.luckyFood}</p></div>}
+                  {fortuneResult.luckyNumber && <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 text-center"><p className="text-body text-secondary">행운의 숫자</p><p className="text-body font-bold text-primary">{fortuneResult.luckyNumber}</p></div>}
+                  {fortuneResult.luckyTime && <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 text-center"><p className="text-body text-secondary">행운의 시간</p><p className="text-body font-bold text-primary">{fortuneResult.luckyTime}</p></div>}
                 </div>
 
                 {/* 주간 조언 + 피할 것 */}
                 <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 space-y-2">
-                  {fortuneResult.weekAdvice && <p className="text-[13px] text-[var(--color-primary)] flex items-start gap-1"><LightbulbIcon className="w-3.5 h-3.5 shrink-0 mt-0.5" /> 이번 주: {fortuneResult.weekAdvice}</p>}
-                  {fortuneResult.avoidToday && <p className="text-[13px] text-[#D08068] flex items-start gap-1"><AlertIcon className="w-3.5 h-3.5 shrink-0 mt-0.5" /> 오늘 피할 것: {fortuneResult.avoidToday}</p>}
+                  {fortuneResult.weekAdvice && <p className="text-body text-[var(--color-primary)] flex items-start gap-1"><LightbulbIcon className="w-3.5 h-3.5 shrink-0 mt-0.5" /> 이번 주: {fortuneResult.weekAdvice}</p>}
+                  {fortuneResult.avoidToday && <p className="text-body text-[#D08068] flex items-start gap-1"><AlertIcon className="w-3.5 h-3.5 shrink-0 mt-0.5" /> 오늘 피할 것: {fortuneResult.avoidToday}</p>}
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <p className="text-[13px] text-[#9E9A95]">재미로만 봐주세요</p>
+                  <p className="text-body text-tertiary">재미로만 봐주세요</p>
                   <div className="flex items-center gap-3">
-                    <button onClick={() => shareFortune(fortuneResult.todayLuck || '')} className="text-[12px] text-[var(--color-primary)] font-semibold">카톡 공유</button>
-                    <button onClick={() => { localStorage.removeItem(`dodam_fortune_${new Date().toISOString().split('T')[0]}_${birthDate}`); setFortuneResult(null); fetchFortune() }} className="text-[14px] text-[var(--color-primary)] flex items-center gap-1">다시 보기 <RefreshIcon className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => shareFortune(fortuneResult.todayLuck || '')} className="text-caption text-[var(--color-primary)] font-semibold">카톡 공유</button>
+                    <button onClick={() => { localStorage.removeItem(`dodam_fortune_${new Date().toISOString().split('T')[0]}_${birthDate}`); setFortuneResult(null); fetchFortune() }} className="text-body-emphasis text-[var(--color-primary)] flex items-center gap-1">다시 보기 <RefreshIcon className="w-3.5 h-3.5" /></button>
                   </div>
                 </div>
               </>
             ) : (
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-5 text-center">
                 <span className="block mb-2"><CardIcon className="w-8 h-8 mx-auto text-[var(--color-primary)]" /></span>
-                <p className="text-[14px] font-bold text-[#1A1918] mb-1">오늘의 운세</p>
-                <p className="text-[14px] text-[#6B6966] mb-4">띠·별자리·사주 기반 AI 운세를 봐드려요</p>
+                <p className="text-body-emphasis font-bold text-primary mb-1">오늘의 운세</p>
+                <p className="text-body-emphasis text-secondary mb-4">띠·별자리·사주 기반 AI 운세를 봐드려요</p>
                 <button onClick={fetchFortune} disabled={loading || !birthDate}
-                  className="px-6 py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                  className="px-6 py-2.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
                   {loading ? '운세 보는 중...' : '오늘의 운세 보기'}
                 </button>
               </div>
@@ -364,8 +364,8 @@ function FortuneContent() {
 
         {!birthDate && (
           <div className="bg-[#FFF0E6] rounded-xl p-4 text-center">
-            <p className="text-[14px] text-[#D08068]">생년월일이 설정되지 않았어요</p>
-            <p className="text-[14px] text-[#6B6966] mt-1">설정에서 생년월일을 입력하면 이용할 수 있어요</p>
+            <p className="text-body-emphasis text-[#D08068]">생년월일이 설정되지 않았어요</p>
+            <p className="text-body-emphasis text-secondary mt-1">설정에서 생년월일을 입력하면 이용할 수 있어요</p>
           </div>
         )}
       </div>

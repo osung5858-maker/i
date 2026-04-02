@@ -183,16 +183,16 @@ const PARENTING_GUIDES = {
 function GuideContent({ guideKey }: { guideKey: string }) {
   const router = useRouter()
   const guide = { ...PREPARING_GUIDES, ...PREGNANT_GUIDES, ...PARENTING_GUIDES }[guideKey] as any
-  if (!guide) return <div className="p-8 text-center text-[#9E9A95]">콘텐츠를 찾을 수 없어요</div>
+  if (!guide) return <div className="p-8 text-center text-tertiary">콘텐츠를 찾을 수 없어요</div>
 
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[#FFF9F5]">
       <div className="sticky top-[72px] z-30 bg-[#FFF9F5] border-b border-[#E8E4DF] px-5 max-w-lg mx-auto w-full flex items-center h-12">
-        <button onClick={() => router.back()} className="text-[13px] text-[#6B6966] mr-3">← 뒤로</button>
-        <h1 className="text-[15px] font-bold text-[#1A1918] truncate">{guide.icon} {guide.title}</h1>
+        <button onClick={() => router.back()} className="text-body text-secondary mr-3">← 뒤로</button>
+        <h1 className="text-subtitle text-primary truncate">{guide.icon} {guide.title}</h1>
       </div>
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4 space-y-3">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
         {/* Q&A 타입 (난임 FAQ) */}
         {guide.items?.[0]?.q && guide.items.map((item: any, i: number) => (
           <FAQItem key={i} q={item.q} a={item.a} idx={i + 1} />
@@ -206,10 +206,10 @@ function GuideContent({ guideKey }: { guideKey: string }) {
         {/* 팁 리스트 타입 (생활습관) */}
         {guide.items?.[0]?.tips && guide.items.map((section: any, i: number) => (
           <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-2">{section.title}</p>
+            <p className="text-body-emphasis font-bold text-primary mb-2">{section.title}</p>
             <div className="space-y-1">
               {section.tips.map((tip: string, j: number) => (
-                <p key={j} className="text-[13px] text-[#4A4744] leading-relaxed">• {tip}</p>
+                <p key={j} className="text-body text-[#4A4744] leading-relaxed">• {tip}</p>
               ))}
             </div>
           </div>
@@ -218,34 +218,34 @@ function GuideContent({ guideKey }: { guideKey: string }) {
         {/* 설명 카드 타입 (병원 가이드, 진통 대응) */}
         {guide.items?.[0]?.desc && !guide.items?.[0]?.recipes && !guide.items?.[0]?.symptoms && !guide.items?.[0]?.month && guide.items.map((item: any, i: number) => (
           <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-1">{item.title}</p>
-            <p className="text-[13px] text-[#4A4744] leading-relaxed whitespace-pre-line">{item.desc}</p>
+            <p className="text-body-emphasis font-bold text-primary mb-1">{item.title}</p>
+            <p className="text-body text-[#4A4744] leading-relaxed whitespace-pre-line">{item.desc}</p>
           </div>
         ))}
 
         {/* 응급처치 타입 */}
         {guide.items?.[0]?.symptoms && guide.items.map((item: any, i: number) => (
           <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[15px] font-bold text-[#D08068] mb-1">{item.title}</p>
+            <p className="text-subtitle text-[#D08068] mb-1">{item.title}</p>
             <div className="bg-red-50 rounded-lg p-2 mb-2">
-              <p className="text-[12px] font-semibold text-red-600 mb-0.5">증상</p>
-              <p className="text-[13px] text-[#1A1918]">{item.symptoms}</p>
+              <p className="text-caption font-semibold text-red-600 mb-0.5">증상</p>
+              <p className="text-body text-primary">{item.symptoms}</p>
             </div>
-            <p className="text-[12px] font-semibold text-[#3D8A5A] mb-0.5">대처법</p>
-            <p className="text-[13px] text-[#4A4744] leading-relaxed whitespace-pre-line">{item.action}</p>
+            <p className="text-caption font-semibold text-[#3D8A5A] mb-0.5">대처법</p>
+            <p className="text-body text-[#4A4744] leading-relaxed whitespace-pre-line">{item.action}</p>
           </div>
         ))}
 
         {/* 이유식 레시피 타입 */}
         {guide.items?.[0]?.recipes && guide.items.map((section: any, i: number) => (
           <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-0.5">{section.month}</p>
-            <p className="text-[12px] text-[#6B6966] mb-3">{section.desc}</p>
+            <p className="text-body-emphasis font-bold text-primary mb-0.5">{section.month}</p>
+            <p className="text-caption text-secondary mb-3">{section.desc}</p>
             {section.recipes.map((r: any, j: number) => (
               <div key={j} className="bg-[#FFF9F5] rounded-lg p-3 mb-2 last:mb-0">
-                <p className="text-[13px] font-bold text-[#1A1918]">{r.name}</p>
-                <p className="text-[12px] text-[var(--color-primary)]">{r.ingredients}</p>
-                <p className="text-[12px] text-[#4A4744] mt-1">{r.method}</p>
+                <p className="text-body font-bold text-primary">{r.name}</p>
+                <p className="text-caption text-[var(--color-primary)]">{r.ingredients}</p>
+                <p className="text-caption text-[#4A4744] mt-1">{r.method}</p>
               </div>
             ))}
           </div>
@@ -254,14 +254,14 @@ function GuideContent({ guideKey }: { guideKey: string }) {
         {/* 월령별 놀이 타입 */}
         {guide.items?.[0]?.toys && guide.items.map((section: any, i: number) => (
           <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-2">{section.month}</p>
+            <p className="text-body-emphasis font-bold text-primary mb-2">{section.month}</p>
             <div className="mb-2">
-              <p className="text-[12px] font-semibold text-[#6B6966] mb-1">장난감</p>
-              {section.toys.map((t: string, j: number) => <p key={j} className="text-[13px] text-[#4A4744]">• {t}</p>)}
+              <p className="text-caption font-semibold text-secondary mb-1">장난감</p>
+              {section.toys.map((t: string, j: number) => <p key={j} className="text-body text-[#4A4744]">• {t}</p>)}
             </div>
             <div>
-              <p className="text-[12px] font-semibold text-[#6B6966] mb-1">놀이</p>
-              {section.plays.map((p: string, j: number) => <p key={j} className="text-[13px] text-[#4A4744]">• {p}</p>)}
+              <p className="text-caption font-semibold text-secondary mb-1">놀이</p>
+              {section.plays.map((p: string, j: number) => <p key={j} className="text-body text-[#4A4744]">• {p}</p>)}
             </div>
           </div>
         ))}
@@ -269,16 +269,16 @@ function GuideContent({ guideKey }: { guideKey: string }) {
         {/* 추천 리스트 타입 (태교) */}
         {guide.items?.[0]?.cat && guide.items?.[0]?.list && guide.items.map((section: any, i: number) => (
           <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-2">{section.cat}</p>
-            {section.list.map((item: string, j: number) => <p key={j} className="text-[13px] text-[#4A4744]">• {item}</p>)}
+            <p className="text-body-emphasis font-bold text-primary mb-2">{section.cat}</p>
+            {section.list.map((item: string, j: number) => <p key={j} className="text-body text-[#4A4744]">• {item}</p>)}
           </div>
         ))}
 
         {/* 수면 교육 (desc만 있고 다른 필드 없는 경우) */}
         {guide.items?.[0]?.desc && guide.items?.[0]?.title && !guide.items?.[0]?.symptoms && !guide.items?.[0]?.recipes && guide.items.map((item: any, i: number) => (
           <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[14px] font-bold text-[#1A1918] mb-1">{item.title}</p>
-            <p className="text-[13px] text-[#4A4744] leading-relaxed whitespace-pre-line">{item.desc}</p>
+            <p className="text-body-emphasis font-bold text-primary mb-1">{item.title}</p>
+            <p className="text-body text-[#4A4744] leading-relaxed whitespace-pre-line">{item.desc}</p>
           </div>
         ))}
       </div>
@@ -291,13 +291,13 @@ function FAQItem({ q, a, idx }: { q: string; a: string; idx: number }) {
   return (
     <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
       <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-3 p-4 text-left active:bg-[#FFF9F5]">
-        <span className="text-[12px] font-bold text-[var(--color-primary)] bg-[#E8F5EE] w-6 h-6 rounded-full flex items-center justify-center shrink-0">{idx}</span>
-        <p className="text-[13px] font-semibold text-[#1A1918] flex-1">{q}</p>
-        <span className="text-[#9E9A95] text-[12px]">{open ? '▲' : '▼'}</span>
+        <span className="text-caption font-bold text-[var(--color-primary)] bg-[#E8F5EE] w-6 h-6 rounded-full flex items-center justify-center shrink-0">{idx}</span>
+        <p className="text-body font-semibold text-primary flex-1">{q}</p>
+        <span className="text-tertiary text-caption">{open ? '▲' : '▼'}</span>
       </button>
       {open && (
         <div className="px-4 pb-4 pt-0">
-          <p className="text-[13px] text-[#4A4744] leading-relaxed pl-9">{a}</p>
+          <p className="text-body text-[#4A4744] leading-relaxed pl-9">{a}</p>
         </div>
       )}
     </div>
@@ -314,15 +314,15 @@ function ChecklistSection({ cat, checks }: { cat: string; checks: string[] }) {
   return (
     <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[14px] font-bold text-[#1A1918]">{cat}</p>
-        <span className="text-[12px] text-[#9E9A95]">{checked.size}/{checks.length}</span>
+        <p className="text-body-emphasis font-bold text-primary">{cat}</p>
+        <span className="text-caption text-tertiary">{checked.size}/{checks.length}</span>
       </div>
       {checks.map((c, i) => (
         <button key={i} onClick={() => toggle(i)} className="w-full flex items-center gap-2.5 py-1.5 active:opacity-70">
           <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${checked.has(i) ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'border-[#D1D5DB]'}`}>
             {checked.has(i) && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
           </div>
-          <span className={`text-[13px] ${checked.has(i) ? 'text-[#9E9A95] line-through' : 'text-[#1A1918]'}`}>{c}</span>
+          <span className={`text-body ${checked.has(i) ? 'text-tertiary line-through' : 'text-primary'}`}>{c}</span>
         </button>
       ))}
     </div>

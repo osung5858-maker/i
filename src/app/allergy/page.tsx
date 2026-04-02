@@ -75,7 +75,8 @@ export default function AllergyPage() {
     // auto-update results
     const updated = loaded.map(e => ({ ...e, result: autoResult(e) }))
     setEntries(updated)
-    save(updated)
+    // Note: save() called separately to avoid cascading renders
+    setTimeout(() => save(updated), 0)
   }, [])
 
   const updateEntries = useCallback((next: AllergyEntry[]) => {
@@ -145,18 +146,18 @@ export default function AllergyPage() {
     <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="알레르기 트래커" showBack />
 
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4 space-y-4">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-4">
         {/* Summary */}
         {completed.length > 0 && (
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-4 flex items-center justify-around">
             <div className="text-center">
-              <p className="text-[20px] font-bold text-[var(--color-primary)]">{safeCount}</p>
-              <p className="text-[12px] text-[#6B6966]">안전 식재료</p>
+              <p className="text-heading-2 text-[var(--color-primary)]">{safeCount}</p>
+              <p className="text-caption text-secondary">안전 식재료</p>
             </div>
             <div className="w-px h-8 bg-[#E8E4DF]" />
             <div className="text-center">
-              <p className="text-[20px] font-bold text-[#D05050]">{reactionCount}</p>
-              <p className="text-[12px] text-[#6B6966]">주의 식재료</p>
+              <p className="text-heading-2 text-[#D05050]">{reactionCount}</p>
+              <p className="text-caption text-secondary">주의 식재료</p>
             </div>
           </div>
         )}
@@ -164,7 +165,7 @@ export default function AllergyPage() {
         {/* Add button */}
         <button
           onClick={() => setShowSheet(true)}
-          className="w-full py-3 bg-[var(--color-primary)] text-white font-semibold rounded-xl text-[14px] active:opacity-80 transition-opacity"
+          className="w-full py-3 bg-[var(--color-primary)] text-white font-semibold rounded-xl text-body-emphasis active:opacity-80 transition-opacity"
         >
           + 새 식재료 시작
         </button>
@@ -172,7 +173,7 @@ export default function AllergyPage() {
         {/* Active tracking */}
         {active.length > 0 && (
           <div className="space-y-3">
-            <p className="text-[13px] font-bold text-[#1A1918]">관찰 중 ({active.length})</p>
+            <p className="text-body font-bold text-primary">관찰 중 ({active.length})</p>
             {active.map(entry => {
               const curDay = currentDayIndex(entry.startDate)
               const isEditing = editingEntry === entry.id
@@ -181,10 +182,10 @@ export default function AllergyPage() {
                 <div key={entry.id} className="bg-white rounded-xl border border-[var(--color-primary)] border-opacity-30 p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[15px] font-bold text-[#1A1918]">{entry.food}</p>
-                      <p className="text-[12px] text-[#9E9A95]">{entry.startDate} 시작</p>
+                      <p className="text-subtitle text-primary">{entry.food}</p>
+                      <p className="text-caption text-tertiary">{entry.startDate} 시작</p>
                     </div>
-                    <button onClick={() => deleteEntry(entry.id)} className="text-[12px] text-[#9E9A95] px-2 py-1">삭제</button>
+                    <button onClick={() => deleteEntry(entry.id)} className="text-caption text-tertiary px-2 py-1">삭제</button>
                   </div>
 
                   {/* Day circles */}
@@ -216,10 +217,10 @@ export default function AllergyPage() {
                           }`}
                           disabled={isFuture}
                         >
-                          <p className={`text-[12px] font-semibold ${isToday ? 'text-[var(--color-primary)]' : 'text-[#6B6966]'}`}>
+                          <p className={`text-caption font-semibold ${isToday ? 'text-[var(--color-primary)]' : 'text-secondary'}`}>
                             Day {d + 1}
                           </p>
-                          <p className="text-[14px] mt-0.5">
+                          <p className="text-body-emphasis mt-0.5">
                             {hasSymptoms
                             ? <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#D05050]" />
                             : noSymptoms
@@ -227,8 +228,8 @@ export default function AllergyPage() {
                             : isPast
                             ? <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#D5D0CA]" />
                             : isToday
-                            ? <span className="text-[10px] font-bold text-[var(--color-primary)]">오늘</span>
-                            : <span className="text-[12px] text-[#D5D0CA]">—</span>
+                            ? <span className="text-label font-bold text-[var(--color-primary)]">오늘</span>
+                            : <span className="text-caption text-[#D5D0CA]">—</span>
                           }
                           </p>
                         </button>
@@ -239,7 +240,7 @@ export default function AllergyPage() {
                   {/* Symptom editor */}
                   {isEditing && editingDay !== null && (
                     <div className="bg-[var(--color-page-bg)] rounded-lg p-3 space-y-2">
-                      <p className="text-[13px] font-semibold text-[#1A1918]">Day {editingDay + 1} 증상 기록</p>
+                      <p className="text-body font-semibold text-primary">Day {editingDay + 1} 증상 기록</p>
                       <div className="flex flex-wrap gap-1.5">
                         {SYMPTOM_OPTIONS.map(s => {
                           const dayKey = `day${editingDay + 1}` as 'day1' | 'day2' | 'day3'
@@ -248,12 +249,12 @@ export default function AllergyPage() {
                             <button
                               key={s}
                               onClick={() => toggleSymptom(entry.id, editingDay, s)}
-                              className={`px-2.5 py-1.5 rounded-full text-[12px] font-medium border transition-all ${
+                              className={`px-2.5 py-1.5 rounded-full text-caption font-medium border transition-all ${
                                 selected
                                   ? s === '없음'
                                     ? 'bg-[#E8F5E9] border-[#4CAF50] text-[#2E7D32]'
                                     : 'bg-[#FDE8E8] border-[#D05050] text-[#D05050]'
-                                  : 'bg-white border-[#E8E4DF] text-[#6B6966]'
+                                  : 'bg-white border-[#E8E4DF] text-secondary'
                               }`}
                             >
                               {s}
@@ -266,7 +267,7 @@ export default function AllergyPage() {
                         placeholder="메모 (선택)"
                         value={entry[`day${editingDay + 1}` as 'day1' | 'day2' | 'day3'].notes}
                         onChange={(e) => updateNotes(entry.id, editingDay, e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-[#E8E4DF] rounded-lg text-[13px] text-[#1A1918] placeholder:text-[#9E9A95]"
+                        className="w-full px-3 py-2 bg-white border border-[#E8E4DF] rounded-lg text-body text-primary placeholder:text-tertiary"
                       />
                     </div>
                   )}
@@ -279,7 +280,7 @@ export default function AllergyPage() {
         {/* Completed */}
         {completed.length > 0 && (
           <div className="space-y-2">
-            <p className="text-[13px] font-bold text-[#1A1918]">완료 ({completed.length})</p>
+            <p className="text-body font-bold text-primary">완료 ({completed.length})</p>
             <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
               {completed.map((entry, i) => (
                 <div
@@ -289,15 +290,15 @@ export default function AllergyPage() {
                   <div className="flex items-center gap-2">
                     <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${entry.result === 'safe' ? 'bg-[#4CAF50]' : 'bg-[#D05050]'}`} />
                     <div>
-                      <p className="text-[14px] font-medium text-[#1A1918]">{entry.food}</p>
-                      <p className="text-[11px] text-[#9E9A95]">{entry.startDate}</p>
+                      <p className="text-body-emphasis font-medium text-primary">{entry.food}</p>
+                      <p className="text-label text-tertiary">{entry.startDate}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-[12px] font-semibold ${entry.result === 'safe' ? 'text-[#4CAF50]' : 'text-[#D05050]'}`}>
+                    <span className={`text-caption font-semibold ${entry.result === 'safe' ? 'text-[#4CAF50]' : 'text-[#D05050]'}`}>
                       {entry.result === 'safe' ? '안전' : '반응'}
                     </span>
-                    <button onClick={() => deleteEntry(entry.id)} className="text-[11px] text-[#9E9A95]">삭제</button>
+                    <button onClick={() => deleteEntry(entry.id)} className="text-label text-tertiary">삭제</button>
                   </div>
                 </div>
               ))}
@@ -308,16 +309,16 @@ export default function AllergyPage() {
         {/* Empty state */}
         {entries.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-[14px] font-semibold text-[#9E9A95] mb-1">기록 없음</p>
-            <p className="text-[14px] text-[#6B6966]">새 식재료를 추가하고</p>
-            <p className="text-[14px] text-[#6B6966]">3일간 알레르기 반응을 관찰해보세요</p>
+            <p className="text-body-emphasis text-tertiary mb-1">기록 없음</p>
+            <p className="text-body-emphasis text-secondary">새 식재료를 추가하고</p>
+            <p className="text-body-emphasis text-secondary">3일간 알레르기 반응을 관찰해보세요</p>
           </div>
         )}
 
         {/* Info */}
         <div className="bg-[#FFF8E1] rounded-xl p-3 space-y-1">
-          <p className="text-[13px] font-semibold text-[#8D6E00]">이유식 알레르기 관찰 팁</p>
-          <p className="text-[12px] text-[#8D6E00] leading-relaxed">
+          <p className="text-body font-semibold text-[#8D6E00]">이유식 알레르기 관찰 팁</p>
+          <p className="text-caption text-[#8D6E00] leading-relaxed">
             새 식재료는 한 번에 한 가지씩, 3일간 관찰 후 다음 식재료를 시도하세요.
             증상이 나타나면 해당 식재료를 중단하고 소아과에 상담하세요.
           </p>
@@ -333,7 +334,7 @@ export default function AllergyPage() {
             onClick={e => e.stopPropagation()}
           >
             <div className="w-10 h-1 bg-[#E8E4DF] rounded-full mx-auto mb-4" />
-            <p className="text-[16px] font-bold text-[#1A1918] mb-4">식재료 선택</p>
+            <p className="text-subtitle font-bold text-primary mb-4">식재료 선택</p>
 
             {/* Common allergens grid */}
             <div className="grid grid-cols-4 gap-2 mb-4">
@@ -341,7 +342,7 @@ export default function AllergyPage() {
                 <button
                   key={food}
                   onClick={() => addFood(food)}
-                  className="py-2.5 px-1 bg-[var(--color-page-bg)] rounded-lg text-[13px] font-medium text-[#1A1918] active:bg-[var(--color-primary-bg)] transition-colors border border-[#E8E4DF]"
+                  className="py-2.5 px-1 bg-[var(--color-page-bg)] rounded-lg text-body font-medium text-primary active:bg-[var(--color-primary-bg)] transition-colors border border-[#E8E4DF]"
                 >
                   {food}
                 </button>
@@ -355,12 +356,12 @@ export default function AllergyPage() {
                 value={customFood}
                 onChange={e => setCustomFood(e.target.value)}
                 placeholder="기타 식재료 직접 입력"
-                className="flex-1 px-3 py-2.5 border border-[#E8E4DF] rounded-lg text-[14px] text-[#1A1918] placeholder:text-[#9E9A95]"
+                className="flex-1 px-3 py-2.5 border border-[#E8E4DF] rounded-lg text-body-emphasis text-primary placeholder:text-tertiary"
                 onKeyDown={e => { if (e.key === 'Enter') addFood(customFood) }}
               />
               <button
                 onClick={() => addFood(customFood)}
-                className="px-4 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-[14px] font-semibold"
+                className="px-4 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-body-emphasis"
               >
                 추가
               </button>

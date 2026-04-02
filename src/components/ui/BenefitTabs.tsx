@@ -38,44 +38,47 @@ const healthItems = [
 ]
 
 export default function BenefitTabs() {
-  const [tab, setTab] = useState<'money' | 'health' | 'box'>('money')
-
-  const TABS = [
-    { key: 'money' as const, label: '지원금·정책' },
-    { key: 'health' as const, label: '의료·건강' },
-    { key: 'box' as const, label: '축하박스·기타' },
-  ]
+  const [expandedSection, setExpandedSection] = useState<'money' | 'health' | 'box' | null>('money')
 
   const remoteFreeBoxes = useRemoteContent<FreeBox[]>('free_boxes', DEFAULT_FREE_BOXES)
   const boxItems = remoteFreeBoxes.filter(b => b.category !== 'birth').map(b => ({ t: b.name, d: b.desc, u: b.link }))
 
-  const items = tab === 'money' ? moneyItems : tab === 'health' ? healthItems : boxItems
+  const SECTIONS = [
+    { key: 'money' as const, label: '지원금·정책', items: moneyItems },
+    { key: 'health' as const, label: '의료·건강', items: healthItems },
+    { key: 'box' as const, label: '축하박스·기타', items: boxItems },
+  ]
 
   return (
-    <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
-      <div className="flex border-b border-[#E8E4DF]">
-        {TABS.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex-1 py-2.5 text-[12px] font-semibold text-center relative transition-colors ${
-              tab === t.key ? 'text-[var(--color-primary)] bg-[var(--color-accent-bg)]/30' : 'text-[#9E9A95]'
-            }`}>
-            {t.label}
-            {tab === t.key && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[var(--color-primary)] rounded-full" />}
-          </button>
-        ))}
-      </div>
-      <div className="p-3 max-h-[320px] overflow-y-auto space-y-1.5">
-        {items.map(it => (
-          <a key={it.t} href={it.u} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2.5 p-2.5 bg-[var(--color-page-bg)] rounded-xl active:bg-[#E8E4DF]">
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-[#1A1918]">{it.t}</p>
-              <p className="text-[11px] text-[#6B6966]">{it.d}</p>
-            </div>
-            <ExternalLinkIcon className="w-3.5 h-3.5 text-[#9E9A95] shrink-0" />
-          </a>
-        ))}
-      </div>
+    <div className="space-y-2">
+      {SECTIONS.map(section => {
+        const isExpanded = expandedSection === section.key
+        return (
+          <div key={section.key} className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
+            <button
+              onClick={() => setExpandedSection(isExpanded ? null : section.key)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left active:bg-[var(--color-page-bg)]"
+            >
+              <span className="text-body-emphasis text-primary">{section.label}</span>
+              <span className="text-tertiary transition-transform" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
+            </button>
+            {isExpanded && (
+              <div className="px-3 pb-3 max-h-[280px] overflow-y-auto space-y-1.5">
+                {section.items.map(it => (
+                  <a key={it.t} href={it.u} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 p-2.5 bg-[var(--color-page-bg)] rounded-xl active:bg-[#E8E4DF]">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-body font-semibold text-primary">{it.t}</p>
+                      <p className="text-label text-secondary">{it.d}</p>
+                    </div>
+                    <ExternalLinkIcon className="w-3.5 h-3.5 text-tertiary shrink-0" />
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

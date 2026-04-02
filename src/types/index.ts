@@ -26,7 +26,18 @@ export interface Child {
 }
 
 // --- 육아 이벤트 ---
-export type EventType = 'feed' | 'sleep' | 'poop' | 'pee' | 'temp' | 'memo' | 'bath' | 'pump' | 'babyfood' | 'snack' | 'toddler_meal' | 'medication'
+export type EventType =
+  // 육아 모드
+  | 'feed' | 'sleep' | 'poop' | 'pee' | 'temp' | 'memo' | 'bath' | 'pump' | 'babyfood' | 'snack' | 'toddler_meal' | 'medication'
+  // 육아 모드 - 상세 타입
+  | 'breast_left' | 'breast_right' | 'pump_left' | 'pump_right'
+  | 'poop_normal' | 'poop_soft' | 'poop_hard'
+  // 임신 모드
+  | 'preg_mood' | 'preg_fetal_move' | 'preg_weight' | 'preg_stretch' | 'preg_meditate' | 'preg_edema'
+  | 'preg_folic' | 'preg_iron' | 'preg_dha' | 'preg_calcium' | 'preg_vitd' | 'preg_journal'
+  // 임신 준비 모드
+  | 'prep_mood' | 'prep_walk' | 'prep_stretch' | 'prep_yoga'
+  | 'prep_folic' | 'prep_iron' | 'prep_vitd' | 'prep_omega' | 'prep_journal'
 export type EventSource = 'quick_button' | 'gesture' | 'manual'
 
 export interface CareEvent {

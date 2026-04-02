@@ -93,7 +93,7 @@ export default function FeedTimerPage() {
         {/* 타이머 메인 */}
         <div className="bg-white rounded-2xl border border-[#E8E4DF] p-6 text-center">
           {/* 시간 표시 */}
-          <p className={`text-[48px] font-bold tracking-wider ${active ? 'text-[var(--color-primary)]' : 'text-[#1A1918]'}`}>
+          <p className={`text-[48px] font-bold tracking-wider ${active ? 'text-[var(--color-primary)]' : 'text-primary'}`}>
             {formatTime(elapsed)}
           </p>
 
@@ -101,14 +101,14 @@ export default function FeedTimerPage() {
           {active && (
             <div className="flex items-center justify-center gap-2 mt-2 mb-4">
               <div className={`w-3 h-3 rounded-full ${side === 'left' ? 'bg-[#4A90D9]' : 'bg-[#E8E4DF]'}`} />
-              <p className="text-[14px] font-semibold text-[#1A1918]">{side === 'left' ? '왼쪽' : '오른쪽'}</p>
+              <p className="text-body-emphasis text-primary">{side === 'left' ? '왼쪽' : '오른쪽'}</p>
               <div className={`w-3 h-3 rounded-full ${side === 'right' ? 'bg-[#D089A5]' : 'bg-[#E8E4DF]'}`} />
             </div>
           )}
 
           {/* 다음 수유 추천 */}
           {!active && lastSide && (
-            <p className="text-[14px] text-[#6B6966] mt-2 mb-4">
+            <p className="text-body-emphasis text-secondary mt-2 mb-4">
               지난번 <span className="font-semibold">{lastSide === 'left' ? '왼쪽' : '오른쪽'}</span>이었으니 →{' '}
               <span className="text-[var(--color-primary)] font-semibold">{lastSide === 'left' ? '오른쪽' : '왼쪽'}</span> 추천
             </p>
@@ -118,25 +118,25 @@ export default function FeedTimerPage() {
           {active ? (
             <div className="flex gap-3 mt-4">
               <button onClick={switchSide}
-                className="flex-1 py-3.5 rounded-xl bg-[#4A90D9] text-white text-[14px] font-semibold active:opacity-80">
+                className="flex-1 py-3.5 rounded-xl bg-[#4A90D9] text-white text-body-emphasis active:opacity-80">
                 ↔ 교대 ({side === 'left' ? '오른쪽' : '왼쪽'}으로)
               </button>
               <button onClick={stop}
-                className="flex-1 py-3.5 rounded-xl bg-[#D08068] text-white text-[14px] font-semibold active:opacity-80">
+                className="flex-1 py-3.5 rounded-xl bg-[#D08068] text-white text-body-emphasis active:opacity-80">
                 ⏹ 종료
               </button>
             </div>
           ) : (
             <div className="flex gap-3 mt-4">
               <button onClick={() => start('left')}
-                className="flex-1 py-4 rounded-xl bg-[#4A90D9] text-white text-[15px] font-semibold active:opacity-80">
+                className="flex-1 py-4 rounded-xl bg-[#4A90D9] text-white text-subtitle active:opacity-80">
                 <BreastfeedIcon className="w-6 h-6" /><br />
-                <span className="text-[13px]">왼쪽 시작</span>
+                <span className="text-body">왼쪽 시작</span>
               </button>
               <button onClick={() => start('right')}
-                className="flex-1 py-4 rounded-xl bg-[#D089A5] text-white text-[15px] font-semibold active:opacity-80">
+                className="flex-1 py-4 rounded-xl bg-[#D089A5] text-white text-subtitle active:opacity-80">
                 <BreastfeedIcon className="w-6 h-6" /><br />
-                <span className="text-[13px]">오른쪽 시작</span>
+                <span className="text-body">오른쪽 시작</span>
               </button>
             </div>
           )}
@@ -144,19 +144,19 @@ export default function FeedTimerPage() {
 
         {/* 오늘 통계 */}
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <p className="text-[14px] font-bold text-[#1A1918] mb-3">오늘 수유</p>
+          <p className="text-body-emphasis font-bold text-primary mb-3">오늘 수유</p>
           <div className="grid grid-cols-3 gap-2 mb-3">
             <div className="text-center">
-              <p className="text-[20px] font-bold text-[#1A1918]">{todaySessions.length}</p>
-              <p className="text-[14px] text-[#6B6966]">총 횟수</p>
+              <p className="text-heading-2 text-primary">{todaySessions.length}</p>
+              <p className="text-body-emphasis text-secondary">총 횟수</p>
             </div>
             <div className="text-center">
-              <p className="text-[20px] font-bold text-[#4A90D9]">{formatTime(todayLeft)}</p>
-              <p className="text-[14px] text-[#6B6966]">왼쪽</p>
+              <p className="text-heading-2 text-[#4A90D9]">{formatTime(todayLeft)}</p>
+              <p className="text-body-emphasis text-secondary">왼쪽</p>
             </div>
             <div className="text-center">
-              <p className="text-[20px] font-bold text-[#D089A5]">{formatTime(todayRight)}</p>
-              <p className="text-[14px] text-[#6B6966]">오른쪽</p>
+              <p className="text-heading-2 text-[#D089A5]">{formatTime(todayRight)}</p>
+              <p className="text-body-emphasis text-secondary">오른쪽</p>
             </div>
           </div>
           {/* 균형 바 */}
@@ -171,15 +171,15 @@ export default function FeedTimerPage() {
         {/* 최근 기록 */}
         {todaySessions.length > 0 && (
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-            <p className="text-[13px] font-bold text-[#1A1918] mb-2">최근 기록</p>
+            <p className="text-body font-bold text-primary mb-2">최근 기록</p>
             {todaySessions.slice(0, 6).map((s, i) => (
               <div key={i} className="flex items-center justify-between py-1.5 border-b border-[#E8E4DF] last:border-0">
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${s.side === 'left' ? 'bg-[#4A90D9]' : 'bg-[#D089A5]'}`} />
-                  <span className="text-[14px] text-[#1A1918]">{s.side === 'left' ? '왼쪽' : '오른쪽'}</span>
+                  <span className="text-body-emphasis text-primary">{s.side === 'left' ? '왼쪽' : '오른쪽'}</span>
                 </div>
-                <span className="text-[14px] text-[#6B6966]">{formatTime(s.duration)}</span>
-                <span className="text-[14px] text-[#9E9A95]">{new Date(s.startTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span>
+                <span className="text-body-emphasis text-secondary">{formatTime(s.duration)}</span>
+                <span className="text-body-emphasis text-tertiary">{new Date(s.startTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
             ))}
           </div>

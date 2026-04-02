@@ -90,14 +90,14 @@ export default function HospitalGuide({ week }: Props) {
             <HospitalIcon className="w-5 h-5 text-[#4A6FA5]" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-bold text-[#1A1918]">{week}주차 병원 가이드</p>
+            <p className="text-body-emphasis font-bold text-primary">{week}주차 병원 가이드</p>
             {error ? (
-              <p className="text-[12px] text-[#D08068]">불러오기 실패 — 탭하여 다시 시도</p>
+              <p className="text-caption text-[#D08068]">불러오기 실패 — 탭하여 다시 시도</p>
             ) : (
-              <p className="text-[12px] text-[#6B6966]">이번 주 검사, 위험 신호, 의사에게 물어볼 질문</p>
+              <p className="text-caption text-secondary">이번 주 검사, 위험 신호, 의사에게 물어볼 질문</p>
             )}
           </div>
-          <span className="text-[13px] text-[var(--color-primary)] font-semibold shrink-0">{error ? '재시도' : '보기'}</span>
+          <span className="text-body text-[var(--color-primary)] font-semibold shrink-0">{error ? '재시도' : '보기'}</span>
         </div>
       </button>
     )
@@ -107,7 +107,7 @@ export default function HospitalGuide({ week }: Props) {
     return (
       <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm p-5 text-center">
         <div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-[13px] text-[#6B6966]">{week}주차 병원 가이드 준비 중...</p>
+        <p className="text-body text-secondary">{week}주차 병원 가이드 준비 중...</p>
       </div>
     )
   }
@@ -122,10 +122,10 @@ export default function HospitalGuide({ week }: Props) {
           <HospitalIcon className="w-5 h-5 text-[#4A6FA5]" />
         </div>
         <div className="flex-1 min-w-0 text-left">
-          <p className="text-[14px] font-bold text-[#1A1918]">{week}주차 병원 가이드</p>
-          <p className="text-[12px] text-[var(--color-primary)]">{guide.weekSummary}</p>
+          <p className="text-body-emphasis font-bold text-primary">{week}주차 병원 가이드</p>
+          <p className="text-caption text-[var(--color-primary)]">{guide.weekSummary}</p>
         </div>
-        <span className="text-[13px] text-[#9E9A95]">{expanded ? '접기' : '펼치기'}</span>
+        <span className="text-body text-tertiary">{expanded ? '접기' : '펼치기'}</span>
       </button>
 
       {expanded && (
@@ -133,14 +133,14 @@ export default function HospitalGuide({ week }: Props) {
           {/* 이번 주 검사 */}
           {guide.scheduledTests.length > 0 && (
             <div>
-              <p className="text-[12px] text-[#9E9A95] font-medium mb-2">이번 주 검사 항목</p>
+              <p className="text-caption text-tertiary font-medium mb-2">이번 주 검사 항목</p>
               <div className="space-y-2">
                 {guide.scheduledTests.map((test, i) => (
                   <div key={i} className={`flex items-start gap-2.5 p-3 rounded-xl ${test.required ? 'bg-[#FFF8F3] border border-[#F0E4D8]' : 'bg-[#F5F3F0]'}`}>
                     <AlertIcon className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${test.required ? 'text-[#D05050]' : 'text-[#C4A35A]'}`} />
                     <div>
-                      <p className="text-[13px] font-semibold text-[#1A1918]">{test.name}</p>
-                      <p className="text-[12px] text-[#6B6966]">{test.description}</p>
+                      <p className="text-body font-semibold text-primary">{test.name}</p>
+                      <p className="text-caption text-secondary">{test.description}</p>
                     </div>
                   </div>
                 ))}
@@ -150,19 +150,19 @@ export default function HospitalGuide({ week }: Props) {
 
           {/* 몸의 변화 */}
           <div className="p-3 rounded-xl bg-[#F5F0FF] border border-[#E0D8EF]">
-            <p className="text-[11px] text-[#7A6FA0] font-medium mb-1">이번 주 몸의 변화</p>
-            <p className="text-[13px] text-[#4A4744] leading-relaxed">{guide.bodyChanges}</p>
+            <p className="text-label text-[#7A6FA0] font-medium mb-1">이번 주 몸의 변화</p>
+            <p className="text-body text-[#4A4744] leading-relaxed">{guide.bodyChanges}</p>
           </div>
 
           {/* 위험 신호 */}
           {guide.warningSignals.length > 0 && (
             <div>
-              <p className="text-[12px] text-[#9E9A95] font-medium mb-2">이런 증상이 있다면</p>
+              <p className="text-caption text-tertiary font-medium mb-2">이런 증상이 있다면</p>
               <div className="space-y-1.5">
                 {guide.warningSignals.map((ws, i) => (
                   <div key={i} className="p-3 rounded-xl bg-[#FDE8E8] border border-[#F5C6C6]">
-                    <p className="text-[13px] font-semibold text-[#D05050]">{ws.signal}</p>
-                    <p className="text-[12px] text-[#8B4513] mt-0.5">{ws.action}</p>
+                    <p className="text-body font-semibold text-[#D05050]">{ws.signal}</p>
+                    <p className="text-caption text-[#8B4513] mt-0.5">{ws.action}</p>
                   </div>
                 ))}
               </div>
@@ -172,12 +172,12 @@ export default function HospitalGuide({ week }: Props) {
           {/* 의사에게 물어볼 질문 */}
           {guide.questionsForDoctor.length > 0 && (
             <div>
-              <p className="text-[12px] text-[#9E9A95] font-medium mb-2">의사에게 물어보세요</p>
+              <p className="text-caption text-tertiary font-medium mb-2">의사에게 물어보세요</p>
               <div className="space-y-1.5">
                 {guide.questionsForDoctor.map((q, i) => (
                   <div key={i} className="flex items-start gap-2 pl-1">
-                    <span className="text-[12px] shrink-0 text-[var(--color-primary)] font-bold mt-0.5">{i + 1}</span>
-                    <p className="text-[13px] text-[#4A4744]">{q}</p>
+                    <span className="text-caption shrink-0 text-[var(--color-primary)] font-bold mt-0.5">{i + 1}</span>
+                    <p className="text-body text-[#4A4744]">{q}</p>
                   </div>
                 ))}
               </div>
@@ -187,21 +187,21 @@ export default function HospitalGuide({ week }: Props) {
           {/* 심리 팁 + 파트너 팁 */}
           <div className="grid grid-cols-2 gap-2">
             <div className="p-3 rounded-xl bg-[#F0F9F4] border border-[#D5E8DC]">
-              <p className="text-[11px] text-[#2D7A4A] font-medium mb-1">마음 케어</p>
-              <p className="text-[12px] text-[#3D6B4E]">{guide.mentalTip}</p>
+              <p className="text-label text-[#2D7A4A] font-medium mb-1">마음 케어</p>
+              <p className="text-caption text-[#3D6B4E]">{guide.mentalTip}</p>
             </div>
             <div className="p-3 rounded-xl bg-[#FFF8F3] border border-[#F0E4D8]">
-              <p className="text-[11px] text-[#C4A35A] font-medium mb-1">파트너에게</p>
-              <p className="text-[12px] text-[#8B7A50]">{guide.partnerTip}</p>
+              <p className="text-label text-[#C4A35A] font-medium mb-1">파트너에게</p>
+              <p className="text-caption text-[#8B7A50]">{guide.partnerTip}</p>
             </div>
           </div>
 
           {/* 다음 검진 */}
           <div className="p-3 rounded-xl bg-[#F0F4FF] border border-[#D5DFEF]">
-            <p className="text-[12px] text-[#4A6FA5]">{guide.nextVisit}</p>
+            <p className="text-caption text-[#4A6FA5]">{guide.nextVisit}</p>
           </div>
 
-          <p className="text-[11px] text-[#9E9A95] text-center">참고용 정보예요. 정확한 검사 일정은 산부인과에 확인하세요.</p>
+          <p className="text-label text-tertiary text-center">참고용 정보예요. 정확한 검사 일정은 산부인과에 확인하세요.</p>
         </div>
       )}
     </div>

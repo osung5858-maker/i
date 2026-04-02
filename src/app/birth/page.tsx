@@ -63,24 +63,24 @@ export default function BirthPage() {
             <IllustVideo src="/images/illustrations/celebration-hero.webm" className="w-56 h-56 mx-auto" />
           </div>
 
-          <h1 className="text-[28px] font-bold text-[#1A1918] mb-2">축하해요!</h1>
-          <p className="text-[18px] text-[var(--color-primary)] font-semibold mb-4">우리 아이가 세상에 왔어요</p>
-          <p className="text-[14px] text-[#6B6966] leading-relaxed max-w-[280px] mx-auto">
+          <h1 className="text-heading-1 font-bold text-primary mb-2">축하해요!</h1>
+          <p className="text-heading-3 text-[var(--color-primary)] font-semibold mb-4">우리 아이가 세상에 왔어요</p>
+          <p className="text-body-emphasis text-secondary leading-relaxed max-w-[280px] mx-auto">
             기다리고, 준비하고, 함께했던<br />
             그 모든 시간이 지금 이 순간을 위한 거였어요
           </p>
 
           <div className="mt-8 p-4 bg-[#FFF8F3] rounded-2xl max-w-[260px] mx-auto">
-            <p className="text-[13px] text-[#1A1918] italic leading-relaxed">
+            <p className="text-body text-primary italic leading-relaxed">
               "드디어 만났어요, 엄마 아빠.<br />
               준비해준 모든 것, 느끼고 있었어요.<br />
               이제 진짜 시작이에요!"
             </p>
-            <p className="text-[13px] text-[#9E9A95] mt-2">— 아이가</p>
+            <p className="text-body text-tertiary mt-2">— 아이가</p>
           </div>
 
           <button onClick={() => setStep(1)}
-            className="mt-10 px-8 py-3 bg-[var(--color-primary)] text-white text-[15px] font-semibold rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98] transition-all">
+            className="mt-10 px-8 py-3 bg-[var(--color-primary)] text-white rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98] transition-all">
             우리의 여정 돌아보기
           </button>
         </div>
@@ -93,42 +93,42 @@ export default function BirthPage() {
     return (
       <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
         <div className="flex-1 flex flex-col items-center justify-center px-6">
-          <p className="text-[13px] text-[#6B6966] mb-2">임신 여정</p>
-          <h2 className="text-[22px] font-bold text-[#1A1918] mb-8">함께 걸어온 길</h2>
+          <p className="text-body text-secondary mb-2">임신 여정</p>
+          <h2 className="text-heading-2 font-bold text-primary mb-8">함께 걸어온 길</h2>
 
           <div className="w-full max-w-xs space-y-4">
             <div className="bg-white rounded-2xl p-5 text-center shadow-sm">
               <PregnantIcon className="w-8 h-8 mx-auto mb-2 text-[var(--color-primary)]" />
-              <p className="text-[24px] font-bold text-[var(--color-primary)]">40주</p>
-              <p className="text-[13px] text-[#6B6966]">함께한 임신 여정</p>
+              <p className="text-heading-1 text-[var(--color-primary)]">40주</p>
+              <p className="text-body text-secondary">함께한 임신 여정</p>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-white rounded-2xl p-3 text-center shadow-sm">
-                <PenIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-                <p className="text-[18px] font-bold text-[#1A1918]">{diaryCount}</p>
-                <p className="text-[14px] text-[#6B6966]">태교 일기</p>
+                <PenIcon className="w-5 h-5 mx-auto mb-1 text-secondary" />
+                <p className="text-heading-3 text-primary">{diaryCount}</p>
+                <p className="text-body-emphasis text-secondary">태교 일기</p>
               </div>
               <div className="bg-white rounded-2xl p-3 text-center shadow-sm">
-                <HospitalIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-                <p className="text-[18px] font-bold text-[#1A1918]">{checkupCount}</p>
-                <p className="text-[14px] text-[#6B6966]">검진 완료</p>
+                <HospitalIcon className="w-5 h-5 mx-auto mb-1 text-secondary" />
+                <p className="text-heading-3 text-primary">{checkupCount}</p>
+                <p className="text-body-emphasis text-secondary">검진 완료</p>
               </div>
               <div className="bg-white rounded-2xl p-3 text-center shadow-sm">
-                <EnvelopeIcon className="w-5 h-5 mx-auto mb-1 text-[#6B6966]" />
-                <p className="text-[18px] font-bold text-[#1A1918]">{letterCount}</p>
-                <p className="text-[14px] text-[#6B6966]">편지</p>
+                <EnvelopeIcon className="w-5 h-5 mx-auto mb-1 text-secondary" />
+                <p className="text-heading-3 text-primary">{letterCount}</p>
+                <p className="text-body-emphasis text-secondary">편지</p>
               </div>
             </div>
 
             <div className="bg-[#FFF8F3] rounded-2xl p-4 text-center">
-              <p className="text-[14px] text-[#6B6966] mb-1">모든 기록은 소중히 보관돼요</p>
-              <p className="text-[13px] text-[var(--color-primary)] font-semibold">아이가 자라면 함께 읽어보세요</p>
+              <p className="text-body-emphasis text-secondary mb-1">모든 기록은 소중히 보관돼요</p>
+              <p className="text-body text-[var(--color-primary)] font-semibold">아이가 자라면 함께 읽어보세요</p>
             </div>
           </div>
 
           <button onClick={() => setStep(2)}
-            className="mt-8 px-8 py-3 bg-[var(--color-primary)] text-white text-[15px] font-semibold rounded-2xl active:scale-[0.98] transition-all">
+            className="mt-8 px-8 py-3 bg-[var(--color-primary)] text-white rounded-2xl active:scale-[0.98] transition-all">
             육아 시작하기
           </button>
         </div>
@@ -141,14 +141,14 @@ export default function BirthPage() {
     <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6">
       <IllustVideo src="/images/illustrations/celebration-new-start.webm" className="w-48 h-48 mb-4" />
 
-      <h2 className="text-[22px] font-bold text-[#1A1918] mb-1">새로운 시작</h2>
-      <p className="text-[14px] text-[#6B6966] mb-8 text-center">
+      <h2 className="text-heading-2 font-bold text-primary mb-1">새로운 시작</h2>
+      <p className="text-body-emphasis text-secondary mb-8 text-center">
         이제 도담이 육아 여정을 함께할게요
       </p>
 
       <div className="w-full max-w-xs space-y-4">
         <div className="bg-[#F0F9F4] rounded-xl p-4">
-          <p className="text-[13px] font-semibold text-[var(--color-primary)] mb-2">도담이 도와줄 것들</p>
+          <p className="text-body font-semibold text-[var(--color-primary)] mb-2">도담이 도와줄 것들</p>
           {[
             { Icon: BottleIcon, text: '수유 · 수면 · 배변 기록' },
             { Icon: ChartIcon, text: 'AI 패턴 분석 · 예측' },
@@ -158,16 +158,16 @@ export default function BirthPage() {
           ].map(item => (
             <div key={item.text} className="flex items-center gap-2 py-0.5">
               <item.Icon className="w-4 h-4 text-[var(--color-primary)]" />
-              <p className="text-[14px] text-[#1A1918]">{item.text}</p>
+              <p className="text-body-emphasis text-primary">{item.text}</p>
             </div>
           ))}
         </div>
 
         <button onClick={() => { shareBirth('우리 아이'); handleComplete() }}
-          className="w-full py-3.5 bg-[var(--color-primary)] text-white text-[15px] font-semibold rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98]">
+          className="w-full py-3.5 bg-[var(--color-primary)] text-white rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98]">
           카톡으로 알리고 시작하기
         </button>
-        <button onClick={handleComplete} className="w-full py-2.5 text-[13px] text-[#6B6966]">
+        <button onClick={handleComplete} className="w-full py-2.5 text-body text-secondary">
           조용히 시작할게요
         </button>
       </div>

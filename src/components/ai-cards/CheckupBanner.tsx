@@ -18,7 +18,7 @@ export default function CheckupBanner({ birthdate }: Props) {
       <div className="rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
         <div className="px-3.5 pt-3 pb-1.5 flex items-center gap-2">
           <StethoscopeIcon className="w-3.5 h-3.5 text-[#5A5854]" />
-          <span className="text-xs font-bold text-[#0A0B0D]">검진 · 접종 일정</span>
+          <span className="text-xs font-bold text-primary">검진 · 접종 일정</span>
         </div>
         {schedule.map((item, i) => (
           <div
@@ -35,16 +35,16 @@ export default function CheckupBanner({ birthdate }: Props) {
                 : <SyringeIcon className="w-4 h-4 text-[#5B9FD6]" />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-[#0A0B0D] truncate">{item.name}</p>
-              <p className="text-[14px] text-[#9B9B9B]">{item.description}</p>
+              <p className="text-xs font-semibold text-primary truncate">{item.name}</p>
+              <p className="text-body-emphasis text-tertiary">{item.description}</p>
             </div>
             <div className="text-right shrink-0">
               {item.status === 'due' ? (
-                <span className="text-[14px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">
+                <span className="text-body-emphasis font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">
                   지금!
                 </span>
               ) : (
-                <span className="text-[14px] text-[#9B9B9B]">
+                <span className="text-body-emphasis text-tertiary">
                   {item.daysUntil > 0 ? `D-${item.daysUntil}` : '완료'}
                 </span>
               )}

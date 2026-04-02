@@ -63,16 +63,16 @@ interface Section {
 
 const SECTIONS: Record<string, Section[]> = {
   preparing: [
-    { label: '도구', grid: [
+    { label: '', grid: [
       { href: '/name',         icon: 'sparkles', title: '태명·이름 짓기',   desc: 'AI 추천 · 음양오행' },
       { href: '/guide',        icon: 'guide',    title: '임신 준비 가이드', desc: '난임 Q&A · 생활습관' },
       { href: '/ovulation',    icon: 'timer',    iconBg: '#E8F5EF', iconColor: '#5BA882', title: '배란일 계산기', desc: '가임기 · 다음 생리 예측' },
-      { href: '/map',          icon: 'map',      iconBg: '#E8F4FD', iconColor: '#3B82F6', title: '병원 찾기', desc: '산부인과 · 난임병원' },
+      // { href: '/map',          icon: 'map',      iconBg: '#E8F4FD', iconColor: '#3B82F6', title: '병원 찾기', desc: '산부인과 · 난임병원' },
       { href: '/lullaby',      icon: 'moon',     iconBg: '#EEF2FF', iconColor: '#6366F1', title: '태교 음악', desc: '태아에게 들려주는 음악' },
       { href: '/mental-check', icon: 'heart',    iconBg: '#FFF0F3', iconColor: '#E8607A', title: '마음 체크', desc: '스트레스 자가검사' },
       { href: '/fortune',      icon: 'star',     iconBg: '#FFFBE6', iconColor: '#D4A017', title: '오늘의 운세', desc: '바이오리듬 · 별자리' },
     ]},
-    { label: '정보 · 혜택', grid: [
+    { label: '', grid: [
       { href: 'https://www.gov.kr/portal/onestopSvc/Infertility', icon: 'landmark', title: '정부 지원 혜택', desc: '난임시술비 · 엽산', external: true },
     ]},
     { label: '', grid: [
@@ -80,16 +80,16 @@ const SECTIONS: Record<string, Section[]> = {
     ]},
   ],
   pregnant: [
-    { label: '도구', grid: [
+    { label: '', grid: [
       { href: '/name',         icon: 'sparkles', title: '이름 짓기',       desc: 'AI 추천 · 한자 · 오행' },
-      { href: '/map',          icon: 'map',      iconBg: '#E8F4FD', iconColor: '#3B82F6', title: '병원 찾기', desc: '산부인과 · 조리원' },
+      // { href: '/map',          icon: 'map',      iconBg: '#E8F4FD', iconColor: '#3B82F6', title: '병원 찾기', desc: '산부인과 · 조리원' },
       { href: '/lullaby',      icon: 'moon',     iconBg: '#EEF2FF', iconColor: '#6366F1', title: '태교 음악', desc: '태아에게 들려주는 음악' },
       { href: '/babyfood',     icon: 'utensils', iconBg: '#E8F5EF', iconColor: '#5BA882', title: '이유식 예습', desc: '출산 전 미리 알아보기' },
       { href: '/birth-prep',   icon: 'clipboard', iconBg: '#FFF0E6', iconColor: '#E8937A', title: '출산 준비물', desc: '체크리스트 · 주차별 정리' },
       { href: '/mental-check', icon: 'heart',    iconBg: '#FFF0F3', iconColor: '#E8607A', title: '마음 체크', desc: '산후우울증 자가검사' },
       { href: '/fortune',      icon: 'star',     iconBg: '#FFFBE6', iconColor: '#D4A017', title: '오늘의 운세', desc: '바이오리듬 · 별자리' },
     ]},
-    { label: '정보 · 혜택', grid: [
+    { label: '', grid: [
       { href: 'https://www.gov.kr/portal/onestopSvc/fertility', icon: 'landmark', title: '정부 지원 혜택', desc: '맘편한임신 통합신청', external: true },
     ]},
     { label: '', grid: [
@@ -99,7 +99,7 @@ const SECTIONS: Record<string, Section[]> = {
   ],
   parenting: [
     { label: '', banner: { href: '/emergency', icon: 'siren', title: '🚨 응급 모드', desc: '소아과 · 어린이병원 · 응급실', color: '#FFF0F0', textColor: '#D05050' } },
-    { label: '육아 도구', grid: [
+    { label: '', grid: [
       { href: '/troubleshoot',  icon: 'sparkles', title: '육아 SOS',     desc: 'AI 증상 체크리스트' },
       { href: '/babyfood',      icon: 'utensils', title: '이유식 가이드', desc: '단계별 · 알레르기' },
       { href: '/vaccination',   icon: 'syringe',  title: '예방접종',      desc: '스케줄 · 완료 체크' },
@@ -112,11 +112,11 @@ const SECTIONS: Record<string, Section[]> = {
       { href: '/allergy',       icon: 'shield',   iconBg: '#FFF8E1', iconColor: '#F59E0B', title: '알레르기 체크',  desc: '식품별 반응 기록' },
       { href: '/timelapse',     icon: 'camera',   iconBg: '#F0F4FF', iconColor: '#3B82F6', title: '성장 타임랩스',  desc: '사진으로 보는 성장' },
     ]},
-    { label: '정보 · 혜택', grid: [
+    { label: '', grid: [
       { href: '/gov-support', icon: 'landmark', title: '정부 지원 혜택', desc: '부모급여 · 아동수당' },
       { href: '/kidsnote',    icon: 'school',   title: '키즈노트',     desc: '알림장 · 사진 백업' },
     ]},
-    { label: '즐길거리', grid: [
+    { label: '', grid: [
       { href: '/fortune',      icon: 'star',  iconBg: '#FFFBE6', iconColor: '#D4A017', title: '오늘의 운세', desc: '바이오리듬 · 별자리' },
       { href: '/mental-check', icon: 'heart', iconBg: '#FFF0F3', iconColor: '#E8607A', title: '마음 체크',   desc: '산후우울증 (EPDS)' },
     ]},
@@ -138,72 +138,82 @@ export default function MorePage() {
 
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]">
-      <div className="px-5 pt-5 pb-2 max-w-lg mx-auto">
-        <p className="text-[22px] font-bold text-[#1A1918]">더보기</p>
-        <p className="text-[13px] text-[#9E9A95] mt-0.5">도담의 모든 기능을 한눈에</p>
-      </div>
-      <div className="max-w-lg mx-auto w-full px-4 pt-3 pb-6 space-y-5">
+      <div className="max-w-lg mx-auto w-full px-4 pt-4 pb-24 space-y-5">
         {sections.map((section, si) => (
           <div key={si}>
+            {/* 섹션 라벨 */}
+            {section.label && (
+              <p className="text-body font-bold text-secondary mb-2 px-1">{section.label}</p>
+            )}
+
             {/* 배너 (full-width) */}
             {section.banner && (() => {
               const b = section.banner!
-              const isExt = false
               return (
                 <Link href={b.href}
-                  className="flex items-center gap-3 rounded-2xl px-4 py-3.5 active:opacity-80 transition-opacity"
+                  className="flex items-center gap-3 rounded-2xl px-5 py-4 shadow-sm active:opacity-80 transition-opacity"
                   style={{ background: b.color }}
                 >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-white/20">
-                    <Icon name={b.icon} className="w-6 h-6" />
-                  </div>
                   <div className="flex-1 min-w-0" style={{ color: b.textColor || '#1A1918' }}>
-                    <p className="text-[15px] font-bold leading-tight">{b.title}</p>
-                    <p className="text-[12px] opacity-80 mt-0.5">{b.desc}</p>
+                    <p className="text-subtitle leading-tight">{b.title}</p>
+                    <p className="text-body opacity-80 mt-0.5">{b.desc}</p>
                   </div>
-                  <span className="text-[18px]" style={{ color: b.textColor || '#9E9A95' }}>→</span>
+                  <span className="text-heading-2" style={{ color: b.textColor || '#9E9A95' }}>→</span>
                 </Link>
               )
             })()}
 
             {/* 그리드 */}
             {section.grid && section.grid.length > 0 && (
-              <div>
-                {section.label && (
-                  <p className="text-[12px] font-bold text-[#9E9A95] uppercase tracking-wide mb-2.5 px-0.5">{section.label}</p>
-                )}
-                <div className="grid grid-cols-2 gap-2.5">
-                  {section.grid.map((item) => {
-                    const Comp = item.external ? 'a' : Link
-                    const props = item.external
-                      ? { href: item.href, target: '_blank', rel: 'noopener noreferrer' }
-                      : { href: item.href }
-                    return (
-                      <Comp
-                        key={item.href + item.title}
-                        {...(props as any)}
-                        className="bg-white rounded-2xl border border-[#E8E4DF] p-3.5 flex flex-col gap-2 active:bg-[var(--color-page-bg)] transition-colors"
+              <div className="flex flex-col shadow-sm">
+                {section.grid.map((item, idx) => {
+                  const Comp = item.external ? 'a' : Link
+                  const props = item.external
+                    ? { href: item.href, target: '_blank', rel: 'noopener noreferrer' }
+                    : { href: item.href }
+                  const isFirst = idx === 0
+                  const isLast = idx === section.grid!.length - 1
+                  const isSingle = section.grid!.length === 1
+
+                  // 그룹별 라운딩: 첫 버튼 상단만, 중간 버튼 사각, 마지막 버튼 하단만
+                  const roundingClass = isSingle
+                    ? 'rounded-xl'
+                    : isFirst
+                      ? 'rounded-t-xl rounded-b-none'
+                      : isLast
+                        ? 'rounded-t-none rounded-b-xl'
+                        : 'rounded-none'
+
+                  return (
+                    <Comp
+                      key={item.href + item.title}
+                      {...(props as any)}
+                      className={`bg-white ${roundingClass} border border-[#E8E4DF] px-4 py-4 flex items-center gap-3 active:bg-[#FAFAF8] transition-all ${!isLast ? 'border-b-0' : ''}`}
+                    >
+                      {/* 아이콘 */}
+                      <div
+                        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+                        style={{
+                          backgroundColor: item.iconBg || 'var(--color-page-bg)',
+                          color: item.iconColor || 'var(--color-primary)'
+                        }}
                       >
-                        <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                          style={{
-                            background: item.iconBg || 'var(--color-primary-bg)',
-                            color: item.iconColor || 'var(--color-primary)',
-                          }}
-                        >
-                          <Icon name={item.icon} className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="text-[13px] font-bold text-[#1A1918] leading-snug">{item.title}</p>
-                          <p className="text-[11px] text-[#9E9A95] mt-0.5 leading-snug">{item.desc}</p>
-                        </div>
-                        {item.external && (
-                          <span className="text-[10px] text-[#C4BFB9]">↗ 외부 링크</span>
-                        )}
-                      </Comp>
-                    )
-                  })}
-                </div>
+                        <Icon name={item.icon} className="w-5 h-5" />
+                      </div>
+
+                      {/* 텍스트 */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-subtitle text-primary leading-snug mb-0.5 truncate">{item.title}</p>
+                        <p className="text-body text-secondary leading-snug truncate">{item.desc}</p>
+                      </div>
+
+                      {/* 화살표 */}
+                      <svg className="w-5 h-5 text-muted shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </Comp>
+                  )
+                })}
               </div>
             )}
           </div>

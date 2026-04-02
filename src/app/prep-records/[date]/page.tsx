@@ -105,8 +105,8 @@ export default function PrepRecordDetailPage() {
     <div className="h-[100dvh] flex flex-col bg-[#F5F1EC] overflow-hidden">
       {/* 헤더 — 고정 */}
       <div className="shrink-0 h-12 px-5 max-w-lg mx-auto w-full flex items-center justify-between bg-[#F5F1EC] border-b border-[#E0DDD8]">
-        <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">뒤로</button>
-        <h1 className="text-[15px] font-bold text-[#0A0B0D]">기록 상세</h1>
+        <button onClick={() => router.back()} className="text-sm text-tertiary">뒤로</button>
+        <h1 className="text-subtitle text-primary">기록 상세</h1>
         <div className="w-8" />
       </div>
 
@@ -117,9 +117,9 @@ export default function PrepRecordDetailPage() {
             onClick={() => router.push(`/prep-records/${prevDate}`)}
             className="w-9 h-9 rounded-xl bg-white border border-[#E8E4DF] flex items-center justify-center active:scale-95 transition-transform"
           >
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B] rotate-180" />
+            <ChevronRightIcon className="w-4 h-4 text-tertiary rotate-180" />
           </button>
-          <p className="text-sm font-semibold text-[#0A0B0D]">
+          <p className="text-sm font-semibold text-primary">
             {formatDateKr(dateStr)}
             {isToday && <span className="text-[var(--color-primary)] ml-1">오늘</span>}
           </p>
@@ -128,7 +128,7 @@ export default function PrepRecordDetailPage() {
             disabled={!canGoNext}
             className="w-9 h-9 rounded-xl bg-white border border-[#E8E4DF] flex items-center justify-center active:scale-95 transition-transform disabled:opacity-30"
           >
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+            <ChevronRightIcon className="w-4 h-4 text-tertiary" />
           </button>
         </div>
       </div>
@@ -144,7 +144,7 @@ export default function PrepRecordDetailPage() {
             return (
               <div className="flex-1 px-2 py-2 rounded-xl border text-center"
                 style={{ backgroundColor: firstMoodCfg ? firstMoodCfg.color + '20' : '#F0EDE8', borderColor: firstMoodCfg ? firstMoodCfg.color + '40' : '#E0DCD6' }}>
-                <p className="text-[11px] font-medium" style={{ color: firstMoodCfg ? firstMoodCfg.color : '#9B9B9B' }}>기분</p>
+                <p className="text-label font-medium" style={{ color: firstMoodCfg ? firstMoodCfg.color : '#9B9B9B' }}>기분</p>
                 <p className="text-sm font-bold" style={{ color: firstMoodCfg ? firstMoodCfg.color : '#C5C1BC' }}>
                   {moodItems.length > 1 ? `${moodItems.length}개` : firstMoodCfg ? firstMoodCfg.label : '-'}
                 </p>
@@ -152,15 +152,15 @@ export default function PrepRecordDetailPage() {
             )
           })()}
           <div className="flex-1 px-2 py-2 rounded-xl bg-[#E8F5EF] border border-[#C8E8D8] text-center">
-            <p className="text-[11px] text-[#5BA882] font-medium">완료</p>
+            <p className="text-label text-[#5BA882] font-medium">완료</p>
             <p className="text-sm font-bold text-[#3D8A66]">{done.filter(k => !k.startsWith('prep_mood_')).length > 0 ? `${done.filter(k => !k.startsWith('prep_mood_')).length}건` : '-'}</p>
           </div>
           <div className="flex-1 px-2 py-2 rounded-xl bg-[#FEF3C7] border border-[#F0D48C] text-center">
-            <p className="text-[11px] text-[#D97706] font-medium">영양제</p>
+            <p className="text-label text-[#D97706] font-medium">영양제</p>
             <p className="text-sm font-bold text-[#B45309]">{supplTaken.length > 0 ? `${supplTaken.length}종` : '-'}</p>
           </div>
           <div className="flex-1 px-2 py-2 rounded-xl bg-[#EDE9FE] border border-[#D4C8F8] text-center">
-            <p className="text-[11px] text-[#7C3AED] font-medium">기다림 일기</p>
+            <p className="text-label text-[#7C3AED] font-medium">기다림 일기</p>
             <p className="text-sm font-bold text-[#5B21B6]">{journal ? `${journal.length}개` : '-'}</p>
           </div>
         </div>
@@ -170,11 +170,11 @@ export default function PrepRecordDetailPage() {
           {!hasData ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <div className="w-16 h-16 rounded-full bg-[#F0EDE8] flex items-center justify-center">
-                <svg className="w-8 h-8 text-[#9E9A95]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-8 h-8 text-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
                   <path d="M12 8v4l3 3" strokeLinecap="round" /><circle cx="12" cy="12" r="10" />
                 </svg>
               </div>
-              <p className="text-[15px] font-semibold text-[#212124]">이 날의 기록이 없어요</p>
+              <p className="text-subtitle text-primary">이 날의 기록이 없어요</p>
             </div>
           ) : (
             <div className="flex flex-col px-4 gap-2 pb-4 pt-2">
@@ -191,11 +191,11 @@ export default function PrepRecordDetailPage() {
                       <Icon className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14px] text-[#1A1918]">
-                        <span className="text-[#9E9A95] font-normal mr-1">기분</span>
+                      <p className="text-body-emphasis text-primary">
+                        <span className="text-tertiary font-normal mr-1">기분</span>
                         <span className="font-semibold">{label}</span>
                       </p>
-                      <p className="text-[13px] text-[#6B6966]">{time || '기분'}</p>
+                      <p className="text-body text-secondary">{time || '기분'}</p>
                     </div>
                   </div>
                 )
@@ -210,11 +210,11 @@ export default function PrepRecordDetailPage() {
                       <Icon className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14px] text-[#1A1918]">
-                        <span className="text-[#9E9A95] font-normal mr-1">기분</span>
+                      <p className="text-body-emphasis text-primary">
+                        <span className="text-tertiary font-normal mr-1">기분</span>
                         <span className="font-semibold">{label}</span>
                       </p>
-                      <p className="text-[13px] text-[#6B6966]">{time || '기분'}</p>
+                      <p className="text-body text-secondary">{time || '기분'}</p>
                     </div>
                   </div>
                 )
@@ -232,11 +232,11 @@ export default function PrepRecordDetailPage() {
                       <Icon className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14px] text-[#1A1918]">
-                        <span className="text-[#9E9A95] font-normal mr-1">{cat}</span>
+                      <p className="text-body-emphasis text-primary">
+                        <span className="text-tertiary font-normal mr-1">{cat}</span>
                         <span className="font-semibold">{label}</span>
                       </p>
-                      <p className="text-[13px] text-[#6B6966]">{time || '완료'}</p>
+                      <p className="text-body text-secondary">{time || '완료'}</p>
                     </div>
                   </div>
                 )
@@ -251,11 +251,11 @@ export default function PrepRecordDetailPage() {
                       <PillIcon className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14px] text-[#1A1918]">
-                        <span className="text-[#9E9A95] font-normal mr-1">영양제</span>
+                      <p className="text-body-emphasis text-primary">
+                        <span className="text-tertiary font-normal mr-1">영양제</span>
                         <span className="font-semibold">{SUPPL_LABEL[key] || key}</span>
                       </p>
-                      <p className="text-[13px] text-[#6B6966]">{time || `${val}정`}</p>
+                      <p className="text-body text-secondary">{time || `${val}정`}</p>
                     </div>
                   </div>
                 )
@@ -268,8 +268,8 @@ export default function PrepRecordDetailPage() {
                     <NoteIcon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold text-[#A78BFA] mb-0.5">기다림 일기 {i + 1}</p>
-                    <p className="text-[13px] text-[#4A4744] leading-relaxed">{text}</p>
+                    <p className="text-body font-semibold text-[#A78BFA] mb-0.5">기다림 일기 {i + 1}</p>
+                    <p className="text-body text-[#4A4744] leading-relaxed">{text}</p>
                   </div>
                 </div>
               ))}

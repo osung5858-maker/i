@@ -99,37 +99,37 @@ export default function MentalCheckPage() {
         <div className="mb-4" style={{ backgroundColor: `${result.color}10`, borderRadius: '50%' }}>
           <IllustVideo src={result.emoji} variant="circle" className="w-28 h-28" />
         </div>
-        <p className="text-[13px] text-[#6B6966] mb-1">에든버러 산후우울증 척도</p>
-        <p className="text-[28px] font-bold" style={{ color: result.color }}>{score}점</p>
-        <p className="text-[16px] font-semibold text-[#1A1918] mt-1 mb-2">{result.title}</p>
-        <p className="text-[13px] text-[#6B6966] text-center leading-relaxed max-w-[300px] mb-6">{result.desc}</p>
+        <p className="text-body text-secondary mb-1">에든버러 산후우울증 척도</p>
+        <p className="text-heading-1 font-bold" style={{ color: result.color }}>{score}점</p>
+        <p className="text-subtitle font-semibold text-primary mt-1 mb-2">{result.title}</p>
+        <p className="text-body text-secondary text-center leading-relaxed max-w-[300px] mb-6">{result.desc}</p>
 
         {score >= 13 && (
           <div className="w-full max-w-xs bg-[#FDE8E8] rounded-xl p-4 mb-4">
-            <p className="text-[13px] font-semibold text-[#D05050] mb-2">도움받을 수 있는 곳</p>
-            <a href="tel:1577-0199" className="block text-[14px] text-[#1A1918] py-1">정신건강위기상담 1577-0199</a>
-            <a href="tel:109" className="block text-[14px] text-[#1A1918] py-1">자살예방상담 109</a>
-            <a href="tel:1393" className="block text-[14px] text-[#1A1918] py-1">정신건강복지센터 1393</a>
+            <p className="text-body font-semibold text-[#D05050] mb-2">도움받을 수 있는 곳</p>
+            <a href="tel:1577-0199" className="block text-body-emphasis text-primary py-1">정신건강위기상담 1577-0199</a>
+            <a href="tel:109" className="block text-body-emphasis text-primary py-1">자살예방상담 109</a>
+            <a href="tel:1393" className="block text-body-emphasis text-primary py-1">정신건강복지센터 1393</a>
           </div>
         )}
 
         {score <= 12 && (
           <div className="w-full max-w-xs bg-[#F0F9F4] rounded-xl p-4 mb-4">
-            <p className="text-[14px] text-[var(--color-primary)] text-center">괜찮아요. 당신은 충분히 잘 하고 있어요</p>
+            <p className="text-body-emphasis text-[var(--color-primary)] text-center">괜찮아요. 당신은 충분히 잘 하고 있어요</p>
           </div>
         )}
 
         {/* 이력 */}
         {history.length > 1 && (
           <div className="w-full max-w-xs mb-4">
-            <p className="text-[13px] text-[#6B6966] mb-2">이전 기록</p>
+            <p className="text-body text-secondary mb-2">이전 기록</p>
             <div className="flex gap-1">
               {history.slice(0, 7).map((h: any, i: number) => (
                 <div key={i} className="flex-1 text-center">
                   <div className="w-full h-12 bg-[#E8E4DF] rounded relative">
                     <div className="absolute bottom-0 w-full rounded" style={{ height: `${(h.score / 30) * 100}%`, backgroundColor: getResult(h.score).color }} />
                   </div>
-                  <p className="text-[13px] text-[#9E9A95] mt-0.5">{h.date.slice(5)}</p>
+                  <p className="text-body text-tertiary mt-0.5">{h.date.slice(5)}</p>
                 </div>
               ))}
             </div>
@@ -141,7 +141,7 @@ export default function MentalCheckPage() {
           <div className="w-full max-w-xs bg-white rounded-xl border border-[#E8E4DF] p-4 mb-4">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
-              <p className="text-[13px] text-[#6B6966]">양육 스타일 분석 중...</p>
+              <p className="text-body text-secondary">양육 스타일 분석 중...</p>
             </div>
           </div>
         )}
@@ -150,15 +150,15 @@ export default function MentalCheckPage() {
           <div className="w-full max-w-xs space-y-3 mb-4">
             {/* 주 양육 스타일 */}
             <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-              <p className="text-[11px] text-[#9E9A95] mb-1">나의 양육 스타일</p>
+              <p className="text-label text-tertiary mb-1">나의 양육 스타일</p>
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex-1">
-                  <p className="text-[16px] font-bold text-[#1A1918]">{profile.primaryStyle}</p>
-                  <p className="text-[12px] text-[#6B6966] mt-0.5">{profile.secondaryStyle} 성향도 있어요</p>
+                  <p className="text-subtitle font-bold text-primary">{profile.primaryStyle}</p>
+                  <p className="text-caption text-secondary mt-0.5">{profile.secondaryStyle} 성향도 있어요</p>
                 </div>
                 <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: `conic-gradient(var(--color-primary) ${profile.primaryPct}%, #E8E6E1 0)` }}>
                   <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                    <span className="text-[12px] font-bold text-[var(--color-primary)]">{profile.primaryPct}%</span>
+                    <span className="text-caption font-bold text-[var(--color-primary)]">{profile.primaryPct}%</span>
                   </div>
                 </div>
               </div>
@@ -166,45 +166,45 @@ export default function MentalCheckPage() {
               {/* 강점 */}
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {profile.strengths.map((s, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#F0F9F4] text-[#2D7A4A]">{s}</span>
+                  <span key={i} className="px-2.5 py-1 rounded-full text-label font-medium bg-[#F0F9F4] text-[#2D7A4A]">{s}</span>
                 ))}
               </div>
 
               {/* 감정 트렌드 */}
               <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-[var(--color-page-bg)]">
-                <span className="text-[13px]">{profile.emotionTrend === '상승' ? '+' : profile.emotionTrend === '주의' ? '-' : '='}</span>
-                <span className="text-[12px] text-[#4A4744]">감정 트렌드: {profile.emotionTrend}</span>
+                <span className="text-body">{profile.emotionTrend === '상승' ? '+' : profile.emotionTrend === '주의' ? '-' : '='}</span>
+                <span className="text-caption text-[#4A4744]">감정 트렌드: {profile.emotionTrend}</span>
               </div>
             </div>
 
             {/* 번아웃 리스크 */}
             {profile.burnoutRisk !== 'low' && profile.burnoutMessage && (
               <div className={`rounded-xl p-3.5 ${profile.burnoutRisk === 'high' ? 'bg-[#FDE8E8] border border-[#F5C6C6]' : 'bg-[#FFF8E8] border border-[#F5E6C0]'}`}>
-                <p className="text-[13px] font-semibold mb-1" style={{ color: profile.burnoutRisk === 'high' ? '#D05050' : '#C4A35A' }}>
+                <p className="text-body font-semibold mb-1" style={{ color: profile.burnoutRisk === 'high' ? '#D05050' : '#C4A35A' }}>
                   {profile.burnoutRisk === 'high' ? '번아웃 주의' : '피로도 관찰'}
                 </p>
-                <p className="text-[12px] text-[#5A5854]">{profile.burnoutMessage}</p>
+                <p className="text-caption text-[#5A5854]">{profile.burnoutMessage}</p>
               </div>
             )}
 
             {/* 이번 주 팁 + 격려 */}
             <div className="bg-[#F0F4FF] rounded-xl p-3.5 border border-[#D5DFEF]">
-              <p className="text-[12px] text-[#4A6FA5] font-medium mb-1">{profile.weeklyTip}</p>
-              <p className="text-[13px] text-[#1A1918] font-semibold">{profile.encouragement}</p>
+              <p className="text-caption text-[#4A6FA5] font-medium mb-1">{profile.weeklyTip}</p>
+              <p className="text-body text-primary font-semibold">{profile.encouragement}</p>
             </div>
           </div>
         )}
 
-        <button onClick={() => shareMentalCheck(score, result.title)} className="text-[13px] text-[var(--color-primary)] font-semibold mb-3">공유하기</button>
+        <button onClick={() => shareMentalCheck(score, result.title)} className="text-body text-[var(--color-primary)] font-semibold mb-3">공유하기</button>
         <button onClick={() => { setShowResult(false); setCurrentQ(0); setAnswers(Array(10).fill(null)); setProfile(null) }}
-          className="text-[13px] text-[#6B6966]">다시 검사하기</button>
+          className="text-body text-secondary">다시 검사하기</button>
       </div>
     )
   }
 
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
-      <PageHeader title="마음 체크" showBack rightAction={<span className="text-[13px] text-[#6B6966]">{answers.filter(a => a !== null).length}/10</span>} />
+      <PageHeader title="마음 체크" showBack rightAction={<span className="text-body text-secondary">{answers.filter(a => a !== null).length}/10</span>} />
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4">
         {/* 프로그레스 */}
@@ -214,19 +214,19 @@ export default function MentalCheckPage() {
           ))}
         </div>
 
-        <p className="text-[14px] text-[#6B6966] mb-2 text-center">지난 7일간의 기분을 떠올려주세요</p>
+        <p className="text-body-emphasis text-secondary mb-2 text-center">지난 7일간의 기분을 떠올려주세요</p>
 
         {/* 현재 문항만 표시 */}
         {(() => {
           const q = QUESTIONS[currentQ]
           return (
             <div className="bg-white rounded-2xl border border-[#E8E4DF] p-5">
-              <p className="text-[13px] text-[var(--color-primary)] font-semibold mb-2">{currentQ + 1} / 10</p>
-              <p className="text-[16px] font-bold text-[#1A1918] mb-5 leading-relaxed">{q.q}</p>
+              <p className="text-body text-[var(--color-primary)] font-semibold mb-2">{currentQ + 1} / 10</p>
+              <p className="text-subtitle font-bold text-primary mb-5 leading-relaxed">{q.q}</p>
               <div className="space-y-2">
                 {q.options.map((opt, oi) => (
                   <button key={oi} onClick={() => handleAnswer(currentQ, oi)}
-                    className={`w-full text-left px-4 py-3 rounded-xl text-[14px] transition-all ${answers[currentQ] === oi ? 'bg-[var(--color-primary)] text-white font-semibold' : 'bg-[var(--color-page-bg)] text-[#1A1918] active:bg-[#ECECEC]'}`}>
+                    className={`w-full text-left px-4 py-3 rounded-xl text-body-emphasis transition-all ${answers[currentQ] === oi ? 'bg-[var(--color-primary)] text-white font-semibold' : 'bg-[var(--color-page-bg)] text-primary active:bg-[#ECECEC]'}`}>
                     {opt}
                   </button>
                 ))}
@@ -238,16 +238,16 @@ export default function MentalCheckPage() {
         {/* 이전/다음 네비게이션 */}
         <div className="flex items-center justify-between mt-4">
           <button onClick={() => setCurrentQ(Math.max(0, currentQ - 1))} disabled={currentQ === 0}
-            className={`text-[13px] ${currentQ === 0 ? 'text-[#F0F0F0]' : 'text-[#6B6966]'}`}>← 이전</button>
+            className={`text-body ${currentQ === 0 ? 'text-[#F0F0F0]' : 'text-secondary'}`}>← 이전</button>
 
           {allAnswered ? (
             <button onClick={() => { saveResult(); setShowResult(true) }}
-              className="px-6 py-2.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-xl active:opacity-80">
+              className="px-6 py-2.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80">
               결과 보기
             </button>
           ) : (
             <button onClick={() => setCurrentQ(Math.min(9, currentQ + 1))} disabled={answers[currentQ] === null}
-              className={`text-[13px] ${answers[currentQ] === null ? 'text-[#F0F0F0]' : 'text-[var(--color-primary)] font-semibold'}`}>다음 →</button>
+              className={`text-body ${answers[currentQ] === null ? 'text-[#F0F0F0]' : 'text-[var(--color-primary)] font-semibold'}`}>다음 →</button>
           )}
         </div>
       </div>

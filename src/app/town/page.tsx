@@ -3,11 +3,14 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { CommunityPageInner } from '@/app/community/page'
 import { MapIcon, PhoneIcon, CompassIcon, ChatIcon, PenIcon } from '@/components/ui/Icons'
 import AdSlot from '@/components/ads/AdSlot'
+import PlaceCard from '@/components/town/PlaceCard'
+import TownFeedTab from '@/components/town/TownFeedTab'
+import TownGatherTab from '@/components/town/TownGatherTab'
+import TownMarketTab from '@/components/town/TownMarketTab'
 
-type SubTab = 'town' | 'story' | 'market'
+type SubTab = 'town' | 'feed' | 'gather' | 'market'
 
 // 슬라이더 스냅 포인트 (미터)
 const RANGE_STEPS = [500, 1000, 2000, 3000, 5000, 10000, 20000]
@@ -105,37 +108,35 @@ export default function TownPage() {
   const categories = MAP_CATEGORIES[mode] || MAP_CATEGORIES.parenting
 
   return (
-    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]">
-      <div className="sticky top-[72px] z-30 bg-[var(--color-page-bg)] pt-3 pb-0 max-w-lg mx-auto w-full">
-        <div className="max-w-lg mx-auto w-full">
-          <div className="flex px-5 gap-2 bg-[#F0EDE8] mx-5 p-1 rounded-xl mb-3">
-            {[
-              { key: 'town' as SubTab, label: '동네' },
-              { key: 'story' as SubTab, label: '이야기' },
-              { key: 'market' as SubTab, label: '도담장터' },
-            ].map(t => (
-              <button key={t.key} onClick={() => setSubTab(t.key)}
-                className={`flex-1 py-1.5 text-[13px] font-semibold text-center rounded-lg transition-colors ${subTab === t.key ? 'bg-white text-[#1A1918] shadow-sm' : 'text-[#9E9A95]'}`}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
+    <div className="bg-[var(--color-page-bg)]">
+      {/* 탭 네비게이션 */}
+      <div className="flex gap-2 bg-[#F0EDE8] mx-5 p-1 rounded-xl my-3">
+        {[
+          { key: 'town' as SubTab, label: '장소' },
+          { key: 'feed' as SubTab, label: '소식' },
+          { key: 'gather' as SubTab, label: '소모임' },
+          { key: 'market' as SubTab, label: '거래' },
+        ].map(t => (
+          <button key={t.key} onClick={() => setSubTab(t.key)}
+            className={`flex-1 py-1.5 text-body font-semibold text-center rounded-lg transition-colors ${subTab === t.key ? 'bg-white text-primary shadow-sm' : 'text-tertiary'}`}>
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      <div className="max-w-lg mx-auto w-full">
-        {subTab === 'town' && (
-          <MapTab
-            categories={categories}
-            range={range}
-            editingRange={editingRange}
-            onEditRange={() => setEditingRange(true)}
-            onRangeConfirm={handleRangeConfirm}
-          />
-        )}
-        {subTab === 'story' && <Suspense><CommunityPageInner initialTab="feed" hideHeader /></Suspense>}
-        {subTab === 'market' && <Suspense><CommunityPageInner initialTab="market" hideHeader /></Suspense>}
-      </div>
+      {/* 탭 콘텐츠 */}
+      {subTab === 'town' && (
+        <MapTab
+          categories={categories}
+          range={range}
+          editingRange={editingRange}
+          onEditRange={() => setEditingRange(true)}
+          onRangeConfirm={handleRangeConfirm}
+        />
+      )}
+      {subTab === 'feed' && <TownFeedTab range={range} />}
+      {subTab === 'gather' && <TownGatherTab range={range} />}
+      {subTab === 'market' && <TownMarketTab range={range} />}
     </div>
   )
 }
@@ -170,8 +171,8 @@ function RangeSlider({ value, onChange, onConfirm }: { value: number; onChange: 
       <div className="text-center mb-3">
         <span className="inline-flex items-center gap-1.5 bg-white rounded-full px-4 py-1.5 shadow-md">
           <MapIcon className="w-4 h-4 text-[var(--color-primary)]" />
-          <span className="text-[15px] font-bold text-[#1A1918]">{formatRange(value)}</span>
-          <span className="text-[12px] text-[#9E9A95]">
+          <span className="text-subtitle text-primary">{formatRange(value)}</span>
+          <span className="text-caption text-tertiary">
             {value <= 500 ? '도보 거리' : value <= 1000 ? '가까운 동네' : value <= 2000 ? '우리 동네' : value <= 3000 ? '이웃 동네' : '넓은 범위'}
           </span>
         </span>
@@ -217,8 +218,8 @@ function RangeSlider({ value, onChange, onConfirm }: { value: number; onChange: 
           return (
             <span
               key={step}
-              className={`absolute -translate-x-1/2 text-[11px] font-medium ${
-                step === value ? 'text-[var(--color-primary)] font-bold' : 'text-[#9E9A95]'
+              className={`absolute -translate-x-1/2 text-label font-medium ${
+                step === value ? 'text-[var(--color-primary)] font-bold' : 'text-tertiary'
               }`}
               style={{ left: `${pos}%` }}
             >
@@ -231,7 +232,7 @@ function RangeSlider({ value, onChange, onConfirm }: { value: number; onChange: 
       {/* 확인 버튼 */}
       <button
         onClick={onConfirm}
-        className="w-full mt-2 py-3 rounded-xl bg-[var(--color-primary)] text-white text-[14px] font-semibold active:opacity-80 transition-opacity"
+        className="w-full mt-2 py-3 rounded-xl bg-[var(--color-primary)] text-white active:opacity-80 transition-opacity"
       >
         이 범위로 검색하기
       </button>
@@ -432,7 +433,7 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
   }, [range]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="pb-4">
+    <div className="pb-24">
       {/* 지도 + 범위 원 오버레이 */}
       <div className="relative">
         <div
@@ -446,7 +447,7 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
             className="absolute top-3 right-3 z-10 flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.12)] active:scale-95 transition-transform"
           >
             <MapIcon className="w-3.5 h-3.5 text-[var(--color-primary)]" />
-            <span className="text-[12px] font-semibold text-[var(--color-primary)]">{formatRange(range)}</span>
+            <span className="text-caption font-semibold text-[var(--color-primary)]">{formatRange(range)}</span>
           </button>
         )}
         {editingRange && (
@@ -461,7 +462,7 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
       <div className="flex gap-1.5 overflow-x-auto hide-scrollbar px-4 py-3">
         {categories.map((cat, i) => (
           <button key={cat.query} onClick={() => { setActiveIdx(i); searchPlaces(cat.query) }}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-[13px] font-semibold ${activeIdx === i ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-[#6B6966] border border-[#E8E4DF]'}`}>
+            className={`shrink-0 px-3 py-1.5 rounded-full text-body font-semibold ${activeIdx === i ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-secondary border border-[#E8E4DF]'}`}>
             {cat.label}
           </button>
         ))}
@@ -471,15 +472,15 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
           <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" /></div>
         ) : mapError ? (
           <div className="text-center py-8 space-y-2">
-            <p className="text-[14px] font-semibold text-[#1A1918]">지도를 불러올 수 없어요</p>
-            <p className="text-[13px] text-[#9E9A95]">카카오 지도 API 권한을 확인해주세요</p>
+            <p className="text-body-emphasis text-primary">지도를 불러올 수 없어요</p>
+            <p className="text-body text-tertiary">카카오 지도 API 권한을 확인해주세요</p>
             <button onClick={() => { setMapError(false); setLoading(true); retryCountRef.current = 0; const t = setTimeout(() => { if (window.kakao?.maps?.load) window.kakao.maps.load(() => searchPlaces(categories[activeIdx]?.query || '소아과')); else { setLoading(false); setMapError(true) } }, 100); return () => clearTimeout(t) }}
-              className="px-4 py-2 bg-[var(--color-primary)] text-white text-[13px] rounded-xl font-semibold">
+              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl font-semibold">
               다시 시도
             </button>
           </div>
         ) : places.length === 0 ? (
-          <p className="text-[13px] text-[#9E9A95] text-center py-8">주변에 검색 결과가 없어요</p>
+          <p className="text-body text-tertiary text-center py-8">주변에 검색 결과가 없어요</p>
         ) : (
           places.map((p, i) => (
             <div key={p.id}>
@@ -493,128 +494,3 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
   )
 }
 
-// ===== 장소 카드 (리뷰 포함) =====
-function PlaceCard({ place: p, stats }: { place: Place; stats?: { avg: string; count: number } }) {
-  const [reviews, setReviews] = useState<Review[]>([])
-  const [showReviews, setShowReviews] = useState(false)
-  const [loaded, setLoaded] = useState(false)
-  const reviewCount = stats?.count || 0
-  const avgRating = stats?.avg || null
-
-  const loadReviews = async () => {
-    if (loaded) { setShowReviews(!showReviews); return }
-    const supabase = createClient()
-    const { data } = await supabase.from('reviews').select('*').eq('place_id', p.id).order('created_at', { ascending: false }).limit(5)
-    setReviews(data || [])
-    setLoaded(true)
-    setShowReviews(true)
-  }
-
-  return (
-    <div className="bg-white rounded-xl border border-[#E8E4DF] p-3">
-      {/* 상단: 이름 + 별점 + 거리 */}
-      <div className="flex items-center gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-semibold text-[#1A1918] truncate">{p.name}</p>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          {avgRating ? (
-            <span className="text-[13px] text-[#C4A35A] font-bold">★ {avgRating}<span className="text-[13px] text-[#9E9A95] font-normal"> ({reviewCount})</span></span>
-          ) : (
-            <span className="text-[13px] text-[#9E9A95]">새 장소</span>
-          )}
-          {p.distance && <span className="text-[14px] text-[#9E9A95]">{p.distance}</span>}
-        </div>
-      </div>
-      <p className="text-[14px] text-[#6B6966] mt-0.5 truncate">{p.address}</p>
-
-      {/* 액션 버튼 */}
-      <div className="flex items-center gap-2 mt-2">
-        {p.phone && (
-          <a href={`tel:${p.phone}`} className="w-9 h-9 rounded-full bg-[var(--color-page-bg)] flex items-center justify-center active:opacity-60" title="전화">
-            <PhoneIcon className="w-4 h-4 text-[#6B6966]" />
-          </a>
-        )}
-        <a href={`https://map.kakao.com/link/to/${encodeURIComponent(p.name)},${p.lat},${p.lng}`} target="_blank" rel="noopener noreferrer"
-          className="w-9 h-9 rounded-full bg-[var(--color-page-bg)] flex items-center justify-center active:opacity-60" title="길찾기">
-          <CompassIcon className="w-4 h-4 text-[#6B6966]" />
-        </a>
-        <button onClick={loadReviews} className="w-9 h-9 rounded-full bg-[var(--color-page-bg)] flex items-center justify-center active:opacity-60 relative" title="리뷰">
-          <ChatIcon className="w-4 h-4 text-[#6B6966]" />
-          {reviewCount > 0 && <span className="absolute -top-0.5 -right-0.5 bg-[var(--color-primary)] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{reviewCount}</span>}
-        </button>
-        <Link href={`/map/${p.id}/review`} className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-[12px] text-white font-semibold active:opacity-80">
-          <PenIcon className="w-3 h-3" /> 리뷰
-        </Link>
-      </div>
-
-      {/* 리뷰 바텀시트 */}
-      {showReviews && (
-        <div className="fixed inset-0 z-[80] bg-black/40" onClick={() => setShowReviews(false)}>
-          <div className="absolute bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white rounded-t-2xl max-h-[70vh] flex flex-col animate-slideUp"
-            onClick={e => e.stopPropagation()}>
-            {/* 핸들 */}
-            <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
-
-            {/* 헤더 */}
-            <div className="px-5 pb-3 border-b border-[#E8E4DF]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[15px] font-bold text-[#1A1918]">{p.name}</p>
-                  {avgRating && (
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <div className="flex">{[1,2,3,4,5].map(s => <span key={s} className={`text-[14px] ${s <= Math.round(Number(avgRating)) ? 'text-amber-400' : 'text-[#E0E0E0]'}`}>★</span>)}</div>
-                      <span className="text-[13px] font-bold">{avgRating}</span>
-                      <span className="text-[13px] text-[#6B6966]">{reviews.length}개</span>
-                    </div>
-                  )}
-                </div>
-                <Link href={`/map/${p.id}/review`} className="px-3 py-1.5 bg-[var(--color-primary)] text-white text-[13px] font-semibold rounded-lg">리뷰 쓰기</Link>
-              </div>
-
-              {/* 태그 요약 */}
-              {(() => {
-                const allTags = reviews.flatMap(r => r.tags || [])
-                const tagCounts: Record<string, number> = {}
-                allTags.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1 })
-                const sorted = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 5)
-                if (sorted.length === 0) return null
-                return (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {sorted.map(([tag, count]) => (
-                      <span key={tag} className="text-[13px] px-2 py-0.5 rounded-full bg-[#F0F9F4] text-[var(--color-primary)]">{tag} ({count})</span>
-                    ))}
-                  </div>
-                )
-              })()}
-            </div>
-
-            {/* 리뷰 스크롤 */}
-            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2.5">
-              {reviews.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-[13px] text-[#9E9A95]">아직 리뷰가 없어요</p>
-                  <Link href={`/map/${p.id}/review`} className="text-[14px] text-[var(--color-primary)] font-semibold mt-2 inline-block">첫 리뷰 작성하기 →</Link>
-                </div>
-              ) : reviews.map(r => (
-                <div key={r.id} className="bg-[var(--color-page-bg)] rounded-xl p-3">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <div className="flex">{[1,2,3,4,5].map(s => <span key={s} className={`text-[13px] ${s <= r.rating ? 'text-amber-400' : 'text-[#E0E0E0]'}`}>★</span>)}</div>
-                    {r.child_age_months !== null && <span className="text-[13px] text-[#6B6966]">· 아이 {r.child_age_months}개월</span>}
-                    <span className="text-[13px] text-[#9E9A95] ml-auto">{new Date(r.created_at).toLocaleDateString('ko-KR')}</span>
-                  </div>
-                  <p className="text-[14px] text-[#1A1918] leading-relaxed">{r.content}</p>
-                  {r.tags && r.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {r.tags.map(t => <span key={t} className="text-[13px] px-1.5 py-0.5 rounded-full bg-white text-[#6B6966]">{t}</span>)}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}

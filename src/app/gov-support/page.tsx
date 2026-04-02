@@ -49,16 +49,16 @@ export default function GovSupportPage() {
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col">
       <PageHeader title="정부 지원 혜택" showBack />
-      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-4 space-y-4">
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-4">
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-3">
-          <p className="text-[13px] text-[#6B6966] leading-relaxed">
+          <p className="text-body text-secondary leading-relaxed">
             육아 가정을 위한 주요 정부 지원 혜택을 모았어요. 자세한 내용은 각 항목의 신청 링크를 확인하세요.
           </p>
         </div>
 
         {sections.map(section => (
           <div key={section.label}>
-            <p className="text-[12px] font-semibold text-[#9E9A95] mb-2 uppercase tracking-wider">{section.label}</p>
+            <p className="text-caption font-semibold text-tertiary mb-2 uppercase tracking-wider">{section.label}</p>
             <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
               {section.items.map((item, i) => (
                 <div
@@ -67,15 +67,15 @@ export default function GovSupportPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-semibold text-[#1A1918]">{item.title}</p>
-                      <p className="text-[13px] text-[#6B6966] mt-0.5">{item.amount}</p>
+                      <p className="text-body-emphasis text-primary">{item.title}</p>
+                      <p className="text-body text-secondary mt-0.5">{item.amount}</p>
                     </div>
                     {item.link && (
                       <a
                         href={item.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="shrink-0 inline-flex items-center gap-1 text-[12px] text-[var(--color-primary)] font-semibold px-2.5 py-1.5 rounded-lg bg-[#E8F5EE] active:opacity-70"
+                        className="shrink-0 inline-flex items-center gap-1 text-caption text-[var(--color-primary)] font-semibold px-2.5 py-1.5 rounded-lg bg-[#E8F5EE] active:opacity-70"
                       >
                         신청 <ExternalLinkIcon className="w-3 h-3" />
                       </a>
@@ -88,12 +88,12 @@ export default function GovSupportPage() {
         ))}
 
         <div className="bg-[#F0F9F4] rounded-xl p-3 text-center">
-          <p className="text-[13px] text-[var(--color-primary)] font-semibold mb-1">정부24 한번에 신청</p>
+          <p className="text-body text-[var(--color-primary)] font-semibold mb-1">정부24 한번에 신청</p>
           <a
             href="https://www.gov.kr/portal/onestopSvc/happyBirth"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[13px] text-[#6B6966] inline-flex items-center gap-1"
+            className="text-body text-secondary inline-flex items-center gap-1"
           >
             행복출산 원스톱 서비스 → <ExternalLinkIcon className="w-3 h-3" />
           </a>

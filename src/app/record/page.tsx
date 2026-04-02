@@ -75,7 +75,7 @@ function PregnantRecord() {
         <div className="flex gap-2 bg-[#F0EDE8] p-1 rounded-xl">
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex-1 py-1.5 text-[13px] font-semibold text-center rounded-lg transition-colors ${tab === t.key ? 'bg-white text-[#1A1918] shadow-sm' : 'text-[#9E9A95]'}`}>
+              className={`flex-1 py-1.5 text-body font-semibold text-center rounded-lg transition-colors ${tab === t.key ? 'bg-white text-primary shadow-sm' : 'text-tertiary'}`}>
               {t.label}
             </button>
           ))}
@@ -88,17 +88,17 @@ function PregnantRecord() {
           dailyHistory.length === 0 ? (
             <div className="text-center py-16">
               <IllustVideo src="/images/illustrations/empty-no-records.webm" className="w-48 h-48 mx-auto mb-4" />
-              <p className="text-[13px] text-[#9E9A95]">아직 기록이 없어요</p>
+              <p className="text-body text-tertiary">아직 기록이 없어요</p>
             </div>
           ) : (
             dailyHistory.map(({ date, events, mood, health }) => (
               <div key={date} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-[13px] font-bold text-[#1A1918]">
+                  <p className="text-body font-bold text-primary">
                     {new Date(date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
                   </p>
                   {mood && (
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ color: MOOD_COLOR[mood], backgroundColor: MOOD_COLOR[mood] + '20' }}>
+                    <span className="text-label font-semibold px-2 py-0.5 rounded-full" style={{ color: MOOD_COLOR[mood], backgroundColor: MOOD_COLOR[mood] + '20' }}>
                       {MOOD_LABEL[mood] || mood}
                     </span>
                   )}
@@ -106,9 +106,9 @@ function PregnantRecord() {
                 {/* 건강 수치 */}
                 {(health.weight || health.fetalMove > 0 || health.water > 0) && (
                   <div className="flex gap-2 flex-wrap mb-2">
-                    {health.weight > 0 && <span className="text-[11px] bg-[#FCE4DC] text-[#D08068] px-2 py-0.5 rounded-full font-medium">{health.weight}kg</span>}
-                    {health.fetalMove > 0 && <span className="text-[11px] bg-[#E8F5EF] text-[#5BA882] px-2 py-0.5 rounded-full font-medium">태동 {health.fetalMove}회</span>}
-                    {health.water > 0 && <span className="text-[11px] bg-[#E6EFFF] text-[#3B82F6] px-2 py-0.5 rounded-full font-medium">물 {health.water}잔</span>}
+                    {health.weight > 0 && <span className="text-label bg-[#FCE4DC] text-[#D08068] px-2 py-0.5 rounded-full font-medium">{health.weight}kg</span>}
+                    {health.fetalMove > 0 && <span className="text-label bg-[#E8F5EF] text-[#5BA882] px-2 py-0.5 rounded-full font-medium">태동 {health.fetalMove}회</span>}
+                    {health.water > 0 && <span className="text-label bg-[#E6EFFF] text-[#3B82F6] px-2 py-0.5 rounded-full font-medium">물 {health.water}잔</span>}
                   </div>
                 )}
                 {/* 이벤트 목록 */}
@@ -116,8 +116,8 @@ function PregnantRecord() {
                   <div className="space-y-1.5">
                     {events.map((ev, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <span className="text-[11px] text-[#9E9A95] w-10 shrink-0 font-mono">{ev.timeStr}</span>
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ color: EVENT_COLOR[ev.type] || '#6B6966', backgroundColor: (EVENT_COLOR[ev.type] || '#6B6966') + '18' }}>
+                        <span className="text-label text-tertiary w-10 shrink-0 font-mono">{ev.timeStr}</span>
+                        <span className="text-label font-semibold px-2 py-0.5 rounded-full" style={{ color: EVENT_COLOR[ev.type] || '#6B6966', backgroundColor: (EVENT_COLOR[ev.type] || '#6B6966') + '18' }}>
                           {EVENT_LABEL[ev.type] || ev.type}
                         </span>
                       </div>
@@ -134,20 +134,20 @@ function PregnantRecord() {
           diaries.length === 0 ? (
             <div className="text-center py-16">
               <IllustVideo src="/images/illustrations/empty-no-records.webm" className="w-48 h-48 mx-auto mb-4" />
-              <p className="text-[13px] text-[#9E9A95]">아직 기다림 일기가 없어요</p>
+              <p className="text-body text-tertiary">아직 기다림 일기가 없어요</p>
             </div>
           ) : (
             <div className="space-y-3">
               {diaries.map((d, i) => (
                 <div key={i} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-[13px] font-bold text-[#1A1918]">
+                    <p className="text-body font-bold text-primary">
                       {new Date(d.date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
                     </p>
-                    {d.mood && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ color: MOOD_COLOR[d.mood], backgroundColor: MOOD_COLOR[d.mood] + '20' }}>{MOOD_LABEL[d.mood] || d.mood}</span>}
+                    {d.mood && <span className="text-label font-semibold px-2 py-0.5 rounded-full" style={{ color: MOOD_COLOR[d.mood], backgroundColor: MOOD_COLOR[d.mood] + '20' }}>{MOOD_LABEL[d.mood] || d.mood}</span>}
                   </div>
-                  <p className="text-[13px] text-[#4A4744] leading-relaxed">{d.text}</p>
-                  {d.comment && <p className="text-[12px] text-[var(--color-primary)] mt-2 italic">AI: {d.comment}</p>}
+                  <p className="text-body text-[#4A4744] leading-relaxed">{d.text}</p>
+                  {d.comment && <p className="text-caption text-[var(--color-primary)] mt-2 italic">AI: {d.comment}</p>}
                 </div>
               ))}
             </div>
@@ -203,7 +203,7 @@ function PreparingRecord() {
         <div className="flex gap-2 bg-[#F0EDE8] p-1 rounded-xl">
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex-1 py-1.5 text-[13px] font-semibold text-center rounded-lg transition-colors ${tab === t.key ? 'bg-white text-[#1A1918] shadow-sm' : 'text-[#9E9A95]'}`}>
+              className={`flex-1 py-1.5 text-body font-semibold text-center rounded-lg transition-colors ${tab === t.key ? 'bg-white text-primary shadow-sm' : 'text-tertiary'}`}>
               {t.label}
             </button>
           ))}
@@ -216,8 +216,8 @@ function PreparingRecord() {
           dailyHistory.length === 0 ? (
             <div className="text-center py-16">
               <IllustVideo src="/images/illustrations/empty-no-records.webm" className="w-48 h-48 mx-auto mb-4" />
-              <p className="text-[13px] text-[#9E9A95]">아직 기록이 없어요</p>
-              <p className="text-[12px] text-[#9E9A95] mt-1">영양제, 운동 등을 기록하면 여기에 모여요</p>
+              <p className="text-body text-tertiary">아직 기록이 없어요</p>
+              <p className="text-caption text-tertiary mt-1">영양제, 운동 등을 기록하면 여기에 모여요</p>
             </div>
           ) : (
             dailyHistory.map(({ date, done, mood, suppl, journal }) => {
@@ -225,26 +225,26 @@ function PreparingRecord() {
               return (
                 <div key={date} className="bg-white rounded-xl border border-[#E8E4DF] p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-[13px] font-bold text-[#1A1918]">
+                    <p className="text-body font-bold text-primary">
                       {new Date(date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
                     </p>
                     {mood && (
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ color: MOOD_COLOR[mood], backgroundColor: MOOD_COLOR[mood] + '20' }}>
+                      <span className="text-label font-semibold px-2 py-0.5 rounded-full" style={{ color: MOOD_COLOR[mood], backgroundColor: MOOD_COLOR[mood] + '20' }}>
                         {MOOD_LABEL[mood] || mood}
                       </span>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {supplDone.map(([key]) => (
-                      <span key={key} className="text-[11px] bg-[#E8F5EF] text-[#10B981] px-2 py-0.5 rounded-full font-medium">{SUPPL_NAMES[key] || key}</span>
+                      <span key={key} className="text-label bg-[#E8F5EF] text-[#10B981] px-2 py-0.5 rounded-full font-medium">{SUPPL_NAMES[key] || key}</span>
                     ))}
                     {done.map(type => (
-                      <span key={type} className="text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ color: PREP_COLOR[type] || '#6B6966', backgroundColor: (PREP_COLOR[type] || '#6B6966') + '18' }}>
+                      <span key={type} className="text-label font-medium px-2 py-0.5 rounded-full" style={{ color: PREP_COLOR[type] || '#6B6966', backgroundColor: (PREP_COLOR[type] || '#6B6966') + '18' }}>
                         {PREP_LABEL[type] || type}
                       </span>
                     ))}
                   </div>
-                  {journal && <p className="text-[12px] text-[#6B6966] mt-2 leading-relaxed border-t border-[#F0EDE8] pt-2">{journal}</p>}
+                  {journal && <p className="text-caption text-secondary mt-2 leading-relaxed border-t border-[#F0EDE8] pt-2">{journal}</p>}
                 </div>
               )
             })
@@ -272,8 +272,8 @@ function CycleHistory() {
   if (!lastPeriod && cycles.length === 0) {
     return (
       <div className="text-center py-16">
-        <p className="text-[13px] text-[#9E9A95]">생리 주기 정보가 없어요</p>
-        <p className="text-[12px] text-[#9E9A95] mt-1">설정에서 마지막 생리 시작일을 입력해보세요</p>
+        <p className="text-body text-tertiary">생리 주기 정보가 없어요</p>
+        <p className="text-caption text-tertiary mt-1">설정에서 마지막 생리 시작일을 입력해보세요</p>
       </div>
     )
   }
@@ -281,28 +281,28 @@ function CycleHistory() {
   return (
     <div className="space-y-3">
       <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-        <p className="text-[13px] font-bold text-[#1A1918] mb-3">현재 주기 정보</p>
+        <p className="text-body font-bold text-primary mb-3">현재 주기 정보</p>
         <div className="grid grid-cols-2 gap-2">
           {lastPeriod && (
             <div className="bg-[var(--color-page-bg)] rounded-lg p-3 text-center">
-              <p className="text-[11px] text-[#9E9A95]">마지막 생리</p>
-              <p className="text-[13px] font-bold text-[#1A1918] mt-0.5">{new Date(lastPeriod).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</p>
+              <p className="text-label text-tertiary">마지막 생리</p>
+              <p className="text-body font-bold text-primary mt-0.5">{new Date(lastPeriod).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</p>
             </div>
           )}
           <div className="bg-[var(--color-page-bg)] rounded-lg p-3 text-center">
-            <p className="text-[11px] text-[#9E9A95]">평균 주기</p>
-            <p className="text-[13px] font-bold text-[#1A1918] mt-0.5">{cycleLength}일</p>
+            <p className="text-label text-tertiary">평균 주기</p>
+            <p className="text-body font-bold text-primary mt-0.5">{cycleLength}일</p>
           </div>
         </div>
       </div>
       {cycles.length > 0 && (
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <p className="text-[13px] font-bold text-[#1A1918] mb-3">주기 기록</p>
+          <p className="text-body font-bold text-primary mb-3">주기 기록</p>
           <div className="space-y-2">
             {cycles.map((c, i) => (
               <div key={i} className="flex items-center justify-between py-1.5 border-b border-[#F0EDE8] last:border-0">
-                <p className="text-[13px] text-[#1A1918]">{new Date(c.start).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 시작</p>
-                <span className="text-[12px] text-[#6B6966]">{c.length}일</span>
+                <p className="text-body text-primary">{new Date(c.start).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 시작</p>
+                <span className="text-caption text-secondary">{c.length}일</span>
               </div>
             ))}
           </div>
@@ -367,25 +367,25 @@ function JourneyTimeline({ childName }: { childName: string }) {
     <div className="px-5 pt-4 space-y-3">
       <div className="bg-gradient-to-br from-[#FFF8F3] to-[#F0F9F4] rounded-xl border border-[var(--color-accent-bg)]/50 p-5 text-center">
         <IllustVideo src={hasJourney ? '/images/illustrations/h3.webm' : '/images/illustrations/h2.webm'} variant="circle" className="w-24 h-24 mx-auto mb-2" />
-        <p className="text-[16px] font-bold text-[#1A1918]">{hasJourney ? `${childName}를 만나기까지의 여정` : '여정이 시작될 거예요'}</p>
+        <p className="text-subtitle font-bold text-primary">{hasJourney ? `${childName}를 만나기까지의 여정` : '여정이 시작될 거예요'}</p>
         {hasJourney && (
           <div className="flex justify-center gap-4 mt-3">
-            {letters.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[var(--color-primary)]">{letters.length}</p><p className="text-[13px] text-[#6B6966]">편지</p></div>}
-            {(diaries.length + prepDiaries.length) > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[var(--color-primary)]">{diaries.length + prepDiaries.length}</p><p className="text-[13px] text-[#6B6966]">기다림 일기</p></div>}
-            {checkups.length > 0 && <div className="text-center"><p className="text-[16px] font-bold text-[var(--color-primary)]">{checkups.length}</p><p className="text-[13px] text-[#6B6966]">검진</p></div>}
+            {letters.length > 0 && <div className="text-center"><p className="text-subtitle font-bold text-[var(--color-primary)]">{letters.length}</p><p className="text-body text-secondary">편지</p></div>}
+            {(diaries.length + prepDiaries.length) > 0 && <div className="text-center"><p className="text-subtitle font-bold text-[var(--color-primary)]">{diaries.length + prepDiaries.length}</p><p className="text-body text-secondary">기다림 일기</p></div>}
+            {checkups.length > 0 && <div className="text-center"><p className="text-subtitle font-bold text-[var(--color-primary)]">{checkups.length}</p><p className="text-body text-secondary">검진</p></div>}
           </div>
         )}
-        {!hasJourney && <p className="text-[14px] text-[#6B6966] mt-2">임신준비·임신 중 일기, 편지, 검진 기록이 여기에 모여요</p>}
+        {!hasJourney && <p className="text-body-emphasis text-secondary mt-2">임신준비·임신 중 일기, 편지, 검진 기록이 여기에 모여요</p>}
       </div>
 
       {!showForm ? (
-        <button onClick={() => setShowForm(true)} className="w-full py-2.5 bg-white rounded-xl border border-[#E8E4DF] text-[13px] text-[var(--color-primary)] font-semibold active:bg-[#F5F1EC]">추억 남기기</button>
+        <button onClick={() => setShowForm(true)} className="w-full py-2.5 bg-white rounded-xl border border-[#E8E4DF] text-body text-[var(--color-primary)] font-semibold active:bg-[#F5F1EC]">추억 남기기</button>
       ) : (
         <div className="bg-white rounded-xl border border-[#E8E4DF] p-4">
-          <textarea value={newText} onChange={e => setNewText(e.target.value)} placeholder="이 순간을 기록해보세요..." className="w-full h-20 text-[13px] bg-[#F5F1EC] rounded-lg p-3 resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]" maxLength={200} />
+          <textarea value={newText} onChange={e => setNewText(e.target.value)} placeholder="이 순간을 기록해보세요..." className="w-full h-20 text-body bg-[#F5F1EC] rounded-lg p-3 resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]" maxLength={200} />
           <div className="flex justify-end gap-2 mt-2">
-            <button onClick={() => { setShowForm(false); setNewText('') }} className="px-3 py-1.5 text-[14px] text-[#6B6966]">취소</button>
-            <button onClick={addJourneyEntry} disabled={!newText.trim()} className="px-4 py-1.5 bg-[var(--color-primary)] text-white text-[14px] rounded-lg font-semibold disabled:opacity-40">저장</button>
+            <button onClick={() => { setShowForm(false); setNewText('') }} className="px-3 py-1.5 text-body-emphasis text-secondary">취소</button>
+            <button onClick={addJourneyEntry} disabled={!newText.trim()} className="px-4 py-1.5 bg-[var(--color-primary)] text-white rounded-lg font-semibold disabled:opacity-40">저장</button>
           </div>
         </div>
       )}
@@ -400,12 +400,12 @@ function JourneyTimeline({ childName }: { childName: string }) {
               </div>
               <div className="flex-1 bg-white rounded-xl border border-[#E8E4DF] p-3">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-[14px] font-semibold text-[#1A1918]">{item.title}</p>
-                  <span className="text-[13px] text-[#9E9A95]">{new Date(item.date).toLocaleDateString('ko-KR')}</span>
+                  <p className="text-body-emphasis text-primary">{item.title}</p>
+                  <span className="text-body text-tertiary">{new Date(item.date).toLocaleDateString('ko-KR')}</span>
                 </div>
-                {item.content && <p className="text-[13px] text-[#6B6966] line-clamp-2">{item.content}</p>}
-                {item.sub && <p className="text-[14px] text-[var(--color-primary)] mt-0.5 italic">{item.sub}</p>}
-                {item.type === 'positive' && <p className="text-[13px] text-[var(--color-primary)] font-semibold mt-1">이 순간부터 모든 게 시작되었어요</p>}
+                {item.content && <p className="text-body text-secondary line-clamp-2">{item.content}</p>}
+                {item.sub && <p className="text-body-emphasis text-[var(--color-primary)] mt-0.5 italic">{item.sub}</p>}
+                {item.type === 'positive' && <p className="text-body text-[var(--color-primary)] font-semibold mt-1">이 순간부터 모든 게 시작되었어요</p>}
               </div>
             </div>
           ))}
@@ -413,8 +413,8 @@ function JourneyTimeline({ childName }: { childName: string }) {
       ) : (
         <div className="text-center py-8">
           <IllustVideo src="/images/illustrations/empty-no-records.webm" className="w-48 h-48 mx-auto mb-4" />
-          <p className="text-[13px] text-[#9E9A95]">아직 기록이 없어요</p>
-          <p className="text-[13px] text-[#6B6966] mt-1">임신준비·임신 중 기다림 일기, 편지가 여기에 모여요</p>
+          <p className="text-body text-tertiary">아직 기록이 없어요</p>
+          <p className="text-body text-secondary mt-1">임신준비·임신 중 기다림 일기, 편지가 여기에 모여요</p>
         </div>
       )}
     </div>
@@ -484,12 +484,12 @@ function ParentingRecord() {
       <div className="max-w-lg mx-auto w-full px-5 pt-3 pb-3">
         <div className="flex items-center justify-between mb-3">
           <div />
-          <Link href="/growth/add" className="text-[13px] font-semibold text-[var(--color-primary)]">+ 측정</Link>
+          <Link href="/growth/add" className="text-body font-semibold text-[var(--color-primary)]">+ 측정</Link>
         </div>
         <div className="flex gap-2 bg-[#F0EDE8] p-1 rounded-xl">
           {PARENTING_TABS.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex-1 py-1.5 text-[13px] font-semibold text-center rounded-lg transition-colors ${tab === t.key ? 'bg-white text-[#1A1918] shadow-sm' : 'text-[#9E9A95]'}`}>
+              className={`flex-1 py-1.5 text-body font-semibold text-center rounded-lg transition-colors ${tab === t.key ? 'bg-white text-primary shadow-sm' : 'text-tertiary'}`}>
               {t.label}
             </button>
           ))}
@@ -504,22 +504,22 @@ function ParentingRecord() {
               <div className="bg-white rounded-xl border border-[#D5D0CA] shadow-sm p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="text-[15px] font-bold text-[#1A1918]">{child?.name}</p>
-                    <p className="text-[13px] text-[#4A4744]">{ageMonths}개월</p>
+                    <p className="text-subtitle text-primary">{child?.name}</p>
+                    <p className="text-body text-[#4A4744]">{ageMonths}개월</p>
                   </div>
-                  <Link href="/growth/add" className="text-[13px] font-semibold text-[var(--color-primary)]">+ 측정</Link>
+                  <Link href="/growth/add" className="text-body font-semibold text-[var(--color-primary)]">+ 측정</Link>
                 </div>
                 <div className="flex gap-3">
                   {latestRecord.weight_kg && (
                     <div className="flex-1 p-3 rounded-xl bg-[#F5F0EA] border border-[#E8E2DA]">
-                      <p className="text-[13px] text-[#4A4744] font-medium">몸무게</p>
-                      <p className="text-xl font-bold text-[#1A1918]">{Number(latestRecord.weight_kg).toFixed(1)}<span className="text-[13px] font-normal text-[#4A4744] ml-0.5">kg</span></p>
+                      <p className="text-body text-[#4A4744] font-medium">몸무게</p>
+                      <p className="text-xl font-bold text-primary">{Number(latestRecord.weight_kg).toFixed(1)}<span className="text-body font-normal text-[#4A4744] ml-0.5">kg</span></p>
                     </div>
                   )}
                   {latestRecord.height_cm && (
                     <div className="flex-1 p-3 rounded-xl bg-[#F5F0EA] border border-[#E8E2DA]">
-                      <p className="text-[13px] text-[#4A4744] font-medium">키</p>
-                      <p className="text-xl font-bold text-[#1A1918]">{Number(latestRecord.height_cm).toFixed(1)}<span className="text-[13px] font-normal text-[#4A4744] ml-0.5">cm</span></p>
+                      <p className="text-body text-[#4A4744] font-medium">키</p>
+                      <p className="text-xl font-bold text-primary">{Number(latestRecord.height_cm).toFixed(1)}<span className="text-body font-normal text-[#4A4744] ml-0.5">cm</span></p>
                     </div>
                   )}
                 </div>
@@ -532,8 +532,8 @@ function ParentingRecord() {
             ) : (
               <div className="bg-white rounded-xl border border-[#D5D0CA] shadow-sm p-6 text-center">
                 <IllustVideo src="/images/illustrations/empty-no-growth.webm" className="w-48 h-48 mx-auto mb-4" />
-                <p className="text-[14px] text-[#4A4744] mb-3">아직 성장 기록이 없어요</p>
-                <Link href="/growth/add" className="inline-block px-5 py-2 rounded-xl bg-[var(--color-primary)] text-white text-[13px] font-semibold">기록 추가</Link>
+                <p className="text-body-emphasis text-[#4A4744] mb-3">아직 성장 기록이 없어요</p>
+                <Link href="/growth/add" className="inline-block px-5 py-2 rounded-xl bg-[var(--color-primary)] text-white font-semibold">기록 추가</Link>
               </div>
             )}
           </div>

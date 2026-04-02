@@ -47,21 +47,21 @@ export default function CaregiversPage() {
     <div className="min-h-[calc(100dvh-144px)] bg-[#f5f5f5]">
       <header className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-xl border-b border-[#E8E4DF]">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">뒤로</button>
-          <h1 className="text-[15px] font-bold text-[#0A0B0D]">공동양육자</h1>
+          <button onClick={() => router.back()} className="text-sm text-tertiary">뒤로</button>
+          <h1 className="text-subtitle text-primary">공동양육자</h1>
           <div className="w-8" />
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto w-full pb-4">
+      <div className="max-w-lg mx-auto w-full pb-28">
         <div className="m-4 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
           {caregivers.length === 0 ? (
             <div className="px-4 py-8 text-center">
               <div className="w-16 h-16 rounded-2xl bg-[#f5f5f5] flex items-center justify-center mx-auto mb-3">
                 <UsersIcon className="w-8 h-8 text-[var(--color-primary)]" />
               </div>
-              <p className="text-sm font-semibold text-[#0A0B0D]">아직 연결된 가족이 없어요</p>
-              <p className="text-xs text-[#9B9B9B] mt-1">함께 기록하면 더 도담해요</p>
+              <p className="text-sm font-semibold text-primary">아직 연결된 가족이 없어요</p>
+              <p className="text-xs text-tertiary mt-1">함께 기록하면 더 도담해요</p>
             </div>
           ) : (
             caregivers.map((cg) => (
@@ -73,10 +73,10 @@ export default function CaregiversPage() {
                   <svg className="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-[#0A0B0D]">
+                  <p className="text-sm font-medium text-primary">
                     {cg.role === 'primary' ? '주 양육자' : '공동양육자'}
                   </p>
-                  <p className="text-xs text-[#9B9B9B]">
+                  <p className="text-xs text-tertiary">
                     {cg.accepted_at ? '연결됨' : '대기 중'}
                   </p>
                 </div>
@@ -93,7 +93,7 @@ export default function CaregiversPage() {
             </div>
             <p className="text-sm font-medium text-[var(--color-primary)]">가족 초대하기</p>
             <div className="flex-1" />
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+            <ChevronRightIcon className="w-4 h-4 text-tertiary" />
           </Link>
         </div>
       </div>

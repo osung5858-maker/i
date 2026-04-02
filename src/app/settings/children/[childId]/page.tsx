@@ -88,8 +88,8 @@ export default function EditChildPage() {
     <div className="min-h-[100dvh] bg-white flex flex-col">
       <header className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-xl">
         <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-sm text-[#9B9B9B] shrink-0">취소</button>
-          <h1 className="text-[15px] font-bold text-[#0A0B0D] truncate mx-3">프로필 수정</h1>
+          <button onClick={() => router.back()} className="text-sm text-tertiary shrink-0">취소</button>
+          <h1 className="text-subtitle text-primary truncate mx-3">프로필 수정</h1>
           <div className="w-8" />
         </div>
       </header>
@@ -128,7 +128,7 @@ export default function EditChildPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={20}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-[15px] text-[#0A0B0D] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
           />
         </div>
 
@@ -140,7 +140,7 @@ export default function EditChildPage() {
             value={birthdate}
             onChange={(e) => setBirthdate(e.target.value)}
             max={new Date().toISOString().split('T')[0]}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-[15px] text-[#0A0B0D] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
           />
         </div>
 
@@ -177,7 +177,7 @@ export default function EditChildPage() {
       </div>
 
       {/* 삭제 */}
-      <div className="px-6 pb-4 max-w-lg mx-auto w-full">
+      <div className="px-6 pb-28 max-w-lg mx-auto w-full">
         <button
           onClick={handleDelete}
           className="w-full py-3 text-sm text-red-500 font-medium active:opacity-70"
@@ -191,7 +191,7 @@ export default function EditChildPage() {
         <button
           onClick={handleSave}
           disabled={loading}
-          className={`w-full py-3.5 rounded-xl text-[15px] font-bold transition-colors max-w-lg mx-auto block ${!loading ? 'bg-[var(--color-primary)] text-white active:bg-[#2D6B45]' : 'bg-[#E8E4DF] text-[#9E9A95]'}`}
+          className={`w-full py-3.5 rounded-xl text-subtitle transition-colors max-w-lg mx-auto block ${!loading ? 'bg-[var(--color-primary)] text-white active:bg-[#2D6B45]' : 'bg-[#E8E4DF] text-tertiary'}`}
         >
           {loading ? '저장 중...' : '저장하기'}
         </button>

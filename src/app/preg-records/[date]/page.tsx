@@ -88,8 +88,8 @@ export default function PregRecordDetailPage() {
     <div className="fixed inset-0 flex flex-col bg-[#F5F1EC] overflow-hidden">
       {/* 헤더 — 고정 */}
       <div className="shrink-0 h-12 px-5 max-w-lg mx-auto w-full flex items-center justify-between bg-[#F5F1EC] border-b border-[#E0DDD8]">
-        <button onClick={() => router.back()} className="text-sm text-[#9B9B9B]">뒤로</button>
-        <h1 className="text-[15px] font-bold text-[#0A0B0D]">기록 상세</h1>
+        <button onClick={() => router.back()} className="text-sm text-tertiary">뒤로</button>
+        <h1 className="text-subtitle text-primary">기록 상세</h1>
         <div className="w-8" />
       </div>
 
@@ -100,9 +100,9 @@ export default function PregRecordDetailPage() {
             onClick={() => router.push(`/preg-records/${prevDate}`)}
             className="w-9 h-9 rounded-xl bg-white border border-[#E8E4DF] flex items-center justify-center active:scale-95 transition-transform"
           >
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B] rotate-180" />
+            <ChevronRightIcon className="w-4 h-4 text-tertiary rotate-180" />
           </button>
-          <p className="text-sm font-semibold text-[#0A0B0D]">
+          <p className="text-sm font-semibold text-primary">
             {formatDateKr(dateStr)}
             {isToday && <span className="text-[var(--color-primary)] ml-1">오늘</span>}
           </p>
@@ -111,7 +111,7 @@ export default function PregRecordDetailPage() {
             disabled={!canGoNext}
             className="w-9 h-9 rounded-xl bg-white border border-[#E8E4DF] flex items-center justify-center active:scale-95 transition-transform disabled:opacity-30"
           >
-            <ChevronRightIcon className="w-4 h-4 text-[#9B9B9B]" />
+            <ChevronRightIcon className="w-4 h-4 text-tertiary" />
           </button>
         </div>
       </div>
@@ -159,8 +159,8 @@ export default function PregRecordDetailPage() {
               className="py-2.5 rounded-xl border text-center"
               style={{ backgroundColor: c.bg, borderColor: c.border }}
             >
-              <p className="text-[12px] font-medium" style={{ color: c.labelColor }}>{c.label}</p>
-              <p className="text-[13px] font-bold mt-0.5" style={{ color: c.valueColor }}>{c.value}</p>
+              <p className="text-caption font-medium" style={{ color: c.labelColor }}>{c.label}</p>
+              <p className="text-body font-bold mt-0.5" style={{ color: c.valueColor }}>{c.value}</p>
             </div>
           ))}
         </div>
@@ -170,11 +170,11 @@ export default function PregRecordDetailPage() {
           {!hasData ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <div className="w-16 h-16 rounded-full bg-[#F0EDE8] flex items-center justify-center">
-                <svg className="w-8 h-8 text-[#9E9A95]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-8 h-8 text-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
                   <path d="M12 8v4l3 3" strokeLinecap="round" /><circle cx="12" cy="12" r="10" />
                 </svg>
               </div>
-              <p className="text-[15px] font-semibold text-[#212124]">이 날의 기록이 없어요</p>
+              <p className="text-subtitle text-primary">이 날의 기록이 없어요</p>
             </div>
           ) : (
             <div className="flex flex-col px-4 gap-2 pb-4 pt-2">
@@ -188,17 +188,17 @@ export default function PregRecordDetailPage() {
                       <Icon className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14px] text-[#1A1918] truncate">
+                      <p className="text-body-emphasis text-primary truncate">
                         {label ? (
                           <>
-                            <span className="text-[#9E9A95] font-normal mr-1">{cat}</span>
+                            <span className="text-tertiary font-normal mr-1">{cat}</span>
                             <span className="font-semibold">{label}</span>
                           </>
                         ) : (
                           <span className="font-semibold">{cat}</span>
                         )}
                       </p>
-                      <p className="text-[13px] text-[#6B6966]">{ev.timeStr || ''}</p>
+                      <p className="text-body text-secondary">{ev.timeStr || ''}</p>
                     </div>
                   </div>
                 )
@@ -211,11 +211,11 @@ export default function PregRecordDetailPage() {
                     <ChartIcon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[14px] text-[#1A1918]">
-                      <span className="text-[#9E9A95] font-normal mr-1">체중</span>
+                    <p className="text-body-emphasis text-primary">
+                      <span className="text-tertiary font-normal mr-1">체중</span>
                       <span className="font-semibold">{health.weight}kg</span>
                     </p>
-                    <p className="text-[13px] text-[#6B6966]">체중 기록</p>
+                    <p className="text-body text-secondary">체중 기록</p>
                   </div>
                 </div>
               )}
@@ -225,8 +225,8 @@ export default function PregRecordDetailPage() {
                     <ActivityIcon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[14px] text-[#1A1918]">
-                      <span className="text-[#9E9A95] font-normal mr-1">태동</span>
+                    <p className="text-body-emphasis text-primary">
+                      <span className="text-tertiary font-normal mr-1">태동</span>
                       <span className="font-semibold">{health.fetalMove}회</span>
                     </p>
                   </div>

@@ -94,31 +94,31 @@ export default function FetalCarousel({ currentWeek, onShare }: Props) {
                 style={{ minHeight: height, maxHeight: isFar ? '120px' : undefined }}
               >
                 {/* 주차 뱃지 */}
-                <div className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mb-1.5 ${
-                  isCurrent ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-[#6B6966]'
+                <div className={`inline-block px-2 py-0.5 rounded-full text-label font-bold mb-1.5 ${
+                  isCurrent ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-secondary'
                 }`}>
                   {stage.week}주
                 </div>
 
                 {/* 크기 비유 — 일러스트 */}
                 <IllustVideo src={stage.fruit} variant="icon" className={`mx-auto mb-1 ${isCurrent ? 'w-14 h-14' : isAdjacent ? 'w-10 h-10' : 'w-8 h-8'}`} />
-                <p className={`font-bold leading-none mb-1 ${isCurrent ? 'text-[18px] text-[#1A1918]' : isAdjacent ? 'text-[14px] text-[#6B6966]' : 'text-[12px] text-[#6B6966]'}`}>
+                <p className={`font-bold leading-none mb-1 ${isCurrent ? 'text-heading-3 text-primary' : isAdjacent ? 'text-body-emphasis text-secondary' : 'text-caption text-secondary'}`}>
                   {stage.name}
                 </p>
 
                 {/* 현재 단계만 상세 정보 */}
                 {isCurrent && (
                   <>
-                    <div className="flex justify-center gap-3 mt-1.5 text-[12px] text-[#6B6966]">
+                    <div className="flex justify-center gap-3 mt-1.5 text-caption text-secondary">
                       <span className="inline-flex items-center gap-0.5"><RulerIcon className="w-3 h-3" /> {stage.length}</span>
                       <span className="inline-flex items-center gap-0.5"><ScaleIcon className="w-3 h-3" /> {stage.weight}</span>
                     </div>
-                    <p className="text-[12px] text-[#4A4744] mt-1.5 leading-snug">{stage.desc}</p>
-                    <p className="text-[11px] text-[var(--color-primary)] mt-1 font-medium">{stage.tip}</p>
+                    <p className="text-caption text-[#4A4744] mt-1.5 leading-snug">{stage.desc}</p>
+                    <p className="text-label text-[var(--color-primary)] mt-1 font-medium">{stage.tip}</p>
                     {onShare && (
                       <button
                         onClick={() => onShare(stage)}
-                        className="mt-2 text-[11px] text-[var(--color-primary)] font-semibold"
+                        className="mt-2 text-label text-[var(--color-primary)] font-semibold"
                       >
                         공유
                       </button>
@@ -128,7 +128,7 @@ export default function FetalCarousel({ currentWeek, onShare }: Props) {
 
                 {/* 인접 단계: 간단 정보 */}
                 {isAdjacent && (
-                  <p className="text-[11px] text-[#9E9A95] mt-1 line-clamp-2">{stage.desc}</p>
+                  <p className="text-label text-tertiary mt-1 line-clamp-2">{stage.desc}</p>
                 )}
               </div>
             </div>

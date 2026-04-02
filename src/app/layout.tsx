@@ -9,9 +9,7 @@ import KakaoSDK from '@/components/ui/KakaoSDK'
 import DevResetButton from '@/components/ui/DevResetButton'
 import GlobalToast from '@/components/ui/GlobalToast'
 import ScrollToTop from '@/components/ui/ScrollToTop'
-import NavSpacer from '@/components/ui/NavSpacer'
 import ThemeInitializer from '@/components/ThemeInitializer'
-import ThemeScript from '@/components/ThemeScript'
 import SplashProvider from '@/components/SplashProvider'
 import SecurityMigrator from '@/components/SecurityMigrator'
 
@@ -86,9 +84,9 @@ export const metadata: Metadata = {
   verification: {
     google: '',
   },
-  other: {
-    'google-adsense-account': 'ca-pub-7884114322521157',
-  },
+  // other: {
+  //   'google-adsense-account': 'ca-pub-7884114322521157', // AdSense 승인 후 활성화
+  // },
 }
 
 export const viewport: Viewport = {
@@ -169,14 +167,13 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full bg-[#E8E4DF] flex justify-center">
-        <ThemeScript />
         <SecurityMigrator />
         <SplashProvider />
         <KakaoSDK />
         <div className="w-full max-w-[430px] min-h-full flex flex-col relative shadow-[0_0_40px_rgba(0,0,0,0.08)]" style={{ backgroundColor: 'var(--color-page-bg)' }}>
           <ThemeInitializer />
           <GlobalHeader />
-          <main id="main-content">{children}<NavSpacer /></main>
+          <main id="main-content">{children}</main>
           <ScrollToTop />
           <BottomNav />
           <PWAInstallPrompt />
