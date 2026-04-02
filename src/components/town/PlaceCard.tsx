@@ -202,7 +202,7 @@ export default function PlaceCard({ place: p, stats }: { place: Place; stats?: {
           <ChatIcon className="w-4 h-4 text-secondary" />
           {reviewCount > 0 && <span className="absolute -top-0.5 -right-0.5 bg-[var(--color-primary)] text-white text-label font-bold w-4 h-4 rounded-full flex items-center justify-center">{reviewCount}</span>}
         </button>
-        <Link href={`/map/${p.id}/review`} className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-caption text-white font-semibold active:opacity-80">
+        <Link href={`/map/${p.id}/review`} className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-white text-caption font-semibold active:opacity-80">
           <PenIcon className="w-3 h-3" /> 리뷰
         </Link>
       </div>

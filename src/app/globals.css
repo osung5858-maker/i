@@ -221,7 +221,6 @@ body {
   font-weight: var(--font-bold);
   line-height: var(--leading-tight);
   font-family: var(--font-display);
-  color: var(--color-text-primary);
 }
 
 /* Heading 2 (섹션 제목) */
@@ -230,7 +229,6 @@ body {
   font-weight: var(--font-bold);
   line-height: var(--leading-tight);
   font-family: var(--font-display);
-  color: var(--color-text-primary);
 }
 
 /* Heading 3 (카드 제목) */
@@ -239,7 +237,6 @@ body {
   font-weight: var(--font-bold);
   line-height: var(--leading-snug);
   font-family: var(--font-accent);
-  color: var(--color-text-primary);
 }
 
 /* Subtitle (소제목, 강조) */
@@ -247,7 +244,6 @@ body {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
   line-height: var(--leading-snug);
-  color: var(--color-text-primary);
 }
 
 /* Body (기본 본문) */
@@ -255,7 +251,6 @@ body {
   font-size: var(--text-base);
   font-weight: var(--font-normal);
   line-height: var(--leading-normal);
-  color: var(--color-text-secondary);
 }
 
 /* Body Emphasis (본문 강조) */
@@ -263,7 +258,6 @@ body {
   font-size: var(--text-md);
   font-weight: var(--font-semibold);
   line-height: var(--leading-normal);
-  color: var(--color-text-primary);
 }
 
 /* Caption (캡션, 메타 정보) */
@@ -271,7 +265,6 @@ body {
   font-size: var(--text-sm);
   font-weight: var(--font-normal);
   line-height: var(--leading-snug);
-  color: var(--color-text-tertiary);
 }
 
 /* Caption Bold (강조 캡션) */
@@ -279,7 +272,6 @@ body {
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   line-height: var(--leading-snug);
-  color: var(--color-text-secondary);
 }
 
 /* Label (라벨, 작은 텍스트) */
@@ -287,9 +279,33 @@ body {
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   line-height: var(--leading-tight);
-  color: var(--color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+/*
+ * 시맨틱 타이포 기본 색상 — :where()로 specificity 0
+ * text-white, text-primary 등 유틸리티 클래스가 항상 우선
+ */
+:where(.text-heading-1),
+:where(.text-heading-2),
+:where(.text-heading-3),
+:where(.text-subtitle),
+:where(.text-body-emphasis) {
+  color: var(--color-text-primary);
+}
+
+:where(.text-body) {
+  color: var(--color-text-secondary);
+}
+
+:where(.text-caption),
+:where(.text-label) {
+  color: var(--color-text-tertiary);
+}
+
+:where(.text-caption-bold) {
+  color: var(--color-text-secondary);
 }
 
 /* ===== Color Utility Classes ===== */
