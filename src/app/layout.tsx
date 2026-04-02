@@ -6,7 +6,6 @@ import BottomNav from '@/components/bnb/BottomNav'
 import GlobalHeader from '@/components/layout/GlobalHeader'
 import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import KakaoSDK from '@/components/ui/KakaoSDK'
-import DevResetButton from '@/components/ui/DevResetButton'
 import GlobalToast from '@/components/ui/GlobalToast'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 import ThemeInitializer from '@/components/ThemeInitializer'
@@ -177,7 +176,6 @@ export default function RootLayout({
           <ScrollToTop />
           <BottomNav />
           <PWAInstallPrompt />
-          <DevResetButton />
           <GlobalToast />
           <Analytics />
         </div>
