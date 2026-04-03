@@ -193,8 +193,10 @@ export default function NamePage() {
         </div>
       </header>
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#1A1918] text-white text-body font-medium px-4 py-2.5 rounded-full shadow-lg whitespace-nowrap animate-[fadeIn_0.2s]">
-          {toast}
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-[#1A1A1A] px-5 py-2.5 rounded-xl text-body font-bold shadow-[0_8px_30px_rgba(0,0,0,0.3)] max-w-[320px] text-center" style={{ color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+            {toast}
+          </div>
         </div>
       )}
 
@@ -208,7 +210,8 @@ export default function NamePage() {
             { key: 'analyze' as Tab, label: '이름 분석' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setError(null) }}
-              className={`shrink-0 px-4 py-2 rounded-xl text-body font-semibold ${tab === t.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-secondary border border-[#E8E4DF]'}`}>
+              className={`shrink-0 px-4 py-2 rounded-xl font-semibold ${tab === t.key ? 'bg-[var(--color-primary)] font-bold' : 'bg-white text-secondary border border-[#E8E4DF]'}`}
+              style={tab === t.key ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
               {t.label}
             </button>
           ))}
@@ -244,7 +247,8 @@ export default function NamePage() {
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {THEMES.map(t => (
                   <button key={t} onClick={() => setNickTheme(t)}
-                    className={`px-3 py-1.5 rounded-full text-body ${nickTheme === t ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
+                    className={`px-3 py-1.5 rounded-full ${nickTheme === t ? 'bg-[var(--color-primary)] font-bold' : 'bg-[var(--color-page-bg)] text-secondary'}`}
+                    style={nickTheme === t ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
                     {t}
                   </button>
                 ))}
@@ -252,13 +256,15 @@ export default function NamePage() {
               <div className="flex gap-1.5 mb-3">
                 {['모름', '남아', '여아'].map(g => (
                   <button key={g} onClick={() => setNickGender(g)}
-                    className={`flex-1 py-1.5 rounded-lg text-body-emphasis ${nickGender === g ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
+                    className={`flex-1 py-1.5 rounded-lg ${nickGender === g ? 'bg-[var(--color-primary)] font-bold' : 'bg-[var(--color-page-bg)] text-secondary'}`}
+                    style={nickGender === g ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
                     {g}
                   </button>
                 ))}
               </div>
               <button onClick={fetchNickname} disabled={loading}
-                className="w-full py-2.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                className="w-full py-2.5 bg-[var(--color-primary)] rounded-xl active:opacity-80 disabled:opacity-50"
+                style={{ fontSize: 14, color: '#FFFFFF', fontWeight: 700 }}>
                 {loading ? 'AI가 고민 중...' : '태명 추천받기'}
               </button>
             </div>
@@ -272,7 +278,8 @@ export default function NamePage() {
                     <p className="text-heading-3 text-primary">{n.name}</p>
                     <button
                       onClick={() => chooseNickname(n.name)}
-                      className={`text-caption px-2.5 py-1 rounded-full font-semibold transition-colors ${isChosen ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-accent-bg)] text-[var(--color-primary)]'}`}
+                      className={`px-2.5 py-1 rounded-full font-semibold transition-colors ${isChosen ? 'bg-[var(--color-primary)] font-bold' : 'bg-[var(--color-accent-bg)] text-[var(--color-primary)]'}`}
+                      style={isChosen ? { fontSize: 13, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 13 }}
                     >
                       {isChosen ? '✓ 결정됨' : '결정'}
                     </button>
@@ -309,7 +316,8 @@ export default function NamePage() {
                   <div className="flex gap-1.5">
                     {[2, 3].map(n => (
                       <button key={n} onClick={() => setSyllables(n)}
-                        className={`flex-1 h-10 rounded-lg text-body ${syllables === n ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
+                        className={`flex-1 h-10 rounded-lg ${syllables === n ? 'bg-[var(--color-primary)] font-bold' : 'bg-[var(--color-page-bg)] text-secondary'}`}
+                        style={syllables === n ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
                         {n}글자
                       </button>
                     ))}
@@ -319,7 +327,8 @@ export default function NamePage() {
               <div className="flex gap-1.5 mb-3">
                 {['모름', '남아', '여아'].map(g => (
                   <button key={g} onClick={() => setSuggestGender(g)}
-                    className={`flex-1 py-1.5 rounded-lg text-body-emphasis ${suggestGender === g ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
+                    className={`flex-1 py-1.5 rounded-lg ${suggestGender === g ? 'bg-[var(--color-primary)] font-bold' : 'bg-[var(--color-page-bg)] text-secondary'}`}
+                    style={suggestGender === g ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
                     {g}
                   </button>
                 ))}
@@ -328,13 +337,15 @@ export default function NamePage() {
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {THEMES.map(t => (
                   <button key={t} onClick={() => setSuggestTheme(t)}
-                    className={`px-3 py-1.5 rounded-full text-body ${suggestTheme === t ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
+                    className={`px-3 py-1.5 rounded-full ${suggestTheme === t ? 'bg-[var(--color-primary)] font-bold' : 'bg-[var(--color-page-bg)] text-secondary'}`}
+                    style={suggestTheme === t ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
                     {t}
                   </button>
                 ))}
               </div>
               <button onClick={fetchSuggest} disabled={loading}
-                className="w-full py-2.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80 disabled:opacity-50">
+                className="w-full py-2.5 bg-[var(--color-primary)] rounded-xl active:opacity-80 disabled:opacity-50"
+                style={{ fontSize: 14, color: '#FFFFFF', fontWeight: 700 }}>
                 {loading ? 'AI가 이름을 짓는 중...' : '이름 추천받기'}
               </button>
             </div>

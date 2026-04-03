@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
 import { shareFetalSize, shareDday } from '@/lib/kakao/share-pregnant'
 import BabyIllust from '@/components/pregnant/BabyIllust'
-import { SparkleIcon, PenIcon, ActivityIcon, HeartFilledIcon, WalkIcon, VitaminIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon, ChartIcon, DropletIcon } from '@/components/ui/Icons'
+import { SparkleIcon, PenIcon, ActivityIcon, HeartFilledIcon, HeartPulseIcon, WalkIcon, VitaminIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon, ChartIcon, DropletIcon } from '@/components/ui/Icons'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import IllustVideo from '@/components/ui/IllustVideo'
 import MissionCard from '@/components/ui/MissionCard'
@@ -15,6 +16,9 @@ import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
 import { setSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
 import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
+import { upsertPregRecord, fetchPregRecords } from '@/lib/supabase/pregRecord'
+import { fetchUserRecords } from '@/lib/supabase/userRecord'
+import PageSkeleton from '@/components/ui/PageSkeleton'
 
 // ===== 태아 데이터 =====
 const FETAL_DATA = [
@@ -80,7 +84,7 @@ function PregnantAIDisplay({ briefing, onRefresh, week, daysLeft, fruitName }: {
     <div>
       <div className="flex items-start" style={{ gap: 'var(--spacing-2)' }}>
         <div className="w-8 h-8 rounded-xl bg-[var(--color-primary)] flex items-center justify-center shrink-0 shadow-[0_1px_4px_rgba(0,0,0,0.1)]">
-          <span className="text-body text-white font-bold">AI</span>
+          <span className="font-bold" style={{ fontSize: 14, color: '#FFFFFF' }}>AI</span>
         </div>
         <div className="flex-1">
           {/* 요약: 첫 문장 볼드 + 나머지 일반 */}
@@ -130,17 +134,24 @@ function PregnantAIDisplay({ briefing, onRefresh, week, daysLeft, fruitName }: {
 function haptic() { if (navigator.vibrate) navigator.vibrate(20) }
 
 export default function PregnantPage() {
+  const router = useRouter()
   const checkups = useRemoteContent('checkups', DEFAULT_CHECKUPS)
   const hospitalBag = useRemoteContent('hospital_bag', DEFAULT_HOSPITAL_BAG)
   const [toast, setToast] = useState<string | null>(null)
+  const [foodQuery, setFoodQuery] = useState('')
   const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
   const [showGuide, setShowGuide] = useState(false)
 
+  // 스팟라이트 가이드 (localStorage + DB 이중 확인)
   useEffect(() => {
-    if (!localStorage.getItem('dodam_guide_pregnant')) {
-      const t = setTimeout(() => setShowGuide(true), 1000)
-      return () => clearTimeout(t)
-    }
+    if (localStorage.getItem('dodam_guide_pregnant') === '1') return
+    getProfile().then(p => {
+      if (p?.tutorial_pregnant) {
+        localStorage.setItem('dodam_guide_pregnant', '1')
+      } else {
+        setTimeout(() => setShowGuide(true), 1000)
+      }
+    }).catch(() => {})
   }, [])
 
   const [dueDate, setDueDate] = useState<string>('')
@@ -152,37 +163,41 @@ export default function PregnantPage() {
     })
   }, [])
 
-  // 건강 기록 (parse once instead of 4x)
+  // 건강 기록
   const _tdn = new Date()
   const today = `${_tdn.getFullYear()}-${String(_tdn.getMonth()+1).padStart(2,'0')}-${String(_tdn.getDate()).padStart(2,'0')}`
-  const _initHealth = (() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')[today] || {} } catch { return {} } }
-    return {}
-  })()
-  const [weight, setWeight] = useState<number>(_initHealth.weight || 0)
-  const [bp] = useState<string>(_initHealth.bp || '')
-  const [fetalMove, setFetalMove] = useState<number>(_initHealth.fetalMove || 0)
-  const [mood, setMood] = useState<string>(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem(`dodam_preg_mood_${today}`) || ''
-    return ''
-  })
+  const [pregHealthAll, setPregHealthAll] = useState<Record<string, Record<string, unknown>>>({})
+  const [weight, setWeight] = useState<number>(0)
+  const [bp] = useState<string>('')
+  const [fetalMove, setFetalMove] = useState<number>(0)
+  const [mood, setMood] = useState<string>('')
 
-  const [pregTodayEvents, setPregTodayEvents] = useState<{ id: number; type: string; data: Record<string, any>; timeStr: string }[]>(() => {
-    if (typeof window !== 'undefined') {
-      try { return JSON.parse(localStorage.getItem(`dodam_preg_events_${today}`) || '[]') } catch { return [] }
-    }
-    return []
-  })
+  // DB에서 임신 건강 기록 로드
+  useEffect(() => {
+    fetchPregRecords(['health']).then(rows => {
+      const all: Record<string, Record<string, unknown>> = {}
+      rows.forEach(r => { all[r.record_date] = r.value })
+      setPregHealthAll(all)
+      const todayH = all[today] || {}
+      if (todayH.weight) setWeight(todayH.weight as number)
+      if (todayH.fetalMove) setFetalMove(todayH.fetalMove as number)
+      if (todayH.mood) setMood(todayH.mood as string)
+    }).catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const [pregTodayEvents, setPregTodayEvents] = useState<{ id: number; type: string; data: Record<string, any>; timeStr: string }[]>([])
 
   // 체크 (read-only: status card용)
-  const [checkupDone] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_checkups') || '{}') } catch { return {} } }
-    return {}
-  })
-  const [bagChecked] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_hospital_bag') || '{}') } catch { return {} } }
-    return {}
-  })
+  const [checkupDone, setCheckupDone] = useState<Record<string, boolean>>({})
+  const [bagChecked, setBagChecked] = useState<Record<string, boolean>>({})
+  useEffect(() => {
+    fetchPregRecords(['checkup_status']).then(rows => {
+      if (rows.length > 0) setCheckupDone(rows[0].value as Record<string, boolean>)
+    }).catch(() => {})
+    fetchPregRecords(['hospital_bag']).then(rows => {
+      if (rows.length > 0) setBagChecked(rows[0].value as Record<string, boolean>)
+    }).catch(() => {})
+  }, [])
 
   // 진통 타이머
   const [contractions, setContractions] = useState<{ start: number; end?: number }[]>([])
@@ -192,10 +207,12 @@ export default function PregnantPage() {
   const [aiBriefing, setAiBriefing] = useState<any>(null)
   const [aiLoading, setAiLoading] = useState(false)
   // 태명
-  const [chosenNickname] = useState<string>(() => {
-    if (typeof window === 'undefined') return ''
-    return localStorage.getItem('dodam_chosen_nickname') || ''
-  })
+  const [chosenNickname, setChosenNickname] = useState<string>('')
+  useEffect(() => {
+    getProfile().then(p => {
+      if (p?.chosen_nickname) setChosenNickname(p.chosen_nickname)
+    }).catch(() => {})
+  }, [])
 
   const currentWeek = useMemo(() => {
     if (!dueDate) return 0
@@ -219,14 +236,20 @@ export default function PregnantPage() {
   const trimester = currentWeek <= 13 ? '초기' : currentWeek <= 27 ? '중기' : '후기'
   const upcomingCheckups = checkups.filter(c => c.week >= currentWeek && !checkupDone[c.id]).slice(0, 3)
 
+  const savePregHealth = (updates: Record<string, unknown>) => {
+    setPregHealthAll(prev => {
+      const updated = { ...prev, [today]: { ...(prev[today] || {}), ...updates } }
+      upsertPregRecord(today, 'health', updated[today] as Record<string, unknown>).catch(() => {})
+      return updated
+    })
+  }
   const saveEdema = (level: string) => {
-    const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
-    all[today] = { ...all[today], edema: level }
-    localStorage.setItem('dodam_preg_health', JSON.stringify(all))
+    savePregHealth({ edema: level })
     showToast(level === 'none' ? '부종 없음 기록' : level === 'mild' ? '약간 부종 기록' : '심한 부종 기록')
   }
   const saveMood = (m: string) => {
-    setMood(m); localStorage.setItem(`dodam_preg_mood_${today}`, m)
+    setMood(m)
+    savePregHealth({ mood: m })
     showToast('오늘 기분이 기록됐어요')
   }
   // 진통 타이머
@@ -254,11 +277,17 @@ export default function PregnantPage() {
     }
     setAiLoading(true)
     try {
-      const healthRaw = localStorage.getItem('dodam_health_records')
-      const health = healthRaw ? JSON.parse(healthRaw) : {}
+      let sleepVal: unknown = undefined
+      try {
+        const healthRows = await fetchUserRecords(['health_records'])
+        if (healthRows.length) {
+          const healthMap = healthRows[0].value as Record<string, Record<string, unknown>>
+          sleepVal = healthMap[today]?.sleep
+        }
+      } catch { /* */ }
       const res = await fetch('/api/ai-pregnant', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'daily', week: currentWeek, trimester, daysLeft, weight, bloodPressure: bp, fetalMovement: fetalMove, mood, sleep: health[today]?.sleep }),
+        body: JSON.stringify({ type: 'daily', week: currentWeek, trimester, daysLeft, weight, bloodPressure: bp, fetalMovement: fetalMove, mood, sleep: sleepVal }),
       })
       const data = await res.json()
       if (!data.error) { setAiBriefing(data); localStorage.setItem('dodam_preg_ai', JSON.stringify({ date: today, data })) }
@@ -274,7 +303,7 @@ export default function PregnantPage() {
     }
   }, [!!dueDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // DB에서 오늘 기록 로드 (localStorage와 머지)
+  // DB에서 오늘 기록 로드
   useEffect(() => {
     const loadFromDB = async () => {
       try {
@@ -297,11 +326,9 @@ export default function PregnantPage() {
             data: { type: e.type, ...(e.tags || {}) },
             timeStr: new Date(e.start_ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }),
           }))
-          // localStorage 캐시 갱신
-          try { localStorage.setItem(`dodam_preg_events_${today}`, JSON.stringify(dbEvents)) } catch { /* */ }
           setPregTodayEvents(dbEvents)
         }
-      } catch { /* 오프라인 시 localStorage 유지 */ }
+      } catch { /* 오프라인 시 빈 상태 유지 */ }
     }
     loadFromDB()
   }, [today]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -315,38 +342,32 @@ export default function PregnantPage() {
       const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
       const newEvent = { id: Date.now(), type: detail.type, data: detail, timeStr }
 
-      setPregTodayEvents(prev => {
-        const updated = [newEvent, ...prev]
-        try { localStorage.setItem(`dodam_preg_events_${today}`, JSON.stringify(updated)) } catch { /* */ }
-        return updated
-      })
+      setPregTodayEvents(prev => [newEvent, ...prev])
 
       if (detail.type === 'preg_mood' && detail.tags?.mood) {
         saveMood(detail.tags.mood)
       } else if (detail.type === 'preg_fetal_move') {
         setFetalMove(prev => {
           const next = prev + 1
-          const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
-          all[today] = { ...all[today], fetalMove: next }
-          localStorage.setItem('dodam_preg_health', JSON.stringify(all))
+          savePregHealth({ fetalMove: next })
           showToast('태동 기록!')
           return next
         })
       } else if (detail.type === 'preg_weight' && detail.tags?.kg) {
         const kg = detail.tags.kg
         setWeight(kg)
-        const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
-        all[today] = { ...all[today], weight: kg }
-        localStorage.setItem('dodam_preg_health', JSON.stringify(all))
+        savePregHealth({ weight: kg })
         showToast(`체중 ${kg}kg 기록!`)
       } else if (detail.type === 'preg_edema' && detail.tags?.level) {
         saveEdema(detail.tags.level)
       } else if (detail.type === 'preg_water') {
-        const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
-        const prev = all[today]?.water || 0
-        all[today] = { ...all[today], water: prev + 1 }
-        localStorage.setItem('dodam_preg_health', JSON.stringify(all))
-        showToast(`물 마시기 ${prev + 1}잔 기록!`)
+        setPregHealthAll(prev => {
+          const prevWater = (prev[today]?.water as number) || 0
+          const updated = { ...prev, [today]: { ...(prev[today] || {}), water: prevWater + 1 } }
+          upsertPregRecord(today, 'health', updated[today] as Record<string, unknown>).catch(() => {})
+          showToast(`물 마시기 ${prevWater + 1}잔 기록!`)
+          return updated
+        })
       } else if (detail.type === 'preg_walk') {
         if (detail.end_ts) {
           const mins = Math.round((new Date(detail.end_ts).getTime() - new Date(detail.start_ts).getTime()) / 60000)
@@ -383,7 +404,7 @@ export default function PregnantPage() {
   // 출산 예정일 입력
   const [tempDueDate, setTempDueDate] = useState(dueDate)
   if (editingDate === null) {
-    return <div className="min-h-[100dvh] bg-[var(--color-page-bg)]" />
+    return <PageSkeleton variant="pregnant" />
   }
   if (editingDate) {
     return (
@@ -417,13 +438,11 @@ export default function PregnantPage() {
 
   return (
     <div className="bg-[var(--color-page-bg)]">
-      {/* 헤더는 GlobalHeader (layout.tsx)에서 처리 */}
-
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-24 space-y-3">
 
         {/* ━━━ 출산 확인 (D-day 지남) ━━━ */}
         {daysLeft <= 0 && (
-          <Link href="/birth" className="dodam-card-accent text-center press-feedback scale-in">
+          <Link href="/birth" className="block dodam-card-accent text-center press-feedback scale-in">
             <IllustVideo src="/images/illustrations/h1.webm" variant="circle" className="w-24 h-24 mx-auto mb-2" />
             <p className="text-body-emphasis">{chosenNickname || '우리 아이'}, 만났나요?</p>
             <p className="text-body text-tertiary mt-1">출산 예정일이 지났어요!</p>
@@ -447,7 +466,7 @@ export default function PregnantPage() {
 
         {/* ━━━ 태명 유도 (미설정 시) ━━━ */}
         {!chosenNickname && (
-          <Link href="/name" className="dodam-card hover-lift press-feedback bg-gradient-to-r from-white to-[var(--color-primary-bg)]">
+          <Link href="/name" className="block dodam-card hover-lift press-feedback bg-gradient-to-r from-white to-[var(--color-primary-bg)]">
             <div className="flex items-center" style={{ gap: 'var(--spacing-3)' }}>
               <SparkleIcon className="w-6 h-6 text-[var(--color-primary)]" />
               <div className="flex-1">
@@ -505,7 +524,7 @@ export default function PregnantPage() {
             <div className="bg-white/80 rounded-xl p-4 border border-white shadow-sm mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
-                  <span className="text-body-emphasis font-bold text-white">AI</span>
+                  <span className="font-bold" style={{ fontSize: 14, color: '#FFFFFF' }}>AI</span>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5 mb-1">
@@ -524,7 +543,8 @@ export default function PregnantPage() {
           ) : (
             <button
               onClick={() => fetchAI()}
-              className="w-full py-3 bg-[var(--color-primary)] text-white font-bold text-[15px] rounded-xl active:opacity-80 transition-opacity mb-3"
+              className="w-full py-3 bg-[var(--color-primary)] rounded-xl active:opacity-80 transition-opacity mb-3"
+              style={{ fontSize: 15, color: '#FFFFFF', fontWeight: 700 }}
             >
               AI 케어받기
             </button>
@@ -572,6 +592,10 @@ export default function PregnantPage() {
               const lvl = data.tags?.level
               return { cat: '부종', label: lvl === 'none' ? '없음' : lvl === 'mild' ? '약함' : '심함', Icon: DropletIcon, color: '#4A90D9', bg: '#E6F0FA' }
             }
+            if (type === 'preg_bp') {
+              const s = data.tags?.systolic; const d = data.tags?.diastolic
+              return { cat: '혈압', label: s && d ? `${s}/${d}` : '혈압', Icon: HeartPulseIcon, color: '#D08068', bg: '#FCE4DC' }
+            }
             if (type === 'preg_water') return { cat: '', label: '수분', Icon: DropletIcon, color: '#3B82F6', bg: '#E6EFFF' }
             if (type === 'preg_walk') return { cat: '운동', label: '걷기', Icon: WalkIcon, color: '#10B981', bg: '#E8F5EF' }
             if (type === 'preg_suppl') {
@@ -600,7 +624,7 @@ export default function PregnantPage() {
                     </div>
                     <span className="text-body text-primary flex-1 min-w-0 truncate">
                       {cfg.cat && <span className="text-tertiary font-normal mr-1">{cfg.cat}</span>}
-                      <span className="font-semibold">{cfg.label}</span>
+                      <span className="font-bold">{cfg.label}</span>
                     </span>
                   </div>
                 )
@@ -629,7 +653,7 @@ export default function PregnantPage() {
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
                 <p className="text-body-emphasis text-secondary">다음 검진</p>
                 {upcomingCheckups.length > 0 ? (
-                  <><p className="text-body-emphasis font-bold text-primary mt-0.5 line-clamp-1">{upcomingCheckups[0].title}</p><p className="text-body text-[var(--color-primary)]">{upcomingCheckups[0].week}주</p></>
+                  <><p className="text-body-emphasis font-bold text-[var(--color-primary)] mt-0.5 line-clamp-1">{upcomingCheckups[0].title}</p><p className="text-body text-[var(--color-primary)]">{upcomingCheckups[0].week}주</p></>
                 ) : <p className="text-body text-tertiary mt-1">완료!</p>}
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
@@ -638,7 +662,7 @@ export default function PregnantPage() {
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
                 <p className="text-body-emphasis text-secondary">D-day</p>
-                <p className="text-heading-2 text-primary mt-0.5">{daysLeft}<span className="text-body-emphasis text-tertiary">일</span></p>
+                <p className="text-heading-2 text-[var(--color-primary)] mt-0.5">{daysLeft}<span className="text-body-emphasis text-tertiary">일</span></p>
               </div>
             </div>
           )
@@ -648,7 +672,7 @@ export default function PregnantPage() {
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
                 <p className="text-body-emphasis text-secondary">다음 검진</p>
                 {upcomingCheckups.length > 0 ? (
-                  <><p className="text-body-emphasis font-bold text-primary mt-0.5 line-clamp-1">{upcomingCheckups[0].title}</p><p className="text-body text-[var(--color-primary)]">{upcomingCheckups[0].week}주</p></>
+                  <><p className="text-body-emphasis font-bold text-[var(--color-primary)] mt-0.5 line-clamp-1">{upcomingCheckups[0].title}</p><p className="text-body text-[var(--color-primary)]">{upcomingCheckups[0].week}주</p></>
                 ) : <p className="text-body text-tertiary mt-1">완료!</p>}
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
@@ -657,7 +681,7 @@ export default function PregnantPage() {
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
                 <p className="text-body-emphasis text-secondary">D-day</p>
-                <p className="text-heading-2 text-primary mt-0.5">{daysLeft}<span className="text-body-emphasis text-tertiary">일</span></p>
+                <p className="text-heading-2 text-[var(--color-primary)] mt-0.5">{daysLeft}<span className="text-body-emphasis text-tertiary">일</span></p>
               </div>
             </div>
           )
@@ -666,7 +690,7 @@ export default function PregnantPage() {
             <div className="grid grid-cols-3 gap-2">
               <div className={`bg-white rounded-xl border p-2.5 text-center ${bagDone < bagTotal ? 'border-[var(--color-accent-bg)]' : 'border-[#E8E4DF]'}`}>
                 <p className="text-body-emphasis text-secondary">출산 가방</p>
-                <p className="text-heading-2 text-primary mt-0.5">{bagDone}<span className="text-body-emphasis text-tertiary">/{bagTotal}</span></p>
+                <p className="text-heading-2 text-[var(--color-primary)] mt-0.5">{bagDone}<span className="text-body-emphasis text-tertiary">/{bagTotal}</span></p>
                 {bagDone < bagTotal && <p className="text-body text-[var(--color-primary)]">준비하세요!</p>}
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
@@ -676,7 +700,7 @@ export default function PregnantPage() {
               </div>
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-2.5 text-center">
                 <p className="text-body-emphasis text-secondary">D-day</p>
-                <p className={`text-heading-2 mt-0.5 ${daysLeft <= 14 ? 'text-[#D08068]' : 'text-primary'}`}>{daysLeft}<span className="text-body-emphasis text-tertiary">일</span></p>
+                <p className={`text-heading-2 mt-0.5 ${daysLeft <= 14 ? 'text-[#D08068]' : 'text-[var(--color-primary)]'}`}>{daysLeft}<span className="text-body-emphasis text-tertiary">일</span></p>
                 {daysLeft <= 14 && <p className="text-body text-[#D08068]">곧 만나요!</p>}
               </div>
             </div>
@@ -690,7 +714,8 @@ export default function PregnantPage() {
             <div className="flex items-center gap-3 mb-2">
               <button
                 onClick={contractionActive ? endContraction : startContraction}
-                className={`flex-1 py-3 rounded-xl text-body-emphasis ${contractionActive ? 'bg-[#D08068] text-white animate-pulse' : 'bg-[var(--color-primary)] text-white'}`}
+                className={`flex-1 py-3 rounded-xl font-bold ${contractionActive ? 'bg-[#D08068] animate-pulse' : 'bg-[var(--color-primary)]'}`}
+                style={{ fontSize: 15, color: '#FFFFFF' }}
               >
                 {contractionActive ? '진통 끝' : '진통 시작'}
               </button>
@@ -712,6 +737,39 @@ export default function PregnantPage() {
         {/* AI 식단 카드 */}
         <AIMealCard mode="pregnant" value={currentWeek} />
 
+        {/* 음식 물어보기 */}
+        {(() => {
+          const FOOD_SAMPLES: Record<string, string[]> = {
+            early: ['참나물 먹어도 되나요?', '회 먹어도 되나요?', '카페인 먹어도 되나요?', '치즈 먹어도 되나요?'],
+            mid: ['연어 먹어도 되나요?', '매운 음식 먹어도 되나요?', '꿀 먹어도 되나요?', '파인애플 먹어도 되나요?'],
+            late: ['미역국 먹어도 되나요?', '라면 먹어도 되나요?', '석류 먹어도 되나요?', '전복 먹어도 되나요?'],
+          }
+          const tri = currentWeek <= 13 ? 'early' : currentWeek <= 27 ? 'mid' : 'late'
+          const samples = FOOD_SAMPLES[tri]
+          const dayIdx = new Date().getDate() % samples.length
+          const placeholder = samples[dayIdx]
+          return (
+            <form onSubmit={e => { e.preventDefault(); if (foodQuery.trim()) router.push(`/food-check?q=${encodeURIComponent(foodQuery.trim())}`) }}
+              className="flex items-center gap-2 bg-white rounded-xl border border-[#E8E4DF] p-2.5">
+              <div className="w-8 h-8 rounded-full bg-[#FFF8F3] flex items-center justify-center shrink-0">
+                <span className="text-subtitle">🍽️</span>
+              </div>
+              <input
+                type="text"
+                value={foodQuery}
+                onChange={e => setFoodQuery(e.target.value)}
+                placeholder={placeholder}
+                className="flex-1 text-body bg-transparent outline-none text-primary placeholder:text-tertiary"
+              />
+              {foodQuery.trim() ? (
+                <button type="submit" className="shrink-0 px-3 py-1.5 rounded-lg bg-[var(--color-primary)] font-bold active:opacity-80" style={{ fontSize: 13, color: '#FFFFFF' }}>확인</button>
+              ) : (
+                <span className="shrink-0 px-2.5 py-1 rounded-lg bg-[var(--color-primary)]" style={{ fontSize: 13, color: '#FFFFFF', fontWeight: 700 }}>AI 확인</span>
+              )}
+            </form>
+          )
+        })()}
+
         {/* 부부 미션 카드 */}
         <MissionCard mode="pregnant" />
 
@@ -727,12 +785,14 @@ export default function PregnantPage() {
 
       {/* 토스트 */}
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1A1918]/80 text-white text-body font-medium px-4 py-2.5 rounded-xl shadow-lg animate-[fadeIn_0.15s_ease-out]">
-          {toast}
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-[#1A1A1A] px-5 py-2.5 rounded-xl text-body font-bold shadow-[0_8px_30px_rgba(0,0,0,0.3)] max-w-[320px] text-center" style={{ color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+            {toast}
+          </div>
         </div>
       )}
 
-      {showGuide && <SpotlightGuide mode="pregnant" onComplete={() => { localStorage.setItem('dodam_guide_pregnant', '1'); setShowGuide(false) }} />}
+      {showGuide && <SpotlightGuide mode="pregnant" onComplete={() => { localStorage.setItem('dodam_guide_pregnant', '1'); upsertProfile({ tutorial_pregnant: true }); setShowGuide(false) }} />}
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
 import { BreastfeedIcon } from '@/components/ui/Icons'
+import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 
 type Side = 'left' | 'right'
 
@@ -20,10 +21,17 @@ export default function FeedTimerPage() {
   const [startTime, setStartTime] = useState(0)
   const startRef = useRef(0)
 
-  const [sessions, setSessions] = useState<FeedSession[]>(() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_feed_sessions') || '[]') } catch { return [] } }
-    return []
-  })
+  const [sessions, setSessions] = useState<FeedSession[]>([])
+
+  // DB에서 수유 기록 로드
+  useEffect(() => {
+    fetchUserRecords(['feed_sessions']).then(rows => {
+      if (rows.length > 0) {
+        const entries = (rows[0].value as { entries: FeedSession[] }).entries || []
+        if (entries.length > 0) setSessions(entries)
+      }
+    })
+  }, [])
 
   // 타이머
   useEffect(() => {
@@ -50,7 +58,8 @@ export default function FeedTimerPage() {
       const session: FeedSession = { side, startTime, duration, date: new Date().toISOString().split('T')[0] }
       const next = [session, ...sessions].slice(0, 100)
       setSessions(next)
-      localStorage.setItem('dodam_feed_sessions', JSON.stringify(next))
+      const today = new Date().toISOString().split('T')[0]
+      upsertUserRecord(today, 'feed_sessions', { entries: next })
     }
     setElapsed(0)
   }
@@ -62,7 +71,8 @@ export default function FeedTimerPage() {
       const session: FeedSession = { side, startTime, duration, date: new Date().toISOString().split('T')[0] }
       const next = [session, ...sessions].slice(0, 100)
       setSessions(next)
-      localStorage.setItem('dodam_feed_sessions', JSON.stringify(next))
+      const today = new Date().toISOString().split('T')[0]
+      upsertUserRecord(today, 'feed_sessions', { entries: next })
     }
     const newSide = side === 'left' ? 'right' : 'left'
     setSide(newSide)

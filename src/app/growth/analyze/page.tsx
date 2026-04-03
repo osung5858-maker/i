@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 import { SparkleIcon, ChartIcon, ClipboardIcon } from '@/components/ui/Icons'
 import Image from 'next/image'
 
@@ -41,10 +42,12 @@ export default function AnalyzeCheckupPage() {
 
   // 히스토리 로드
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('dodam_checkup_history')
-      if (saved) setHistory(JSON.parse(saved))
-    } catch { /* */ }
+    fetchUserRecords(['checkup_history']).then(rows => {
+      if (rows.length) {
+        const entries = (rows[0].value as any).entries || []
+        setHistory(entries)
+      }
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -127,7 +130,8 @@ export default function AnalyzeCheckupPage() {
     }
     const updated = [newHistory, ...history].slice(0, 20)
     setHistory(updated)
-    localStorage.setItem('dodam_checkup_history', JSON.stringify(updated))
+    const today = new Date().toISOString().split('T')[0]
+    upsertUserRecord(today, 'checkup_history', { entries: updated }).catch(() => {})
 
     setSaving(false)
     setSaved(true)

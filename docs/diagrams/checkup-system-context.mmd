@@ -1,0 +1,39 @@
+graph TB
+    subgraph "Dodam PWA"
+        User[임산부 사용자]
+        Partner[배우자]
+        WaitingPage[기다림 페이지<br/>/waiting]
+        CheckupMgmt[검진 관리 시스템]
+        PartnerNotify[배우자 알림 시스템]
+    end
+
+    subgraph "Supabase Backend"
+        PregRecords[(preg_records<br/>테이블)]
+        PushTokens[(push_tokens<br/>테이블)]
+        Storage[(ultrasound/<br/>Storage)]
+    end
+
+    subgraph "External Services"
+        WebPush[Web Push API<br/>VAPID]
+        Kakao[Kakao Share API]
+    end
+
+    User -->|검진 예약/결과 입력| WaitingPage
+    WaitingPage -->|검진 데이터 CRUD| CheckupMgmt
+    CheckupMgmt -->|저장/조회| PregRecords
+    CheckupMgmt -->|미디어 업로드| Storage
+    CheckupMgmt -->|알림 요청| PartnerNotify
+
+    PartnerNotify -->|토큰 조회| PushTokens
+    PartnerNotify -->|Push 발송| WebPush
+    PartnerNotify -.->|Fallback| Kakao
+
+    WebPush -->|알림 전달| Partner
+    Kakao -.->|공유 링크| Partner
+
+    Storage -->|Signed URL| User
+
+    style User fill:#e1f5ff
+    style Partner fill:#ffe1f5
+    style CheckupMgmt fill:#d4edda
+    style PartnerNotify fill:#fff3cd

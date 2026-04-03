@@ -208,8 +208,8 @@ export default function ModeTutorial({ mode, onComplete, modal = false }: Props)
         </div>
         <button
           onClick={() => { if (isLast) onComplete(); else goTo(step + 1) }}
-          className="relative w-full py-3.5 rounded-xl text-subtitle text-white overflow-hidden active:opacity-90"
-          style={{ backgroundColor: current.accent }}
+          className="relative w-full py-3.5 rounded-xl font-bold overflow-hidden active:opacity-90"
+          style={{ backgroundColor: current.accent, color: '#FFFFFF', fontSize: '15px' }}
         >
           {/* 프로그레스 바 (modal 모드에서만) */}
           {modal && (

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { PenIcon } from '@/components/ui/Icons'
+import { PenIcon, SparkleIcon } from '@/components/ui/Icons'
+import { fetchPregRecords } from '@/lib/supabase/pregRecord'
 
 type DiaryEntry = { text: string; date: string; mood: string; comment: string }
 
@@ -11,7 +12,17 @@ export default function PregDiaryPage() {
 
   const [diaries, setDiaries] = useState<DiaryEntry[]>([])
   useEffect(() => {
-    try { setDiaries(JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]')) } catch { setDiaries([]) }
+    const load = async () => {
+      const rows = await fetchPregRecords(['diary'])
+      const entries: DiaryEntry[] = rows.map(r => ({
+        text: String((r.value as Record<string, unknown>).text ?? ''),
+        date: String((r.value as Record<string, unknown>).date ?? r.record_date),
+        mood: String((r.value as Record<string, unknown>).mood ?? ''),
+        comment: String((r.value as Record<string, unknown>).comment ?? ''),
+      }))
+      setDiaries(entries)
+    }
+    load().catch(() => {})
   }, [])
 
   return (
@@ -44,9 +55,15 @@ export default function PregDiaryPage() {
                 </div>
                 <p className="text-body-emphasis text-primary leading-relaxed">{entry.text}</p>
                 {entry.comment && (
-                  <p className="text-body text-[var(--color-primary)] mt-3 italic leading-relaxed border-t border-[#F0EDE8] pt-3">
-                    {entry.comment}
-                  </p>
+                  <div className="mt-3 pt-3 border-t border-[#F0EDE8]">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <SparkleIcon className="w-3.5 h-3.5 text-[var(--color-primary)]" />
+                      <span className="text-caption font-bold text-[var(--color-primary)]">아기의 답장</span>
+                    </div>
+                    <p className="text-body text-[var(--color-primary)] italic leading-relaxed">
+                      {entry.comment}
+                    </p>
+                  </div>
                 )}
               </div>
             ))}

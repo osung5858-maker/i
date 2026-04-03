@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { PenIcon } from '@/components/ui/Icons'
+import { PenIcon, SparkleIcon } from '@/components/ui/Icons'
+import { fetchPrepRecords } from '@/lib/supabase/prepRecord'
 
 type JournalEntry = { text: string; date: string; comment?: string }
 
@@ -11,7 +12,26 @@ export default function PrepDiaryPage() {
 
   const [journals, setJournals] = useState<JournalEntry[]>([])
   useEffect(() => {
-    try { setJournals(JSON.parse(localStorage.getItem('dodam_prep_journal') || '[]')) } catch { setJournals([]) }
+    const load = async () => {
+      const rows = await fetchPrepRecords(['journal'])
+      const entries: JournalEntry[] = []
+      for (const r of rows) {
+        const v = r.value as Record<string, unknown>
+        // 새 형식: { entries: [...] }
+        if (Array.isArray(v.entries)) {
+          for (const e of v.entries as JournalEntry[]) {
+            entries.push({ text: String(e.text ?? ''), date: String(e.date ?? r.record_date), comment: e.comment ? String(e.comment) : undefined })
+          }
+        // 레거시 형식: { text, date, comment }
+        } else if (v.text) {
+          entries.push({ text: String(v.text), date: String(v.date ?? r.record_date), comment: v.comment ? String(v.comment) : undefined })
+        }
+      }
+      // 최신순 정렬
+      entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      setJournals(entries)
+    }
+    load().catch(() => {})
   }, [])
 
   return (
@@ -44,9 +64,15 @@ export default function PrepDiaryPage() {
                 </div>
                 <p className="text-body-emphasis text-primary leading-relaxed">{entry.text}</p>
                 {entry.comment && (
-                  <p className="text-body text-[var(--color-primary)] mt-3 italic leading-relaxed border-t border-[#F0EDE8] pt-3">
-                    {entry.comment}
-                  </p>
+                  <div className="mt-3 pt-3 border-t border-[#F0EDE8]">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <SparkleIcon className="w-3.5 h-3.5 text-[var(--color-primary)]" />
+                      <span className="text-caption font-bold text-[var(--color-primary)]">아기의 답장</span>
+                    </div>
+                    <p className="text-body text-[var(--color-primary)] italic leading-relaxed">
+                      {entry.comment}
+                    </p>
+                  </div>
                 )}
               </div>
             ))}

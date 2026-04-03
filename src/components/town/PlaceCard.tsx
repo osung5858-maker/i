@@ -175,11 +175,12 @@ export default function PlaceCard({ place: p, stats }: { place: Place; stats?: {
               key={tip.id}
               onClick={() => handleTipVote(tip.id)}
               disabled={tip.voted}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-label font-semibold border ${
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold border ${
                 tip.voted
-                  ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
+                  ? 'border-[var(--color-primary)]'
                   : 'bg-white text-secondary border-[#E8E4DF] active:bg-[#F0EDE8]'
               }`}
+              style={tip.voted ? { fontSize: 12, backgroundColor: 'var(--color-primary)', color: '#FFFFFF', fontWeight: 700 } : { fontSize: 12 }}
             >
               {tip.tip} <HeartIcon className="w-3 h-3" /> {tip.votes}
             </button>
@@ -239,11 +240,12 @@ export default function PlaceCard({ place: p, stats }: { place: Place; stats?: {
                       key={tip.id}
                       onClick={() => handleTipVote(tip.id)}
                       disabled={tip.voted}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-caption font-semibold border ${
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full font-semibold border ${
                         tip.voted
-                          ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
+                          ? 'border-[var(--color-primary)]'
                           : 'bg-white text-secondary border-[#E8E4DF] active:bg-[#F0EDE8]'
                       }`}
+                      style={tip.voted ? { fontSize: 13, backgroundColor: 'var(--color-primary)', color: '#FFFFFF', fontWeight: 700 } : { fontSize: 13 }}
                     >
                       {tip.tip} <HeartIcon className="w-3.5 h-3.5" /> {tip.votes}
                     </button>

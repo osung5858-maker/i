@@ -38,32 +38,23 @@ export function setDarkMode(mode: 'auto' | 'light' | 'dark') {
 
 export default function ThemeInitializer() {
   useEffect(() => {
-    const applyAppropriateTheme = () => {
-      // 우선순위 1: 사용자가 직접 선택한 테마
+    // blocking <script> in <head> 가 이미 테마를 적용했으면 스킵
+    // (data-theme-applied 속성 체크)
+    if (!document.documentElement.getAttribute('data-theme-applied')) {
       const userSelectedTheme = localStorage.getItem('dodam_color_theme')
-
-      // 우선순위 2: 모드별 자동 테마
       const mode = localStorage.getItem('dodam_mode') || 'parenting'
       const modeThemeMap: Record<string, string> = {
-        preparing: 'peach',    // 피치오렌지 (임신 준비)
-        pregnant: 'amber',     // 앰버 골드 (임신 중)
-        parenting: 'sage',     // 세이지 민트 (육아)
+        preparing: 'peach',
+        pregnant: 'amber',
+        parenting: 'sage',
       }
-
-      // 사용자 선택 테마가 있으면 그것 사용, 없으면 모드별 테마 사용
       const themeId = userSelectedTheme || modeThemeMap[mode] || DEFAULT_THEME_ID
       const theme = getThemeById(themeId)
       applyThemeToDOM(theme)
     }
 
-    // 초기 테마 적용
-    applyAppropriateTheme()
-
-    // 다크 모드 — 현재 비활성화 (라이트만 지원)
-    // 향후 전체 컴포넌트를 CSS 변수 기반으로 리팩토링 후 활성화
+    // 다크 모드 비활성화 (라이트만 지원)
     document.documentElement.classList.remove('dark')
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = () => {} // placeholder
 
     // Cleanup expired localStorage caches (non-blocking)
     if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
@@ -71,8 +62,6 @@ export default function ThemeInitializer() {
     } else {
       setTimeout(cleanupExpiredCache, 3000)
     }
-
-    return () => mediaQuery.removeEventListener('change', handleChange)
   }, [])
 
   return null

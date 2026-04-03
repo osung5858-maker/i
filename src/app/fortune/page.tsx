@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getSecure } from '@/lib/secureStorage'
+import { getProfile } from '@/lib/supabase/userProfile'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { CrystalBallIcon, DragonIcon, CardIcon, StarIcon, HeartIcon, AlertIcon, LightbulbIcon, RefreshIcon } from '@/components/ui/Icons'
 import { shareFortune } from '@/lib/kakao/share-parenting'
@@ -19,10 +20,11 @@ function FortuneContent() {
   useEffect(() => {
     const t = searchParams.get('tab')
     if (t === 'zodiac' || t === 'fortune' || t === 'biorhythm') setTab(t)
-    const mb = localStorage.getItem('dodam_mother_birth') || ''
-    setBirthDate(mb)
     setMode(localStorage.getItem('dodam_mode') || '')
     getSecure('dodam_due_date').then(v => { if (v) setDueDate(v) })
+    getProfile().then(p => {
+      if (p?.mother_birth) setBirthDate(p.mother_birth)
+    }).catch(() => {})
   }, [])
 
   // 바이오리듬 계산 (과학적 23/28/33일 주기)
@@ -134,7 +136,8 @@ function FortuneContent() {
             { key: 'fortune' as const, label: '오늘의 운세', icon: <CardIcon className="w-3.5 h-3.5 inline mr-0.5" /> },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex-1 py-2 rounded-xl text-body font-semibold ${tab === t.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-secondary border border-[#E8E4DF]'}`}>
+              className={`flex-1 py-2 rounded-xl font-semibold ${tab === t.key ? 'bg-[var(--color-primary)] font-bold' : 'bg-white text-secondary border border-[#E8E4DF]'}`}
+              style={tab === t.key ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
               {t.icon}{t.label}
             </button>
           ))}

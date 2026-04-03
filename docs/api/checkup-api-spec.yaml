@@ -1,0 +1,257 @@
+openapi: 3.0.0
+info:
+  title: Dodam Checkup Management API
+  version: 1.0.0
+  description: 임신 검진 관리 시스템 API 명세
+
+servers:
+  - url: https://dodam.app/api
+    description: Production
+  - url: http://localhost:3000/api
+    description: Development
+
+paths:
+  /notify-partner:
+    post:
+      summary: 배우자에게 검진 관련 Push 알림 발송
+      tags: [Partner Notification]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, title, body]
+              properties:
+                type:
+                  type: string
+                  enum: [checkup_scheduled, checkup_completed, media_uploaded]
+                  description: 알림 유형
+                title:
+                  type: string
+                  maxLength: 50
+                  example: "[태명] 검진 예약됐어요!"
+                body:
+                  type: string
+                  maxLength: 200
+                  example: "5/15(목) 10:30 첫 초음파"
+                deeplink:
+                  type: string
+                  example: "/waiting?tab=checkup"
+                  description: 앱 내 이동 경로
+                metadata:
+                  type: object
+                  description: 추가 메타데이터
+                  properties:
+                    checkup_id:
+                      type: string
+                    scheduled_date:
+                      type: string
+                      format: date
+      responses:
+        '200':
+          description: 알림 발송 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  sent_to_partner:
+                    type: boolean
+                    description: 파트너에게 실제 발송 여부 (미가입 시 false)
+                  fallback_kakao_share:
+                    type: boolean
+                    description: 카카오톡 공유 fallback 제공 여부
+        '401':
+          description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 파트너 정보 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /checkup/upload:
+    post:
+      summary: 초음파 사진/영상 업로드
+      tags: [Checkup Media]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [checkup_id, file, type]
+              properties:
+                checkup_id:
+                  type: string
+                  description: DEFAULT_CHECKUPS id 또는 커스텀 검진 UUID
+                file:
+                  type: string
+                  format: binary
+                  description: 업로드할 파일
+                type:
+                  type: string
+                  enum: [image, video]
+                  description: 미디어 타입
+      responses:
+        '200':
+          description: 업로드 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    example: "https://...supabase.co/storage/v1/object/sign/ultrasound/..."
+                  thumbnail_url:
+                    type: string
+                    format: uri
+                    description: 썸네일 URL (이미지만)
+                  uploaded_at:
+                    type: string
+                    format: date-time
+        '401':
+          description: 인증 실패
+        '409':
+          description: 최대 파일 개수 초과 (이미지 5개, 영상 1개)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: 파일 크기 초과 (이미지 10MB, 영상 30MB)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: 지원하지 않는 파일 형식
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 서버 오류
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: string
+
+    CheckupSchedule:
+      type: object
+      required: [checkup_id, title, scheduled_date, completed, is_custom]
+      properties:
+        checkup_id:
+          type: string
+          example: "first_us"
+        title:
+          type: string
+          example: "첫 초음파"
+        scheduled_date:
+          type: string
+          format: date
+        scheduled_time:
+          type: string
+          pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$'
+          example: "10:30"
+        hospital:
+          type: string
+          example: "삼성서울병원"
+        memo:
+          type: string
+          maxLength: 500
+        completed:
+          type: boolean
+          default: false
+        completed_date:
+          type: string
+          format: date
+          nullable: true
+        is_custom:
+          type: boolean
+          default: false
+
+    CheckupResult:
+      type: object
+      required: [checkup_id, date, status]
+      properties:
+        checkup_id:
+          type: string
+        date:
+          type: string
+          format: date
+        hospital:
+          type: string
+        doctor:
+          type: string
+        status:
+          type: string
+          enum: [normal, observe, abnormal]
+        memo:
+          type: string
+          maxLength: 1000
+        measurements:
+          type: object
+          description: 검진별 동적 측정값 (예시)
+          properties:
+            fetal_heart_rate:
+              type: number
+              example: 150
+            crl:
+              type: number
+              example: 1.2
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/MediaFile'
+
+    MediaFile:
+      type: object
+      required: [type, url, uploaded_at]
+      properties:
+        type:
+          type: string
+          enum: [image, video]
+        url:
+          type: string
+          format: uri
+        thumbnail_url:
+          type: string
+          format: uri
+          description: 썸네일 URL (이미지만)
+        uploaded_at:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    supabaseAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase JWT 토큰
+
+security:
+  - supabaseAuth: []

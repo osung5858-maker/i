@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { SparkleIcon, SproutIcon, UnlockIcon, LockIcon } from '@/components/ui/Icons'
+import { fetchUserRecords } from '@/lib/supabase/userRecord'
 
 // 연속 기록 스트릭 + AI 인사이트 잠금 해제
 export default function StreakCard({ mode }: { mode: string }) {
@@ -9,57 +10,34 @@ export default function StreakCard({ mode }: { mode: string }) {
   const [totalDays, setTotalDays] = useState(0)
 
   useEffect(() => {
-    // 모드별 기록 키
-    const storageKey = mode === 'preparing' ? 'dodam_suppl_' : mode === 'pregnant' ? 'dodam_preg_mood_' : 'dodam_health_records'
-
-    let consecutiveDays = 0
-    let total = 0
-    const today = new Date()
-
-    if (mode === 'parenting') {
-      // 육아 모드: health_records에서 날짜 키 체크
+    async function loadStreak() {
       try {
-        const records = JSON.parse(localStorage.getItem('dodam_health_records') || '{}')
+        const type = mode === 'parenting' ? 'health_records' : mode === 'pregnant' ? 'mood_history' : 'supplement'
+        const rows = await fetchUserRecords([type])
+        if (!rows.length) return
+
+        // Get unique dates from DB records
+        const dates = new Set(rows.map(r => r.record_date))
+        const today = new Date()
+        let consecutiveDays = 0
+        let total = dates.size
+
+        // Calculate streak
         for (let i = 0; i < 365; i++) {
           const d = new Date(today)
           d.setDate(d.getDate() - i)
           const ds = d.toISOString().split('T')[0]
-          if (records[ds]) total++
-        }
-        // 연속일 계산
-        for (let i = 0; i < 365; i++) {
-          const d = new Date(today)
-          d.setDate(d.getDate() - i)
-          const ds = d.toISOString().split('T')[0]
-          if (records[ds] || (i === 0)) { // 오늘은 아직 기록 안 했을 수 있으니 건너뜀
-            if (i === 0 && !records[ds]) continue
+          if (dates.has(ds) || (i === 0)) {
+            if (i === 0 && !dates.has(ds)) continue
             consecutiveDays++
           } else break
         }
-      } catch { /* */ }
-    } else {
-      // 준비/임신 모드: 날짜별 localStorage 키 체크
-      for (let i = 0; i < 365; i++) {
-        const d = new Date(today)
-        d.setDate(d.getDate() - i)
-        const ds = d.toISOString().split('T')[0]
-        const key = `${storageKey}${ds}`
-        if (localStorage.getItem(key)) total++
-      }
-      for (let i = 0; i < 365; i++) {
-        const d = new Date(today)
-        d.setDate(d.getDate() - i)
-        const ds = d.toISOString().split('T')[0]
-        const key = `${storageKey}${ds}`
-        if (localStorage.getItem(key) || (i === 0)) {
-          if (i === 0 && !localStorage.getItem(key)) continue
-          consecutiveDays++
-        } else break
-      }
-    }
 
-    setStreak(consecutiveDays)
-    setTotalDays(total)
+        setStreak(consecutiveDays)
+        setTotalDays(total)
+      } catch { /* */ }
+    }
+    loadStreak()
   }, [mode])
 
   // AI 인사이트 잠금 상태

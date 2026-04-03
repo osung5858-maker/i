@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/layout/PageLayout'
 import IllustVideo from '@/components/ui/IllustVideo'
 import { shareMentalCheck } from '@/lib/kakao/share-parenting'
+import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 
 // 에든버러 산후우울증 척도 (EPDS) — 10문항
 const QUESTIONS = [
@@ -45,6 +46,8 @@ export default function MentalCheckPage() {
   const [currentQ, setCurrentQ] = useState(0)
   const [profile, setProfile] = useState<ParentProfile | null>(null)
   const [profileLoading, setProfileLoading] = useState(false)
+  const [epdsHistory, setEpdsHistory] = useState<{ date: string; score: number; level: string }[]>([])
+  const [moodHistory, setMoodHistory] = useState<unknown[]>([])
 
   // EPDS 채점: Q1,Q2는 정순(0-3), Q3-Q10은 역순(3-0)
   const score = answers.reduce<number>((sum, a, i) => {
@@ -63,17 +66,33 @@ export default function MentalCheckPage() {
   }
 
   const saveResult = () => {
-    const history = JSON.parse(localStorage.getItem('dodam_epds_history') || '[]')
-    history.unshift({ date: new Date().toISOString().split('T')[0], score, level: result.level })
-    localStorage.setItem('dodam_epds_history', JSON.stringify(history.slice(0, 20)))
+    const entry = { date: new Date().toISOString().split('T')[0], score, level: result.level }
+    const trimmed = [entry, ...epdsHistory].slice(0, 20)
+    setEpdsHistory(trimmed)
+    const today = new Date().toISOString().split('T')[0]
+    upsertUserRecord(today, 'epds_history', { entries: trimmed })
   }
+
+  // DB에서 EPDS/mood 이력 로드
+  useEffect(() => {
+    fetchUserRecords(['epds_history']).then(rows => {
+      if (rows.length > 0) {
+        const entries = (rows[0].value as { entries: { date: string; score: number; level: string }[] }).entries || []
+        setEpdsHistory(entries)
+      }
+    })
+    fetchUserRecords(['mood_history']).then(rows => {
+      if (rows.length > 0) {
+        const entries = (rows[0].value as { entries: unknown[] }).entries || []
+        setMoodHistory(entries)
+      }
+    })
+  }, [])
 
   // 양육 스타일 프로필 AI 분석
   useEffect(() => {
     if (!showResult) return
     setProfileLoading(true)
-    const epdsHistory = JSON.parse(localStorage.getItem('dodam_epds_history') || '[]')
-    const moodHistory = JSON.parse(localStorage.getItem('dodam_mood_history') || '[]')
 
     fetch('/api/ai-card', {
       method: 'POST',
@@ -93,7 +112,6 @@ export default function MentalCheckPage() {
   }, [showResult])
 
   if (showResult) {
-    const history = JSON.parse(localStorage.getItem('dodam_epds_history') || '[]')
     return (
       <div className="min-h-[calc(100dvh-144px)] bg-white flex flex-col items-center justify-center px-6">
         <div className="mb-4" style={{ backgroundColor: `${result.color}10`, borderRadius: '50%' }}>
@@ -120,11 +138,11 @@ export default function MentalCheckPage() {
         )}
 
         {/* 이력 */}
-        {history.length > 1 && (
+        {epdsHistory.length > 1 && (
           <div className="w-full max-w-xs mb-4">
             <p className="text-body text-secondary mb-2">이전 기록</p>
             <div className="flex gap-1">
-              {history.slice(0, 7).map((h: any, i: number) => (
+              {epdsHistory.slice(0, 7).map((h, i) => (
                 <div key={i} className="flex-1 text-center">
                   <div className="w-full h-12 bg-[#E8E4DF] rounded relative">
                     <div className="absolute bottom-0 w-full rounded" style={{ height: `${(h.score / 30) * 100}%`, backgroundColor: getResult(h.score).color }} />
@@ -226,7 +244,8 @@ export default function MentalCheckPage() {
               <div className="space-y-2">
                 {q.options.map((opt, oi) => (
                   <button key={oi} onClick={() => handleAnswer(currentQ, oi)}
-                    className={`w-full text-left px-4 py-3 rounded-xl text-body-emphasis transition-all ${answers[currentQ] === oi ? 'bg-[var(--color-primary)] text-white font-semibold' : 'bg-[var(--color-page-bg)] text-primary active:bg-[#ECECEC]'}`}>
+                    className={`w-full text-left px-4 py-3 rounded-xl transition-all ${answers[currentQ] === oi ? 'bg-[var(--color-primary)] font-bold' : 'bg-[var(--color-page-bg)] text-primary active:bg-[#ECECEC]'}`}
+                    style={answers[currentQ] === oi ? { fontSize: 15, color: '#FFFFFF' } : { fontSize: 15 }}>
                     {opt}
                   </button>
                 ))}

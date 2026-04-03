@@ -7,12 +7,15 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
 import { shareAIAdvice, shareProgress, sharePartnerNudge } from '@/lib/kakao/share'
+import { fetchUserRecords } from '@/lib/supabase/userRecord'
+import { fetchPrepRecords, upsertPrepRecord } from '@/lib/supabase/prepRecord'
 import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, FootstepsIcon, YogaIcon, HeartFilledIcon, MoonIcon, WaterGlassIcon, MusicIcon, BookOpenIcon, CompassIcon, SproutIcon, DropletIcon, SunIcon, OmegaIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodTiredIcon } from '@/components/ui/Icons'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import MissionCard from '@/components/ui/MissionCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
+import PageSkeleton from '@/components/ui/PageSkeleton'
 
 function addDays(date: Date, days: number): Date {
   const d = new Date(date); d.setDate(d.getDate() + days); return d
@@ -47,38 +50,52 @@ const DEFAULT_APPOINTMENTS = [
 ]
 
 
-const CURRENT_YEAR = 2026
-
-// ===== 생년월일 선택 (년/월/일) =====
+// ===== 생년월일 선택 (년/월/일 셀렉트박스) =====
+const CURRENT_YEAR = new Date().getFullYear()
 function BirthDatePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const parts = value ? value.split('-') : ['', '', '']
-  const [year, setYear] = useState(parts[0])
-  const [month, setMonth] = useState(parts[1])
-  const [day, setDay] = useState(parts[2])
+  const parsed = value ? new Date(value + 'T00:00:00') : null
+  const [yr, setYr] = useState(parsed ? String(parsed.getFullYear()) : '')
+  const [mo, setMo] = useState(parsed ? String(parsed.getMonth() + 1) : '')
+  const [dy, setDy] = useState(parsed ? String(parsed.getDate()) : '')
 
-  const update = (y: string, m: string, d: string) => {
-    setYear(y); setMonth(m); setDay(d)
-    if (y && m && d) onChange(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`)
+  const emit = (y: string, m: string, d: string) => {
+    if (y && m && d) {
+      onChange(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`)
+    }
   }
 
-  const daysInMonth = year && month ? new Date(Number(year), Number(month), 0).getDate() : 31
+  const daysInMonth = yr && mo ? new Date(Number(yr), Number(mo), 0).getDate() : 31
+
+  const selectClass = 'flex-1 h-12 rounded-xl border border-[#E8E4DF] bg-white px-2 text-center text-body-emphasis appearance-none cursor-pointer'
 
   return (
     <div className="flex gap-2">
-      <select value={year} onChange={e => update(e.target.value, month, day)} className="flex-[2] h-11 rounded-xl border border-[#E8E4DF] px-2 text-body bg-white">
-        <option value="">년</option>
-        {Array.from({ length: 40 }, (_, i) => CURRENT_YEAR - 20 - i).map(y => (
-          <option key={y} value={String(y)}>{y}</option>
+      <select
+        value={yr}
+        onChange={(e) => { setYr(e.target.value); emit(e.target.value, mo, dy) }}
+        className={`${selectClass} ${!yr ? 'text-[#C0B8B0]' : ''}`}
+      >
+        <option value="" disabled>년도</option>
+        {Array.from({ length: CURRENT_YEAR - 15 - 1959 }, (_, i) => CURRENT_YEAR - 15 - i).map(y => (
+          <option key={y} value={String(y)}>{y}년</option>
         ))}
       </select>
-      <select value={month} onChange={e => update(year, e.target.value, day)} className="flex-1 h-11 rounded-xl border border-[#E8E4DF] px-2 text-body bg-white">
-        <option value="">월</option>
+      <select
+        value={mo}
+        onChange={(e) => { setMo(e.target.value); emit(yr, e.target.value, dy) }}
+        className={`${selectClass} ${!mo ? 'text-[#C0B8B0]' : ''}`}
+      >
+        <option value="" disabled>월</option>
         {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
           <option key={m} value={String(m)}>{m}월</option>
         ))}
       </select>
-      <select value={day} onChange={e => update(year, month, e.target.value)} className="flex-1 h-11 rounded-xl border border-[#E8E4DF] px-2 text-body bg-white">
-        <option value="">일</option>
+      <select
+        value={dy}
+        onChange={(e) => { setDy(e.target.value); emit(yr, mo, e.target.value) }}
+        className={`${selectClass} ${!dy ? 'text-[#C0B8B0]' : ''}`}
+      >
+        <option value="" disabled>일</option>
         {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
           <option key={d} value={String(d)}>{d}일</option>
         ))}
@@ -92,10 +109,10 @@ function AITypingDisplay({ briefing, onRefresh, onShare }: { briefing: any; onRe
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div>
-      <div className="flex items-start gap-2">
+    <div className="bg-white/80 rounded-xl p-3 border border-white shadow-sm">
+      <div className="flex items-start gap-2.5">
         <div className="w-8 h-8 rounded-xl bg-[var(--color-primary)] flex items-center justify-center shrink-0 shadow-[0_1px_4px_rgba(0,0,0,0.1)]">
-          <span className="text-body text-white font-bold">AI</span>
+          <span className="font-bold" style={{ fontSize: 14, color: '#FFFFFF' }}>AI</span>
         </div>
         <div className="flex-1">
           {/* 요약: 첫 문장 볼드 + 나머지 일반 */}
@@ -114,21 +131,39 @@ function AITypingDisplay({ briefing, onRefresh, onShare }: { briefing: any; onRe
 
           {/* 상세 (펼치기) */}
           {expanded && (
-            <div className="mt-2 space-y-2 bg-white/60 rounded-lg p-2.5 border border-[var(--color-accent-bg)]">
-              <p className="text-body text-[#4A4744] leading-relaxed">{briefing.mainAdvice}</p>
-              {briefing.cycleInsight && <p className="text-body text-[#4A4744] leading-relaxed">{briefing.cycleInsight}</p>}
-              {briefing.emotionalCare && <p className="text-body text-[#4A4744] leading-relaxed">{briefing.emotionalCare}</p>}
-              {briefing.nutritionTip && <p className="text-body text-[#4A4744] leading-relaxed">{briefing.nutritionTip}</p>}
-              {briefing.partnerTip && <p className="text-body text-[#4A4744] leading-relaxed">{briefing.partnerTip}</p>}
+            <div className="mt-3 space-y-2.5">
+              {[
+                { icon: '💡', label: '오늘의 조언', text: briefing.mainAdvice },
+                { icon: '🔄', label: '주기 인사이트', text: briefing.cycleInsight },
+                { icon: '💛', label: '마음 케어', text: briefing.emotionalCare },
+                { icon: '🥗', label: '영양 팁', text: briefing.nutritionTip },
+                { icon: '👫', label: '파트너 팁', text: briefing.partnerTip },
+              ].filter(s => s.text).map(s => (
+                <div key={s.label} className="bg-[var(--color-page-bg)] rounded-lg px-3 py-2.5">
+                  <p className="text-caption font-bold text-secondary mb-1">{s.icon} {s.label}</p>
+                  <p className="text-body-emphasis text-primary leading-relaxed">{s.text}</p>
+                </div>
+              ))}
             </div>
           )}
 
-          <div className="flex items-center gap-3 mt-2">
-            <button onClick={() => setExpanded(!expanded)} className="text-body text-[var(--color-primary)] font-medium">
-              {expanded ? '접기 ▲' : '자세히 보기 ▼'}
+          {/* 액션 버튼 */}
+          <div className="flex items-center gap-2 mt-3">
+            <button onClick={() => setExpanded(!expanded)}
+              className="flex-1 py-2 rounded-lg bg-[var(--color-primary)] active:opacity-80 transition-opacity"
+              style={{ fontSize: 13, color: '#FFFFFF', fontWeight: 700 }}>
+              {expanded ? '접기' : '자세히 보기'}
             </button>
-            <button onClick={onRefresh} className="text-body text-tertiary">다시 받기</button>
-            <button onClick={onShare} className="text-body text-[var(--color-primary)]">공유</button>
+            <button onClick={onRefresh}
+              className="px-3 py-2 rounded-lg font-medium text-secondary bg-[var(--color-page-bg)] active:bg-[#E8E4DF] transition-colors"
+              style={{ fontSize: 13 }}>
+              다시 받기
+            </button>
+            <button onClick={onShare}
+              className="px-3 py-2 rounded-lg font-semibold text-[var(--color-primary)] bg-[var(--color-primary-bg)] active:opacity-80 transition-opacity"
+              style={{ fontSize: 13 }}>
+              공유
+            </button>
           </div>
         </div>
       </div>
@@ -228,21 +263,19 @@ export default function PreparingPage() {
     })
   }, [])
 
-  useEffect(() => {
-    if (!localStorage.getItem('dodam_guide_preparing')) {
-      const t = setTimeout(() => setShowGuide(true), 1000)
-      return () => clearTimeout(t)
-    }
-  }, [])
-
   const [lastPeriod, setLastPeriod] = useState<string>('')
   const [cycleLength, setCycleLength] = useState<number>(28)
-  const [editingCycle, setEditingCycle] = useState<boolean | null>(null)
+  // localStorage로 세팅 완료 캐시 — 재방문·앱 재실행 시 세팅 페이지 깜빡임 방지
+  const [editingCycle, setEditingCycle] = useState<boolean | null>(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('dodam_prep_setup_done') === '1') return false
+    return null
+  })
   useEffect(() => {
+    const cachedDone = localStorage.getItem('dodam_prep_setup_done') === '1'
     getProfile().then(p => {
       // my_role이 저장됐으면 세팅 완료로 간주 (dad는 last_period 없어도 됨)
-      if (p?.my_role || p?.last_period) { setEditingCycle(false) }
-      else setEditingCycle(true)
+      if (p?.my_role || p?.last_period) { setEditingCycle(false); localStorage.setItem('dodam_prep_setup_done', '1') }
+      else if (!cachedDone) setEditingCycle(true)
       if (p?.last_period) setLastPeriod(p.last_period)
       if (p?.cycle_length) setCycleLength(p.cycle_length)
       if (p?.mother_birth) { setMotherBirth(p.mother_birth); setTempMotherBirth(p.mother_birth) }
@@ -250,31 +283,23 @@ export default function PreparingPage() {
       if (p?.my_role) setMyRole(p.my_role as 'mom' | 'dad')
     })
   }, [])
+  // 주기 설정 완료 후에만 가이드 표시 (editingCycle === false, localStorage + DB 이중 확인)
+  useEffect(() => {
+    if (editingCycle !== false) return
+    if (localStorage.getItem('dodam_guide_preparing') === '1') return
+    getProfile().then(p => {
+      if (p?.tutorial_preparing) {
+        localStorage.setItem('dodam_guide_preparing', '1')
+      } else {
+        setTimeout(() => setShowGuide(true), 1000)
+      }
+    }).catch(() => {})
+  }, [editingCycle])
   const SUPPL_DEFAULT: Record<string, number> = { folic: 0, vitd: 0, iron: 0, omega3: 0 }
   const [supplements, setSupplements] = useState<Record<string, number>>({ ...SUPPL_DEFAULT })
-  const [todayMood, setTodayMood] = useState<string>(() => {
-    if (typeof window === 'undefined') return ''
-    const _d = new Date()
-    const todayKey = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`
-    const moodRaw = localStorage.getItem(`dodam_mood_${todayKey}`)
-    if (moodRaw) {
-      try {
-        const parsed = JSON.parse(moodRaw)
-        return typeof parsed === 'object' ? parsed.mood : parsed
-      } catch {
-        return moodRaw
-      }
-    }
-    return ''
-  })
-  const [motherBirth, setMotherBirth] = useState<string>(() => {
-    if (typeof window === 'undefined') return ''
-    return localStorage.getItem('dodam_mother_birth') || ''
-  })
-  const [fatherBirth, setFatherBirth] = useState<string>(() => {
-    if (typeof window === 'undefined') return ''
-    return localStorage.getItem('dodam_father_birth') || ''
-  })
+  const [todayMood, setTodayMood] = useState<string>('')
+  const [motherBirth, setMotherBirth] = useState<string>('')
+  const [fatherBirth, setFatherBirth] = useState<string>('')
   const calcAge = (birth: string) => {
     if (!birth) return 0
     const b = new Date(birth)
@@ -292,9 +317,8 @@ export default function PreparingPage() {
 
   // 임신 준비 FAB 오늘 기록
   const [prepTodayDone, setPrepTodayDone] = useState<string[]>([])
+  const [prepTodayTsMap, setPrepTodayTsMap] = useState<Record<string, string>>({})
   useEffect(() => {
-    const key = `dodam_prep_done_${today}`
-    try { setPrepTodayDone(JSON.parse(localStorage.getItem(key) || '[]') as string[]) } catch {}
     // DB에서 오늘 기록 로드
     const loadFromDB = async () => {
       try {
@@ -303,46 +327,60 @@ export default function PreparingPage() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
         const { data } = await supabase.from('prep_events')
-          .select('type, tags')
+          .select('type, tags, created_at')
           .eq('user_id', user.id)
           .eq('recorded_date', today)
         if (data && data.length > 0) {
-          const types = Array.from(new Set(data.map((e: { type: string; tags: Record<string, unknown> | null }) => e.type))) as string[]
-          // localStorage 캐시 갱신
-          try { localStorage.setItem(key, JSON.stringify(types)) } catch { /* */ }
+          let types = Array.from(new Set(data.map((e: any) => e.type))) as string[]
+          // prep_mood_happy 등 구체적 기분이 있으면 일반 prep_mood 제거 (중복 칩 방지)
+          const hasSpecificMood = types.some(t => t.startsWith('prep_mood_'))
+          if (hasSpecificMood) types = types.filter(t => t !== 'prep_mood')
           setPrepTodayDone(types)
+          // 타임스탬프 맵 구성
+          const tsMap: Record<string, string> = {}
+          data.forEach((e: any) => {
+            if (e.created_at && !tsMap[e.type]) tsMap[e.type] = e.created_at
+            if (e.tags?.duration) tsMap[`${e.type}_duration`] = String(e.tags.duration)
+          })
+          setPrepTodayTsMap(tsMap)
           // 기분 복원
-          const moodRow = data.find((e: { type: string; tags: Record<string, unknown> | null }) =>
+          const moodRow = data.find((e: any) =>
             e.type === 'prep_mood' || e.type?.startsWith('prep_mood_'))
           if (moodRow?.tags && (moodRow.tags as any).mood) {
             setTodayMood((moodRow.tags as any).mood)
           }
         }
-      } catch { /* 오프라인 시 localStorage 유지 */ }
+      } catch { /* 오프라인 시 빈 상태 유지 */ }
     }
     loadFromDB()
 
-    // BottomNav가 localStorage 저장 완료 후 발송하는 이벤트 수신 → 상태 동기화
+    // BottomNav가 DB 저장 완료 후 발송하는 이벤트 수신 → 상태 동기화
+    const addRecord = (type: string) => {
+      const now = new Date().toISOString()
+      setPrepTodayDone(prev => prev.includes(type) ? prev : [...prev, type])
+      setPrepTodayTsMap(prev => prev[type] ? prev : { ...prev, [type]: now })
+    }
     const prepDoneHandler = (e: Event) => {
       const detail = (e as CustomEvent).detail as any
       const type: string = detail.type
       if (!type?.startsWith('prep_')) return
       if (type.startsWith('prep_mood_')) {
         if (detail.mood) saveMood(detail.mood)
-        setPrepTodayDone(prev => prev.includes(type) ? prev : [...prev, type])
+        addRecord(type)
         return
       }
-      setPrepTodayDone(prev => prev.includes(type) ? prev : [...prev, type])
+      addRecord(type)
     }
-    // dodam-record 이벤트 처리 (FAB에서 기록 완료 시)
+    // dodam-record 이벤트 처리 (FAB에서 기록 완료 시) — UI 상태만 업데이트, DB는 BottomNav가 처리
     const recordHandler = (e: Event) => {
       const detail = (e as CustomEvent).detail as any
       const type = detail.type as string
 
-      // prep_ 타입이면 모두 처리
       if (type?.startsWith('prep_')) {
         detail._handled = true
-        setPrepTodayDone(prev => prev.includes(type) ? prev : [...prev, type])
+        // prep_mood는 BottomNav가 prep_mood_{mood} 이벤트를 별도 발송하므로 여기서 무시 (중복 칩 방지)
+        if (type === 'prep_mood') return
+        addRecord(type)
       }
     }
     window.addEventListener('dodam-prep-done', prepDoneHandler)
@@ -384,7 +422,6 @@ export default function PreparingPage() {
   const [aiError, setAiError] = useState<string | null>(null)
 
   const fetchAIBriefing = async (force = false) => {
-    if (!cycle) return
     // 캐시 확인 (오늘 이미 받았으면 스킵)
     if (!force) {
       const cached = localStorage.getItem('dodam_ai_briefing')
@@ -398,13 +435,18 @@ export default function PreparingPage() {
     setAiLoading(true)
     setAiError(null)
     try {
-      const healthRaw = localStorage.getItem('dodam_health_records')
-      const health = healthRaw ? JSON.parse(healthRaw) : {}
-      const todayHealth = health[today]
+      let todayHealth: Record<string, unknown> = {}
+      try {
+        const healthRows = await fetchUserRecords(['health_records'])
+        if (healthRows.length) {
+          const healthMap = healthRows[0].value as Record<string, Record<string, unknown>>
+          todayHealth = healthMap[today] || {}
+        }
+      } catch { /* */ }
       const res = await fetch('/api/ai-preparing', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'daily', cycleDay: cycle.cycleDay, cycleLength, phase: getCyclePhase(),
+          type: 'daily', cycleDay: cycle?.cycleDay ?? 0, cycleLength, phase: getCyclePhase(),
           motherAge, fatherAge, mood: todayMood,
           supplements: supplCount,
           exercise: prepTodayDone.filter(k => ['prep_walk', 'prep_stretch', 'prep_breath', 'prep_meditate', 'prep_music'].includes(k)),
@@ -469,31 +511,9 @@ export default function PreparingPage() {
     }
   }, [!!cycle]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 통합 히스토리 저장 (날짜별 모든 활동 기록)
-  const saveHistory = (type: string, value: any) => {
-    // 개별 타입 히스토리
-    const key = `dodam_${type}_history`
-    const history = JSON.parse(localStorage.getItem(key) || '[]')
-    const today = new Date().toISOString().split('T')[0]
-    const existing = history.findIndex((h: any) => h.date === today)
-    if (existing >= 0) history[existing] = { date: today, value }
-    else history.unshift({ date: today, value })
-    localStorage.setItem(key, JSON.stringify(history.slice(0, 90)))
-
-    // 통합 일일 기록 (통계용)
-    const dailyKey = `dodam_daily_${today}`
-    const daily = JSON.parse(localStorage.getItem(dailyKey) || '{}')
-    daily[type] = value
-    daily.updatedAt = new Date().toISOString()
-    localStorage.setItem(dailyKey, JSON.stringify(daily))
-
-    // 날짜 인덱스 관리
-    const indexKey = 'dodam_daily_index'
-    const index: string[] = JSON.parse(localStorage.getItem(indexKey) || '[]')
-    if (!index.includes(today)) {
-      index.unshift(today)
-      localStorage.setItem(indexKey, JSON.stringify(index.slice(0, 90)))
-    }
+  // History is now derived from prep_records in DB — no separate storage needed
+  const saveHistory = (_type: string, _value: any) => {
+    // No-op: supplement/mood data is already persisted via upsertPrepRecord calls
   }
 
   // 핸들러
@@ -505,13 +525,7 @@ export default function PreparingPage() {
     const nextVal = current >= SUPPL_MAX ? 0 : 1 // 0↔1 토글
     const next = { ...supplements, [key]: nextVal }
     setSupplements(next)
-    localStorage.setItem(`dodam_suppl_${today}`, JSON.stringify(next))
-    if (nextVal > 0) {
-      const tsKey = `dodam_prep_ts_${today}`
-      const tsMap = JSON.parse(localStorage.getItem(tsKey) || '{}')
-      tsMap[`suppl_${key}`] = new Date().toISOString()
-      try { localStorage.setItem(tsKey, JSON.stringify(tsMap)) } catch {}
-    }
+    upsertPrepRecord(today, 'supplement', next).catch(() => {})
     const totalDone = Object.values(next).reduce((s, v) => s + v, 0)
     saveHistory('suppl', totalDone)
     const name = SUPPL_NAMES[key] || key
@@ -521,20 +535,24 @@ export default function PreparingPage() {
   const saveMood = (mood: string) => {
     const _d = new Date(); const today = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`
     setTodayMood(mood)
-    localStorage.setItem(`dodam_mood_${today}`, JSON.stringify({ mood, ts: new Date().toISOString() }))
+    upsertPrepRecord(today, 'mood', { mood, ts: new Date().toISOString() }).catch(() => {})
     saveHistory('mood', mood)
     showToast('오늘 기분이 기록됐어요')
   }
   const togglePartnerCheck = (key: string) => {
     const next = { ...partnerChecks, [key]: !partnerChecks[key] }
-    setPartnerChecks(next); localStorage.setItem('dodam_partner_checks', JSON.stringify(next))
+    setPartnerChecks(next)
+    const _d = new Date(); const _today = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`
+    upsertPrepRecord(_today, 'partner_checks', next).catch(() => {})
     showToast(next[key] ? '체크 완료!' : '체크 취소')
   }
   const toggleAppointment = (id: string) => {
     const next = { ...appointments }
     const isNew = !next[id]
     if (next[id]) delete next[id]; else next[id] = new Date().toISOString().split('T')[0]
-    setAppointments(next); localStorage.setItem('dodam_appointments', JSON.stringify(next))
+    setAppointments(next)
+    const _d2 = new Date(); const _today2 = `${_d2.getFullYear()}-${String(_d2.getMonth()+1).padStart(2,'0')}-${String(_d2.getDate()).padStart(2,'0')}`
+    upsertPrepRecord(_today2, 'appointments', next).catch(() => {})
     showToast(isNew ? '검사 완료 기록됨' : '검사 기록 취소')
   }
   // 주기 설정 저장
@@ -545,49 +563,57 @@ export default function PreparingPage() {
   const [myRole, setMyRole] = useState<'mom' | 'dad'>('mom')
   useEffect(() => {
     const todayKey = new Date().toISOString().split('T')[0]
-    const supplRaw = localStorage.getItem(`dodam_suppl_${todayKey}`)
-    if (supplRaw) {
-      try {
-        const parsed = JSON.parse(supplRaw)
+    // Load mood + supplement + partner_checks + appointments from Supabase DB
+    fetchPrepRecords(['mood', 'supplement', 'partner_checks', 'appointments']).then(rows => {
+      const todayMoodRow = rows.find(r => r.type === 'mood' && r.record_date === todayKey)
+      if (todayMoodRow?.value) {
+        const v = todayMoodRow.value as { mood?: string }
+        if (v.mood) setTodayMood(v.mood)
+      }
+      const todaySupplRow = rows.find(r => r.type === 'supplement' && r.record_date === todayKey)
+      if (todaySupplRow?.value) {
+        const parsed = todaySupplRow.value as Record<string, unknown>
         const migrated: Record<string, number> = { folic: 0, vitd: 0, iron: 0, omega3: 0 }
         for (const [k, v] of Object.entries(parsed)) {
           migrated[k] = typeof v === 'boolean' ? (v ? 1 : 0) : (v as number)
         }
         setSupplements(migrated)
-      } catch { /* */ }
-    }
-    const moodRaw = localStorage.getItem(`dodam_mood_${todayKey}`)
-    if (moodRaw) {
-      try {
-        const parsed = JSON.parse(moodRaw)
-        setTodayMood(typeof parsed === 'object' ? parsed.mood : parsed)
-      } catch { setTodayMood(moodRaw) }
-    }
-    const pc = localStorage.getItem('dodam_partner_checks')
-    if (pc) { try { setPartnerChecks(JSON.parse(pc)) } catch { /* */ } }
-    const ap = localStorage.getItem('dodam_appointments')
-    if (ap) { try { setAppointments(JSON.parse(ap)) } catch { /* */ } }
+      }
+      const pcRow = rows.find(r => r.type === 'partner_checks')
+      if (pcRow?.value) setPartnerChecks(pcRow.value as Record<string, boolean>)
+      const apRow = rows.find(r => r.type === 'appointments')
+      if (apRow?.value) setAppointments(apRow.value as Record<string, string>)
+    }).catch(() => { /* offline — keep defaults */ })
   }, [])
 
   const handleSaveCycleSetup = () => {
-    if (!tempPeriod) return
-    setLastPeriod(tempPeriod)
+    // mom: tempPeriod 필수, dad: myBirth 필수
+    if (myRole === 'mom' && !tempPeriod) return
+    if (myRole === 'dad') {
+      const myBirth = tempFatherBirth
+      if (!myBirth) return
+    }
+    if (tempPeriod) setLastPeriod(tempPeriod)
     setCycleLength(tempCycleLen)
     if (tempMotherBirth) setMotherBirth(tempMotherBirth)
     if (tempFatherBirth) setFatherBirth(tempFatherBirth)
     upsertProfile({
       my_role: myRole,
-      last_period: tempPeriod,
+      last_period: tempPeriod || null,
       cycle_length: tempCycleLen,
       mother_birth: tempMotherBirth || null,
       father_birth: tempFatherBirth || null,
     })
+    // 기다림 페이지에서 DB 지연 없이 즉시 주기 반영
+    if (tempPeriod) localStorage.setItem('dodam_last_period', tempPeriod)
+    localStorage.setItem('dodam_cycle_length', String(tempCycleLen))
+    localStorage.setItem('dodam_prep_setup_done', '1')
     setEditingCycle(false)
   }
 
   // 주기 설정 화면
   if (editingCycle === null) {
-    return <div className="min-h-[100dvh] bg-[var(--color-page-bg)]" />
+    return <PageSkeleton variant="preparing" />
   }
   if (editingCycle) {
     const myBirth = myRole === 'mom' ? tempMotherBirth : tempFatherBirth
@@ -608,11 +634,13 @@ export default function PreparingPage() {
             <p className="text-body-emphasis text-secondary mb-2">나는</p>
             <div className="flex gap-2">
               <button onClick={() => setMyRole('mom')}
-                className={`flex-1 py-3 rounded-xl font-semibold text-[var(--text-md)] ${myRole === 'mom' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[var(--color-text-secondary)]'}`}>
+                className={`flex-1 py-3 rounded-xl font-semibold ${myRole === 'mom' ? 'bg-[var(--color-primary)] font-bold' : 'bg-[var(--color-page-bg)] text-[var(--color-text-secondary)]'}`}
+                style={myRole === 'mom' ? { fontSize: 'var(--text-md)', color: '#FFFFFF', fontWeight: 700 } : { fontSize: 'var(--text-md)' }}>
                 예비맘
               </button>
               <button onClick={() => setMyRole('dad')}
-                className={`flex-1 py-3 rounded-xl font-semibold text-[var(--text-md)] ${myRole === 'dad' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[var(--color-text-secondary)]'}`}>
+                className={`flex-1 py-3 rounded-xl font-semibold ${myRole === 'dad' ? 'bg-[var(--color-primary)] font-bold' : 'bg-[var(--color-page-bg)] text-[var(--color-text-secondary)]'}`}
+                style={myRole === 'dad' ? { fontSize: 'var(--text-md)', color: '#FFFFFF', fontWeight: 700 } : { fontSize: 'var(--text-md)' }}>
                 예비파파
               </button>
             </div>
@@ -628,8 +656,22 @@ export default function PreparingPage() {
           {myRole === 'mom' && (
             <>
               <div className="mb-5">
-                <label htmlFor="last-period-input" className="block text-body-emphasis text-secondary mb-1 cursor-pointer">마지막 생리 시작일</label>
-                <input id="last-period-input" type="date" value={tempPeriod} onChange={(e) => setTempPeriod(e.target.value)} className="w-full h-12 rounded-xl border border-[#E8E4DF] px-4 text-body-emphasis" />
+                <p className="text-body-emphasis text-secondary mb-1">마지막 생리 시작일</p>
+                {/* iOS: input을 absolute로 전체 영역에 투명하게 깔아서 터치 영역 확보 */}
+                <div className="relative h-12 rounded-xl border border-[#E8E4DF] overflow-hidden">
+                  <div className="absolute inset-0 flex items-center justify-between px-4 pointer-events-none">
+                    <span className={tempPeriod ? 'text-body-emphasis text-primary' : 'text-body-emphasis text-[#C0B8B0]'}>
+                      {tempPeriod || '연도. 월. 일.'}
+                    </span>
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="13" rx="2" stroke="#C0B8B0" strokeWidth="1.5"/><path d="M7 2v4M13 2v4M3 9h14" stroke="#C0B8B0" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  </div>
+                  <input
+                    type="date"
+                    value={tempPeriod}
+                    onChange={(e) => setTempPeriod(e.target.value)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </div>
               </div>
               <div className="mb-5">
                 <p className="text-body-emphasis text-secondary mb-1">평균 주기 <span className="text-[var(--color-primary)] font-bold">{tempCycleLen}일</span></p>
@@ -651,7 +693,8 @@ export default function PreparingPage() {
           <button
             onClick={handleSaveCycleSetup}
             disabled={myRole === 'mom' ? !tempPeriod : !myBirth}
-            className={`w-full py-3 rounded-xl text-body-emphasis ${(myRole === 'mom' ? tempPeriod : myBirth) ? 'bg-[var(--color-primary)] text-white active:opacity-80' : 'bg-[#E8E4DF] text-tertiary'}`}
+            className={`w-full py-3 rounded-xl ${(myRole === 'mom' ? tempPeriod : myBirth) ? 'bg-[var(--color-primary)] font-bold active:opacity-80' : 'bg-[#E8E4DF] text-tertiary'}`}
+            style={(myRole === 'mom' ? tempPeriod : myBirth) ? { fontSize: 15, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 15 }}
           >
             완료
           </button>
@@ -674,7 +717,6 @@ export default function PreparingPage() {
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-24 space-y-3">
 
         {/* ━━━ 1. AI 데일리 케어 — 육아 모드 스타일 ━━━ */}
-        {cycle && (
           <div data-guide="ai-briefing" className="dodam-card-accent bg-gradient-to-br from-white via-[var(--color-primary-bg)] to-[var(--color-primary-bg)] border border-white/80">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -683,7 +725,7 @@ export default function PreparingPage() {
               </div>
               {aiBriefing?.todayScore && (
                 <div className="px-2.5 py-0.5 rounded-full bg-[var(--color-primary)] flex items-center gap-1">
-                  <span className="text-body font-bold text-white">{aiBriefing.todayScore}점</span>
+                  <span className="font-bold" style={{ fontSize: 14, color: '#FFFFFF' }}>{aiBriefing.todayScore}점</span>
                 </div>
               )}
             </div>
@@ -721,7 +763,7 @@ export default function PreparingPage() {
               <div className="bg-white/80 rounded-xl p-4 border border-white shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
-                    <span className="text-body-emphasis font-bold text-white">AI</span>
+                    <span className="font-bold" style={{ fontSize: 14, color: '#FFFFFF' }}>AI</span>
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-1.5 mb-1">
@@ -738,7 +780,8 @@ export default function PreparingPage() {
             ) : (
               <button
                 onClick={() => fetchAIBriefing()}
-                className="w-full py-3 bg-[var(--color-primary)] text-white font-bold text-[15px] rounded-xl active:opacity-80 transition-opacity"
+                className="w-full py-3 bg-[var(--color-primary)] rounded-xl active:opacity-80 transition-opacity"
+                style={{ fontSize: 14, color: '#FFFFFF', fontWeight: 700 }}
               >
                 AI 케어받기
               </button>
@@ -763,29 +806,28 @@ export default function PreparingPage() {
               </div>
             )}
           </div>
-        )}
 
         {/* ━━━ 오늘 기록 (FAB) ━━━ */}
         {(() => {
           const PREP_CFG: Record<string, { cat: string; label: string; Icon: React.FC<{ className?: string }>; color: string; bg: string }> = {
             prep_folic:      { cat: '영양제', label: '엽산',        Icon: SproutIcon,    color: '#10B981', bg: '#E8F5EF' },
-            prep_vitd:       { cat: '영양제', label: '비타민D',     Icon: SunIcon,       color: '#F59E0B', bg: '#FEF9E0' },
-            prep_iron:       { cat: '영양제', label: '철분',        Icon: DropletIcon,   color: '#EF4444', bg: '#FEE2E2' },
-            prep_omega3:     { cat: '영양제', label: '오메가3',     Icon: OmegaIcon,     color: '#3B82F6', bg: '#EFF6FF' },
+            prep_vitd:       { cat: '영양제', label: '비타민D',     Icon: SunIcon,       color: '#10B981', bg: '#E8F5EF' },
+            prep_iron:       { cat: '영양제', label: '철분',        Icon: DropletIcon,   color: '#10B981', bg: '#E8F5EF' },
+            prep_omega3:     { cat: '영양제', label: '오메가3',     Icon: OmegaIcon,     color: '#10B981', bg: '#E8F5EF' },
             prep_walk:       { cat: '건강',   label: '걷기',        Icon: FootstepsIcon, color: '#F59E0B', bg: '#FEF3E0' },
             prep_stretch:    { cat: '건강',   label: '스트레칭',    Icon: YogaIcon,      color: '#F59E0B', bg: '#FEF3E0' },
             prep_breath:     { cat: '건강',   label: '심호흡',      Icon: ActivityIcon,  color: '#F59E0B', bg: '#FEF3E0' },
-            prep_meditate:   { cat: '건강',   label: '명상',        Icon: MoonIcon,      color: '#8B5CF6', bg: '#EDE9FF' },
-            prep_music:      { cat: '건강',   label: '음악감상',    Icon: MusicIcon,     color: '#F472B6', bg: '#FFE4F2' },
-            prep_mood:         { cat: '기분', label: '기분',  Icon: HeartFilledIcon, color: '#F472B6', bg: '#FFE4F2' }, // 구버전 호환
-            prep_mood_happy:   { cat: '기분', label: '행복',  Icon: MoodHappyIcon,   color: '#FF8FAB', bg: '#FFE4F2' },
-            prep_mood_excited: { cat: '기분', label: '설렘',  Icon: MoodHappyIcon,   color: '#FFB347', bg: '#FFF3E0' },
-            prep_mood_calm:    { cat: '기분', label: '평온',  Icon: MoodCalmIcon,    color: '#90C8A8', bg: '#E8F5EF' },
-            prep_mood_tired:   { cat: '기분', label: '피곤',  Icon: MoodTiredIcon,   color: '#8EB4D4', bg: '#E8F0F8' },
-            prep_mood_anxious: { cat: '기분', label: '불안',  Icon: MoodAnxiousIcon, color: '#FFC078', bg: '#FFF3E0' },
+            prep_meditate:   { cat: '건강',   label: '명상',        Icon: MoonIcon,      color: '#F59E0B', bg: '#FEF3E0' },
+            prep_music:      { cat: '건강',   label: '음악감상',    Icon: MusicIcon,     color: '#F59E0B', bg: '#FEF3E0' },
+            prep_mood:         { cat: '기분', label: '기록',  Icon: HeartFilledIcon, color: '#F472B6', bg: '#FFE4F2' }, // 구버전 호환
+            prep_mood_happy:   { cat: '기분', label: '행복',  Icon: MoodHappyIcon,   color: '#F472B6', bg: '#FFE4F2' },
+            prep_mood_excited: { cat: '기분', label: '설렘',  Icon: MoodHappyIcon,   color: '#F472B6', bg: '#FFE4F2' },
+            prep_mood_calm:    { cat: '기분', label: '평온',  Icon: MoodCalmIcon,    color: '#F472B6', bg: '#FFE4F2' },
+            prep_mood_tired:   { cat: '기분', label: '피곤',  Icon: MoodTiredIcon,   color: '#F472B6', bg: '#FFE4F2' },
+            prep_mood_anxious: { cat: '기분', label: '불안',  Icon: MoodAnxiousIcon, color: '#F472B6', bg: '#FFE4F2' },
             prep_journal:      { cat: '기다림', label: '일기 작성', Icon: BookOpenIcon, color: '#A78BFA', bg: '#EDE9FF' },
           }
-          const todayTsMap: Record<string, string> = (() => { try { return JSON.parse(localStorage.getItem(`dodam_prep_ts_${today}`) || '{}') } catch { return {} } })()
+          const todayTsMap = prepTodayTsMap
           const fmt = (iso?: string) => { if (!iso) return ''; const d = new Date(iso); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` }
           const sortedDone = [...prepTodayDone].sort((a, b) => {
             const ta = todayTsMap[a] ? new Date(todayTsMap[a]).getTime() : 0
@@ -806,7 +848,16 @@ export default function PreparingPage() {
                     </div>
                     <span className="text-body text-primary flex-1 min-w-0 truncate">
                       {cfg.cat && <span className="text-tertiary font-normal mr-1">{cfg.cat}</span>}
-                      <span className="font-semibold">{cfg.label}</span>
+                      <span className="font-bold">{cfg.label}</span>
+                      {(() => {
+                        const dur = todayTsMap[`${type}_duration`]
+                        if (!dur) return null
+                        const secs = parseInt(dur, 10)
+                        if (isNaN(secs) || secs <= 0) return null
+                        const mm = Math.floor(secs / 60)
+                        const ss = secs % 60
+                        return <span className="text-tertiary font-normal ml-1">({mm}분 {String(ss).padStart(2, '0')}초)</span>
+                      })()}
                     </span>
                   </div>
                 )
@@ -832,6 +883,20 @@ export default function PreparingPage() {
         <AIMealCard mode="preparing" value={0} phase={getCyclePhase()} />
 
         {/* 음식 물어보기 */}
+        {(() => {
+          const FOOD_SAMPLES: Record<string, string[]> = {
+            fertile: ['연어 먹어도 되나요?', '아보카도 먹어도 되나요?', '석류 먹어도 되나요?', '굴 먹어도 되나요?', '시금치 먹어도 되나요?'],
+            ovulation: ['참나물 먹어도 되나요?', '호두 먹어도 되나요?', '브로콜리 먹어도 되나요?', '블루베리 먹어도 되나요?'],
+            tww: ['파인애플 먹어도 되나요?', '고구마 먹어도 되나요?', '카페인 먹어도 되나요?', '회 먹어도 되나요?'],
+            period: ['미역국 먹어도 되나요?', '당귀차 먹어도 되나요?', '초콜릿 먹어도 되나요?', '시래기 먹어도 되나요?'],
+            follicular: ['콩나물 먹어도 되나요?', '달걀 먹어도 되나요?', '아몬드 먹어도 되나요?', '닭가슴살 먹어도 되나요?'],
+            unknown: ['참나물 먹어도 되나요?', '연어 먹어도 되나요?', '아보카도 먹어도 되나요?'],
+          }
+          const phase = getCyclePhase()
+          const samples = FOOD_SAMPLES[phase] || FOOD_SAMPLES.unknown
+          const dayIdx = new Date().getDate() % samples.length
+          const placeholder = samples[dayIdx]
+          return (
         <form onSubmit={e => { e.preventDefault(); if (foodQuery.trim()) router.push(`/food-check?q=${encodeURIComponent(foodQuery.trim())}`) }}
           className="flex items-center gap-2 bg-white rounded-xl border border-[#E8E4DF] p-2.5">
           <div className="w-8 h-8 rounded-full bg-[#FFF8F3] flex items-center justify-center shrink-0">
@@ -841,15 +906,17 @@ export default function PreparingPage() {
             type="text"
             value={foodQuery}
             onChange={e => setFoodQuery(e.target.value)}
-            placeholder="이 음식 먹어도 되나요? 검색"
+            placeholder={placeholder}
             className="flex-1 text-body bg-transparent outline-none text-primary placeholder:text-tertiary"
           />
           {foodQuery.trim() ? (
-            <button type="submit" className="shrink-0 px-3 py-1 rounded-lg bg-[var(--color-primary)] text-white text-caption font-semibold">확인</button>
+            <button type="submit" className="shrink-0 px-3 py-1.5 rounded-lg bg-[var(--color-primary)] font-bold active:opacity-80" style={{ fontSize: 13, color: '#FFFFFF' }}>확인</button>
           ) : (
-            <span className="text-caption text-tertiary shrink-0">AI 확인</span>
+            <span className="shrink-0 px-2.5 py-1 rounded-lg bg-[var(--color-primary)]" style={{ fontSize: 13, color: '#FFFFFF', fontWeight: 700 }}>AI 확인</span>
           )}
         </form>
+          )
+        })()}
 
         {/* 푸시 알림 동의 */}
         <PushPrompt message="배란일과 엽산 리마인더를 받아볼까요?" />
@@ -867,7 +934,7 @@ export default function PreparingPage() {
             return (
               <div className="bg-white rounded-xl border border-[#E8E4DF] p-3 text-center">
                 <p className="text-body text-secondary">임신 가능성</p>
-                <p className="text-heading-2 font-bold text-[var(--color-primary)] mt-1">{prob}%</p>
+                <p className="text-heading-2 font-bold mt-1" style={{ color: 'var(--color-primary)' }}>{prob}%</p>
                 <div className="w-full h-1.5 bg-[#E8E4DF] rounded-full mt-1.5">
                   <div className="h-full bg-[var(--color-primary)] rounded-full" style={{ width: `${prob}%` }} />
                 </div>
@@ -945,12 +1012,14 @@ export default function PreparingPage() {
 
       {/* 토스트 */}
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1A1918]/80 text-white text-body font-medium px-4 py-2.5 rounded-xl shadow-lg animate-[fadeIn_0.15s_ease-out]">
-          {toast}
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-[#1A1A1A] px-5 py-2.5 rounded-xl text-body font-bold shadow-[0_8px_30px_rgba(0,0,0,0.3)] max-w-[320px] text-center" style={{ color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+            {toast}
+          </div>
         </div>
       )}
 
-      {showGuide && <SpotlightGuide mode="preparing" onComplete={() => { localStorage.setItem('dodam_guide_preparing', '1'); setShowGuide(false) }} />}
+      {showGuide && <SpotlightGuide mode="preparing" onComplete={() => { localStorage.setItem('dodam_guide_preparing', '1'); upsertProfile({ tutorial_preparing: true }); setShowGuide(false) }} />}
 
     </div>
   </div>

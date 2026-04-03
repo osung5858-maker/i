@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { createClient } from '@/lib/supabase/client'
+import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 import type { CareEvent } from '@/types'
 
 // --- Types ---
@@ -29,7 +30,6 @@ interface CryLogEntry {
 }
 
 // --- Constants ---
-const STORAGE_KEY = 'dodam_cry_log'
 const RECORD_DURATION = 5000
 
 const CRY_TYPES: Record<string, { emoji: string; label: string; advice: string; color: string }> = {
@@ -41,13 +41,10 @@ const CRY_TYPES: Record<string, { emoji: string; label: string; advice: string; 
 }
 
 // --- Helpers ---
-function loadLog(): CryLogEntry[] {
-  if (typeof window === 'undefined') return []
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') } catch { return [] }
-}
-
 function saveLog(entries: CryLogEntry[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, 10)))
+  const trimmed = entries.slice(0, 10)
+  const today = new Date().toISOString().split('T')[0]
+  upsertUserRecord(today, 'cry_log', { entries: trimmed })
 }
 
 function classifyCry(features: AudioFeatures, context: { hoursSinceLastFeed: number | null; hoursSinceLastSleep: number | null; hourOfDay: number }): CryResult {
@@ -210,7 +207,12 @@ export default function CryPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    setLog(loadLog())
+    fetchUserRecords(['cry_log']).then(rows => {
+      if (rows.length > 0) {
+        const entries = (rows[0].value as { entries: CryLogEntry[] }).entries || []
+        if (entries.length > 0) setLog(entries)
+      }
+    })
   }, [])
 
   const cleanup = useCallback(() => {
@@ -237,7 +239,8 @@ export default function CryPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const childId = localStorage.getItem('dodam_child_id')
+        const { data: children } = await supabase.from('children').select('id').eq('user_id', user.id).limit(1)
+        const childId = children?.[0]?.id
         if (childId) {
           const now = new Date()
           const { data: feedEvents } = await supabase
@@ -262,20 +265,6 @@ export default function CryPage() {
       }
     } catch {
       // Supabase unavailable, continue without context
-    }
-
-    // Also check localStorage feed sessions as fallback
-    if (hoursSinceLastFeed === null) {
-      try {
-        const sessions = JSON.parse(localStorage.getItem('dodam_feed_sessions') || '[]')
-        if (sessions.length > 0) {
-          const lastSession = sessions[sessions.length - 1]
-          const ts = lastSession.endTime || lastSession.startTime
-          if (ts) {
-            hoursSinceLastFeed = (Date.now() - new Date(ts).getTime()) / 3600000
-          }
-        }
-      } catch { /* ignore */ }
     }
 
     return {
@@ -408,9 +397,11 @@ export default function CryPage() {
           timestamp: new Date().toISOString(),
           result: cryResult,
         }
-        const updated = [entry, ...loadLog()].slice(0, 10)
-        saveLog(updated)
-        setLog(updated)
+        setLog(prev => {
+          const updated = [entry, ...prev].slice(0, 10)
+          saveLog(updated)
+          return updated
+        })
       }, RECORD_DURATION)
 
     } catch (err) {

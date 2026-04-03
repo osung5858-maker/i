@@ -26,10 +26,10 @@
   --color-border: #E8E4DF;
   --color-border-light: #F0EDE8;
 
-  --color-text-primary: #3A3836;
-  --color-text-secondary: #6B6966;
-  --color-text-tertiary: #6B6966;
-  --color-text-muted: #9E9A95;
+  --color-text-primary: #5C5956;
+  --color-text-secondary: #8A8784;
+  --color-text-tertiary: #AAA7A3;
+  --color-text-muted: #C4C0BB;
 
   /* 모드별 Accent */
   --color-preparing: #FFB5A7;
@@ -52,11 +52,11 @@
   --neutral-100: #F5F5F4;
   --neutral-200: #E8E4DF;
   --neutral-300: #C4C0BB;
-  --neutral-400: #9E9A95;
-  --neutral-500: #6B6966;
-  --neutral-600: #52504E;
-  --neutral-700: #3A3836;
-  --neutral-800: #3A3836;
+  --neutral-400: #B8B4AF;
+  --neutral-500: #9E9A95;
+  --neutral-600: #7A7673;
+  --neutral-700: #5C5956;
+  --neutral-800: #4A4744;
   --neutral-900: #3A3836;
 
   /* Surface Tokens (배경/표면) */
@@ -210,98 +210,102 @@ body {
 /* .dark 클래스 변수는 globals.css 상단에 정의되어 있음 */
 
 /* ===== Semantic Typography Classes - 개선 버전 ===== */
+/* @layer components 안에 넣어야 Tailwind @layer utilities가 색상을 오버라이드할 수 있음 */
 
-/* Display (히어로, 랜딩) */
-.text-display {
-  font-size: var(--text-4xl);
-  font-weight: var(--font-bold);
-  line-height: var(--leading-tight);
-  font-family: var(--font-display);
-}
+@layer components {
+  /* Display (히어로, 랜딩) */
+  .text-display {
+    font-size: var(--text-4xl);
+    font-weight: var(--font-bold);
+    line-height: var(--leading-tight);
+    font-family: var(--font-display);
+  }
 
-/* Heading 1 (페이지 제목) */
-.text-heading-1 {
-  font-size: var(--text-3xl);
-  font-weight: var(--font-bold);
-  line-height: var(--leading-tight);
-  font-family: var(--font-display);
-}
+  /* Heading 1 (페이지 제목) */
+  .text-heading-1 {
+    font-size: var(--text-3xl);
+    font-weight: var(--font-bold);
+    line-height: var(--leading-tight);
+    font-family: var(--font-display);
+  }
 
-/* Heading 2 (섹션 제목) */
-.text-heading-2 {
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
-  line-height: var(--leading-tight);
-  font-family: var(--font-display);
-}
+  /* Heading 2 (섹션 제목) */
+  .text-heading-2 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    line-height: var(--leading-tight);
+    font-family: var(--font-display);
+  }
 
-/* Heading 3 (카드 제목) */
-.text-heading-3 {
-  font-size: var(--text-xl);
-  font-weight: var(--font-bold);
-  line-height: var(--leading-snug);
-  font-family: var(--font-accent);
-}
+  /* Heading 3 (카드 제목) */
+  .text-heading-3 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    line-height: var(--leading-snug);
+    font-family: var(--font-accent);
+  }
 
-/* Subtitle (소제목, 강조) */
-.text-subtitle {
-  font-size: var(--text-lg);
-  font-weight: var(--font-semibold);
-  line-height: var(--leading-snug);
-}
+  /* Subtitle (소제목, 강조) */
+  .text-subtitle {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    line-height: var(--leading-snug);
+  }
 
-/* Body (기본 본문) */
-.text-body {
-  font-size: var(--text-base);
-  font-weight: var(--font-normal);
-  line-height: var(--leading-normal);
-}
+  /* Body (기본 본문) */
+  .text-body {
+    font-size: var(--text-base);
+    font-weight: var(--font-normal);
+    line-height: var(--leading-normal);
+  }
 
-/* Body Emphasis (본문 강조) */
-.text-body-emphasis {
-  font-size: var(--text-md);
-  font-weight: var(--font-semibold);
-  line-height: var(--leading-normal);
-}
+  /* Body Emphasis (본문 강조) */
+  .text-body-emphasis {
+    font-size: var(--text-md);
+    font-weight: var(--font-semibold);
+    line-height: var(--leading-normal);
+  }
 
-/* Caption (캡션, 메타 정보) */
-.text-caption {
-  font-size: var(--text-sm);
-  font-weight: var(--font-normal);
-  line-height: var(--leading-snug);
-}
+  /* Caption (캡션, 메타 정보) */
+  .text-caption {
+    font-size: var(--text-sm);
+    font-weight: var(--font-normal);
+    line-height: var(--leading-snug);
+  }
 
-/* Caption Bold (강조 캡션) */
-.text-caption-bold {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  line-height: var(--leading-snug);
-}
+  /* Caption Bold (강조 캡션) */
+  .text-caption-bold {
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    line-height: var(--leading-snug);
+  }
 
-/* Label (라벨, 작은 텍스트) */
-.text-label {
-  font-size: var(--text-xs);
-  font-weight: var(--font-medium);
-  line-height: var(--leading-tight);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
+  /* Label (라벨, 작은 텍스트) */
+  .text-label {
+    font-size: var(--text-xs);
+    font-weight: var(--font-medium);
+    line-height: var(--leading-tight);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
 
-/* 타이포 기본 색상 — :where()로 specificity 0 유지, Tailwind 유틸리티가 항상 오버라이드 가능 */
-:where(.text-display, .text-heading-1, .text-heading-2, .text-heading-3, .text-subtitle, .text-body-emphasis) {
-  color: var(--color-text-primary);
-}
-:where(.text-body) {
-  color: var(--color-text-secondary);
-}
-:where(.text-caption, .text-label) {
-  color: var(--color-text-tertiary);
-}
-:where(.text-caption-bold) {
-  color: var(--color-text-secondary);
+  /* 타이포 기본 색상 — @layer components 안이므로 @layer utilities가 항상 오버라이드 */
+  .text-display, .text-heading-1, .text-heading-2, .text-heading-3, .text-subtitle, .text-body-emphasis {
+    color: var(--color-text-primary);
+  }
+  .text-body {
+    color: var(--color-text-secondary);
+  }
+  .text-caption, .text-label {
+    color: var(--color-text-tertiary);
+  }
+  .text-caption-bold {
+    color: var(--color-text-secondary);
+  }
 }
 
 /* ===== Color Utility Classes ===== */
+/* un-layered: Tailwind @theme에서 자동 생성되는 text-primary/text-secondary를 덮어쓰기 위해 레이어 바깥에 유지 */
 .text-primary {
   color: var(--color-text-primary);
 }
@@ -444,6 +448,24 @@ main {
 /* 스크롤바 숨기기 */
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* date input 네이티브 아이콘 숨기기 (터치 영역은 유지) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+}
+input[type="date"]::-webkit-inner-spin-button {
+  display: none;
+}
+input[type="date"]::-webkit-date-and-time-value {
+  -webkit-appearance: none;
+  appearance: none;
+}
 
 /* ===== 인풋 (접근성 개선) ===== */
 input:focus, textarea:focus, select:focus {

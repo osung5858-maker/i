@@ -163,7 +163,12 @@ export default function SpotlightGuide({ mode, onComplete }: Props) {
     if (!current) return
     const el = document.querySelector(current.target)
     if (el) {
-      setRect(el.getBoundingClientRect())
+      // 해당 영역을 화면 중앙으로 스크롤
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      // 스크롤 애니메이션 후 rect 갱신
+      requestAnimationFrame(() => {
+        setTimeout(() => setRect(el.getBoundingClientRect()), 350)
+      })
     } else {
       // 타겟 못 찾으면 다음 스텝
       if (!isLast) setStep(s => s + 1)
@@ -276,7 +281,8 @@ export default function SpotlightGuide({ mode, onComplete }: Props) {
               </button>
               <button
                 onClick={handleNext}
-                className="px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white font-semibold active:opacity-80"
+                className="px-4 py-2 rounded-lg bg-[var(--color-primary)] active:opacity-80"
+                style={{ fontSize: 13, color: '#FFFFFF', fontWeight: 700 }}
               >
                 {isLast ? '완료' : '다음'}
               </button>

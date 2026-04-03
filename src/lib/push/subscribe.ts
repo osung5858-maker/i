@@ -18,15 +18,26 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 /**
  * 푸시 알림 구독 시작
- * @returns 성공 여부
+ * @returns { ok: true } | { ok: false, reason: 'sw' | 'permission' | 'error' }
  */
-export async function subscribePush(): Promise<boolean> {
+export async function subscribePush(): Promise<{ ok: boolean; reason?: 'sw' | 'permission' | 'error' }> {
   try {
-    // 1. 권한 요청
-    const permission = await Notification.requestPermission()
-    if (permission !== 'granted') return false
+    // 0. Service Worker / PushManager 지원 확인
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      return { ok: false, reason: 'sw' }
+    }
 
-    // 2. 서비스 워커 등록 확인
+    // 1. SW 등록 여부 확인 (개발 환경에서는 unregister되므로 없을 수 있음)
+    const regs = await navigator.serviceWorker.getRegistrations()
+    if (regs.length === 0) {
+      return { ok: false, reason: 'sw' }
+    }
+
+    // 2. 권한 요청
+    const permission = await Notification.requestPermission()
+    if (permission !== 'granted') return { ok: false, reason: 'permission' }
+
+    // 3. 서비스 워커 등록 확인
     const registration = await navigator.serviceWorker.ready
 
     // 3. 구독
@@ -38,7 +49,7 @@ export async function subscribePush(): Promise<boolean> {
     // 4. Supabase에 토큰 저장
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return false
+    if (!user) return { ok: false, reason: 'error' }
 
     const token = JSON.stringify(subscription)
     const platform = /iPhone|iPad/.test(navigator.userAgent) ? 'ios' : /Android/.test(navigator.userAgent) ? 'android' : 'web'
@@ -48,9 +59,9 @@ export async function subscribePush(): Promise<boolean> {
       { onConflict: 'user_id,token' }
     )
 
-    return true
+    return { ok: true }
   } catch {
-    return false
+    return { ok: false, reason: 'error' }
   }
 }
 

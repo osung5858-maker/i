@@ -8,8 +8,6 @@ export const VAPID_PUBLIC_KEY = 'BITzVh759e8pmLHPItzIKtS2jM1mlartS4otyUwQSVwklXM
 // VAPID Private Key는 .env.local에 VAPID_PRIVATE_KEY로 저장
 // 서버 사이드에서만 사용
 
-export const NOTIFICATION_SETTINGS_KEY = 'dodam_notification_settings'
-
 export interface NotificationSettings {
   enabled: boolean
   predictFeed: boolean
@@ -33,17 +31,24 @@ export const DEFAULT_SETTINGS: NotificationSettings = {
 }
 
 export function loadNotificationSettings(): NotificationSettings {
-  if (typeof window === 'undefined') return DEFAULT_SETTINGS
+  return DEFAULT_SETTINGS
+}
+
+export async function loadNotificationSettingsFromDB(): Promise<NotificationSettings> {
   try {
-    const saved = localStorage.getItem(NOTIFICATION_SETTINGS_KEY)
-    return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS
+    const { getProfile } = await import('@/lib/supabase/userProfile')
+    const profile = await getProfile()
+    const saved = profile?.user_settings?.notification_settings as Partial<NotificationSettings> | undefined
+    return saved ? { ...DEFAULT_SETTINGS, ...saved } : DEFAULT_SETTINGS
   } catch {
     return DEFAULT_SETTINGS
   }
 }
 
 export function saveNotificationSettings(settings: NotificationSettings) {
-  localStorage.setItem(NOTIFICATION_SETTINGS_KEY, JSON.stringify(settings))
+  import('@/lib/supabase/userProfile').then(({ upsertProfile }) => {
+    upsertProfile({ user_settings: { notification_settings: settings as unknown as Record<string, unknown> } })
+  })
 }
 
 export function isDndTime(settings: NotificationSettings): boolean {

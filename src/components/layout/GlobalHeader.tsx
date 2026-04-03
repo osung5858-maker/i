@@ -7,8 +7,9 @@ import Image from 'next/image'
 import { BellIcon, MoonIcon } from '@/components/ui/Icons'
 import { createClient } from '@/lib/supabase/client'
 import { getSecure } from '@/lib/secureStorage'
+import { fetchPrepRecords } from '@/lib/supabase/prepRecord'
 
-const NO_HEADER_PATHS = ['/onboarding', '/invite/', '/auth', '/landing', '/settings']
+const NO_HEADER_PATHS = ['/onboarding', '/invite/', '/auth', '/landing', '/settings', '/celebration', '/birth']
 
 function GlobalHeaderComponent() {
   const pathname = usePathname()
@@ -24,12 +25,14 @@ function GlobalHeaderComponent() {
       setMode(m)
 
       // OAuth 프로필 사진
+      let userName = ''
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
           const photo = user.user_metadata?.avatar_url || user.user_metadata?.picture || ''
           setUserPhotoUrl(photo)
+          userName = user.user_metadata?.name || user.user_metadata?.full_name || ''
         }
       } catch { /* 오프라인 무시 */ }
 
@@ -39,7 +42,20 @@ function GlobalHeaderComponent() {
       let sa = 0
       if (m === 'preparing') {
         const supplKeys = ['prep_folic', 'prep_vitd', 'prep_iron', 'prep_omega3']
-        const prepDone: string[] = JSON.parse(localStorage.getItem(`dodam_prep_done_${todayStr}`) || '[]')
+        const prepRows = await fetchPrepRecords()
+        const todayRows = prepRows.filter(r => r.record_date === todayStr)
+        const prepDone: string[] = []
+        todayRows.forEach(r => {
+          if (r.type === 'mood') {
+            const mood = (r.value as any)?.mood
+            if (mood) prepDone.push(`prep_mood_${mood}`)
+          } else if (r.type === 'supplement') {
+            const sub = (r.value as any)?.subtype || (r.value as any)?.key || ''
+            if (sub) prepDone.push(`prep_${sub}`)
+          } else if (r.type !== 'journal') {
+            prepDone.push(`prep_${r.type}`)
+          }
+        })
         if (!prepDone.some(k => supplKeys.includes(k))) sa++
         const lastPeriod = await getSecure('dodam_last_period')
         const cycleLength = Number(await getSecure('dodam_cycle_length')) || 28
@@ -54,12 +70,21 @@ function GlobalHeaderComponent() {
           else if (dpo > 0 && dpo <= 14) sa++
         }
       } else if (m === 'pregnant') {
-        const events: { type: string }[] = JSON.parse(localStorage.getItem(`dodam_preg_events_${todayStr}`) || '[]')
+        let events: { type: string }[] = []
+        try {
+          const supabase2 = createClient()
+          const { data: { user: u2 } } = await supabase2.auth.getUser()
+          if (u2) {
+            const todayStart = `${todayStr}T00:00:00`
+            const todayEnd = `${todayStr}T23:59:59`
+            const { data } = await supabase2.from('pregnant_events').select('type').eq('user_id', u2.id).gte('start_ts', todayStart).lte('start_ts', todayEnd)
+            events = (data || []) as { type: string }[]
+          }
+        } catch { /* 오프라인 무시 */ }
         if (!events.some(e => e.type === 'preg_suppl' || e.type === 'preg_folic' || e.type === 'preg_iron')) sa++
       }
       setSmartAlertCount(sa)
 
-      const userName = localStorage.getItem('dodam_user_name') || ''
 
       if (m === 'parenting') {
         const name = await getSecure('dodam_child_name') || '도담이'
@@ -138,76 +163,81 @@ function GlobalHeaderComponent() {
   }
 
   return (
-    <header className="sticky top-0 z-40 pointer-events-none" style={{ paddingTop: '12px' }}>
+    <header className="sticky top-0 z-40 pointer-events-none" style={{ paddingTop: '8px' }}>
       <div className="max-w-lg mx-auto w-full px-4 pointer-events-auto">
-        <div className="bg-white rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.08)]" style={{
-          height: '72px',
-          padding: '0 20px',
+        <div style={{
+          height: 52,
+          padding: '0 16px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          borderRadius: 16,
+          background: 'rgba(255,255,255,0.72)',
+          backdropFilter: 'blur(20px) saturate(1.8)',
+          WebkitBackdropFilter: 'blur(20px) saturate(1.8)',
+          border: '1px solid rgba(255,255,255,0.5)',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
         }}>
           {/* 좌측: 프로필 이미지 + 텍스트 */}
-          <div className="flex items-center min-w-0" style={{ gap: '12px' }}>
-            {/* OAuth 프로필 사진 */}
-            <Link href="/settings" className="shrink-0 w-10 h-10 rounded-full overflow-hidden bg-[#F0EDE8] active:opacity-80">
+          <div className="flex items-center min-w-0" style={{ gap: 10 }}>
+            <Link href="/settings" className="shrink-0 overflow-hidden active:opacity-80" style={{ width: 34, height: 34, borderRadius: '50%', background: '#F0EDE8' }}>
               {userPhotoUrl ? (
                 <Image
                   src={userPhotoUrl}
                   alt="프로필"
-                  width={40}
-                  height={40}
+                  width={34}
+                  height={34}
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-[18px]">🌸</div>
+                <div className="w-full h-full flex items-center justify-center" style={{ fontSize: 16 }}>🌸</div>
               )}
             </Link>
 
-            {/* 텍스트 */}
-            <Link href={homeHref} className="flex flex-col min-w-0 active:opacity-70" style={{ gap: '2px' }}>
+            <Link href={homeHref} className="flex flex-col min-w-0 active:opacity-70" style={{ gap: 1 }}>
               {mode === 'parenting' && (
                 <>
-                  <span className="text-[12px] font-medium text-[#6D6C6A] leading-tight">{getGreeting()}</span>
-                  <span className="text-[15px] font-semibold text-[#1A1918] leading-tight">{data.name} · {getDaysOld() ?? 0}일</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-primary)', lineHeight: 1.2 }}>{getGreeting()}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#1A1918', lineHeight: 1.3 }}>{data.name} · {getDaysOld() ?? 0}일</span>
                 </>
               )}
               {mode === 'pregnant' && (
                 <>
-                  <span className="text-[12px] font-medium text-[#6D6C6A] leading-tight">{data.trimester} · D-{data.daysLeft}</span>
-                  <span className="text-[15px] font-semibold text-[#1A1918] leading-tight">{data.week}주차</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-primary)', lineHeight: 1.2 }}>{data.trimester} · D-{data.daysLeft}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#1A1918', lineHeight: 1.3 }}>{data.week}주차</span>
                 </>
               )}
               {mode === 'preparing' && (
                 <>
-                  <span className="text-[12px] font-medium text-[#6D6C6A] leading-tight">{data.phase || '임신 준비'}</span>
-                  <span className="text-[15px] font-semibold text-[#1A1918] leading-tight">{data.cycleDay ? `주기 ${data.cycleDay}일째` : '임신 준비 중'}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-primary)', lineHeight: 1.2 }}>{data.phase || '임신 준비'}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#1A1918', lineHeight: 1.3 }}>{data.cycleDay ? `주기 ${data.cycleDay}일째` : '임신 준비 중'}</span>
                 </>
               )}
             </Link>
           </div>
 
           {/* 우측: 야간 + 알림 */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center shrink-0" style={{ gap: 6 }}>
             {mode === 'parenting' && isNight && (
-              <Link href="/lullaby" className="w-9 h-9 rounded-full bg-[#1A1918] flex items-center justify-center active:opacity-80 shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
-                <MoonIcon className="w-4 h-4 text-white" />
+              <Link href="/lullaby" className="flex items-center justify-center active:opacity-80" style={{ width: 32, height: 32, borderRadius: '50%', background: '#1A1918', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}>
+                <MoonIcon className="w-3.5 h-3.5 text-white" />
               </Link>
             )}
             <Link
               href="/notifications"
-              className="relative w-9 h-9 rounded-full bg-[#F5F4F1] flex items-center justify-center active:bg-[#ECECEC]"
+              className="relative flex items-center justify-center active:opacity-80"
+              style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,0,0,0.04)' }}
             >
-              <BellIcon className="w-[18px] h-[18px] text-primary" />
+              <BellIcon className="w-4 h-4 text-[#6D6C6A]" />
               {(unreadCount + smartAlertCount) > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-[9px] h-[9px] bg-[#D08068] rounded-full border-2 border-white" />
+                <span className="absolute" style={{ top: -1, right: -1, width: 8, height: 8, background: '#D08068', borderRadius: '50%', border: '1.5px solid white' }} />
               )}
             </Link>
           </div>
         </div>
       </div>
-      <div style={{ height: '12px' }} />
+      <div style={{ height: '8px' }} />
     </header>
   )
 }

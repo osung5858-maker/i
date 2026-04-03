@@ -64,10 +64,10 @@ export default function PushPrompt({ message, show = true }: Props) {
 
   const handleSubscribe = async () => {
     setSubscribing(true)
-    const ok = await subscribePush()
+    const result = await subscribePush()
     setSubscribing(false)
 
-    if (ok) {
+    if (result.ok) {
       localStorage.setItem(DISMISSED_KEY, 'permanent') // 성공하면 더 이상 안 보임
       setVisible(false)
       window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '알림이 설정됐어요!' } }))

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { fetchPregRecords } from '@/lib/supabase/pregRecord'
 import {
   ChevronRightIcon, PillIcon, VitaminIcon, WalkIcon, StretchIcon,
   ActivityIcon, DropletIcon, ChartIcon,
@@ -68,17 +69,37 @@ export default function PregRecordDetailPage() {
   const nextDate = getDateOffset(dateStr, 1)
   const canGoNext = nextDate <= today
 
-  const events = useMemo<any[]>(() => {
-    try { return JSON.parse(localStorage.getItem(`dodam_preg_events_${dateStr}`) || '[]') } catch { return [] }
-  }, [dateStr])
+  const [events, setEvents] = useState<any[]>([])
+  const [moodKey, setMoodKey] = useState('')
+  const [health, setHealth] = useState<Record<string, any>>({})
 
-  const moodKey = useMemo(() => localStorage.getItem(`dodam_preg_mood_${dateStr}`) || '', [dateStr])
+  useEffect(() => {
+    fetchPregRecords().then(rows => {
+      // events: preg_records with matching date (mood, fetal_move, weight, supplement, etc.)
+      const dayEvents: any[] = []
+      let mood = ''
+      const h: Record<string, any> = {}
 
-  const health = useMemo(() => {
-    try {
-      const all = JSON.parse(localStorage.getItem('dodam_preg_health') || '{}')
-      return all[dateStr] || {}
-    } catch { return {} }
+      rows.filter(r => r.record_date === dateStr).forEach(r => {
+        if (r.type === 'health') {
+          Object.assign(h, r.value)
+        } else if (r.type === 'mood') {
+          mood = (r.value as any).mood || ''
+        } else {
+          // Convert DB records to event format for display
+          dayEvents.push({
+            id: r.id,
+            type: `preg_${r.type}`,
+            timeStr: (r.value as any).timeStr || '',
+            data: { tags: r.value },
+          })
+        }
+      })
+
+      setEvents(dayEvents)
+      setMoodKey(mood)
+      setHealth(h)
+    }).catch(() => {})
   }, [dateStr])
 
   const hasData = events.length > 0 || moodKey || Object.keys(health).length > 0

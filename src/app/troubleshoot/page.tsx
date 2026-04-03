@@ -3,19 +3,19 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/layout/PageLayout'
 import TroubleshootCard from '@/components/ai-cards/TroubleshootCard'
+import { getSecure } from '@/lib/secureStorage'
 
 export default function TroubleshootPage() {
   const [ageMonths, setAgeMonths] = useState(0)
 
   useEffect(() => {
-    try {
-      const birthdate = localStorage.getItem('dodam_child_birthdate')
+    getSecure('dodam_child_birthdate').then(birthdate => {
       if (birthdate) {
         const birth = new Date(birthdate)
         const now = new Date()
         setAgeMonths((now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth()))
       }
-    } catch { /* */ }
+    }).catch(() => {})
   }, [])
 
   return (

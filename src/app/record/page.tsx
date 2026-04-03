@@ -8,6 +8,10 @@ import IllustVideo from '@/components/ui/IllustVideo'
 import type { Child, GrowthRecord, CareEvent } from '@/types'
 import { PregnantWaitingPage } from '@/app/waiting/page'
 import dynamic from 'next/dynamic'
+import { fetchPregRecords } from '@/lib/supabase/pregRecord'
+import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
+import { fetchPrepRecords } from '@/lib/supabase/prepRecord'
+import { getProfile } from '@/lib/supabase/userProfile'
 
 const LoadingSpinner = () => <div className="flex items-center justify-center h-[60vh]"><div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" /></div>
 
@@ -27,25 +31,32 @@ function PregnantRecord() {
   const MOOD_LABEL: Record<string, string> = { happy: '행복', calm: '평온', anxious: '불안', sick: '입덧', tired: '피곤' }
   const MOOD_COLOR: Record<string, string> = { happy: '#FF8FAB', calm: '#90C8A8', anxious: '#FFC078', sick: '#B8A0D4', tired: '#8EB4D4' }
 
-  // 날짜 인덱스: preg_events 키 기반으로 최근 30일 스캔
-  const dailyHistory = useMemo(() => {
-    const results: { date: string; events: any[]; mood: string; health: any }[] = []
-    for (let i = 0; i < 60; i++) {
-      const d = new Date(); d.setDate(d.getDate() - i)
-      const dateStr = d.toISOString().split('T')[0]
-      const events = (() => { try { return JSON.parse(localStorage.getItem(`dodam_preg_events_${dateStr}`) || '[]') } catch { return [] } })()
-      const mood = localStorage.getItem(`dodam_preg_mood_${dateStr}`) || ''
-      const healthAll = (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_health') || '{}') } catch { return {} } })()
-      const health = healthAll[dateStr] || {}
-      if (events.length > 0 || mood || Object.keys(health).length > 0) {
-        results.push({ date: dateStr, events, mood, health })
-      }
-    }
-    return results
-  }, [])
+  const [dailyHistory, setDailyHistory] = useState<{ date: string; events: any[]; mood: string; health: any }[]>([])
+  const [diaries, setDiaries] = useState<{ text: string; date: string; mood: string; comment: string }[]>([])
 
-  const diaries = useMemo<{ text: string; date: string; mood: string; comment: string }[]>(() => {
-    try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] }
+  useEffect(() => {
+    // DB에서 임신 건강 기록 + 일기 로드
+    Promise.all([
+      fetchPregRecords(['health']),
+      fetchPregRecords(['diary']),
+    ]).then(([healthRows, diaryRows]) => {
+      // 건강 기록 → 일별 히스토리
+      const healthMap: Record<string, Record<string, unknown>> = {}
+      healthRows.forEach(r => { healthMap[r.record_date] = r.value })
+      const results: { date: string; events: any[]; mood: string; health: any }[] = []
+      for (let i = 0; i < 60; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i)
+        const dateStr = d.toISOString().split('T')[0]
+        const health = healthMap[dateStr] || {}
+        const moodVal = (health.mood as string) || ''
+        if (Object.keys(health).length > 0) {
+          results.push({ date: dateStr, events: [], mood: moodVal, health })
+        }
+      }
+      setDailyHistory(results)
+      // 일기
+      setDiaries(diaryRows.map(r => r.value as unknown as { text: string; date: string; mood: string; comment: string }))
+    }).catch(() => {})
   }, [])
 
   const TABS = [{ key: 'daily' as const, label: '일별 기록' }, { key: 'diary' as const, label: '기다림 일기' }, { key: 'journey' as const, label: '여정' }]
@@ -179,20 +190,57 @@ function PreparingRecord() {
   const MOOD_LABEL: Record<string, string> = { happy: '행복', excited: '설렘', calm: '평온', anxious: '불안', tired: '피곤', sad: '슬픔' }
   const MOOD_COLOR: Record<string, string> = { happy: '#FF8FAB', calm: '#90C8A8', anxious: '#FFC078', tired: '#8EB4D4', sad: '#A0A8C0' }
 
-  const dailyHistory = useMemo(() => {
-    const results: { date: string; done: string[]; mood: string; suppl: Record<string, number>; journal: string }[] = []
-    for (let i = 0; i < 60; i++) {
-      const d = new Date(); d.setDate(d.getDate() - i)
-      const dateStr = d.toISOString().split('T')[0]
-      const done: string[] = (() => { try { return JSON.parse(localStorage.getItem(`dodam_prep_done_${dateStr}`) || '[]') } catch { return [] } })()
-      const mood = localStorage.getItem(`dodam_mood_${dateStr}`) || ''
-      const suppl: Record<string, number> = (() => { try { return JSON.parse(localStorage.getItem(`dodam_suppl_${dateStr}`) || '{}') } catch { return {} } })()
-      const journal: string = (() => { try { const j = JSON.parse(localStorage.getItem(`dodam_prep_journal_${dateStr}`) || '[]'); return j.filter(Boolean).join(' / ') } catch { return '' } })()
-      if (done.length > 0 || mood || Object.keys(suppl).some(k => suppl[k] > 0) || journal) {
-        results.push({ date: dateStr, done, mood, suppl, journal })
+  const [dailyHistory, setDailyHistory] = useState<{ date: string; done: string[]; mood: string; suppl: Record<string, number>; journal: string }[]>([])
+
+  useEffect(() => {
+    fetchPrepRecords().then(rows => {
+      // Build a date set for last 60 days
+      const dateSet = new Set<string>()
+      for (let i = 0; i < 60; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i)
+        dateSet.add(d.toISOString().split('T')[0])
       }
-    }
-    return results
+
+      // Group rows by date
+      const byDate: Record<string, typeof rows> = {}
+      rows.forEach(r => {
+        if (!dateSet.has(r.record_date)) return
+        if (!byDate[r.record_date]) byDate[r.record_date] = []
+        byDate[r.record_date].push(r)
+      })
+
+      const results: { date: string; done: string[]; mood: string; suppl: Record<string, number>; journal: string }[] = []
+      // Iterate in reverse chronological order
+      const sortedDates = Array.from(dateSet).sort((a, b) => b.localeCompare(a))
+      for (const dateStr of sortedDates) {
+        const dayRows = byDate[dateStr] || []
+        const done: string[] = []
+        let mood = ''
+        const suppl: Record<string, number> = {}
+        const journals: string[] = []
+
+        dayRows.forEach(r => {
+          const val = r.value as any
+          if (r.type === 'mood') {
+            mood = val?.mood || ''
+            if (mood) done.push(`prep_mood_${mood}`)
+          } else if (r.type === 'supplement') {
+            const sub = val?.subtype || val?.key || ''
+            if (sub) suppl[sub] = (suppl[sub] || 0) + (val?.count || 1)
+          } else if (r.type === 'journal') {
+            if (val?.text) journals.push(val.text)
+          } else {
+            done.push(`prep_${r.type}`)
+          }
+        })
+
+        const journal = journals.filter(Boolean).join(' / ')
+        if (done.length > 0 || mood || Object.keys(suppl).some(k => suppl[k] > 0) || journal) {
+          results.push({ date: dateStr, done, mood, suppl, journal })
+        }
+      }
+      setDailyHistory(results)
+    }).catch(() => {})
   }, [])
 
   const TABS = [{ key: 'daily' as const, label: '일별 기록' }, { key: 'cycle' as const, label: '생리 주기' }, { key: 'journey' as const, label: '여정' }]
@@ -263,11 +311,32 @@ function PreparingRecord() {
 
 // 생리 주기 히스토리 (임신 준비 전용)
 function CycleHistory() {
-  const cycles = useMemo<{ start: string; length: number }[]>(() => {
-    try { return JSON.parse(localStorage.getItem('dodam_cycle_history') || '[]') } catch { return [] }
+  const [cycles, setCycles] = useState<{ start: string; length: number }[]>([])
+  const [lastPeriod, setLastPeriod] = useState('')
+  const [cycleLength, setCycleLength] = useState(28)
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    getProfile().then(p => {
+      if (p?.last_period) setLastPeriod(p.last_period)
+      if (p?.cycle_length) setCycleLength(p.cycle_length)
+    }).catch(() => {})
+
+    fetchPrepRecords(['cycle_history']).then(rows => {
+      if (rows.length > 0) {
+        const val = rows[0].value
+        if (Array.isArray(val)) setCycles(val as { start: string; length: number }[])
+      }
+    }).catch(() => {}).finally(() => setLoaded(true))
   }, [])
-  const lastPeriod = localStorage.getItem('dodam_last_period') || ''
-  const cycleLength = Number(localStorage.getItem('dodam_cycle_length') || 28)
+
+  if (!loaded) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="w-6 h-6 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   if (!lastPeriod && cycles.length === 0) {
     return (
@@ -316,38 +385,40 @@ function CycleHistory() {
 function JourneyTimeline({ childName }: { childName: string }) {
   const [showForm, setShowForm] = useState(false)
   const [newText, setNewText] = useState('')
-  const [journeyEntries, setJourneyEntries] = useState<any[]>(() => {
-    try { return JSON.parse(localStorage.getItem('dodam_journey_entries') || '[]') } catch { return [] }
-  })
+  const [journeyEntries, setJourneyEntries] = useState<any[]>([])
+  const [letters, setLetters] = useState<any[]>([])
+  const [diaries, setDiaries2] = useState<any[]>([])
+  const [prepDiaries, setPrepDiaries] = useState<any[]>([])
+  const [checkups, setCheckups] = useState<any[]>([])
+  const [pregTests, setPregTests] = useState<any[]>([])
+
+  useEffect(() => {
+    Promise.all([
+      fetchUserRecords(['journey_entries']),
+      fetchUserRecords(['letters']),
+      fetchPregRecords(['diary']),
+      fetchPrepRecords(['journal']),
+      fetchPregRecords(['checkup']),
+      fetchPrepRecords(['preg_test']),
+    ]).then(([journeyRows, letterRows, diaryRows, prepRows, checkupRows, testRows]) => {
+      if (journeyRows.length) setJourneyEntries((journeyRows[0].value as any).entries || [])
+      if (letterRows.length) setLetters((letterRows[0].value as any).entries || [])
+      setDiaries2(diaryRows.map(r => r.value))
+      setPrepDiaries(prepRows.map(r => ({ date: r.record_date, text: (r.value as any).text || '', comment: '' })))
+      setCheckups(checkupRows.map(r => r.value))
+      setPregTests(testRows.map(r => r.value))
+    }).catch(() => {})
+  }, [])
 
   const addJourneyEntry = () => {
     if (!newText.trim()) return
     const entry = { id: Date.now(), date: new Date().toISOString().split('T')[0], text: newText.trim(), createdAt: new Date().toISOString() }
     const updated = [entry, ...journeyEntries]
     setJourneyEntries(updated)
-    localStorage.setItem('dodam_journey_entries', JSON.stringify(updated))
+    const today = new Date().toISOString().split('T')[0]
+    upsertUserRecord(today, 'journey_entries', { entries: updated }).catch(() => {})
     setNewText(''); setShowForm(false)
   }
-
-  const { letters, diaries, prepDiaries, checkups, pregTests } = useMemo(() => ({
-    letters: (() => { try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]') } catch { return [] } })(),
-    diaries: (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] } })(),
-    prepDiaries: (() => {
-      // mode 1 기다림 일기: dodam_prep_journal_YYYY-MM-DD 키에 배열로 저장
-      const result: { date: string; text: string; comment: string }[] = []
-      for (let i = 0; i < 365; i++) {
-        const d = new Date(); d.setDate(d.getDate() - i)
-        const dateStr = d.toISOString().split('T')[0]
-        try {
-          const entries: string[] = JSON.parse(localStorage.getItem(`dodam_prep_journal_${dateStr}`) || '[]')
-          entries.filter(Boolean).forEach(text => result.push({ date: dateStr, text, comment: '' }))
-        } catch { /* skip */ }
-      }
-      return result
-    })(),
-    checkups: (() => { try { return JSON.parse(localStorage.getItem('dodam_checkup_records') || '[]') } catch { return [] } })(),
-    pregTests: (() => { try { return JSON.parse(localStorage.getItem('dodam_preg_tests') || '[]') } catch { return [] } })(),
-  }), []) // read once on mount
 
   const timeline = useMemo(() => {
     const items: { date: string; type: string; emoji: string; title: string; content: string; sub?: string }[] = []

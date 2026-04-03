@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
 import type { CareEvent } from '@/types'
 import { PenIcon, SparkleIcon, NoteIcon, BottleIcon, MoonIcon, DropletIcon, ThermometerIcon } from '@/components/ui/Icons'
+import { upsertUserRecord, fetchUserRecords } from '@/lib/supabase/userRecord'
 
 interface Props {
   events: CareEvent[]
@@ -82,17 +83,19 @@ export default function DiaryView({ events, childName }: Props) {
   // 날짜별 메모 + 사진 localStorage 저장/복원
   const dateKey = selectedDate.toISOString().split('T')[0]
   const loadDayData = (date: string) => {
-    const saved = localStorage.getItem(`dodam_diary_${date}`)
-    if (saved) {
-      try {
-        const d = JSON.parse(saved)
-        setMemo(d.memo || '')
-        setPhotos(d.photos || [])
-      } catch { setMemo(''); setPhotos([]) }
-    } else { setMemo(''); setPhotos([]) }
+    setMemo('')
+    setPhotos([])
+    fetchUserRecords(['diary_day']).then(rows => {
+      const match = rows.find(r => r.record_date === date)
+      if (match) {
+        const val = match.value as { memo?: string; photos?: string[] }
+        setMemo(val.memo || '')
+        setPhotos(val.photos || [])
+      }
+    }).catch(() => {})
   }
   const saveDayData = (m: string, p: string[]) => {
-    localStorage.setItem(`dodam_diary_${dateKey}`, JSON.stringify({ memo: m, photos: p }))
+    upsertUserRecord(dateKey, 'diary_day', { memo: m, photos: p }).catch(() => {})
   }
 
   // 사진 추가 (파일 → base64)

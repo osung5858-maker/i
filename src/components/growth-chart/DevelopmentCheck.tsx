@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { SparkleIcon, HospitalIcon, RunnerIcon, HandIcon, SpeechIcon, HeartIcon, BrainIcon, StethoscopeIcon, HeartFilledIcon, TargetIcon } from '@/components/ui/Icons'
 import { shareDevelopment } from '@/lib/kakao/share-parenting'
+import { upsertUserRecord, fetchUserRecords } from '@/lib/supabase/userRecord'
 
 interface Props {
   ageMonths: number
@@ -248,10 +249,6 @@ function getCatchUpTips(milestones: Milestone[], checked: Set<string>): string[]
   return categories.slice(0, 3).map(c => tips[c]).filter(Boolean)
 }
 
-function getStorageKey(ageMonths: number): string {
-  return `dodam_dev_check_${ageMonths}`
-}
-
 function getMilestones(ageMonths: number): Milestone[] {
   // 정확한 월령이 없으면 가장 가까운 이전 단계 사용
   const months = Object.keys(MILESTONES_BY_MONTH).map(Number).sort((a, b) => a - b)
@@ -317,10 +314,13 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
   const [showQuestions, setShowQuestions] = useState(false)
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(getStorageKey(ageMonths))
-      if (stored) setChecked(new Set(JSON.parse(stored)))
-    } catch { /* ignore */ }
+    fetchUserRecords(['dev_check']).then(rows => {
+      const match = rows.find(r => (r.value as any).ageMonths === ageMonths)
+      if (match) {
+        const val = match.value as { items?: string[] }
+        if (val.items) setChecked(new Set(val.items))
+      }
+    }).catch(() => {})
   }, [ageMonths])
 
   const toggle = useCallback((id: string) => {
@@ -328,9 +328,8 @@ export default function DevelopmentCheck({ ageMonths }: Props) {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
-      try {
-        localStorage.setItem(getStorageKey(ageMonths), JSON.stringify([...next]))
-      } catch { /* ignore */ }
+      const today = new Date().toISOString().split('T')[0]
+      upsertUserRecord(today, 'dev_check', { ageMonths, items: [...next] } as Record<string, unknown>).catch(() => {})
       return next
     })
   }, [ageMonths])

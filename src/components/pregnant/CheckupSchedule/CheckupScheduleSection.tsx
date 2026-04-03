@@ -12,6 +12,7 @@ import {
 } from '@/lib/supabase/pregRecord'
 import CheckupResultSheet from './CheckupResultSheet'
 import UltrasoundAlbum from './UltrasoundAlbum'
+import { notifyPartnerCheckup } from '@/lib/push/checkupNotify'
 
 // ===== Utility functions =====
 function getDaysUntil(dateString: string): number {
@@ -500,12 +501,25 @@ export default function CheckupScheduleSection() {
     await saveCheckupSchedule(schedule)
     await loadCheckups()
     showToast(sheetMode === 'edit' ? '예약이 변경되었어요' : '검진 예약 완료!')
+    // 배우자에게 알림 (비동기, 실패해도 무시)
+    if (sheetMode !== 'edit') {
+      notifyPartnerCheckup({
+        type: 'scheduled',
+        checkupTitle: schedule.title,
+        date: schedule.scheduled_date,
+      })
+    }
   }
 
   const handleComplete = async (checkupId: string) => {
     await completeCheckup(checkupId)
     await loadCheckups()
     showToast('검진 완료!')
+    // 배우자에게 알림
+    const item = checkups.find(c => c.checkup_id === checkupId)
+    if (item) {
+      notifyPartnerCheckup({ type: 'completed', checkupTitle: item.title })
+    }
   }
 
   const handleDelete = async (checkupId: string) => {

@@ -7,6 +7,7 @@ import { DEFAULT_CHECKUPS } from '@/constants/checkups'
 import {
   saveCheckupResult,
   fetchCheckupResult,
+  saveCheckupSchedule,
   getCurrentUserId,
 } from '@/lib/supabase/pregRecord'
 import {
@@ -15,6 +16,7 @@ import {
   getSignedUrl,
   deleteMedia,
 } from '@/lib/supabase/storage'
+import { notifyPartnerCheckup } from '@/lib/push/checkupNotify'
 
 const STATUS_OPTIONS: { value: CheckupStatus; label: string; color: string; bg: string }[] = [
   { value: 'normal', label: '정상', color: '#4CAF50', bg: '#E8F5E9' },
@@ -200,6 +202,38 @@ export default function CheckupResultSheet({ open, onClose, checkup, onSaved }: 
         media: mediaEntries,
       }
       await saveCheckupResult(result)
+      // 다음 검진 예약 저장
+      if (nextCheckupId && nextDate) {
+        const dc = DEFAULT_CHECKUPS.find(d => d.id === nextCheckupId)
+        await saveCheckupSchedule({
+          checkup_id: nextCheckupId,
+          title: dc?.title || nextCheckupId,
+          week: dc?.week,
+          scheduled_date: nextDate,
+          scheduled_time: nextTime || undefined,
+          completed: false,
+          is_custom: false,
+        })
+        notifyPartnerCheckup({
+          type: 'scheduled',
+          checkupTitle: dc?.title || nextCheckupId,
+          date: nextDate,
+        })
+      }
+      // 배우자에게 알림 (비동기, 실패해도 무시)
+      const imageCount = mediaEntries.filter(m => m.type === 'image').length
+      if (imageCount > 0) {
+        notifyPartnerCheckup({
+          type: 'ultrasound',
+          checkupTitle: checkup.title,
+          mediaCount: imageCount,
+        })
+      } else {
+        notifyPartnerCheckup({
+          type: 'result',
+          checkupTitle: checkup.title,
+        })
+      }
       onSaved?.()
       onClose()
     } finally {

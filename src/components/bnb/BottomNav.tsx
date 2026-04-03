@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, memo } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   SunIcon, HeartIcon, ShieldIcon, UsersIcon,
   PlusIcon, XIcon, BookOpenIcon, MenuIcon, BottleIcon, MoonIcon, PoopIcon, ThermometerIcon,
@@ -13,10 +13,12 @@ import {
   WaterGlassIcon, FootstepsIcon, YogaIcon,
   CheckCircleIcon, BanIcon, MusicIcon,
   WarningIcon, CapsuleIcon, SproutIcon, OmegaIcon, BrainIcon, BoneIcon,
+  HeartPulseIcon,
 } from '@/components/ui/Icons'
-import { autoBackup, restoreLocalData } from '@/lib/storage/backup'
 import { getSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
+import { upsertPregRecord, fetchPregRecords } from '@/lib/supabase/pregRecord'
+import { upsertPrepRecord, fetchPrepRecords } from '@/lib/supabase/prepRecord'
 
 interface Tab {
   href: string
@@ -130,8 +132,7 @@ function buildPregnantCategories(pregnancyWeeks: number): RecordCategory[] {
     ]},
     { key: 'health', label: '건강', color: '#D08068', items: [
       { type: 'preg_weight',   label: '체중',    isSlider: true },
-      { type: 'preg_stretch',  label: '스트레칭', color: '#F59E0B', isDuration: true },
-      { type: 'preg_meditate', label: '명상',    color: '#8B5CF6', isDuration: true },
+      { type: 'preg_bp',       label: '혈압',    isSlider: true },
       { type: 'preg_edema_mild',   label: '부종',    baseType: 'preg_edema', tags: { level: 'mild'   } },
       { type: 'preg_edema_severe', label: '부종 심함', baseType: 'preg_edema', tags: { level: 'severe' } },
     ]},
@@ -245,26 +246,27 @@ const RECORD_CATEGORIES: RecordCategory[] = [
 
 function BottomNavComponent() {
   const pathname = usePathname()
+  const router = useRouter()
   const [fabOpen, setFabOpen] = useState(false)
-  const [mode, setMode] = useState<string>('parenting')
+  const [mode, setMode] = useState<string>(() => {
+    // blocking script가 설정한 data-mode 또는 localStorage에서 동기적으로 읽기
+    if (typeof document !== 'undefined') {
+      return document.documentElement.getAttribute('data-mode')
+        || localStorage.getItem('dodam_mode')
+        || 'parenting'
+    }
+    return 'parenting'
+  })
 
-  // 앱 시작 시 데이터 자동 백업 + 복원
+  // pathname 변경 시 모드 자동 감지
   useEffect(() => {
-    restoreLocalData()
-    autoBackup()
-  }, [])
-
-  // 초기 모드 설정 및 pathname 기반 모드 자동 감지
-  useEffect(() => {
-    // 초기 로드 시 localStorage에서 모드 복원
-    const saved = localStorage.getItem('dodam_mode')
-
     if (pathname?.startsWith('/preparing')) {
       setMode('preparing')
     } else if (pathname?.startsWith('/pregnant')) {
       setMode('pregnant')
-    } else if (saved) {
-      setMode(saved)
+    } else {
+      const saved = localStorage.getItem('dodam_mode')
+      if (saved) setMode(saved)
     }
   }, [pathname])
 
@@ -325,6 +327,8 @@ function BottomNavComponent() {
   const [tempValue, setTempValue] = useState(36.5)
   const [feedValue, setFeedValue] = useState(120)
   const [weightValue, setWeightValue] = useState(60.0)
+  const [bpSystolic, setBpSystolic] = useState(120)
+  const [bpDiastolic, setBpDiastolic] = useState(80)
   const [memoItem, setMemoItem] = useState<string | null>(null) // 투약 메모
   const [memoText, setMemoText] = useState('')
   const [journalOpen, setJournalOpen] = useState(false)
@@ -378,6 +382,7 @@ function BottomNavComponent() {
         preg_mood: '기분', preg_fetal_move: '태동', preg_weight: '체중', preg_edema: '부종',
         preg_water: '물 마시기', preg_walk: '걷기', preg_suppl: '영양제', preg_stretch: '스트레칭',
         preg_folic: '엽산', preg_iron: '철분', preg_dha: 'DHA', preg_calcium: '칼슘', preg_vitd: '비타민D',
+        preg_bp: '혈압',
       }
       // 토스트 표시 (page가 처리 안 한 경우만)
       if (!(event.detail as any)._handled) {
@@ -396,18 +401,9 @@ function BottomNavComponent() {
           })
         }
       } catch { /* 오프라인 폴백 */ }
-      // localStorage 캐시 (page 밖일 때만)
-      if (!(event.detail as any)._handled) {
-        try {
-          const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
-          const stored = JSON.parse(localStorage.getItem(`dodam_preg_events_${localToday}`) || '[]')
-          stored.unshift({ id: Date.now(), type, data: { type, ...extra }, timeStr })
-          localStorage.setItem(`dodam_preg_events_${localToday}`, JSON.stringify(stored))
-        } catch { /* */ }
-      }
     }
 
-    // prep_ 타입: DB 저장 + localStorage 캐시 + 토스트 (항상 실행)
+    // prep_ 타입: DB 저장 + 토스트 (항상 실행)
     if (type.startsWith('prep_')) {
       const PREP_LABELS: Record<string, string> = {
         prep_folic: '엽산', prep_vitd: '비타민D', prep_iron: '철분', prep_omega3: '오메가3',
@@ -417,16 +413,11 @@ function BottomNavComponent() {
       if (type === 'prep_mood' && extra?.tags && (extra.tags as any).mood) {
         const moodVal: string = (extra.tags as any).mood
         const specificType = `prep_mood_${moodVal}`
-        // localStorage 즉시 업데이트
-        try {
-          const now = new Date().toISOString()
-          localStorage.setItem(`dodam_mood_${localToday}`, JSON.stringify({ mood: moodVal, ts: now }))
-          const tsMap = JSON.parse(localStorage.getItem(`dodam_prep_ts_${localToday}`) || '{}')
-          if (!tsMap[specificType]) { tsMap[specificType] = now; localStorage.setItem(`dodam_prep_ts_${localToday}`, JSON.stringify(tsMap)) }
-          const doneKey = `dodam_prep_done_${localToday}`
-          const done: string[] = JSON.parse(localStorage.getItem(doneKey) || '[]')
-          if (!done.includes(specificType)) { done.push(specificType); localStorage.setItem(doneKey, JSON.stringify(done)) }
-        } catch { /* */ }
+        // DB 즉시 업데이트
+        const now = new Date().toISOString()
+        upsertPrepRecord(localToday, 'mood', { mood: moodVal, ts: now }).catch(() => {})
+        upsertPrepRecord(localToday, 'activity_ts', { [specificType]: now }).catch(() => {})
+        upsertPrepRecord(localToday, 'done', { items: [specificType] }).catch(() => {})
         // 이벤트 즉시
         window.dispatchEvent(new CustomEvent('dodam-prep-done', { detail: { type: specificType, date: localToday, mood: moodVal } }))
         // 토스트 (preparing/page가 처리 안 한 경우만)
@@ -449,17 +440,9 @@ function BottomNavComponent() {
           }
         } catch { /* 오프라인 폴백 */ }
       } else if (type !== 'prep_journal') {
-        // localStorage 즉시 업데이트
-        try {
-          const key = `dodam_prep_done_${localToday}`
-          const done: string[] = JSON.parse(localStorage.getItem(key) || '[]')
-          if (!done.includes(type)) {
-            done.push(type)
-            localStorage.setItem(key, JSON.stringify(done))
-            const tsMap = JSON.parse(localStorage.getItem(`dodam_prep_ts_${localToday}`) || '{}')
-            if (!tsMap[type]) { tsMap[type] = new Date().toISOString(); localStorage.setItem(`dodam_prep_ts_${localToday}`, JSON.stringify(tsMap)) }
-          }
-        } catch { /* */ }
+        // DB 즉시 업데이트
+        upsertPrepRecord(localToday, 'done', { items: [type] }).catch(() => {})
+        upsertPrepRecord(localToday, 'activity_ts', { [type]: new Date().toISOString() }).catch(() => {})
         // 이벤트 즉시
         window.dispatchEvent(new CustomEvent('dodam-prep-done', { detail: { type, date: localToday } }))
         // 토스트 (preparing/page가 처리 안 한 경우만)
@@ -593,20 +576,12 @@ function BottomNavComponent() {
     const event = new CustomEvent('dodam-record', { detail })
     window.dispatchEvent(event)
 
-    // prep_ 세션 완료: page 밖에서도 localStorage 저장 (이미 _handled면 preparing/page.tsx가 처리)
+    // prep_ 세션 완료: DB 저장 (이미 _handled면 preparing/page.tsx가 처리)
     if (!(event.detail as any)._handled && recordType.startsWith('prep_')) {
       const _td2 = new Date()
       const localToday2 = `${_td2.getFullYear()}-${String(_td2.getMonth()+1).padStart(2,'0')}-${String(_td2.getDate()).padStart(2,'0')}`
-      try {
-        const key = `dodam_prep_done_${localToday2}`
-        const done: string[] = JSON.parse(localStorage.getItem(key) || '[]')
-        if (!done.includes(recordType)) {
-          done.push(recordType)
-          localStorage.setItem(key, JSON.stringify(done))
-          const tsMap = JSON.parse(localStorage.getItem(`dodam_prep_ts_${localToday2}`) || '{}')
-          if (!tsMap[recordType]) { tsMap[recordType] = startTs; localStorage.setItem(`dodam_prep_ts_${localToday2}`, JSON.stringify(tsMap)) }
-        }
-      } catch { /* */ }
+      upsertPrepRecord(localToday2, 'done', { items: [recordType] }).catch(() => {})
+      upsertPrepRecord(localToday2, 'activity_ts', { [recordType]: startTs }).catch(() => {})
     }
 
     // page.tsx가 없는 페이지에서는 직접 DB 저장 (preg_/prep_ 타입은 DB 저장 없음)
@@ -654,10 +629,10 @@ function BottomNavComponent() {
   const formatElapsed = (s: number) => {
     const mm = String(Math.floor(s / 60)).padStart(2, '0')
     const ss = String(s % 60).padStart(2, '0')
-    return `${mm}:${ss}`
+    return `${mm}분${ss}초`
   }
 
-  const HIDE_PATHS = ['/onboarding', '/invite', '/auth', '/post/', '/market-item/', '/landing', '/privacy', '/terms', '/celebration', '/birth', '/settings']
+  const HIDE_PATHS = ['/onboarding', '/invite', '/auth', '/post/', '/market-item/', '/landing', '/privacy', '/terms', '/celebration', '/birth']
   if (HIDE_PATHS.some(p => pathname?.startsWith(p))) return null
 
   return (
@@ -730,6 +705,12 @@ function BottomNavComponent() {
           const isTemp = tempSlider === 'temp'
           const isFeed = tempSlider === 'feed'
           const isWeight = tempSlider === 'preg_weight'
+          const isBP = tempSlider === 'preg_bp'
+
+          // 혈압 상태
+          const bpIsHigh = bpSystolic >= 140 || bpDiastolic >= 90
+          const bpIsWarning = (bpSystolic >= 130 || bpDiastolic >= 85) && !bpIsHigh
+          const bpColor = bpIsHigh ? '#EF4444' : bpIsWarning ? '#F59E0B' : '#10B981'
 
           // 체온 설정
           const isHigh = tempValue >= 37.5
@@ -766,8 +747,8 @@ function BottomNavComponent() {
                       <div className="flex gap-1.5 mb-4">
                         {[36.5, 37.0, 37.5, 38.0, 38.5].map((v) => (
                           <button key={v} onClick={() => setTempValue(v)}
-                            className="flex-1 py-2 rounded-xl text-body font-bold transition-all active:scale-95"
-                            style={{ backgroundColor: tempValue === v ? tempColor : '#F5F3F0', color: tempValue === v ? 'white' : '#6B6966' }}>
+                            className="flex-1 py-2 rounded-xl font-bold transition-all active:scale-95"
+                            style={{ fontSize: 14, backgroundColor: tempValue === v ? tempColor : '#F5F3F0', color: tempValue === v ? '#FFFFFF' : '#6B6966' }}>
                             {v.toFixed(1)}
                           </button>
                         ))}
@@ -775,7 +756,7 @@ function BottomNavComponent() {
                       <div className="flex gap-2">
                         <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-body-emphasis font-medium text-secondary bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
                         <button onClick={() => { handleQuickRecord('temp', { tags: { celsius: tempValue } }); setTempSlider(null) }}
-                          className="flex-[2] py-3 rounded-xl text-body-emphasis font-bold text-white active:scale-95 transition-transform" style={{ background: tempColor }}>
+                          className="flex-[2] py-3 rounded-xl font-bold active:scale-95 transition-transform" style={{ fontSize: 15, background: tempColor, color: '#FFFFFF' }}>
                           {tempValue.toFixed(1)}°C 기록
                         </button>
                       </div>
@@ -801,8 +782,8 @@ function BottomNavComponent() {
                       <div className="flex gap-1.5 mb-4">
                         {[60, 90, 120, 150, 180, 240].map((v) => (
                           <button key={v} onClick={() => setFeedValue(v)}
-                            className="flex-1 py-2 rounded-xl text-body font-bold transition-all active:scale-95"
-                            style={{ backgroundColor: feedValue === v ? 'var(--color-primary)' : '#F5F3F0', color: feedValue === v ? 'white' : '#6B6966' }}>
+                            className="flex-1 py-2 rounded-xl font-bold transition-all active:scale-95"
+                            style={{ fontSize: 14, backgroundColor: feedValue === v ? 'var(--color-primary)' : '#F5F3F0', color: feedValue === v ? '#FFFFFF' : '#6B6966' }}>
                             {v}
                           </button>
                         ))}
@@ -810,7 +791,7 @@ function BottomNavComponent() {
                       <div className="flex gap-2">
                         <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-body-emphasis font-medium text-secondary bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
                         <button onClick={() => { handleQuickRecord('feed', { amount_ml: feedValue }); setTempSlider(null) }}
-                          className="flex-[2] py-3 rounded-xl text-body-emphasis font-bold text-white active:scale-95 transition-transform" style={{ background: 'var(--color-primary)' }}>
+                          className="flex-[2] py-3 rounded-xl font-bold active:scale-95 transition-transform" style={{ fontSize: 15, background: 'var(--color-primary)', color: '#FFFFFF' }}>
                           분유 {feedValue}ml 기록
                         </button>
                       </div>
@@ -836,8 +817,8 @@ function BottomNavComponent() {
                       <div className="flex gap-1.5 mb-4">
                         {[50, 55, 60, 65, 70, 75].map((v) => (
                           <button key={v} onClick={() => setWeightValue(v)}
-                            className="flex-1 py-2 rounded-xl text-body font-bold transition-all active:scale-95"
-                            style={{ backgroundColor: Math.abs(weightValue - v) < 0.05 ? 'var(--color-primary)' : '#F5F3F0', color: Math.abs(weightValue - v) < 0.05 ? 'white' : '#6B6966' }}>
+                            className="flex-1 py-2 rounded-xl font-bold transition-all active:scale-95"
+                            style={{ fontSize: 14, backgroundColor: Math.abs(weightValue - v) < 0.05 ? 'var(--color-primary)' : '#F5F3F0', color: Math.abs(weightValue - v) < 0.05 ? '#FFFFFF' : '#6B6966' }}>
                             {v}
                           </button>
                         ))}
@@ -845,8 +826,55 @@ function BottomNavComponent() {
                       <div className="flex gap-2">
                         <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-body-emphasis font-medium text-secondary bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
                         <button onClick={() => { handleQuickRecord('preg_weight', { tags: { kg: weightValue } }); setTempSlider(null) }}
-                          className="flex-[2] py-3 rounded-xl text-body-emphasis font-bold text-white active:scale-95 transition-transform" style={{ background: 'var(--color-primary)' }}>
+                          className="flex-[2] py-3 rounded-xl font-bold active:scale-95 transition-transform" style={{ fontSize: 15, background: 'var(--color-primary)', color: '#FFFFFF' }}>
                           {weightValue.toFixed(1)}kg 기록
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {isBP && (
+                    <>
+                      <div className="text-center mb-4">
+                        <span className="text-[42px] font-bold tabular-nums" style={{ color: bpColor }}>{bpSystolic}</span>
+                        <span className="text-heading-3 font-medium text-tertiary mx-1">/</span>
+                        <span className="text-[32px] font-bold tabular-nums" style={{ color: bpColor }}>{bpDiastolic}</span>
+                        <span className="text-heading-3 font-medium text-tertiary ml-1">mmHg</span>
+                        {bpIsHigh && <p className="text-caption font-bold text-red-500 mt-1">고혈압 주의</p>}
+                        {bpIsWarning && <p className="text-caption font-bold text-amber-500 mt-1">경계</p>}
+                      </div>
+                      <div className="space-y-3 mb-4">
+                        <div>
+                          <div className="flex justify-between text-label text-tertiary mb-1"><span>수축기</span><span>{bpSystolic} mmHg</span></div>
+                          <input type="range" min={80} max={200} step={1} value={bpSystolic}
+                            onChange={(e) => setBpSystolic(parseInt(e.target.value))}
+                            className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                            style={{ background: `linear-gradient(to right, #10B981 0%, #10B981 ${((130 - 80) / 120) * 100}%, #F59E0B ${((130 - 80) / 120) * 100}%, #F59E0B ${((140 - 80) / 120) * 100}%, #EF4444 ${((140 - 80) / 120) * 100}%, #EF4444 100%)` }}
+                          />
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-label text-tertiary mb-1"><span>이완기</span><span>{bpDiastolic} mmHg</span></div>
+                          <input type="range" min={40} max={130} step={1} value={bpDiastolic}
+                            onChange={(e) => setBpDiastolic(parseInt(e.target.value))}
+                            className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                            style={{ background: `linear-gradient(to right, #10B981 0%, #10B981 ${((85 - 40) / 90) * 100}%, #F59E0B ${((85 - 40) / 90) * 100}%, #F59E0B ${((90 - 40) / 90) * 100}%, #EF4444 ${((90 - 40) / 90) * 100}%, #EF4444 100%)` }}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5 mb-4">
+                        {[{s:110,d:70},{s:120,d:80},{s:130,d:85},{s:140,d:90}].map(({s,d}) => (
+                          <button key={s} onClick={() => { setBpSystolic(s); setBpDiastolic(d) }}
+                            className="flex-1 py-2 rounded-xl font-bold transition-all active:scale-95"
+                            style={{ fontSize: 13, backgroundColor: bpSystolic === s && bpDiastolic === d ? bpColor : '#F5F3F0', color: bpSystolic === s && bpDiastolic === d ? '#FFFFFF' : '#6B6966' }}>
+                            {s}/{d}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setTempSlider(null)} className="flex-1 py-3 rounded-xl text-body-emphasis font-medium text-secondary bg-[#F5F3F0] active:scale-95 transition-transform">뒤로</button>
+                        <button onClick={() => { handleQuickRecord('preg_bp', { tags: { systolic: bpSystolic, diastolic: bpDiastolic } }); setTempSlider(null) }}
+                          className="flex-[2] py-3 rounded-xl font-bold active:scale-95 transition-transform" style={{ fontSize: 15, background: bpColor, color: '#FFFFFF' }}>
+                          {bpSystolic}/{bpDiastolic} 기록
                         </button>
                       </div>
                     </>
@@ -878,7 +906,7 @@ function BottomNavComponent() {
                       const extra: Record<string, unknown> = memoText.trim() ? { tags: { medicine: memoText.trim() } } : {}
                       handleQuickRecord('medication', extra)
                       setMemoItem(null); setMemoText('')
-                    }} className="flex-[2] py-3 rounded-xl text-body-emphasis font-bold text-white active:scale-95 transition-transform" style={{ background: '#D08068' }}>
+                    }} className="flex-[2] py-3 rounded-xl font-bold active:scale-95 transition-transform" style={{ fontSize: 15, background: '#D08068', color: '#FFFFFF' }}>
                       투약 기록
                     </button>
                   </div>
@@ -949,6 +977,7 @@ function BottomNavComponent() {
                           setTempSlider(item.type)
                           if (item.type === 'temp') setTempValue(36.5)
                           if (item.type === 'feed') setFeedValue(120)
+                          if (item.type === 'preg_bp') { setBpSystolic(120); setBpDiastolic(80) }
                         } else if (item.hasMemo) {
                           setMemoItem(item.type); setMemoText('')
                         } else if (item.hasJournal) {
@@ -989,6 +1018,7 @@ function BottomNavComponent() {
                             t === 'preg_mood_tired'   ? <MoodTiredIcon className="w-7 h-7" /> :
                             t === 'preg_fetal_move'   ? <ActivityIcon className="w-7 h-7" /> :
                             t === 'preg_weight'       ? <ChartIcon className="w-7 h-7" /> :
+                            t === 'preg_bp'           ? <HeartPulseIcon className="w-7 h-7" /> :
                             t === 'preg_edema_mild' || t === 'preg_edema_severe' ? <WarningIcon className="w-7 h-7" /> :
                             t === 'preg_stretch' || t === 'preg_meditate' ? <YogaIcon className="w-7 h-7" /> :
                             t === 'preg_folic' || t === 'prep_folic'   ? <SproutIcon className="w-7 h-7" /> :
@@ -1024,7 +1054,7 @@ function BottomNavComponent() {
 
       {/* BNB 바 — Pill Style */}
       <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[65] px-5 pb-[env(safe-area-inset-bottom)]" style={{ overflow: 'visible' }}>
-        <div className="flex items-center h-[62px] rounded-[36px] bg-white/95 backdrop-blur-lg border border-[#E8E4DF]/60 p-1" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.08)', overflow: 'visible' }}>
+        <div className="flex items-center h-[62px] rounded-[36px] p-1" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(0,0,0,0.04)', boxShadow: '0 2px 16px rgba(0,0,0,0.08)', overflow: 'visible' }}>
           <>
               {tabs.slice(0, 2).map((tab) => (
                 <NavTab key={tab.href} tab={tab} pathname={pathname} data-guide={{ '/town': 'nav-town', '/record': 'nav-record', '/more': 'nav-more', '/waiting': 'nav-waiting' }[tab.href]} />
@@ -1047,7 +1077,7 @@ function BottomNavComponent() {
                         animation: 'fabSessionPulse 2s ease-in-out infinite',
                       }}
                     >
-                      <span className="text-white text-subtitle tabular-nums leading-tight">
+                      <span className="text-white text-[13px] font-bold tabular-nums leading-tight">
                         {formatElapsed(elapsed)}
                       </span>
                       <span className="text-white/90 text-[9px] font-semibold leading-tight">종료</span>
@@ -1154,7 +1184,6 @@ function BottomNavComponent() {
               <p className="text-right text-caption text-tertiary mt-1">{journalText.length}/500</p>
               <button onClick={async () => {
                 if (!journalText.trim()) return
-                const storageKey = journalType === 'preg_journal' ? 'dodam_preg_diary' : 'dodam_prep_journal'
                 const _d = new Date()
                 const today = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`
                 const entryDate = new Date().toISOString()
@@ -1162,26 +1191,47 @@ function BottomNavComponent() {
                   ? '오늘도 건강하게 자라고 있어요 💛'
                   : '오늘도 도담하게 잘 기다리고 있어요 🌱'
                 try {
-                  const existing = JSON.parse(localStorage.getItem(storageKey) || '[]')
                   const entry = journalType === 'preg_journal'
                     ? { text: journalText.trim(), date: entryDate, mood: '', comment: fallbackComment }
                     : { text: journalText.trim(), date: entryDate, comment: fallbackComment }
-                  localStorage.setItem(storageKey, JSON.stringify([entry, ...existing]))
-                  if (journalType === 'prep_journal') {
-                    const tsMap = JSON.parse(localStorage.getItem(`dodam_prep_ts_${today}`) || '{}')
-                    if (!tsMap[journalType]) { tsMap[journalType] = new Date().toISOString(); localStorage.setItem(`dodam_prep_ts_${today}`, JSON.stringify(tsMap)) }
-                    const done: string[] = JSON.parse(localStorage.getItem(`dodam_prep_done_${today}`) || '[]')
-                    if (!done.includes(journalType)) { done.push(journalType); localStorage.setItem(`dodam_prep_done_${today}`, JSON.stringify(done)) }
+                  if (journalType === 'preg_journal') {
+                    await upsertPregRecord(today, 'diary', entry)
+                  } else {
+                    // 기존 entries 배열 읽어서 앞에 추가 (waiting page와 동일한 형식)
+                    let prev: { text: string; date: string; comment?: string }[] = []
+                    try {
+                      const rows = await fetchPrepRecords(['journal'])
+                      if (rows.length > 0) {
+                        const v = rows[0].value as { entries?: { text: string; date: string; comment?: string }[] }
+                        if (v.entries) prev = v.entries
+                        else if ((rows[0].value as { text?: string }).text) prev = rows.map(r => ({ text: String((r.value as Record<string, unknown>).text ?? ''), date: String((r.value as Record<string, unknown>).date ?? r.record_date), comment: (r.value as Record<string, unknown>).comment ? String((r.value as Record<string, unknown>).comment) : undefined }))
+                      }
+                    } catch {}
+                    await upsertPrepRecord(today, 'journal', { entries: [entry, ...prev] })
+                    upsertPrepRecord(today, 'done', { items: [journalType] }).catch(() => {})
+                    upsertPrepRecord(today, 'activity_ts', { [journalType]: new Date().toISOString() }).catch(() => {})
                   }
                 } catch {}
                 window.dispatchEvent(new CustomEvent('dodam-record', { detail: { type: journalType, _handled: false } }))
                 setJournalOpen(false)
                 setJournalText('')
                 window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '일기가 저장됐어요 🌱' } }))
-                // AI 답장 — 백그라운드 처리 후 localStorage 업데이트 (토스트 없음)
+                // 기다림 페이지로 이동
+                router.push('/waiting')
+                // AI 답장 — 백그라운드 처리 후 DB 업데이트 (토스트 없음)
                 try {
                   setJournalLoading(true)
-                  const letterCount = (() => { try { return JSON.parse(localStorage.getItem(storageKey) || '[]').length } catch { return 1 } })()
+                  const letterCount = await (async () => {
+                    try {
+                      if (journalType === 'preg_journal') {
+                        const rows = await fetchPregRecords(['diary'])
+                        return rows.length || 1
+                      } else {
+                        const rows = await fetchPrepRecords(['journal'])
+                        return rows.length || 1
+                      }
+                    } catch { return 1 }
+                  })()
                   const res = await fetch('/api/ai-preparing', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1189,9 +1239,25 @@ function BottomNavComponent() {
                   })
                   const data = await res.json()
                   const aiReply = data.reply || fallbackComment
-                  const saved = JSON.parse(localStorage.getItem(storageKey) || '[]')
-                  const updated = saved.map((e: any) => e.date === entryDate ? { ...e, comment: aiReply } : e)
-                  localStorage.setItem(storageKey, JSON.stringify(updated))
+                  // Update the diary entry with AI reply
+                  const updatedEntry = journalType === 'preg_journal'
+                    ? { text: journalText.trim(), date: entryDate, mood: '', comment: aiReply }
+                    : { text: journalText.trim(), date: entryDate, comment: aiReply }
+                  if (journalType === 'preg_journal') {
+                    await upsertPregRecord(today, 'diary', updatedEntry)
+                  } else {
+                    // entries 배열에서 해당 항목만 AI 답장으로 업데이트
+                    try {
+                      const rows = await fetchPrepRecords(['journal'])
+                      if (rows.length > 0) {
+                        const v = rows[0].value as { entries?: { text: string; date: string; comment?: string }[] }
+                        if (v.entries) {
+                          const updated = v.entries.map(e => e.date === entryDate ? { ...e, comment: aiReply } : e)
+                          await upsertPrepRecord(today, 'journal', { entries: updated })
+                        }
+                      }
+                    } catch {}
+                  }
                 } catch { /* 오프라인 폴백 — fallback comment 유지 */ } finally {
                   setJournalLoading(false)
                 }
@@ -1263,8 +1329,13 @@ function NavTab({ tab, pathname, 'data-guide': dataGuide }: { tab: Tab; pathname
         isActive ? 'bg-[var(--color-primary)]' : ''
       }`}
     >
-      <Icon className={`w-[18px] h-[18px] transition-colors ${isActive ? 'text-white' : 'text-[var(--color-text-tertiary)]'}`} />
-      <span className={`text-label transition-colors ${isActive ? 'text-white' : 'text-[var(--color-text-tertiary)]'}`}>
+      <span className="transition-colors" style={{ color: isActive ? '#FFFFFF' : '#A8A5A0' }}>
+        <Icon className="w-[18px] h-[18px]" />
+      </span>
+      <span
+        className={`text-label transition-colors ${isActive ? 'font-bold' : 'text-[var(--color-text-tertiary)]'}`}
+        style={isActive ? { color: '#FFFFFF' } : undefined}
+      >
         {tab.label}
       </span>
     </Link>

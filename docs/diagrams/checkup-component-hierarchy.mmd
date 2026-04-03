@@ -1,0 +1,104 @@
+graph TB
+    subgraph "PregnantWaitingPage"
+        Tabs[TabNavigation]
+        Tab1[일기·감성]
+        Tab2[검진 관리 ★]
+        Tab3[발달·정보]
+        Tab4[혜택·준비]
+    end
+
+    subgraph "검진 관리 탭 (Tab2)"
+        CheckupSection[CheckupScheduleSection]
+        NextCard[NextCheckupCard]
+        Timeline[CheckupTimeline]
+        Album[UltrasoundAlbum]
+    end
+
+    subgraph "CheckupScheduleSection"
+        TimelineItem[CheckupTimelineItem]
+        ActionBtns[ActionButtons]
+        AddBtn[AddCustomButton]
+        ScheduleSheet[ScheduleBottomSheet]
+    end
+
+    subgraph "CheckupTimelineItem"
+        WeekLabel[WeekLabel]
+        CheckupName[CheckupName]
+        ScheduleInfo[ScheduleInfo<br/>날짜/병원]
+        CompleteBtn[CompleteButton]
+        ResultBtn[ResultButton]
+    end
+
+    subgraph "ScheduleBottomSheet"
+        CheckupSelect[CheckupSelector]
+        DatePicker[DateTimePicker]
+        HospitalInput[HospitalInput]
+        MemoInput[MemoInput]
+        NotifyToggle[NotifyPartnerToggle]
+    end
+
+    subgraph "CheckupResultSheet"
+        StatusSelect[StatusSelector<br/>정상/관찰/이상]
+        ResultMemo[MemoInput]
+        MediaUpload[MediaUploadSection]
+        NextSuggest[NextCheckupSuggestion]
+    end
+
+    subgraph "MediaUploadSection"
+        ImgUpload[ImageUploader<br/>최대 5장]
+        VideoUpload[VideoUploader<br/>최대 1개]
+        Progress[UploadProgress]
+    end
+
+    subgraph "UltrasoundAlbum"
+        WeekFilter[WeekFilter]
+        MediaGrid[MediaGrid<br/>썸네일 lazy load]
+        Lightbox[Lightbox<br/>전체화면]
+    end
+
+    Tabs --> Tab1
+    Tabs --> Tab2
+    Tabs --> Tab3
+    Tabs --> Tab4
+
+    Tab2 --> CheckupSection
+    CheckupSection --> NextCard
+    CheckupSection --> Timeline
+    CheckupSection --> Album
+
+    Timeline --> TimelineItem
+    TimelineItem --> WeekLabel
+    TimelineItem --> CheckupName
+    TimelineItem --> ScheduleInfo
+    TimelineItem --> CompleteBtn
+    TimelineItem --> ResultBtn
+
+    TimelineItem -.->|클릭| ScheduleSheet
+    CompleteBtn -.->|클릭| CheckupResultSheet
+
+    ScheduleSheet --> CheckupSelect
+    ScheduleSheet --> DatePicker
+    ScheduleSheet --> HospitalInput
+    ScheduleSheet --> MemoInput
+    ScheduleSheet --> NotifyToggle
+
+    CheckupResultSheet --> StatusSelect
+    CheckupResultSheet --> ResultMemo
+    CheckupResultSheet --> MediaUpload
+    CheckupResultSheet --> NextSuggest
+
+    MediaUpload --> ImgUpload
+    MediaUpload --> VideoUpload
+    MediaUpload --> Progress
+
+    Album --> WeekFilter
+    Album --> MediaGrid
+    MediaGrid -.->|클릭| Lightbox
+
+    CheckupSection --> AddBtn
+    AddBtn -.->|클릭| ScheduleSheet
+
+    style Tab2 fill:#d4edda,stroke:#28a745,stroke-width:3px
+    style CheckupSection fill:#fff3cd
+    style CheckupResultSheet fill:#ffe1f5
+    style MediaUpload fill:#cfe2ff

@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { CameraIcon } from '@/components/ui/Icons'
 import Image from 'next/image'
 import IllustVideo from '@/components/ui/IllustVideo'
+import { upsertUserRecord, fetchUserRecords } from '@/lib/supabase/userRecord'
+import { getSecure } from '@/lib/secureStorage'
 
 interface PhotoEntry {
   id: string
@@ -14,8 +16,14 @@ interface PhotoEntry {
   ageMonths: number
 }
 
+function savePhotosToDb(photos: PhotoEntry[]) {
+  const today = new Date().toISOString().split('T')[0]
+  upsertUserRecord(today, 'growth_photos', { photos } as Record<string, unknown>).catch(() => {})
+}
+
 export default function PhotoTimelapsePage() {
   const [photos, setPhotos] = useState<PhotoEntry[]>([])
+  const [birthdate, setBirthdate] = useState<string>('')
   const [uploading, setUploading] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -24,9 +32,15 @@ export default function PhotoTimelapsePage() {
   const supabase = createClient()
 
   useEffect(() => {
-    // 로컬 스토리지에서 사진 로드 (MVP: 로컬 저장)
-    const saved = localStorage.getItem('dodam-photos')
-    if (saved) setPhotos(JSON.parse(saved))
+    fetchUserRecords(['growth_photos']).then(rows => {
+      if (rows.length > 0) {
+        const val = rows[0].value as { photos?: PhotoEntry[] }
+        if (val.photos) setPhotos(val.photos)
+      }
+    }).catch(() => {})
+    getSecure('dodam_child_birthdate').then(v => {
+      if (v) setBirthdate(v)
+    }).catch(() => {})
   }, [])
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,9 +57,8 @@ export default function PhotoTimelapsePage() {
         url,
         date: now.toISOString().split('T')[0],
         ageMonths: (() => {
-          const birth = localStorage.getItem('dodam_child_birthdate')
-          if (!birth) return 0
-          const b = new Date(birth)
+          if (!birthdate) return 0
+          const b = new Date(birthdate)
           const n = new Date()
           return (n.getFullYear() - b.getFullYear()) * 12 + (n.getMonth() - b.getMonth())
         })(),
@@ -53,7 +66,7 @@ export default function PhotoTimelapsePage() {
 
       const updated = [...photos, entry]
       setPhotos(updated)
-      localStorage.setItem('dodam-photos', JSON.stringify(updated))
+      savePhotosToDb(updated)
       setUploading(false)
     }
     reader.readAsDataURL(file)
@@ -82,7 +95,7 @@ export default function PhotoTimelapsePage() {
   const handleDelete = (id: string) => {
     const updated = photos.filter((p) => p.id !== id)
     setPhotos(updated)
-    localStorage.setItem('dodam-photos', JSON.stringify(updated))
+    savePhotosToDb(updated)
   }
 
   return (

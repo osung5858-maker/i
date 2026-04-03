@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { BabyIcon, LightbulbIcon, ChevronRightIcon } from '@/components/ui/Icons'
 import { shareSiblingCompare } from '@/lib/kakao/share-parenting'
 import type { Child } from '@/types'
+import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 
 interface SiblingInsight {
   insight: string
@@ -25,20 +26,21 @@ interface Props {
   ageMonths: number
 }
 
-function getHistoryKey(childId: string) {
-  return `dodam_sibling_history_${childId}`
+async function loadHistoryFromDb(childId: string): Promise<HistoryEntry[]> {
+  try {
+    const rows = await fetchUserRecords(['sibling_history'])
+    const match = rows.find(r => (r.value as any).childId === childId)
+    if (match) {
+      const val = match.value as { entries?: HistoryEntry[] }
+      return val.entries || []
+    }
+  } catch { /* */ }
+  return []
 }
 
-function loadHistory(childId: string): HistoryEntry[] {
-  try { return JSON.parse(localStorage.getItem(getHistoryKey(childId)) || '[]') } catch { return [] }
-}
-
-function saveToHistory(childId: string, ageMonths: number, insight: SiblingInsight) {
-  const history = loadHistory(childId)
+function saveHistoryToDb(childId: string, entries: HistoryEntry[]) {
   const today = new Date().toISOString().split('T')[0]
-  const filtered = history.filter(h => !(h.date === today && h.ageMonths === ageMonths))
-  filtered.unshift({ date: today, ageMonths, insight })
-  try { localStorage.setItem(getHistoryKey(childId), JSON.stringify(filtered.slice(0, 20))) } catch { /* */ }
+  upsertUserRecord(today, 'sibling_history', { childId, entries: entries.slice(0, 20) } as Record<string, unknown>).catch(() => {})
 }
 
 export default function SiblingCompare({ currentChild, ageMonths }: Props) {
@@ -63,10 +65,12 @@ export default function SiblingCompare({ currentChild, ageMonths }: Props) {
     loadSiblings()
 
     // 히스토리 복원
-    const h = loadHistory(currentChild.id)
-    setHistory(h)
-    const latest = h.find(entry => entry.ageMonths === ageMonths)
-    if (latest) setInsight(latest.insight)
+    loadHistoryFromDb(currentChild.id).then(h => {
+      setHistory(h)
+      // restore latest insight for same ageMonths
+      const latest = h.find(entry => entry.ageMonths === ageMonths)
+      if (latest) { setInsight(latest.insight); setLoaded(true) }
+    })
   }, [currentChild.id, ageMonths])
 
   if (loaded && siblings.length === 0) return null
@@ -96,8 +100,10 @@ export default function SiblingCompare({ currentChild, ageMonths }: Props) {
       const data = await res.json()
       if (data.insight) {
         setInsight(data)
-        saveToHistory(currentChild.id, ageMonths, data)
-        setHistory(loadHistory(currentChild.id))
+        const today = new Date().toISOString().split('T')[0]
+        const updatedHistory = [{ date: today, ageMonths, insight: data } as HistoryEntry, ...history.filter(h => !(h.date === today && h.ageMonths === ageMonths))].slice(0, 20)
+        saveHistoryToDb(currentChild.id, updatedHistory)
+        setHistory(updatedHistory)
       }
     } catch { /* */ }
     setLoading(false)

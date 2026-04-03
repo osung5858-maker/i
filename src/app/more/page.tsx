@@ -154,9 +154,9 @@ export default function MorePage() {
                   className="flex items-center gap-3 rounded-2xl px-5 py-4 shadow-sm active:opacity-80 transition-opacity"
                   style={{ background: b.color }}
                 >
-                  <div className="flex-1 min-w-0" style={{ color: b.textColor || '#1A1918' }}>
-                    <p className="text-subtitle leading-tight">{b.title}</p>
-                    <p className="text-body opacity-80 mt-0.5">{b.desc}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-subtitle leading-tight" style={{ color: b.textColor || '#1A1918' }}>{b.title}</p>
+                    <p className="text-body mt-0.5" style={{ color: b.textColor || '#1A1918', opacity: 0.9 }}>{b.desc}</p>
                   </div>
                   <span className="text-heading-2" style={{ color: b.textColor || '#9E9A95' }}>→</span>
                 </Link>

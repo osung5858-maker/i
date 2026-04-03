@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { BellIcon } from '@/components/ui/Icons'
 import { getSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
+import { fetchPrepRecords } from '@/lib/supabase/prepRecord'
 import KakaoAdFit from '@/components/ads/KakaoAdFit'
 // import GoogleAdBanner from '@/components/ads/GoogleAdBanner' // AdSense 승인 후 활성화
 
@@ -25,18 +26,38 @@ interface SmartAlert {
   key: string
 }
 
-function computeSmartAlerts(mode: string, today: string): SmartAlert[] {
+async function computeSmartAlerts(mode: string, today: string): Promise<SmartAlert[]> {
   const alerts: SmartAlert[] = []
   if (typeof window === 'undefined') return alerts
 
   if (mode === 'preparing') {
     const supplKeys = ['prep_folic', 'prep_vitd', 'prep_iron', 'prep_omega3']
-    const prepDone: string[] = JSON.parse(localStorage.getItem(`dodam_prep_done_${today}`) || '[]')
+    const prepRows = await fetchPrepRecords()
+    const todayRows = prepRows.filter(r => r.record_date === today)
+    const prepDone: string[] = []
+    todayRows.forEach(r => {
+      if (r.type === 'supplement') {
+        const sub = (r.value as any)?.subtype || (r.value as any)?.key || ''
+        if (sub) prepDone.push(`prep_${sub}`)
+      } else if (r.type !== 'mood' && r.type !== 'journal') {
+        prepDone.push(`prep_${r.type}`)
+      }
+    })
     if (!prepDone.some(k => supplKeys.includes(k))) {
       alerts.push({ key: 'suppl', text: '오늘 엽산 아직 안 챙겼어요!', href: '/preparing' })
     }
   } else if (mode === 'pregnant') {
-    const events: { type: string }[] = JSON.parse(localStorage.getItem(`dodam_preg_events_${today}`) || '[]')
+    let events: { type: string }[] = []
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const todayStart = `${today}T00:00:00`
+        const todayEnd = `${today}T23:59:59`
+        const { data } = await supabase.from('pregnant_events').select('type').eq('user_id', user.id).gte('start_ts', todayStart).lte('start_ts', todayEnd)
+        events = (data || []) as { type: string }[]
+      }
+    } catch { /* 오프라인 무시 */ }
     if (!events.some(e => e.type === 'preg_suppl' || e.type === 'preg_folic' || e.type === 'preg_iron')) {
       alerts.push({ key: 'suppl', text: '오늘 영양제를 아직 챙기지 않으셨어요', href: '/pregnant' })
     }
@@ -80,8 +101,8 @@ export default function NotificationsPage() {
     setMode(m)
 
     const loadAll = async () => {
-      // Smart alerts (sync part)
-      const sync = computeSmartAlerts(m, today)
+      // Smart alerts
+      const sync = await computeSmartAlerts(m, today)
 
       // Cycle alerts (async, only for preparing)
       let cycle: SmartAlert[] = []

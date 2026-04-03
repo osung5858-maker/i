@@ -197,16 +197,16 @@ export default function EmergencyPage() {
             119 응급 전화 바로 걸기
           </a>
           <div className="grid grid-cols-2 gap-1.5 mb-2">
-            <a href="tel:1339" className="block py-2 bg-white/20 rounded-lg text-center text-white text-body font-semibold active:opacity-70">
+            <a href="tel:1339" className="block py-2 bg-white/20 rounded-lg text-center font-bold active:opacity-70" style={{ fontSize: 14, color: '#FFFFFF' }}>
               응급의료정보 1339
             </a>
-            <a href="tel:15779060" className="block py-2 bg-white/20 rounded-lg text-center text-white text-body font-semibold active:opacity-70">
+            <a href="tel:15779060" className="block py-2 bg-white/20 rounded-lg text-center font-bold active:opacity-70" style={{ fontSize: 14, color: '#FFFFFF' }}>
               중독신고 1577-9060
             </a>
-            <a href="tel:15771391" className="block py-2 bg-white/20 rounded-lg text-center text-white text-body font-semibold active:opacity-70">
+            <a href="tel:15771391" className="block py-2 bg-white/20 rounded-lg text-center font-bold active:opacity-70" style={{ fontSize: 14, color: '#FFFFFF' }}>
               아동학대 1577-1391
             </a>
-            <a href="tel:#7575" className="block py-2 bg-white/20 rounded-lg text-center text-white text-body font-semibold active:opacity-70">
+            <a href="tel:#7575" className="block py-2 bg-white/20 rounded-lg text-center font-bold active:opacity-70" style={{ fontSize: 14, color: '#FFFFFF' }}>
               야간소아상담 #7575
             </a>
           </div>
@@ -286,7 +286,8 @@ export default function EmergencyPage() {
             <div className="flex gap-1.5 mb-3 overflow-x-auto hide-scrollbar">
               {EMERGENCY_CATEGORIES.map(c => (
                 <button key={c.key} onClick={() => setCategory(c.key)}
-                  className={`shrink-0 px-3 py-1.5 rounded-lg text-caption font-semibold transition-colors ${category === c.key ? 'bg-[#E53935] text-white' : 'bg-white text-secondary border border-[#E8E4DF]'}`}>
+                  className={`shrink-0 px-3 py-1.5 rounded-lg font-semibold transition-colors ${category === c.key ? 'bg-[#E53935] font-bold' : 'bg-white text-secondary border border-[#E8E4DF]'}`}
+                  style={category === c.key ? { fontSize: 13, color: '#FFFFFF' } : { fontSize: 13 }}>
                   {c.label} {c.key !== 'all' && `(${clinics.filter(cl => c.key === 'pediatric' ? cl.tag === '소아과' : c.key === 'hospital' ? cl.tag === '어린이병원' : cl.tag === '응급실').length})`}
                 </button>
               ))}

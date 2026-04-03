@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { PageHeader } from '@/components/layout/PageLayout'
+import { upsertUserRecord, fetchUserRecords } from '@/lib/supabase/userRecord'
 
 // --- Types ---
 interface DayLog {
@@ -20,8 +21,6 @@ interface AllergyEntry {
 }
 
 // --- Constants ---
-const STORAGE_KEY = 'dodam_allergy_tracker'
-
 const COMMON_FOODS = [
   '달걀', '우유', '밀', '대두', '땅콩', '견과류',
   '새우', '게', '조개', '생선', '복숭아', '토마토',
@@ -31,13 +30,9 @@ const COMMON_FOODS = [
 const SYMPTOM_OPTIONS = ['발진', '두드러기', '구토', '설사', '부기', '호흡곤란', '없음']
 
 // --- Helpers ---
-function load(): AllergyEntry[] {
-  if (typeof window === 'undefined') return []
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') } catch { return [] }
-}
-
-function save(data: AllergyEntry[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+function saveToDb(data: AllergyEntry[]) {
+  const today = new Date().toISOString().split('T')[0]
+  upsertUserRecord(today, 'allergy_tracker', { entries: data } as Record<string, unknown>).catch(() => {})
 }
 
 function daysSince(startDate: string): number {
@@ -71,17 +66,20 @@ export default function AllergyPage() {
   const [editingDay, setEditingDay] = useState<number | null>(null)
 
   useEffect(() => {
-    const loaded = load()
-    // auto-update results
-    const updated = loaded.map(e => ({ ...e, result: autoResult(e) }))
-    setEntries(updated)
-    // Note: save() called separately to avoid cascading renders
-    setTimeout(() => save(updated), 0)
+    fetchUserRecords(['allergy_tracker']).then(rows => {
+      if (rows.length > 0) {
+        const val = rows[0].value as { entries?: AllergyEntry[] }
+        if (val.entries) {
+          const updated = val.entries.map(e => ({ ...e, result: autoResult(e) }))
+          setEntries(updated)
+        }
+      }
+    }).catch(() => {})
   }, [])
 
   const updateEntries = useCallback((next: AllergyEntry[]) => {
     setEntries(next)
-    save(next)
+    saveToDb(next)
   }, [])
 
   const addFood = (food: string) => {

@@ -80,7 +80,8 @@ export default function TodayRecordSection({ count, tiles, chips, emptyMessage, 
                 background: c.color + '1A',
                 color: c.color,
                 gap: 'var(--spacing-1)',
-                padding: 'var(--spacing-2) var(--spacing-3)'
+                padding: 'var(--spacing-2) var(--spacing-3)',
+                fontWeight: 700,
               }}
             >
               <c.Icon className="w-3.5 h-3.5" />

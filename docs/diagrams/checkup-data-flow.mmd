@@ -1,0 +1,64 @@
+sequenceDiagram
+    participant U as 사용자 (임산부)
+    participant UI as CheckupSchedule<br/>Component
+    participant API as pregRecord.ts
+    participant DB as preg_records
+    participant Storage as Supabase Storage
+    participant Notify as /api/notify-partner
+    participant P as 배우자
+
+    %% 검진 예약 플로우
+    rect rgb(230, 245, 255)
+        Note over U,DB: 검진 예약 플로우
+        U->>UI: 검진 예약 버튼 클릭
+        UI->>U: 예약 바텀시트 표시
+        U->>UI: 날짜/시간/병원 입력 + "배우자 알림" 체크
+        UI->>API: upsertPregRecord(checkup_schedule)
+        API->>DB: INSERT preg_records (type=checkup_schedule)
+        DB-->>API: ✓ 저장 완료
+        API-->>UI: ✓ 성공
+        UI->>Notify: POST /api/notify-partner (checkup_scheduled)
+        Notify->>DB: 파트너 user_id 조회
+        Notify->>DB: push_tokens 조회
+        Notify->>P: Web Push 발송
+        Notify->>DB: notification_log 기록
+        Notify-->>UI: ✓ 알림 발송 완료
+        UI->>U: "검진 예약 완료" 토스트
+    end
+
+    %% 검진 결과 입력 플로우
+    rect rgb(240, 255, 230)
+        Note over U,Storage: 검진 결과 입력 플로우
+        U->>UI: 검진 "완료" 버튼 클릭
+        UI->>U: 결과 입력 바텀시트 표시
+        U->>UI: 상태/메모 입력 + 초음파 사진 선택
+        UI->>Storage: uploadUltrasoundImage()
+        Storage-->>UI: { url, thumbnail_url }
+        UI->>U: 업로드 진행률 표시
+        U->>UI: "저장" 버튼
+        UI->>API: upsertPregRecord(checkup_result)
+        API->>DB: INSERT preg_records (type=checkup_result, media=[...])
+        DB-->>API: ✓ 저장 완료
+        API-->>UI: ✓ 성공
+        UI->>Notify: POST /api/notify-partner (media_uploaded)
+        Notify->>P: Web Push 발송
+        Notify-->>UI: ✓ 알림 발송 완료
+        UI->>U: "결과 저장 완료" 토스트
+    end
+
+    %% 초음파 갤러리 조회 플로우
+    rect rgb(255, 245, 230)
+        Note over U,Storage: 초음파 갤러리 조회 플로우
+        U->>UI: "초음파 앨범" 탭 클릭
+        UI->>API: fetchPregRecords(type=checkup_result)
+        API->>DB: SELECT * WHERE type='checkup_result'
+        DB-->>API: [checkup_results with media[]]
+        API-->>UI: 검진 결과 목록
+        UI->>Storage: getSignedUrls(thumbnail_paths[])
+        Storage-->>UI: [signed URLs with 1h expiry]
+        UI->>U: 주차별 썸네일 그리드 표시
+        U->>UI: 썸네일 클릭
+        UI->>Storage: getSignedUrl(original_path)
+        Storage-->>UI: signed URL
+        UI->>U: 라이트박스 전체화면 표시
+    end

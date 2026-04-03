@@ -210,7 +210,7 @@ export default function AIMealCard({ mode, value, phase }: Props) {
             </div>
             <p className="text-body text-secondary">{isParenting ? '아이 + 양육자 맞춤 구성' : label} · 탭해서 확인</p>
           </div>
-          <div className="px-3.5 py-2 rounded-xl bg-[var(--color-primary)] text-white text-caption font-bold shadow-[0_2px_8px_rgba(45,122,74,0.25)]">추천</div>
+          <div className="px-3.5 py-2 rounded-xl bg-[var(--color-primary)] font-bold shadow-[0_2px_8px_rgba(45,122,74,0.25)]" style={{ fontSize: 13, color: '#FFFFFF', fontWeight: 700 }}>추천</div>
         </div>
       </button>
     )
@@ -262,11 +262,12 @@ export default function AIMealCard({ mode, value, phase }: Props) {
             <div className="flex gap-1.5 mb-3">
               <button
                 onClick={() => setActiveTab('child')}
-                className={`flex-1 py-1.5 rounded-lg text-caption font-semibold transition-colors ${
+                className={`flex-1 py-1.5 rounded-lg font-semibold transition-colors ${
                   activeTab === 'child'
-                    ? 'bg-[var(--color-primary)] text-white'
+                    ? 'bg-[var(--color-primary)] font-bold'
                     : 'bg-[#F5F3F0] text-secondary'
                 }`}
+                style={activeTab === 'child' ? { fontSize: 13, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 13 }}
               >
                 🍼 아이 식단
               </button>
@@ -275,11 +276,12 @@ export default function AIMealCard({ mode, value, phase }: Props) {
                   setActiveTab('caregiver')
                   if (!caregiverMeal && !caregiverLoading) fetchCaregiverMeal()
                 }}
-                className={`flex-1 py-1.5 rounded-lg text-caption font-semibold transition-colors ${
+                className={`flex-1 py-1.5 rounded-lg font-semibold transition-colors ${
                   activeTab === 'caregiver'
-                    ? 'bg-[var(--color-primary)] text-white'
+                    ? 'bg-[var(--color-primary)] font-bold'
                     : 'bg-[#F5F3F0] text-secondary'
                 }`}
+                style={activeTab === 'caregiver' ? { fontSize: 13, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 13 }}
               >
                 🧑 양육자 식단
               </button>

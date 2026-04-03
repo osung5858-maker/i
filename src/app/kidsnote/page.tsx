@@ -588,15 +588,18 @@ export default function KidsnotePage() {
             {(albums.length > 0 || reports.length > 0) && (
               <div className="flex gap-1.5">
                 <button onClick={() => setTab('timeline')}
-                  className={`flex-1 py-2 rounded-xl text-body font-semibold ${tab === 'timeline' ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-secondary'}`}>
+                  className={`flex-1 py-2 rounded-xl font-semibold ${tab === 'timeline' ? 'bg-[var(--color-primary)] font-bold' : 'bg-white text-secondary'}`}
+                  style={tab === 'timeline' ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
                   통합
                 </button>
                 <button onClick={() => setTab('albums')}
-                  className={`flex-1 py-2 rounded-xl text-body font-semibold ${tab === 'albums' ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-secondary'}`}>
+                  className={`flex-1 py-2 rounded-xl font-semibold ${tab === 'albums' ? 'bg-[var(--color-primary)] font-bold' : 'bg-white text-secondary'}`}
+                  style={tab === 'albums' ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
                   앨범 {albums.length > 0 && `(${albums.length})`}
                 </button>
                 <button onClick={() => setTab('reports')}
-                  className={`flex-1 py-2 rounded-xl text-body font-semibold ${tab === 'reports' ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-secondary'}`}>
+                  className={`flex-1 py-2 rounded-xl font-semibold ${tab === 'reports' ? 'bg-[var(--color-primary)] font-bold' : 'bg-white text-secondary'}`}
+                  style={tab === 'reports' ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
                   알림장 {reports.length > 0 && `(${reports.length})`}
                 </button>
               </div>

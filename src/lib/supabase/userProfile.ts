@@ -1,5 +1,12 @@
 import { createClient } from '@/lib/supabase/client'
 
+export type UserSettings = {
+  notification_settings?: Record<string, unknown>
+  reminder_offset?: number
+  daycare?: string | null
+  care_reminders?: Record<string, unknown>
+}
+
 export type ProfileFields = {
   mode?: string
   intro_shown?: boolean
@@ -15,6 +22,8 @@ export type ProfileFields = {
   last_period?: string | null
   cycle_length?: number | null
   region?: string | null
+  due_date?: string | null
+  user_settings?: UserSettings
 }
 
 /** Fire-and-forget: upsert user_profiles fields. Silently no-ops if not logged in. */

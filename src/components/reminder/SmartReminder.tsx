@@ -44,14 +44,20 @@ const OFFSET_OPTIONS: { value: AlertOffset; label: string }[] = [
 
 export default function SmartReminder({ events, childName }: Props) {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | 'unsupported'>('default')
-  const [alertOffset, setAlertOffset] = useState<AlertOffset>(() => {
-    if (typeof window === 'undefined') return 30
-    const saved = localStorage.getItem('dodam_reminder_offset')
-    return (saved ? Number(saved) : 30) as AlertOffset
-  })
+  const [alertOffset, setAlertOffset] = useState<AlertOffset>(30)
   const [showSettings, setShowSettings] = useState(false)
   const scheduledRef = useRef<Set<string>>(new Set())
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([])
+
+  // DB에서 알림 오프셋 로드
+  useEffect(() => {
+    import('@/lib/supabase/userProfile').then(({ getProfile }) => {
+      getProfile().then(p => {
+        const offset = p?.user_settings?.reminder_offset
+        if (offset && [15, 30, 60].includes(offset)) setAlertOffset(offset as AlertOffset)
+      })
+    })
+  }, [])
 
   const feedPred = useMemo(() => predictNextEvent(events, 'feed'), [events])
   const sleepPred = useMemo(() => predictNextEvent(events, 'sleep'), [events])
@@ -82,7 +88,9 @@ export default function SmartReminder({ events, childName }: Props) {
 
   const changeOffset = (offset: AlertOffset) => {
     setAlertOffset(offset)
-    localStorage.setItem('dodam_reminder_offset', String(offset))
+    import('@/lib/supabase/userProfile').then(({ upsertProfile }) => {
+      upsertProfile({ user_settings: { reminder_offset: offset } })
+    })
     // 기존 알림 리셋
     scheduledRef.current.clear()
   }

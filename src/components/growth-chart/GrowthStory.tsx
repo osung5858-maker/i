@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { BookOpenIcon, SparkleIcon, ChevronRightIcon } from '@/components/ui/Icons'
+import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 import type { GrowthRecord, CareEvent } from '@/types'
 
 interface Props {
@@ -24,26 +25,21 @@ interface StoryHistoryEntry {
   story: Story
 }
 
-function getHistoryKey(childName: string) {
-  return `dodam_story_history_${childName}`
-}
-
-function loadHistory(childName: string): StoryHistoryEntry[] {
+async function loadHistoryFromDb(childName: string): Promise<StoryHistoryEntry[]> {
   try {
-    return JSON.parse(localStorage.getItem(getHistoryKey(childName)) || '[]')
-  } catch { return [] }
-}
-
-function saveToHistory(childName: string, ageMonths: number, story: Story) {
-  const history = loadHistory(childName)
-  const today = new Date().toISOString().split('T')[0]
-  // 같은 날 같은 월령이면 덮어쓰기
-  const filtered = history.filter(h => !(h.date === today && h.ageMonths === ageMonths))
-  filtered.unshift({ date: today, ageMonths, story })
-  // 최대 20개 보관
-  try {
-    localStorage.setItem(getHistoryKey(childName), JSON.stringify(filtered.slice(0, 20)))
+    const rows = await fetchUserRecords(['story_history'])
+    const match = rows.find(r => (r.value as any).childName === childName)
+    if (match) {
+      const val = match.value as { entries?: StoryHistoryEntry[] }
+      return val.entries || []
+    }
   } catch { /* */ }
+  return []
+}
+
+function saveHistoryToDb(childName: string, entries: StoryHistoryEntry[]) {
+  const today = new Date().toISOString().split('T')[0]
+  upsertUserRecord(today, 'story_history', { childName, entries: entries.slice(0, 20) } as Record<string, unknown>).catch(() => {})
 }
 
 export default function GrowthStory({ childName, ageMonths, records, events }: Props) {
@@ -55,11 +51,11 @@ export default function GrowthStory({ childName, ageMonths, records, events }: P
 
   // 마운트 시 최신 캐시 복원 + 히스토리 로드
   useEffect(() => {
-    const h = loadHistory(childName)
-    setHistory(h)
-    // 최신 스토리 자동 복원 (같은 월령)
-    const latest = h.find(entry => entry.ageMonths === ageMonths)
-    if (latest) setStory(latest.story)
+    loadHistoryFromDb(childName).then(h => {
+      setHistory(h)
+      const latest = h.find(entry => entry.ageMonths === ageMonths)
+      if (latest) setStory(latest.story)
+    })
   }, [childName, ageMonths])
 
   const generateStory = async () => {
@@ -77,10 +73,11 @@ export default function GrowthStory({ childName, ageMonths, records, events }: P
 
     const milestones: string[] = []
     try {
-      const stored = localStorage.getItem(`dodam_dev_check_${ageMonths}`)
-      if (stored) {
-        const checked = JSON.parse(stored)
-        if (Array.isArray(checked) && checked.length > 0) milestones.push(...checked.slice(0, 5))
+      const rows = await fetchUserRecords(['dev_check'])
+      const match = rows.find(r => (r.value as any).ageMonths === ageMonths)
+      if (match) {
+        const items = (match.value as any).items
+        if (Array.isArray(items) && items.length > 0) milestones.push(...items.slice(0, 5))
       }
     } catch { /* */ }
 
@@ -100,8 +97,11 @@ export default function GrowthStory({ childName, ageMonths, records, events }: P
       const data = await res.json()
       if (data.title && data.story) {
         setStory(data)
-        saveToHistory(childName, ageMonths, data)
-        setHistory(loadHistory(childName))
+        const today = new Date().toISOString().split('T')[0]
+        const newEntry: StoryHistoryEntry = { date: today, ageMonths, story: data }
+        const updated = [newEntry, ...history.filter(h => !(h.date === today && h.ageMonths === ageMonths))].slice(0, 20)
+        setHistory(updated)
+        saveHistoryToDb(childName, updated)
       } else {
         setError(true)
       }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { upsertPrepRecord, fetchPrepRecords } from '@/lib/supabase/prepRecord'
 
 type Item = { id: string; name: string; cat: string; weekFrom: number; tip: string }
 
@@ -46,7 +47,6 @@ const ITEMS: Item[] = [
 ]
 
 const CATS = ['전체', '수유', '위생', '의류', '침구', '이동']
-const STORAGE_KEY = 'dodam_baby_items_done'
 
 export default function BabyItemChecklist({ currentWeek }: { currentWeek: number }) {
   const [cat, setCat] = useState('전체')
@@ -54,7 +54,11 @@ export default function BabyItemChecklist({ currentWeek }: { currentWeek: number
   const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
-    try { setDone(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')) } catch { /* */ }
+    fetchPrepRecords(['baby_items']).then(rows => {
+      if (rows.length > 0) {
+        setDone(rows[0].value as Record<string, boolean>)
+      }
+    })
   }, [])
 
   const available = ITEMS.filter(i => i.weekFrom <= currentWeek)
@@ -65,7 +69,8 @@ export default function BabyItemChecklist({ currentWeek }: { currentWeek: number
   const toggle = (id: string) => {
     const next = { ...done, [id]: !done[id] }
     setDone(next)
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch { /* */ }
+    const today = new Date().toISOString().split('T')[0]
+    upsertPrepRecord(today, 'baby_items', next)
   }
 
   if (available.length === 0) return null
@@ -95,7 +100,8 @@ export default function BabyItemChecklist({ currentWeek }: { currentWeek: number
       <div className="flex gap-1.5 px-4 pb-2 overflow-x-auto hide-scrollbar">
         {CATS.map(c => (
           <button key={c} onClick={() => setCat(c)}
-            className={`shrink-0 px-2.5 py-1 rounded-full text-label font-medium border transition-colors ${cat === c ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' : 'bg-[#F5F1EC] text-secondary border-transparent'}`}>
+            className={`shrink-0 px-2.5 py-1 rounded-full font-medium border transition-colors ${cat === c ? 'bg-[var(--color-primary)] border-[var(--color-primary)] font-bold' : 'bg-[#F5F1EC] text-secondary border-transparent'}`}
+            style={cat === c ? { fontSize: 12, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 12 }}>
             {c}
           </button>
         ))}

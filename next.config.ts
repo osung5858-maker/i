@@ -55,7 +55,7 @@ const nextConfig: NextConfig = {
           "img-src 'self' data: blob: https: http:",
           "font-src 'self' data: https://cdn.jsdelivr.net",
           "media-src 'self' blob: data:",
-          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://kapi.kakao.com https://kauth.kakao.com https://dapi.kakao.com https://t1.daumcdn.net https://*.kakao.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.kidsnote.com https://pagead2.googlesyndication.com https://va.vercel-scripts.com ws://localhost:* http://localhost:*",
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://kapi.kakao.com https://kauth.kakao.com https://dapi.kakao.com http://dapi.kakao.com https://*.daumcdn.net http://*.daumcdn.net https://*.kakao.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.kidsnote.com https://pagead2.googlesyndication.com https://va.vercel-scripts.com ws://localhost:* http://localhost:*",
           "frame-src 'self' https://www.youtube.com https://pagead2.googlesyndication.com",
           "object-src 'none'",
           "base-uri 'self'",
@@ -77,7 +77,12 @@ const nextConfig: NextConfig = {
       {
         source: '/images/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          {
+            key: 'Cache-Control',
+            value: process.env.NODE_ENV === 'production'
+              ? 'public, max-age=86400, stale-while-revalidate=604800'
+              : 'no-cache, no-store, must-revalidate',
+          },
         ],
       },
       {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { fetchPrepRecords } from '@/lib/supabase/prepRecord'
 import {
   ChevronRightIcon, SproutIcon, DropletIcon, SunIcon, OmegaIcon,
   FootstepsIcon, YogaIcon, ActivityIcon, MoonIcon, MusicIcon, BookOpenIcon,
@@ -25,23 +26,23 @@ type IconFC = React.FC<{ className?: string }>
 
 const EVENT_CONFIG: Record<string, { cat: string; label: string; Icon: IconFC; bg: string; color: string }> = {
   prep_folic:   { cat: '영양제', label: '엽산',    Icon: SproutIcon,    bg: '#E8F5EF', color: '#10B981' },
-  prep_iron:    { cat: '영양제', label: '철분',    Icon: DropletIcon,   bg: '#FEE2E2', color: '#EF4444' },
-  prep_vitd:    { cat: '영양제', label: '비타민D', Icon: SunIcon,       bg: '#FEF9E0', color: '#F59E0B' },
-  prep_omega3:  { cat: '영양제', label: '오메가3', Icon: OmegaIcon,     bg: '#EFF6FF', color: '#3B82F6' },
+  prep_iron:    { cat: '영양제', label: '철분',    Icon: DropletIcon,   bg: '#E8F5EF', color: '#10B981' },
+  prep_vitd:    { cat: '영양제', label: '비타민D', Icon: SunIcon,       bg: '#E8F5EF', color: '#10B981' },
+  prep_omega3:  { cat: '영양제', label: '오메가3', Icon: OmegaIcon,     bg: '#E8F5EF', color: '#10B981' },
   prep_walk:    { cat: '운동',   label: '걷기',    Icon: FootstepsIcon, bg: '#FEF3E0', color: '#F59E0B' },
   prep_stretch: { cat: '운동',   label: '스트레칭',Icon: YogaIcon,      bg: '#FEF3E0', color: '#F59E0B' },
   prep_breath:  { cat: '운동',   label: '심호흡',  Icon: ActivityIcon,  bg: '#FEF3E0', color: '#F59E0B' },
-  prep_meditate:{ cat: '루틴',   label: '명상',    Icon: MoonIcon,      bg: '#EDE9FF', color: '#8B5CF6' },
-  prep_music:   { cat: '루틴',   label: '음악감상',Icon: MusicIcon,     bg: '#FFE4F2', color: '#F472B6' },
+  prep_meditate:{ cat: '운동',   label: '명상',    Icon: MoonIcon,      bg: '#FEF3E0', color: '#F59E0B' },
+  prep_music:   { cat: '운동',   label: '음악감상',Icon: MusicIcon,     bg: '#FEF3E0', color: '#F59E0B' },
   prep_journal: { cat: '기다림', label: '일기',    Icon: BookOpenIcon,  bg: '#EDE9FF', color: '#A78BFA' },
 }
 
 const MOOD_CONFIG: Record<string, { label: string; Icon: IconFC; bg: string; color: string }> = {
-  happy:   { label: '행복', Icon: MoodHappyIcon,   bg: '#FFE8F4', color: '#FF8FAB' },
-  excited: { label: '설렘', Icon: MoodHappyIcon,   bg: '#FFE8F4', color: '#FFB347' },
-  calm:    { label: '평온', Icon: MoodCalmIcon,    bg: '#E8F5EF', color: '#90C8A8' },
-  anxious: { label: '불안', Icon: MoodAnxiousIcon, bg: '#FFF3E0', color: '#FFC078' },
-  tired:   { label: '피곤', Icon: MoodTiredIcon,   bg: '#E8F0F8', color: '#8EB4D4' },
+  happy:   { label: '행복', Icon: MoodHappyIcon,   bg: '#FFE4F2', color: '#F472B6' },
+  excited: { label: '설렘', Icon: MoodHappyIcon,   bg: '#FFE4F2', color: '#F472B6' },
+  calm:    { label: '평온', Icon: MoodCalmIcon,    bg: '#FFE4F2', color: '#F472B6' },
+  anxious: { label: '불안', Icon: MoodAnxiousIcon, bg: '#FFE4F2', color: '#F472B6' },
+  tired:   { label: '피곤', Icon: MoodTiredIcon,   bg: '#FFE4F2', color: '#F472B6' },
 }
 
 const SUPPL_LABEL: Record<string, string> = { folic: '엽산', vitd: '비타민D', iron: '철분', omega3: '오메가3' }
@@ -65,26 +66,45 @@ export default function PrepRecordDetailPage() {
   const [journal, setJournal] = useState<string[] | null>(null)
 
   useEffect(() => {
-    try { setDone(JSON.parse(localStorage.getItem(`dodam_prep_done_${dateStr}`) || '[]')) } catch { setDone([]) }
+    fetchPrepRecords().then(rows => {
+      const dayRows = rows.filter(r => r.record_date === dateStr)
+      const doneItems: string[] = []
+      let moodVal: { mood: string; ts?: string } | null = null
+      const timestamps: Record<string, string> = {}
+      const supplements: Record<string, number> = {}
+      const journals: string[] = []
 
-    const raw = localStorage.getItem(`dodam_mood_${dateStr}`)
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw)
-        setMoodData(typeof parsed === 'object' ? parsed : { mood: parsed })
-      } catch { setMoodData({ mood: raw }) }
-    } else {
+      dayRows.forEach(r => {
+        const val = r.value as any
+        if (r.type === 'mood') {
+          moodVal = { mood: val.mood || '', ts: val.ts }
+          doneItems.push(`prep_mood_${val.mood}`)
+        } else if (r.type === 'supplement') {
+          const sub = val.subtype || val.key || ''
+          if (sub) supplements[sub] = (supplements[sub] || 0) + (val.count || 1)
+        } else if (r.type === 'journal') {
+          if (val.text) journals.push(val.text)
+        } else {
+          // activity records: walk, stretch, breath, meditate, music, etc.
+          const key = `prep_${r.type}`
+          doneItems.push(key)
+          if (val.ts) timestamps[key] = val.ts
+          if (val.duration) timestamps[`${key}_duration`] = String(val.duration)
+        }
+      })
+
+      setDone(doneItems)
+      setMoodData(moodVal)
+      setTsMap(timestamps)
+      setSuppl(supplements)
+      setJournal(journals.length > 0 ? journals : null)
+    }).catch(() => {
+      setDone([])
       setMoodData(null)
-    }
-
-    try { setTsMap(JSON.parse(localStorage.getItem(`dodam_prep_ts_${dateStr}`) || '{}')) } catch { setTsMap({}) }
-    try { setSuppl(JSON.parse(localStorage.getItem(`dodam_suppl_${dateStr}`) || '{}')) } catch { setSuppl({}) }
-
-    try {
-      const all: { text: string; date: string }[] = JSON.parse(localStorage.getItem('dodam_prep_journal') || '[]')
-      const dayEntries = all.filter(e => e.date?.startsWith(dateStr)).map(e => e.text).filter(Boolean)
-      setJournal(dayEntries.length > 0 ? dayEntries : null)
-    } catch { setJournal(null) }
+      setTsMap({})
+      setSuppl({})
+      setJournal(null)
+    })
   }, [dateStr])
 
   const fmt = (iso?: string) => {
@@ -195,7 +215,7 @@ export default function PrepRecordDetailPage() {
                         <span className="text-tertiary font-normal mr-1">기분</span>
                         <span className="font-semibold">{label}</span>
                       </p>
-                      <p className="text-body text-secondary">{time || '기분'}</p>
+                      <p className="text-body text-secondary">{time || ''}</p>
                     </div>
                   </div>
                 )
@@ -214,7 +234,7 @@ export default function PrepRecordDetailPage() {
                         <span className="text-tertiary font-normal mr-1">기분</span>
                         <span className="font-semibold">{label}</span>
                       </p>
-                      <p className="text-body text-secondary">{time || '기분'}</p>
+                      <p className="text-body text-secondary">{time || ''}</p>
                     </div>
                   </div>
                 )
@@ -226,6 +246,15 @@ export default function PrepRecordDetailPage() {
                 if (!cfg) return null
                 const { Icon, bg, color, cat, label } = cfg
                 const time = fmt(tsMap[key])
+                const durationStr = (() => {
+                  const dur = tsMap[`${key}_duration`]
+                  if (!dur) return ''
+                  const secs = parseInt(dur, 10)
+                  if (isNaN(secs) || secs <= 0) return ''
+                  const mm = Math.floor(secs / 60)
+                  const ss = secs % 60
+                  return `${mm}분 ${String(ss).padStart(2, '0')}초`
+                })()
                 return (
                   <div key={key} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-[#ECECEC]">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: bg, color }}>
@@ -236,7 +265,9 @@ export default function PrepRecordDetailPage() {
                         <span className="text-tertiary font-normal mr-1">{cat}</span>
                         <span className="font-semibold">{label}</span>
                       </p>
-                      <p className="text-body text-secondary">{time || '완료'}</p>
+                      <p className="text-body text-secondary">
+                        {durationStr ? `총 ${durationStr}` : ''}{durationStr && time ? ' · ' : ''}{time || (!durationStr ? '' : '')}
+                      </p>
                     </div>
                   </div>
                 )

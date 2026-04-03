@@ -75,8 +75,8 @@ export default function ThemeSelector() {
           </button>
           <button
             onClick={handleApply}
-            className="flex-1 py-2.5 rounded-xl text-body font-semibold transition-colors"
-            style={{ backgroundColor: getThemeById(previewTheme).primary, color: '#FFFFFF !important' } as React.CSSProperties}
+            className="flex-1 py-2.5 rounded-xl font-semibold transition-colors"
+            style={{ backgroundColor: getThemeById(previewTheme).primary, color: '#FFFFFF', fontSize: 14 }}
           >
             적용
           </button>

@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { SyringeIcon } from '@/components/ui/Icons'
 import { shareVaccination } from '@/lib/kakao/share-parenting'
+import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
+import { getSecure } from '@/lib/secureStorage'
 
 // --- Vaccine Schedule ---
 const DEFAULT_SCHEDULE = [
@@ -63,7 +65,6 @@ interface SideEffectEntry {
   completed: boolean
 }
 
-const SE_STORAGE_KEY = 'dodam_vax_sideeffects'
 const SE_TIME_SLOTS = ['2시간', '6시간', '12시간', '24시간', '48시간']
 const SE_HOUR_MAP: Record<string, number> = { '2시간': 2, '6시간': 6, '12시간': 12, '24시간': 24, '48시간': 48 }
 const SE_SYMPTOM_LABELS: { key: keyof Omit<SymptomCheck, 'time' | 'notes'>; label: string }[] = [
@@ -94,13 +95,9 @@ function createSEEntry(vaccineId: string, vaccineName: string): SideEffectEntry 
   }
 }
 
-function loadSE(): SideEffectEntry[] {
-  if (typeof window === 'undefined') return []
-  try { return JSON.parse(localStorage.getItem(SE_STORAGE_KEY) || '[]') } catch { return [] }
-}
-
 function saveSE(data: SideEffectEntry[]) {
-  localStorage.setItem(SE_STORAGE_KEY, JSON.stringify(data))
+  const today = new Date().toISOString().split('T')[0]
+  upsertUserRecord(today, 'vax_sideeffects', { entries: data })
 }
 
 function getElapsedHours(startDate: string): number {
@@ -122,10 +119,7 @@ function hasAnySymptom(check: SymptomCheck): boolean {
 // --- Page Component ---
 export default function VaccinationPage() {
   const schedule = useRemoteContent('vaccination_schedule', DEFAULT_SCHEDULE)
-  const [done, setDone] = useState<Record<string, string>>(() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_vaccinations') || '{}') } catch { return {} } }
-    return {}
-  })
+  const [done, setDone] = useState<Record<string, string>>({})
   const [ageMonths, setAgeMonths] = useState(0)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -134,9 +128,28 @@ export default function VaccinationPage() {
   const [showSEPrompt, setShowSEPrompt] = useState<{ id: string; name: string } | null>(null)
   const [expandedSE, setExpandedSE] = useState<string | null>(null)
 
+  // DB에서 예방접종 데이터 로드
   useEffect(() => {
-    const calcAge = () => {
-      const child = localStorage.getItem('dodam_child_birthdate')
+    fetchUserRecords(['vaccinations']).then(rows => {
+      if (rows.length > 0) {
+        setDone(rows[0].value as Record<string, string>)
+      }
+    })
+    fetchUserRecords(['vax_sideeffects']).then(rows => {
+      if (rows.length > 0) {
+        const entries = (rows[0].value as { entries: SideEffectEntry[] }).entries || []
+        const updated = entries.map(e => {
+          if (!e.completed && getElapsedHours(e.startDate) >= 48) return { ...e, completed: true }
+          return e
+        })
+        setSEEntries(updated)
+      }
+    })
+  }, [])
+
+  useEffect(() => {
+    const calcAge = async () => {
+      const child = await getSecure('dodam_child_birthdate')
       if (child) {
         const birth = new Date(child)
         const now = new Date()
@@ -148,20 +161,6 @@ export default function VaccinationPage() {
     return () => window.removeEventListener('focus', calcAge)
   }, [])
 
-  // Load side effects
-  useEffect(() => {
-    const loaded = loadSE()
-    // Auto-complete entries past 48h
-    const updated = loaded.map(e => {
-      if (!e.completed && getElapsedHours(e.startDate) >= 48) {
-        return { ...e, completed: true }
-      }
-      return e
-    })
-    setSEEntries(updated)
-    saveSE(updated)
-  }, [])
-
   const toggleDone = (id: string) => {
     const next = { ...done }
     const wasUndone = !next[id]
@@ -171,7 +170,8 @@ export default function VaccinationPage() {
       next[id] = new Date().toISOString().split('T')[0]
     }
     setDone(next)
-    localStorage.setItem('dodam_vaccinations', JSON.stringify(next))
+    const today = new Date().toISOString().split('T')[0]
+    upsertUserRecord(today, 'vaccinations', next)
 
     // If marking as done, prompt for side effect tracking
     if (wasUndone) {

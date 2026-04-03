@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronRightIcon, UsersIcon, BellIcon } from '@/components/ui/Icons'
-import { loadNotificationSettings, saveNotificationSettings, type NotificationSettings } from '@/lib/push/config'
+import { loadNotificationSettings, loadNotificationSettingsFromDB, saveNotificationSettings, type NotificationSettings } from '@/lib/push/config'
 import { subscribePush, unsubscribePush, isPushSubscribed } from '@/lib/push/subscribe'
 // child avatars are .webm video files
 import ThemeSelector from '@/components/settings/ThemeSelector'
@@ -48,23 +48,30 @@ export default function SettingsPage() {
 
   useEffect(() => {
     isPushSubscribed().then(setPushActive)
+    loadNotificationSettingsFromDB().then(setNotiSettings)
   }, [])
 
   const toggleNoti = async (key: keyof NotificationSettings) => {
     if (key === 'enabled') {
-      const newVal = !notiSettings.enabled
-      if (newVal) {
-        const ok = await subscribePush()
-        setPushActive(ok)
-        if (!ok) {
-          window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '브라우저 알림 권한이 거부되어 있어요. 설정에서 허용해주세요.' } }))
+      // 토글 상태는 실제 구독 여부(pushActive) 기준
+      const wantEnable = !pushActive
+      if (wantEnable) {
+        const result = await subscribePush()
+        setPushActive(result.ok)
+        if (!result.ok) {
+          const msg = result.reason === 'sw'
+            ? '현재 환경에서는 푸시 알림을 사용할 수 없어요. 홈 화면에 앱을 추가하거나 프로덕션 환경에서 이용해주세요.'
+            : result.reason === 'permission'
+              ? '브라우저 알림 권한이 거부되어 있어요. 설정에서 허용해주세요.'
+              : '푸시 알림 설정 중 오류가 발생했어요. 다시 시도해주세요.'
+          window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: msg } }))
           return
         }
       } else {
         await unsubscribePush()
         setPushActive(false)
       }
-      const next = { ...notiSettings, enabled: newVal }
+      const next = { ...notiSettings, enabled: wantEnable }
       setNotiSettings(next)
       saveNotificationSettings(next)
     } else {
@@ -116,61 +123,65 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 아이 관리 */}
-        <div className="mx-4 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
-          <div className="px-5 pt-3 pb-2">
-            <p className="text-xs font-semibold text-tertiary uppercase tracking-wide">아이 관리</p>
-          </div>
-          {children.map((child) => (
+        {/* 아이 관리 (육아 모드에서만 표시) */}
+        {mode === 'parenting' && (
+          <div className="mx-4 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
+            <div className="px-5 pt-3 pb-2">
+              <p className="text-xs font-semibold text-tertiary uppercase tracking-wide">아이 관리</p>
+            </div>
+            {children.map((child) => (
+              <Link
+                key={child.id}
+                href={`/settings/children/${child.id}`}
+                className="flex items-center gap-3 px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5] transition-colors"
+              >
+                <div className="w-9 h-9 rounded-xl overflow-hidden bg-[#f5f5f5]">
+                  {child.photo_url ? (
+                    <video src={child.photo_url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-blue-50 flex items-center justify-center">
+                      <span className="text-blue-500 text-sm font-bold">{child.name.charAt(0)}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-primary">{child.name}</p>
+                  <p className="text-xs text-tertiary">{child.birthdate}</p>
+                </div>
+                <ChevronRightIcon className="w-4 h-4 text-tertiary" />
+              </Link>
+            ))}
             <Link
-              key={child.id}
-              href={`/settings/children/${child.id}`}
+              href="/settings/children/add"
               className="flex items-center gap-3 px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5] transition-colors"
             >
-              <div className="w-9 h-9 rounded-xl overflow-hidden bg-[#f5f5f5]">
-                {child.photo_url ? (
-                  <video src={child.photo_url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-blue-50 flex items-center justify-center">
-                    <span className="text-blue-500 text-sm font-bold">{child.name.charAt(0)}</span>
-                  </div>
-                )}
+              <div className="w-9 h-9 rounded-xl bg-[#f5f5f5] flex items-center justify-center">
+                <span className="text-[var(--color-primary)] text-lg font-light">+</span>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-primary">{child.name}</p>
-                <p className="text-xs text-tertiary">{child.birthdate}</p>
+              <p className="text-sm font-medium text-[var(--color-primary)]">아이 추가</p>
+            </Link>
+          </div>
+        )}
+
+        {/* 공동양육자 (육아 모드에서만 표시) */}
+        {mode === 'parenting' && (
+          <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
+            <div className="px-5 pt-3 pb-2">
+              <p className="text-xs font-semibold text-tertiary uppercase tracking-wide">가족</p>
+            </div>
+            <Link
+              href="/settings/caregivers"
+              className="flex items-center gap-3 px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5] transition-colors"
+            >
+              <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+                <UsersIcon className="w-5 h-5 text-green-600" />
               </div>
+              <p className="text-sm font-semibold text-primary">공동양육자</p>
+              <div className="flex-1" />
               <ChevronRightIcon className="w-4 h-4 text-tertiary" />
             </Link>
-          ))}
-          <Link
-            href="/settings/children/add"
-            className="flex items-center gap-3 px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5] transition-colors"
-          >
-            <div className="w-9 h-9 rounded-xl bg-[#f5f5f5] flex items-center justify-center">
-              <span className="text-[var(--color-primary)] text-lg font-light">+</span>
-            </div>
-            <p className="text-sm font-medium text-[var(--color-primary)]">아이 추가</p>
-          </Link>
-        </div>
-
-        {/* 공동양육자 */}
-        <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
-          <div className="px-5 pt-3 pb-2">
-            <p className="text-xs font-semibold text-tertiary uppercase tracking-wide">가족</p>
           </div>
-          <Link
-            href="/settings/caregivers"
-            className="flex items-center gap-3 px-4 py-3.5 border-t border-[#E8E4DF] active:bg-[#f5f5f5] transition-colors"
-          >
-            <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
-              <UsersIcon className="w-5 h-5 text-green-600" />
-            </div>
-            <p className="text-sm font-semibold text-primary">공동양육자</p>
-            <div className="flex-1" />
-            <ChevronRightIcon className="w-4 h-4 text-tertiary" />
-          </Link>
-        </div>
+        )}
 
         {/* 테마 컬러 */}
         <div className="mx-4 mt-3 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">
@@ -199,13 +210,13 @@ export default function SettingsPage() {
             </div>
             <button
               onClick={() => toggleNoti('enabled')}
-              className={`w-12 h-7 rounded-full transition-colors relative ${notiSettings.enabled && pushActive ? 'bg-[var(--color-primary)]' : 'bg-[#D1D5DB]'}`}
+              className={`w-12 h-7 rounded-full transition-colors relative ${pushActive ? 'bg-[var(--color-primary)]' : 'bg-[#D1D5DB]'}`}
             >
-              <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-transform shadow-sm ${notiSettings.enabled && pushActive ? 'translate-x-6' : 'translate-x-1'}`} />
+              <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-transform shadow-sm ${pushActive ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </div>
 
-          {notiSettings.enabled && (
+          {pushActive && (
             <>
               {[
                 { key: 'predictFeed' as const,    label: '수유 예측 알림',  desc: 'AI 예측 시간 10분 전',          modes: ['parenting'] },

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { getSecure } from '@/lib/secureStorage'
 import { useRouter } from 'next/navigation'
 import { shareBirth } from '@/lib/kakao/share-parenting'
+import { fetchPregRecords } from '@/lib/supabase/pregRecord'
+import { fetchUserRecords } from '@/lib/supabase/userRecord'
 import IllustVideo from '@/components/ui/IllustVideo'
 import { PregnantIcon, PenIcon, HospitalIcon, EnvelopeIcon, BottleIcon, ChartIcon, SyringeIcon, BowlIcon, MoonIcon, RainbowIcon, BabyIcon } from '@/components/ui/Icons'
 
@@ -30,9 +32,18 @@ export default function BirthPage() {
 
   useEffect(() => {
     getSecure('dodam_due_date').then(v => { if (v) setDueDate(v) })
-    try { setDiaryCount(JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]').length) } catch { /* */ }
-    try { setCheckupCount(Object.values(JSON.parse(localStorage.getItem('dodam_preg_checkups') || '{}')).filter(Boolean).length) } catch { /* */ }
-    try { setLetterCount(JSON.parse(localStorage.getItem('dodam_letters') || '[]').length) } catch { /* */ }
+
+    const loadCounts = async () => {
+      const [diaryRows, checkupRows, letterRows] = await Promise.all([
+        fetchPregRecords(['diary']),
+        fetchPregRecords(['checkup_status']),
+        fetchUserRecords(['letters']),
+      ])
+      setDiaryCount(diaryRows.length)
+      setCheckupCount(checkupRows.length)
+      setLetterCount(letterRows.length)
+    }
+    loadCounts().catch(() => {})
 
     const timer = setTimeout(() => setShowConfetti(false), 5000)
     return () => clearTimeout(timer)

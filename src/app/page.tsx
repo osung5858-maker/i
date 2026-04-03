@@ -9,6 +9,8 @@ import Toast from '@/components/ui/Toast'
 import { BellIcon, ChevronRightIcon, BottleIcon, MoonIcon, PoopIcon, DropletIcon, ThermometerIcon, PillIcon, NoteIcon, SyringeIcon, BowlIcon, ChartIcon, SparkleIcon, BuildingIcon, BabyIcon, BathIcon, PumpIcon, CookieIcon, RiceIcon, ActivityIcon, CompassIcon, HeartFilledIcon, WalkIcon, StretchIcon, YogaIcon, ScaleIcon } from '@/components/ui/Icons'
 import { decrypt } from '@/lib/security/crypto'
 import { createClient } from '@/lib/supabase/client'
+import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
+import { getProfile, upsertProfile } from '@/lib/supabase/userProfile'
 import { shareTodayRecord } from '@/lib/kakao/share-parenting'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import MissionCard from '@/components/ui/MissionCard'
@@ -173,42 +175,49 @@ export default function HomePage() {
   const supabase = createClient()
 
   useEffect(() => {
+    // 안전장치: 5초 후에도 로딩 중이면 강제 해제
+    const safetyTimer = setTimeout(() => {
+      setLoading(prev => {
+        if (prev) router.push('/onboarding')
+        return false
+      })
+    }, 5000)
+
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/onboarding'); return }
-      setUser(user)
-      // 카카오/구글 프로필 정보 캐싱
-      const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || ''
-      const userName = user.user_metadata?.name || user.user_metadata?.full_name || ''
-      if (avatarUrl) localStorage.setItem('dodam_user_avatar', avatarUrl)
-      if (userName) localStorage.setItem('dodam_user_name', userName)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { router.push('/onboarding'); return }
+        setUser(user)
 
-      const { data: children, error: childError } = await supabase
-        .from('children').select('*').eq('user_id', user.id)
-        .order('created_at', { ascending: true }).limit(1)
+        const { data: children, error: childError } = await supabase
+          .from('children').select('*').eq('user_id', user.id)
+          .order('created_at', { ascending: true }).limit(1)
 
-      if (childError || !children || children.length === 0) {
+        if (childError || !children || children.length === 0) {
+          return
+        }
+
+        const currentChild = children[0] as Child
+        setChild(currentChild)
+        // FAB 월령별 구성을 위해 localStorage에 저장
+        await setSecure('dodam_child_birthdate', currentChild.birthdate)
+        await setSecure('dodam_child_name', currentChild.name)
+
+        const { start, end } = getTodayRange()
+        const { data: todayEvents } = await supabase
+          .from('events').select('id,child_id,recorder_id,type,start_ts,end_ts,amount_ml,tags,source').eq('child_id', currentChild.id)
+          .gte('start_ts', start).lte('start_ts', end)
+          .order('start_ts', { ascending: false })
+
+        if (todayEvents) setEvents(todayEvents as CareEvent[])
+        const activeSleep = todayEvents?.find((e: CareEvent) => e.type === 'sleep' && !e.end_ts)
+        if (activeSleep) setSleepActive(true)
+      } catch {
+        // Supabase 연결 실패 시에도 로딩 해제
+      } finally {
+        clearTimeout(safetyTimer)
         setLoading(false)
-        return
       }
-
-      const currentChild = children[0] as Child
-      setChild(currentChild)
-      // FAB 월령별 구성을 위해 localStorage에 저장
-      await setSecure('dodam_child_birthdate', currentChild.birthdate)
-      await setSecure('dodam_child_name', currentChild.name)
-      if (currentChild.photo_url) localStorage.setItem('dodam_child_photo', currentChild.photo_url)
-
-      const { start, end } = getTodayRange()
-      const { data: todayEvents } = await supabase
-        .from('events').select('id,child_id,recorder_id,type,start_ts,end_ts,amount_ml,tags,source').eq('child_id', currentChild.id)
-        .gte('start_ts', start).lte('start_ts', end)
-        .order('start_ts', { ascending: false })
-
-      if (todayEvents) setEvents(todayEvents as CareEvent[])
-      const activeSleep = todayEvents?.find((e: CareEvent) => e.type === 'sleep' && !e.end_ts)
-      if (activeSleep) setSleepActive(true)
-      setLoading(false)
     }
     init()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -226,12 +235,16 @@ export default function HomePage() {
     return () => { supabase.removeChannel(channel) }
   }, [child]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 스팟라이트 가이드
+  // 스팟라이트 가이드 (localStorage + DB 이중 확인)
   useEffect(() => {
-    if (!localStorage.getItem('dodam_guide_parenting')) {
-      const t = setTimeout(() => setShowGuide(true), 1000)
-      return () => clearTimeout(t)
-    }
+    if (localStorage.getItem('dodam_guide_parenting') === '1') return
+    getProfile().then(p => {
+      if (p?.tutorial_parenting) {
+        localStorage.setItem('dodam_guide_parenting', '1')
+      } else {
+        setTimeout(() => setShowGuide(true), 1000)
+      }
+    }).catch(() => {})
   }, [])
 
   // 기록 핸들러
@@ -655,7 +668,7 @@ export default function HomePage() {
                       </div>
                       <span className="text-body text-primary flex-1 min-w-0 truncate">
                         {label && <span className="text-tertiary font-normal mr-1">{cat}</span>}
-                        <span className={`font-semibold${isAlert ? ' text-red-500' : ''}`}>{label || cat}</span>
+                        <span className={`font-bold${isAlert ? ' text-red-500' : ''}`}>{label || cat}</span>
                       </span>
                       {isAlert && <span className="text-label bg-red-50 text-red-500 px-1 py-0.5 rounded font-bold shrink-0">주의</span>}
                     </div>
@@ -775,7 +788,7 @@ export default function HomePage() {
       <TempSheet open={tempSheetOpen} onClose={() => setTempSheetOpen(false)} onSubmit={handleTempSubmit} />
       <FormulaModal open={formulaModalOpen} onClose={() => setFormulaModalOpen(false)} onSubmit={handleFormulaSubmit} />
 
-      {showGuide && <SpotlightGuide mode="parenting" onComplete={() => { localStorage.setItem('dodam_guide_parenting', '1'); setShowGuide(false) }} />}
+      {showGuide && <SpotlightGuide mode="parenting" onComplete={() => { localStorage.setItem('dodam_guide_parenting', '1'); upsertProfile({ tutorial_parenting: true }); setShowGuide(false) }} />}
     </div>
   )
 }
@@ -884,9 +897,11 @@ function KidsnoteCard({ ageMonths, userId }: { ageMonths: number; userId?: strin
   useEffect(() => {
     if (!userId) return
     const hasCreds = !!localStorage.getItem('kn_credentials_enc') || !!localStorage.getItem('kn_credentials')
-    const hasDaycare = localStorage.getItem('dodam_daycare') === 'true'
     setConnected(hasCreds)
-    setDaycare(hasDaycare)
+    // daycare flag from DB
+    fetchUserRecords(['daycare']).then(rows => {
+      if (rows.length && (rows[0].value as any).enabled) setDaycare(true)
+    }).catch(() => {})
     if (hasCreds) {
       const cached = localStorage.getItem('kn_cache_reports')
       const fetchedAt = localStorage.getItem('kn_cache_fetched_at')
@@ -930,7 +945,7 @@ function KidsnoteCard({ ageMonths, userId }: { ageMonths: number; userId?: strin
         {/* 어린이집 등록 토글 */}
         {!daycare && ageMonths >= 12 && (
           <button
-            onClick={() => { localStorage.setItem('dodam_daycare', 'true'); setDaycare(true) }}
+            onClick={() => { const today = new Date().toISOString().split('T')[0]; upsertUserRecord(today, 'daycare', { enabled: true }).catch(() => {}); setDaycare(true) }}
             className="mt-2.5 w-full text-center text-caption text-secondary py-1.5 bg-white/60 rounded-lg active:bg-white"
           >
             우리 아이 어린이집 다녀요
@@ -1131,7 +1146,8 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
 
       {!ai && !loading && (
         <button onClick={handleAiCare} disabled={events.length < 3}
-          className="w-full py-3 bg-[var(--color-primary)] text-white font-bold text-[15px] rounded-xl active:opacity-80 disabled:opacity-40">
+          className="w-full py-3 bg-[var(--color-primary)] rounded-xl active:opacity-80 disabled:opacity-40"
+          style={{ fontSize: 15, color: '#FFFFFF', fontWeight: 700 }}>
           {events.length < 3 ? `기록 ${3 - events.length}건 더 남기면 AI 케어 가능` : 'AI 케어받기'}
         </button>
       )}

@@ -2,38 +2,62 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { PregnantIcon, EnvelopeIcon, CheckCircleIcon, SproutIcon, RainbowIcon } from '@/components/ui/Icons'
+import { EnvelopeIcon, CheckCircleIcon, SproutIcon } from '@/components/ui/Icons'
 import IllustVideo from '@/components/ui/IllustVideo'
 import { setSecure, getSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
+import { fetchUserRecords } from '@/lib/supabase/userRecord'
+import { fetchPrepRecords } from '@/lib/supabase/prepRecord'
 
-// confetti 파티클은 클라이언트에서만 생성 (hydration mismatch 방지)
-const CONFETTI = Array.from({ length: 40 }, () => ({
-  left: Math.random() * 100,
-  top: Math.random() * 100,
-  delay: Math.random() * 2,
-  duration: 1.5 + Math.random() * 2,
-  size: 12 + Math.random() * 16,
-  opacity: 0.7 + Math.random() * 0.3,
-  char: ['*', '+', '·', ':', '*', '+', '·', ':'][Math.floor(Math.random() * 8)],
-}))
+function makeConfetti() {
+  return Array.from({ length: 40 }, () => ({
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    delay: Math.random() * 2,
+    duration: 1.5 + Math.random() * 2,
+    size: 12 + Math.random() * 16,
+    opacity: 0.7 + Math.random() * 0.3,
+    char: ['*', '+', '·', ':', '*', '+', '·', ':'][Math.floor(Math.random() * 8)],
+  }))
+}
 
 export default function CelebrationPage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
-  const [dueDate, setDueDate] = useState('')
   const [showConfetti, setShowConfetti] = useState(true)
+  const [confetti, setConfetti] = useState<ReturnType<typeof makeConfetti>>([])
+  const [mounted, setMounted] = useState(false)
+
+  // 기본값: 현재 날짜 + 9개월 (클라이언트에서만 계산)
+  const [dueY, setDueY] = useState(2027)
+  const [dueM, setDueM] = useState(1)
+  const [dueD, setDueD] = useState(1)
+
+  useEffect(() => {
+    const d = new Date()
+    d.setMonth(d.getMonth() + 9)
+    setDueY(d.getFullYear())
+    setDueM(d.getMonth() + 1)
+    setDueD(d.getDate())
+    setConfetti(makeConfetti())
+    setMounted(true)
+  }, [])
+
+  const dueDate = `${dueY}-${String(dueM).padStart(2, '0')}-${String(dueD).padStart(2, '0')}`
 
   // 준비 여정 데이터
   const [journey, setJourney] = useState({ letters: 0, days: 0, supplements: 0, checks: 0 })
   useEffect(() => {
-    const letters = (() => { try { return JSON.parse(localStorage.getItem('dodam_letters') || '[]').length } catch { return 0 } })()
-    const appointments = (() => { try { return Object.keys(JSON.parse(localStorage.getItem('dodam_appointments') || '{}')).length } catch { return 0 } })()
-    const checks = (() => { try { return Object.values(JSON.parse(localStorage.getItem('dodam_preparing_checks') || '{}')).filter(Boolean).length } catch { return 0 } })()
-    getSecure('dodam_last_period').then(lastPeriod => {
+    const loadJourney = async () => {
+      const [letterRows, checkRows] = await Promise.all([
+        fetchUserRecords(['letters']),
+        fetchPrepRecords(['checklist']),
+      ])
+      const lastPeriod = await getSecure('dodam_last_period')
       const days = lastPeriod ? Math.floor((Date.now() - new Date(lastPeriod).getTime()) / 86400000) : 0
-      setJourney({ letters, days, supplements: appointments, checks })
-    })
+      setJourney({ letters: letterRows.length, days, supplements: 0, checks: checkRows.length })
+    }
+    loadJourney().catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -52,14 +76,14 @@ export default function CelebrationPage() {
     router.push('/pregnant')
   }
 
-  // Step 0: 축하 화면
+  // Step 0: 축하 + 여정 회고 통합
   if (step === 0) {
     return (
-      <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6 relative overflow-hidden">
+      <div className="h-[100dvh] bg-white flex flex-col relative overflow-hidden">
         {/* 축하 파티클 */}
-        {showConfetti && (
-          <div className="absolute inset-0 pointer-events-none">
-            {CONFETTI.map((p, i) => (
+        {showConfetti && mounted && (
+          <div className="absolute inset-0 pointer-events-none z-0">
+            {confetti.map((p, i) => (
               <div
                 key={i}
                 className="absolute animate-bounce"
@@ -78,102 +102,62 @@ export default function CelebrationPage() {
           </div>
         )}
 
-        <div className="relative z-10 text-center">
-          <div className="mb-6">
-            <IllustVideo src="/images/illustrations/celebration-hero.webm" className="w-56 h-56 mx-auto" />
-          </div>
+        <div className="flex-1 relative z-10 flex flex-col items-center justify-center px-6 py-5 overflow-hidden">
+          <IllustVideo src="/images/illustrations/celebration-hero.webm" className="w-40 h-40 mx-auto mb-4" />
 
-          <h1 className="text-heading-1 font-bold text-primary mb-2">
+          <h1 className="text-heading-1 font-bold text-primary mb-1 text-center">
             축하해요!
           </h1>
-          <p className="text-heading-3 text-[var(--color-primary)] font-semibold mb-4">
+          <p className="text-heading-3 text-[var(--color-primary)] font-semibold mb-2 text-center">
             새 생명이 찾아왔어요
           </p>
-          <p className="text-body-emphasis text-secondary leading-relaxed max-w-[280px] mx-auto">
+          <p className="text-body-emphasis text-secondary leading-relaxed max-w-[280px] mx-auto text-center">
             기다리고, 준비하고, 소망했던<br />
-            그 작은 생명이 엄마 아빠에게<br />
-            드디어 인사를 건넸어요
+            그 작은 생명이 드디어 인사를 건넸어요
           </p>
 
-          <div className="mt-8 p-4 bg-[#FFF8F3] rounded-2xl max-w-[260px] mx-auto">
-            <p className="text-body text-primary italic leading-relaxed">
-              "엄마 아빠, 드디어 만났어요.<br />
-              그동안 보내준 사랑, 다 느끼고 있었어요.<br />
-              이제부터 함께예요."
-            </p>
-            <p className="text-body text-tertiary mt-2">— 아이가</p>
-          </div>
+          {/* 여정 통계 */}
+          <div className="w-full max-w-xs mt-6 space-y-2.5">
+            <p className="text-body text-secondary text-center">함께 걸어온 길</p>
 
-          <button
-            onClick={() => setStep(1)}
-            className="mt-10 px-8 py-3 bg-[var(--color-primary)] text-white rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98] transition-all"
-          >
-            우리의 여정 돌아보기
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // Step 1: 여정 회고
-  if (step === 1) {
-    return (
-      <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col">
-        <div className="flex-1 flex flex-col items-center justify-center px-6">
-          <p className="text-body text-secondary mb-2">임신 준비 여정</p>
-          <h2 className="text-heading-2 font-bold text-primary mb-8">함께 걸어온 길</h2>
-
-          <div className="w-full max-w-xs space-y-4">
-            {/* 준비 기간 */}
-            <div className="bg-white rounded-2xl p-5 text-center shadow-sm">
-              <p className="text-subtitle text-[var(--color-primary)] mb-2">D-day</p>
-              <p className="text-heading-1 text-[var(--color-primary)]">{journey.days}일</p>
-              <p className="text-body text-secondary">함께 준비한 날들</p>
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-heading-1 text-[var(--color-primary)] font-bold">{journey.days}일</span>
+              <span className="text-body-emphasis text-secondary">함께 준비한 날들</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              {/* 편지 */}
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <EnvelopeIcon className="w-6 h-6 mx-auto mb-1 text-secondary" />
-                <p className="text-heading-2 text-primary">{journey.letters}</p>
-                <p className="text-body text-secondary">아이에게 보낸 편지</p>
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="bg-[var(--color-primary-bg)] rounded-xl py-3 px-2 text-center">
+                <EnvelopeIcon className="w-5 h-5 mx-auto mb-1 text-[var(--color-primary)]" />
+                <p className="text-heading-3 text-primary">{journey.letters}</p>
+                <p className="text-xs text-secondary">편지</p>
               </div>
-
-              {/* 검사 완료 */}
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <CheckCircleIcon className="w-6 h-6 mx-auto mb-1 text-secondary" />
-                <p className="text-heading-2 text-primary">{journey.supplements}</p>
-                <p className="text-body text-secondary">완료한 검사</p>
+              <div className="bg-[var(--color-primary-bg)] rounded-xl py-3 px-2 text-center">
+                <CheckCircleIcon className="w-5 h-5 mx-auto mb-1 text-[var(--color-primary)]" />
+                <p className="text-heading-3 text-primary">{journey.checks}/8</p>
+                <p className="text-xs text-secondary">체크리스트</p>
               </div>
-
-              {/* 체크리스트 */}
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <CheckCircleIcon className="w-6 h-6 mx-auto mb-1 text-[var(--color-primary)]" />
-                <p className="text-heading-2 text-primary">{journey.checks}/8</p>
-                <p className="text-body text-secondary">준비 체크리스트</p>
-              </div>
-
-              {/* 성장 시각화 */}
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <SproutIcon className="w-6 h-6 mx-auto mb-1 text-[var(--color-primary)]" />
+              <div className="bg-[var(--color-primary-bg)] rounded-xl py-3 px-2 text-center">
+                <SproutIcon className="w-5 h-5 mx-auto mb-1 text-[var(--color-primary)]" />
                 <p className="text-body font-semibold text-[var(--color-primary)]">
                   {journey.letters >= 30 ? '큰 나무' : journey.letters >= 10 ? '푸른 잎' : '작은 새싹'}
                 </p>
-                <p className="text-body text-secondary">사랑으로 자란 나무</p>
+                <p className="text-xs text-secondary">사랑의 나무</p>
               </div>
             </div>
 
             {journey.letters > 0 && (
-              <div className="bg-[#FFF8F3] rounded-2xl p-4 text-center">
-                <p className="text-body-emphasis text-secondary mb-1">보낸 편지들은 소중히 보관돼요</p>
-                <p className="text-body text-[var(--color-primary)] font-semibold">아이가 태어나면 함께 읽어보세요</p>
-              </div>
+              <p className="text-body text-[var(--color-primary)] font-semibold text-center">
+                편지들은 아이가 태어나면 함께 읽어보세요
+              </p>
             )}
           </div>
+        </div>
 
+        <div className="shrink-0 px-6 pb-[max(env(safe-area-inset-bottom),16px)] pt-4 bg-white">
           <button
-            onClick={() => setStep(2)}
-            className="mt-8 px-8 py-3 bg-[var(--color-primary)] text-white rounded-2xl active:scale-[0.98] transition-all"
+            onClick={() => setStep(1)}
+            className="w-full py-3.5 bg-[var(--color-primary)] rounded-2xl shadow-[0_4px_20px_var(--color-fab-shadow)] active:scale-[0.98] transition-all"
+            style={{ fontSize: 15, color: '#FFFFFF', fontWeight: 700 }}
           >
             새로운 여정 시작하기
           </button>
@@ -182,53 +166,81 @@ export default function CelebrationPage() {
     )
   }
 
-  // Step 2: 출산 예정일 설정 + 모드 전환
+  // Step 1: 출산 예정일 설정 + 모드 전환
   return (
-    <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6">
-      <IllustVideo src="/images/illustrations/celebration-new-start.webm" className="w-48 h-48 mb-4" />
+    <div className="h-[100dvh] bg-white flex flex-col">
+      <div className="flex-1 overflow-y-auto overscroll-contain flex flex-col items-center px-6 py-8">
+        <IllustVideo src="/images/illustrations/celebration-new-start.webm" className="w-48 h-48 mb-4" />
 
-      <h2 className="text-heading-2 font-bold text-primary mb-1">새로운 시작</h2>
-      <p className="text-body-emphasis text-secondary mb-8 text-center">
-        이제 도담이 임신 여정을 함께할게요
-      </p>
+        <h2 className="text-heading-2 font-bold text-primary mb-1 text-center">새로운 시작</h2>
+        <p className="text-body-emphasis text-secondary mb-8 text-center">
+          이제 도담이 임신 여정을 함께할게요
+        </p>
 
-      <div className="w-full max-w-xs space-y-5">
-        <div>
-          <p className="text-body-emphasis text-secondary mb-2">출산 예정일</p>
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="w-full h-12 rounded-xl border border-[#E8E4DF] px-4 text-body-emphasis focus:outline-none focus:border-[var(--color-primary)]"
-          />
-          <p className="text-body-emphasis text-tertiary mt-1">모르면 나중에 설정할 수 있어요</p>
-        </div>
+        <div className="w-full max-w-xs space-y-5">
+          <div>
+            <p className="text-body-emphasis text-secondary mb-2">출산 예정일</p>
+            <div className="flex gap-2">
+              <select
+                value={dueY}
+                onChange={(e) => setDueY(Number(e.target.value))}
+                className="flex-1 h-12 rounded-xl border border-[#E8E4DF] px-3 text-body-emphasis bg-white focus:outline-none focus:border-[var(--color-primary)]"
+              >
+                {Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + i).map((y) => (
+                  <option key={y} value={y}>{y}년</option>
+                ))}
+              </select>
+              <select
+                value={dueM}
+                onChange={(e) => setDueM(Number(e.target.value))}
+                className="flex-1 h-12 rounded-xl border border-[#E8E4DF] px-3 text-body-emphasis bg-white focus:outline-none focus:border-[var(--color-primary)]"
+              >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                  <option key={m} value={m}>{m}월</option>
+                ))}
+              </select>
+              <select
+                value={dueD}
+                onChange={(e) => setDueD(Number(e.target.value))}
+                className="flex-1 h-12 rounded-xl border border-[#E8E4DF] px-3 text-body-emphasis bg-white focus:outline-none focus:border-[var(--color-primary)]"
+              >
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>{d}일</option>
+                ))}
+              </select>
+            </div>
+            <p className="text-body-emphasis text-tertiary mt-1">모르면 나중에 설정할 수 있어요</p>
+          </div>
 
-        <div className="bg-[#F0F9F4] rounded-xl p-4">
-          <p className="text-body font-semibold text-[var(--color-primary)] mb-2">앞으로 도담이 도와줄 것들</p>
-          <div className="space-y-2">
-            {[
-              '주차별 태아 크기 · 발달 정보',
-              '트리메스터별 체크리스트',
-              '엄마 건강 관리 · AI 케어',
-              '태교 일기 · 감정 기록',
-              '가족과 함께 공유',
-            ].map((text) => (
-              <div key={text} className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] shrink-0" />
-                <p className="text-body-emphasis text-primary">{text}</p>
-              </div>
-            ))}
+          <div className="bg-[#F0F9F4] rounded-xl p-4">
+            <p className="text-body font-semibold text-[var(--color-primary)] mb-2">앞으로 도담이 도와줄 것들</p>
+            <div className="space-y-2">
+              {[
+                '주차별 태아 크기 · 발달 정보',
+                '트리메스터별 체크리스트',
+                '엄마 건강 관리 · AI 케어',
+                '태교 일기 · 감정 기록',
+                '가족과 함께 공유',
+              ].map((text) => (
+                <div key={text} className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] shrink-0" />
+                  <p className="text-body-emphasis text-primary">{text}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      <button
-        onClick={handleComplete}
-        className="mt-8 w-full max-w-xs py-3.5 bg-[var(--color-primary)] text-white rounded-2xl shadow-[0_4px_20px_rgba(61,138,90,0.3)] active:scale-[0.98] transition-all"
-      >
-        {dueDate ? '임신 여정 시작하기' : '나중에 설정할게요'}
-      </button>
+      <div className="shrink-0 px-6 pb-[max(env(safe-area-inset-bottom),16px)] pt-4 bg-white">
+        <button
+          onClick={handleComplete}
+          className="w-full py-3.5 bg-[var(--color-primary)] rounded-2xl shadow-[0_4px_20px_var(--color-fab-shadow)] active:scale-[0.98] transition-all"
+          style={{ fontSize: 15, color: '#FFFFFF', fontWeight: 700 }}
+        >
+          임신 여정 시작하기
+        </button>
+      </div>
     </div>
   )
 }

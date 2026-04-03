@@ -1,5 +1,14 @@
 // Coinbase-style clean SVG icons
 
+export function HeartPulseIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 21C12 21 4 14 4 8.5C4 5.42 6.42 3 9.5 3c1.74 0 3.41.81 4.5 2.09A5.99 5.99 0 0 1 18.5 3C21.58 3 24 5.42 24 8.5c0 1.5-.5 2.86-1.3 4" />
+      <path d="M16 13l2 3 2-5 2 3h3" />
+    </svg>
+  )
+}
+
 export function BottleIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">

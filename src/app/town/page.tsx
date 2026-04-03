@@ -462,7 +462,8 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
       <div className="flex gap-1.5 overflow-x-auto hide-scrollbar px-4 py-3">
         {categories.map((cat, i) => (
           <button key={cat.query} onClick={() => { setActiveIdx(i); searchPlaces(cat.query) }}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-body font-semibold ${activeIdx === i ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-secondary border border-[#E8E4DF]'}`}>
+            className={`shrink-0 px-3 py-1.5 rounded-full font-semibold ${activeIdx === i ? 'bg-[var(--color-primary)] font-bold' : 'bg-white text-secondary border border-[#E8E4DF]'}`}
+            style={activeIdx === i ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
             {cat.label}
           </button>
         ))}

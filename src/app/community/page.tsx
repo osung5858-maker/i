@@ -5,6 +5,8 @@ import { useRemoteContent } from '@/lib/useRemoteContent'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChatIcon, FireIcon, TrashIcon, HeartIcon, HeartFilledIcon, BookmarkIcon, BookmarkFilledIcon, GiftIcon, PackageIcon, MapPinIcon, CameraIcon, XIcon } from '@/components/ui/Icons'
+import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
+import { getProfile } from '@/lib/supabase/userProfile'
 import AdSlot from '@/components/ads/AdSlot'
 import Image from 'next/image'
 
@@ -77,9 +79,7 @@ const AGE_FILTER_OPTIONS = [
 ]
 
 function getDodamDays(): number {
-  if (typeof window === 'undefined') return 0
-  const entries = (() => { try { return JSON.parse(localStorage.getItem('dodam_journey_entries') || '[]') } catch { return [] } })()
-  return Math.max(entries.length, 1)
+  return 1
 }
 
 const MAX_PHOTOS = 5
@@ -158,28 +158,28 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   const [userId, setUserId] = useState<string | null>(null)
   const [userLikes, setUserLikes] = useState<Set<string>>(new Set())
 
-  // 북마크
-  const [bookmarks, setBookmarks] = useState<Set<string>>(() => {
-    if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('dodam_bookmarks')
-      return s ? new Set(JSON.parse(s)) : new Set()
-    }
-    return new Set()
-  })
+  // 북마크 (Supabase DB)
+  const [bookmarks, setBookmarks] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    fetchUserRecords(['bookmarks']).then(rows => {
+      if (rows.length) setBookmarks(new Set((rows[0].value as any).ids || []))
+    }).catch(() => {})
+  }, [])
 
   // 주간 투표
   const todayPoll = weeklyPolls[new Date().getDay() % weeklyPolls.length]
   const pollKey = `dodam_poll_${new Date().getDay()}`
   const [pollVote, setPollVote] = useState<number | null>(() => {
     if (typeof window !== 'undefined') {
-      const v = localStorage.getItem(pollKey)
+      const v = sessionStorage.getItem(pollKey)
       return v !== null ? Number(v) : null
     }
     return null
   })
   const [pollVotes, setPollVotes] = useState<number[]>(() => {
     if (typeof window !== 'undefined') {
-      const s = localStorage.getItem(`${pollKey}_votes`)
+      const s = sessionStorage.getItem(`${pollKey}_votes`)
       return s ? JSON.parse(s) : todayPoll.options.map(() => 0)
     }
     return todayPoll.options.map(() => 0)
@@ -203,10 +203,14 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   const [mPrice, setMPrice] = useState(0)
   const [mCategory, setMCategory] = useState('clothes')
   const [mAge, setMAge] = useState('0~6')
-  const [mRegion, setMRegion] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('dodam_region') || '내 동네'
-    return '내 동네'
-  })
+  const [mRegion, setMRegion] = useState('내 동네')
+
+  // DB에서 region 로드
+  useEffect(() => {
+    getProfile().then(p => {
+      if (p?.region) setMRegion(p.region)
+    }).catch(() => {})
+  }, [])
   const [mPhotos, setMPhotos] = useState<string[]>([])
   const [mCondition, setMCondition] = useState('good')
   const [mTransType, setMTransType] = useState<TransactionType>('sell')
@@ -226,7 +230,8 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
     setBookmarks((prev) => {
       const next = new Set(prev)
       if (next.has(postId)) next.delete(postId); else next.add(postId)
-      localStorage.setItem('dodam_bookmarks', JSON.stringify([...next]))
+      const today = new Date().toISOString().split('T')[0]
+      upsertUserRecord(today, 'bookmarks', { ids: [...next] }).catch(() => {})
       return next
     })
   }
@@ -272,11 +277,11 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   const votePoll = (idx: number) => {
     if (pollVote !== null) return
     setPollVote(idx)
-    localStorage.setItem(pollKey, String(idx))
+    sessionStorage.setItem(pollKey, String(idx))
     const next = [...pollVotes]
     next[idx] += 1
     setPollVotes(next)
-    localStorage.setItem(`${pollKey}_votes`, JSON.stringify(next))
+    sessionStorage.setItem(`${pollKey}_votes`, JSON.stringify(next))
   }
 
   useEffect(() => {
@@ -626,7 +631,8 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
             <div className="flex gap-1.5 overflow-x-auto hide-scrollbar pb-1">
               {AGE_FILTER_OPTIONS.map((opt) => (
                 <button key={opt.key} onClick={() => setFilterAge(opt.key)}
-                  className={`shrink-0 px-3 py-1.5 rounded-full text-caption font-semibold transition-colors ${filterAge === opt.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white border border-[#E8E4DF] text-secondary'}`}>
+                  className={`shrink-0 px-3 py-1.5 rounded-full font-semibold transition-colors ${filterAge === opt.key ? 'bg-[var(--color-primary)] font-bold' : 'bg-white border border-[#E8E4DF] text-secondary'}`}
+                  style={filterAge === opt.key ? { fontSize: 13, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 13 }}>
                   {opt.label}
                 </button>
               ))}
@@ -833,7 +839,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 <p className="text-body-emphasis text-secondary mb-1">카테고리</p>
                 <div className="flex flex-wrap gap-1.5">
                   {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                    <button key={key} onClick={() => setMCategory(key)} className={`px-2.5 py-1.5 rounded-lg text-body font-medium ${mCategory === key ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-secondary'}`}>
+                    <button key={key} onClick={() => setMCategory(key)} className={`px-2.5 py-1.5 rounded-lg font-medium ${mCategory === key ? 'bg-[var(--color-primary)]' : 'bg-[#E8E4DF] text-secondary'}`} style={mCategory === key ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
                       {label}
                     </button>
                   ))}
@@ -842,7 +848,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
               <div>
                 <p className="text-body-emphasis text-secondary mb-1">가격</p>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setMPrice(0)} className={`px-3 py-1.5 rounded-lg text-body font-medium ${mPrice === 0 ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-secondary'}`}>무료 나눔</button>
+                  <button onClick={() => setMPrice(0)} className={`px-3 py-1.5 rounded-lg font-medium ${mPrice === 0 ? 'bg-[var(--color-primary)]' : 'bg-[#E8E4DF] text-secondary'}`} style={mPrice === 0 ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>무료 나눔</button>
                   <input type="number" value={mPrice || ''} onChange={(e) => setMPrice(Number(e.target.value))} placeholder="가격 입력" className="flex-1 h-9 px-3 rounded-xl border border-[#E8E4DF] text-body focus:outline-none" />
                 </div>
               </div>
@@ -866,7 +872,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 <p className="text-body-emphasis text-secondary mb-1">상품 상태</p>
                 <div className="flex flex-wrap gap-1.5">
                   {Object.entries(CONDITION_LABELS).map(([key, label]) => (
-                    <button key={key} onClick={() => setMCondition(key)} className={`px-2.5 py-1.5 rounded-lg text-body font-medium ${mCondition === key ? 'bg-[#8B7355] text-white' : 'bg-[#E8E4DF] text-secondary'}`}>
+                    <button key={key} onClick={() => setMCondition(key)} className={`px-2.5 py-1.5 rounded-lg font-medium ${mCondition === key ? 'bg-[#8B7355]' : 'bg-[#E8E4DF] text-secondary'}`} style={mCondition === key ? { fontSize: 14, color: '#FFFFFF', fontWeight: 700 } : { fontSize: 14 }}>
                       {label}
                     </button>
                   ))}

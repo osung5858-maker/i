@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { createClient } from '@/lib/supabase/client'
+import { upsertUserRecord, fetchUserRecords } from '@/lib/supabase/userRecord'
 import Image from 'next/image'
 
 // ─── Types ───
@@ -35,18 +36,9 @@ const MILESTONE_TYPES: { type: string; icon: (cls: string) => ReactNode }[] = [
   { type: '첫 "아빠"', icon: (c) => <svg className={c} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg> },
 ]
 
-const STORAGE_KEY = 'dodam_milestones'
-
-function loadMilestones(): Milestone[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
-}
-
-function saveMilestones(items: Milestone[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
+function saveMilestonesToDB(items: Milestone[]) {
+  const today = new Date().toISOString().split('T')[0]
+  upsertUserRecord(today, 'milestones', { items } as Record<string, unknown>).catch(() => {})
 }
 
 export default function MilestonePage() {
@@ -60,7 +52,14 @@ export default function MilestonePage() {
   const [showCustom, setShowCustom] = useState(false)
   const supabase = createClient()
 
-  useEffect(() => { setMilestones(loadMilestones()) }, [])
+  useEffect(() => {
+    fetchUserRecords(['milestones']).then(rows => {
+      if (rows.length > 0) {
+        const val = rows[0].value as { items?: Milestone[] }
+        if (val.items) setMilestones(val.items)
+      }
+    }).catch(() => {})
+  }, [])
 
   const completed = milestones.reduce<Record<string, Milestone>>((acc, m) => {
     acc[m.type] = m
@@ -112,15 +111,15 @@ export default function MilestonePage() {
     const updated = milestones.filter(m => m.type !== editing)
     updated.push({ id: `ms-${Date.now()}`, type: editing, date: editDate, note: editNote, photoUrl: editPhoto || undefined, custom: isCustom || undefined })
     setMilestones(updated)
-    saveMilestones(updated)
+    saveMilestonesToDB(updated)
     setEditing(null)
-  }, [editing, editDate, editNote, milestones])
+  }, [editing, editDate, editNote, editPhoto, milestones])
 
   const handleDelete = useCallback(() => {
     if (!editing) return
     const updated = milestones.filter(m => m.type !== editing)
     setMilestones(updated)
-    saveMilestones(updated)
+    saveMilestonesToDB(updated)
     setEditing(null)
   }, [editing, milestones])
 

@@ -58,7 +58,7 @@ export default function TownFeedTab({ range }: { range: number }) {
         return
       }
 
-      const userName = localStorage.getItem('dodam_user_name') || '익명'
+      const userName = user.user_metadata?.name || user.user_metadata?.full_name || '익명'
 
       const { error } = await supabase.from('town_feed').insert({
         user_id: user.id,

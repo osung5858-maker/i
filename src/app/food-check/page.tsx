@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { SparkleIcon, SearchIcon, XIcon } from '@/components/ui/Icons'
+import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 
 interface FoodResult {
   safety: 'safe' | 'caution' | 'avoid'
@@ -20,7 +21,6 @@ const SAFETY_CONFIG = {
   avoid:   { label: '주의요망', bg: '#FFF1F2', border: '#FCA5A5', text: '#991B1B', badge: '#EF4444' },
 }
 
-const RECENT_KEY = 'dodam_food_check_recent'
 const MAX_RECENT = 8
 
 export default function FoodCheckPage() {
@@ -39,7 +39,12 @@ function FoodCheckPageInner() {
 
   useEffect(() => {
     setMode(localStorage.getItem('dodam_mode') || 'pregnant')
-    try { setRecent(JSON.parse(localStorage.getItem(RECENT_KEY) || '[]')) } catch { /* */ }
+    fetchUserRecords(['food_check_recent']).then(rows => {
+      if (rows.length > 0) {
+        const val = rows[0].value as { items?: string[] }
+        if (val.items) setRecent(val.items)
+      }
+    }).catch(() => {})
     // URL에 q 파라미터가 있으면 자동으로 검색
     const q = searchParams.get('q')
     if (q?.trim()) {
@@ -50,7 +55,8 @@ function FoodCheckPageInner() {
   const saveRecent = (food: string) => {
     const next = [food, ...recent.filter(r => r !== food)].slice(0, MAX_RECENT)
     setRecent(next)
-    try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)) } catch { /* */ }
+    const today = new Date().toISOString().split('T')[0]
+    upsertUserRecord(today, 'food_check_recent', { items: next } as Record<string, unknown>).catch(() => {})
   }
 
   const check = async (food: string) => {
