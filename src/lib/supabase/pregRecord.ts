@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
-import type { CheckupSchedule } from '@/components/pregnant/CheckupSchedule/types'
+import type { CheckupSchedule, CheckupResult } from '@/components/pregnant/CheckupSchedule/types'
 import { DEFAULT_CHECKUPS } from '@/constants/checkups'
 
 /**
@@ -141,4 +141,44 @@ export async function bulkInsertPregRecords(
     value: r.value,
   }))
   await supabase.from('preg_records').insert(rows)
+}
+
+// ===== Checkup Result CRUD =====
+
+/** Save or update a checkup result. */
+export async function saveCheckupResult(result: CheckupResult): Promise<void> {
+  await upsertPregRecord(
+    `result_${result.checkup_id}`,
+    'checkup_result',
+    result as unknown as Record<string, unknown>
+  )
+}
+
+/** Fetch a single checkup result by checkup_id. */
+export async function fetchCheckupResult(
+  checkupId: string
+): Promise<CheckupResult | null> {
+  const rows = await fetchPregRecords(['checkup_result'])
+  const match = rows.find(
+    r => (r.value as unknown as CheckupResult).checkup_id === checkupId
+  )
+  return match ? (match.value as unknown as CheckupResult) : null
+}
+
+/** Fetch all checkup results. */
+export async function fetchAllCheckupResults(): Promise<CheckupResult[]> {
+  const rows = await fetchPregRecords(['checkup_result'])
+  return rows.map(r => r.value as unknown as CheckupResult)
+}
+
+/** Delete a checkup result. */
+export async function deleteCheckupResult(checkupId: string): Promise<void> {
+  await deletePregRecord(`result_${checkupId}`, 'checkup_result')
+}
+
+/** Get current user ID helper. */
+export async function getCurrentUserId(): Promise<string | null> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  return user?.id ?? null
 }

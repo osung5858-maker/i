@@ -2,13 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { HospitalIcon, PlusIcon, BellIcon } from '@/components/ui/Icons'
-import type { CheckupSchedule, ScheduleFormData } from './types'
+import type { CheckupSchedule, ScheduleFormData, CheckupResult } from './types'
 import {
   fetchCheckupSchedules,
   saveCheckupSchedule,
   completeCheckup,
   deleteCheckupSchedule,
+  fetchAllCheckupResults,
 } from '@/lib/supabase/pregRecord'
+import CheckupResultSheet from './CheckupResultSheet'
+import UltrasoundAlbum from './UltrasoundAlbum'
 
 // ===== Utility functions =====
 function getDaysUntil(dateString: string): number {
@@ -77,23 +80,37 @@ function NextCheckupCard({ checkup }: { checkup: CheckupSchedule | null }) {
   )
 }
 
+const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }> = {
+  normal: { label: '정상', color: '#4CAF50', bg: '#E8F5E9' },
+  observe: { label: '관찰필요', color: '#E8A317', bg: '#FFF8E1' },
+  abnormal: { label: '이상소견', color: '#D05050', bg: '#FDE8E8' },
+}
+
 // ===== CheckupTimelineItem =====
 function CheckupTimelineItem({
   item,
+  result,
   onSchedule,
   onComplete,
   onEdit,
   onDelete,
+  onResultInput,
+  onResultView,
 }: {
   item: CheckupSchedule
+  result?: CheckupResult | null
   onSchedule: () => void
   onComplete: () => void
   onEdit: () => void
   onDelete?: () => void
+  onResultInput: () => void
+  onResultView: () => void
 }) {
   const isCompleted = item.completed
   const isScheduled = !isCompleted && !!item.scheduled_date
   const isPending = !isCompleted && !item.scheduled_date
+  const hasResult = !!result
+  const badge = result ? STATUS_BADGE[result.status] : null
 
   return (
     <li className="flex gap-3 items-start group" id={`checkup-${item.checkup_id}`}>
@@ -141,6 +158,14 @@ function CheckupTimelineItem({
                 : `-${getDaysUntil(item.scheduled_date)}`}
             </span>
           )}
+          {badge && (
+            <span
+              className="text-label font-bold px-1.5 py-0.5 rounded-full"
+              style={{ backgroundColor: badge.bg, color: badge.color }}
+            >
+              {badge.label}
+            </span>
+          )}
         </div>
 
         {isScheduled && item.scheduled_date && (
@@ -158,11 +183,20 @@ function CheckupTimelineItem({
         {isCompleted && item.completed_date && (
           <p className="text-caption text-tertiary mt-0.5">
             {formatDateDisplay(item.completed_date)} 완료
+            {result?.media && result.media.length > 0 && (
+              <span className="ml-1 text-[var(--color-primary)]">
+                 사진 {result.media.filter(m => m.type === 'image').length}장
+              </span>
+            )}
           </p>
         )}
 
+        {result?.memo && (
+          <p className="text-caption text-secondary mt-0.5 line-clamp-1">{result.memo}</p>
+        )}
+
         {/* Action buttons */}
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-2 flex-wrap">
           {isPending && (
             <button
               onClick={() => { haptic(); onSchedule() }}
@@ -186,6 +220,22 @@ function CheckupTimelineItem({
                 완료
               </button>
             </>
+          )}
+          {isCompleted && !hasResult && (
+            <button
+              onClick={() => { haptic(); onResultInput() }}
+              className="px-3 py-1.5 rounded-lg bg-[var(--color-accent-bg)] text-caption font-semibold text-[var(--color-primary)] active:opacity-80"
+            >
+              결과 입력
+            </button>
+          )}
+          {isCompleted && hasResult && (
+            <button
+              onClick={() => { haptic(); onResultView() }}
+              className="px-3 py-1.5 rounded-lg bg-[var(--color-page-bg)] text-caption font-semibold text-secondary active:opacity-80"
+            >
+              결과 보기
+            </button>
           )}
           {item.is_custom && onDelete && (
             <button
@@ -377,11 +427,26 @@ export default function CheckupScheduleSection() {
   const [activeCheckup, setActiveCheckup] = useState<CheckupSchedule | undefined>()
   const [toast, setToast] = useState<string | null>(null)
 
+  // Phase 2: result state
+  const [results, setResults] = useState<Map<string, CheckupResult>>(new Map())
+  const [resultSheetOpen, setResultSheetOpen] = useState(false)
+  const [resultCheckup, setResultCheckup] = useState<CheckupSchedule | null>(null)
+  const [albumKey, setAlbumKey] = useState(0)
+
   const showToast = (msg: string) => {
     setToast(msg)
     haptic()
     setTimeout(() => setToast(null), 2000)
   }
+
+  const loadResults = useCallback(async () => {
+    try {
+      const allResults = await fetchAllCheckupResults()
+      const map = new Map<string, CheckupResult>()
+      for (const r of allResults) map.set(r.checkup_id, r)
+      setResults(map)
+    } catch { /* silent */ }
+  }, [])
 
   const loadCheckups = useCallback(async () => {
     try {
@@ -394,7 +459,7 @@ export default function CheckupScheduleSection() {
     }
   }, [])
 
-  useEffect(() => { loadCheckups() }, [loadCheckups])
+  useEffect(() => { loadCheckups(); loadResults() }, [loadCheckups, loadResults])
 
   // Find next scheduled (upcoming, not completed)
   const nextCheckup = checkups
@@ -449,6 +514,17 @@ export default function CheckupScheduleSection() {
     showToast('검진이 삭제되었어요')
   }
 
+  const handleResultInput = (item: CheckupSchedule) => {
+    setResultCheckup(item)
+    setResultSheetOpen(true)
+  }
+
+  const handleResultSaved = async () => {
+    await loadResults()
+    setAlbumKey(k => k + 1)
+    showToast('검진 결과가 저장되었어요')
+  }
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -478,10 +554,13 @@ export default function CheckupScheduleSection() {
             <CheckupTimelineItem
               key={item.checkup_id}
               item={item}
+              result={results.get(item.checkup_id)}
               onSchedule={() => handleSchedule(item)}
               onComplete={() => handleComplete(item.checkup_id)}
               onEdit={() => handleEdit(item)}
               onDelete={item.is_custom ? () => handleDelete(item.checkup_id) : undefined}
+              onResultInput={() => handleResultInput(item)}
+              onResultView={() => handleResultInput(item)}
             />
           ))}
         </ol>
@@ -497,7 +576,10 @@ export default function CheckupScheduleSection() {
         </button>
       </div>
 
-      {/* Bottom Sheet */}
+      {/* Ultrasound Album */}
+      <UltrasoundAlbum key={albumKey} />
+
+      {/* Schedule Bottom Sheet */}
       <ScheduleBottomSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
@@ -505,6 +587,16 @@ export default function CheckupScheduleSection() {
         mode={sheetMode}
         onSave={handleSave}
       />
+
+      {/* Result Bottom Sheet */}
+      {resultCheckup && (
+        <CheckupResultSheet
+          open={resultSheetOpen}
+          onClose={() => { setResultSheetOpen(false); setResultCheckup(null) }}
+          checkup={resultCheckup}
+          onSaved={handleResultSaved}
+        />
+      )}
 
       {/* Toast */}
       {toast && (
