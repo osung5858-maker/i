@@ -127,26 +127,37 @@ export default function OnboardingPage() {
 
   // 미로그인 → 로그인 화면
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-white relative">
-      <div className="flex flex-col items-center px-6 pt-24 pb-8">
+    <div className="min-h-[100dvh] flex flex-col relative" style={{ background: 'linear-gradient(180deg, #FFF0E6 0%, #FFF8F4 35%, #FFFFFF 60%)' }}>
+
+      {/* 상단 브랜딩 — 오버스크롤 영역과 자연스럽게 이어짐 */}
+      <div className="flex flex-col items-center px-6 pt-20 pb-6">
         <Image
           src="/app-icon.png"
           alt="도담"
-          width={80}
-          height={80}
+          width={72}
+          height={72}
           priority
-          className="rounded-[20px]"
-          style={{ boxShadow: 'var(--shadow-lg)' }}
+          className="rounded-[18px]"
+          style={{ boxShadow: '0 8px 28px rgba(208,122,98,0.22)' }}
         />
-        <h1 className="mt-6 text-heading-2">도담</h1>
-        <p className="mt-2 text-body-emphasis text-center">오늘도 도담하게</p>
-        <p className="mt-8 text-caption text-center leading-relaxed max-w-[260px]">
-          임신 준비부터 육아까지<br />
-          AI 케어 파트너가 함께할게요
+        <p className="mt-5 text-[11px] font-bold tracking-[0.14em] text-[#C67A52] uppercase">도담 · AI 육아파트너</p>
+        <h1 className="mt-1 text-[32px] font-bold text-[#2D2015] tracking-tight">오늘도 도담하게</h1>
+        <p className="mt-3 text-[14px] text-[#8A7060] text-center leading-relaxed">
+          임신 준비부터 육아까지<br />AI 케어 파트너가 함께할게요
         </p>
+
+        {/* 3가지 여정 태그 */}
+        <div className="flex gap-2 mt-6">
+          {['🌱 임신 준비', '🤰 임신 중', '👶 육아'].map(tag => (
+            <span key={tag} className="px-3 py-1.5 rounded-full text-[12px] font-medium text-[#C67A52] bg-white/70" style={{ boxShadow: '0 1px 6px rgba(208,122,98,0.12)' }}>
+              {tag}
+            </span>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-auto px-6 pb-12 pt-6 flex flex-col gap-3">
+      {/* 로그인 버튼 */}
+      <div className="mt-auto px-6 pb-12 pt-4 flex flex-col gap-3">
         {error && (
           <div className="mb-1 rounded-2xl bg-[#FFF0E6] text-caption text-[#D08068] text-center font-medium" style={{ padding: 'var(--spacing-3)' }}>
             {error}
@@ -192,12 +203,12 @@ export default function OnboardingPage() {
           )}
         </button>
 
-        <p className="mt-2 text-xs text-tertiary text-center leading-relaxed">
+        <p className="mt-2 text-xs text-[#B0A090] text-center leading-relaxed">
           시작하면{' '}
           <a href="/terms" className="underline">서비스 이용약관</a>,{' '}
           <a href="/privacy" className="underline">개인정보처리방침</a>에 동의하게 됩니다.
         </p>
       </div>
-</div>
+    </div>
   )
 }

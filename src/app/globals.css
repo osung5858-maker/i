@@ -157,6 +157,11 @@
   --color-info: #6AA8E0;
 }
 
+html {
+  /* 오버스크롤 bounce 색상 — 하단은 흰색으로 유지, 상단은 페이지별 배경이 담당 */
+  background-color: #ffffff;
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-text-primary);

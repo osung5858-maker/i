@@ -240,8 +240,10 @@ export default function PreparingPage() {
   const [editingCycle, setEditingCycle] = useState<boolean | null>(null)
   useEffect(() => {
     getProfile().then(p => {
-      if (p?.last_period) { setLastPeriod(p.last_period); setEditingCycle(false) }
+      // my_role이 저장됐으면 세팅 완료로 간주 (dad는 last_period 없어도 됨)
+      if (p?.my_role || p?.last_period) { setEditingCycle(false) }
       else setEditingCycle(true)
+      if (p?.last_period) setLastPeriod(p.last_period)
       if (p?.cycle_length) setCycleLength(p.cycle_length)
       if (p?.mother_birth) { setMotherBirth(p.mother_birth); setTempMotherBirth(p.mother_birth) }
       if (p?.father_birth) { setFatherBirth(p.father_birth); setTempFatherBirth(p.father_birth) }
@@ -596,8 +598,8 @@ export default function PreparingPage() {
     const setPartnerBirth = (v: string) => { if (myRole === 'mom') setTempFatherBirth(v); else setTempMotherBirth(v) }
 
     return (
-      <div className="min-h-[100dvh] bg-white">
-        <div data-guide="cycle-setup" className="max-w-xs mx-auto pt-12 pb-0 px-6">
+      <div className="fixed inset-0 z-[80] bg-white overflow-y-auto">
+        <div data-guide="cycle-setup" className="max-w-lg mx-auto pt-14 pb-12 px-6">
           <h1 className="text-heading-2 font-bold text-primary mb-1">기본 정보</h1>
           <p className="text-body text-secondary mb-6">맞춤 조언을 위해 필요해요</p>
 
@@ -606,11 +608,11 @@ export default function PreparingPage() {
             <p className="text-body-emphasis text-secondary mb-2">나는</p>
             <div className="flex gap-2">
               <button onClick={() => setMyRole('mom')}
-                className={`flex-1 py-3 rounded-xl text-body-emphasis ${myRole === 'mom' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
+                className={`flex-1 py-3 rounded-xl font-semibold text-[var(--text-md)] ${myRole === 'mom' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[var(--color-text-secondary)]'}`}>
                 예비맘
               </button>
               <button onClick={() => setMyRole('dad')}
-                className={`flex-1 py-3 rounded-xl text-body-emphasis ${myRole === 'dad' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-secondary'}`}>
+                className={`flex-1 py-3 rounded-xl font-semibold text-[var(--text-md)] ${myRole === 'dad' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-page-bg)] text-[var(--color-text-secondary)]'}`}>
                 예비파파
               </button>
             </div>
@@ -626,8 +628,8 @@ export default function PreparingPage() {
           {myRole === 'mom' && (
             <>
               <div className="mb-5">
-                <p className="text-body-emphasis text-secondary mb-1">마지막 생리 시작일</p>
-                <input type="date" value={tempPeriod} onChange={(e) => setTempPeriod(e.target.value)} className="w-full h-12 rounded-xl border border-[#E8E4DF] px-4 text-body-emphasis" />
+                <label htmlFor="last-period-input" className="block text-body-emphasis text-secondary mb-1 cursor-pointer">마지막 생리 시작일</label>
+                <input id="last-period-input" type="date" value={tempPeriod} onChange={(e) => setTempPeriod(e.target.value)} className="w-full h-12 rounded-xl border border-[#E8E4DF] px-4 text-body-emphasis" />
               </div>
               <div className="mb-5">
                 <p className="text-body-emphasis text-secondary mb-1">평균 주기 <span className="text-[var(--color-primary)] font-bold">{tempCycleLen}일</span></p>

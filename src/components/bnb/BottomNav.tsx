@@ -1263,8 +1263,8 @@ function NavTab({ tab, pathname, 'data-guide': dataGuide }: { tab: Tab; pathname
         isActive ? 'bg-[var(--color-primary)]' : ''
       }`}
     >
-      <Icon className={`w-[18px] h-[18px] transition-colors ${isActive ? 'text-white' : 'text-tertiary'}`} />
-      <span className={`text-label font-medium transition-colors uppercase tracking-wide ${isActive ? 'text-white' : 'text-tertiary'}`}>
+      <Icon className={`w-[18px] h-[18px] transition-colors ${isActive ? 'text-white' : 'text-[var(--color-text-tertiary)]'}`} />
+      <span className={`text-label transition-colors ${isActive ? 'text-white' : 'text-[var(--color-text-tertiary)]'}`}>
         {tab.label}
       </span>
     </Link>

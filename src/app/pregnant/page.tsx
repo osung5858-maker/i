@@ -12,8 +12,9 @@ import MissionCard from '@/components/ui/MissionCard'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
 import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
-import { setSecure, getSecure } from '@/lib/secureStorage'
+import { setSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
+import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
 
 // ===== 태아 데이터 =====
 const FETAL_DATA = [
@@ -145,8 +146,8 @@ export default function PregnantPage() {
   const [dueDate, setDueDate] = useState<string>('')
   const [editingDate, setEditingDate] = useState<boolean | null>(null)
   useEffect(() => {
-    getSecure('dodam_due_date').then(v => {
-      if (v) { setDueDate(v); setEditingDate(false) }
+    getProfile().then(p => {
+      if (p?.due_date) { setDueDate(p.due_date as string); setEditingDate(false) }
       else setEditingDate(true)
     })
   }, [])
@@ -386,20 +387,17 @@ export default function PregnantPage() {
   }
   if (editingDate) {
     return (
-      <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6">
+      <div className="fixed inset-0 z-[80] bg-white flex flex-col items-center justify-center px-6">
         <h1 className="text-heading-2 font-bold text-primary mb-2">출산 예정일이 언제인가요?</h1>
         <p className="text-body text-secondary mb-8">주차별 성장 정보를 알려드릴게요</p>
         <input type="date" value={tempDueDate} onChange={(e) => setTempDueDate(e.target.value)}
           className="w-full max-w-xs h-[52px] rounded-xl border border-[#E8E4DF] px-4 text-subtitle text-center" />
         <button
-          onClick={async () => {
+          onClick={() => {
             if (tempDueDate) {
               setDueDate(tempDueDate)
-              await setSecure('dodam_due_date', tempDueDate)
               setEditingDate(false)
-              const supabase = createClient()
-              const { data: { user } } = await supabase.auth.getUser()
-              if (user) supabase.from('user_profiles').upsert({ user_id: user.id, due_date: tempDueDate }).then(() => {})
+              upsertProfile({ due_date: tempDueDate } as Parameters<typeof upsertProfile>[0])
             }
           }}
           disabled={!tempDueDate}
