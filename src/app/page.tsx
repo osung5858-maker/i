@@ -724,12 +724,12 @@ export default function HomePage() {
           <KidsnoteCard ageMonths={ageMonths} userId={user?.id} />
 
           {/* 카카오 AdFit 배너 */}
-          <KakaoAdFit
+          {/* <KakaoAdFit
             unit="DAN-N5Q1Lo0fA64Zbida"
             width={320}
             height={50}
             className="mx-auto"
-          />
+          /> */}
 
           {/* 심심풀이 */}
           <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden hover-lift">

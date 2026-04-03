@@ -485,7 +485,7 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
           places.map((p, i) => (
             <div key={p.id}>
               <PlaceCard place={p} stats={reviewStats[p.id]} />
-              {i === 2 && places.length > 4 && <AdSlot className="mt-2" />}
+              {/* {i === 2 && places.length > 4 && <AdSlot className="mt-2" />} */}
             </div>
           ))
         )}

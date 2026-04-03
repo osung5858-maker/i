@@ -522,7 +522,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 </div>
               ) : posts.map((post, pi) => (
                 <div key={post.id}>
-                {pi === 3 && posts.length > 5 && <AdSlot className="mb-2" />}
+                {/* {pi === 3 && posts.length > 5 && <AdSlot className="mb-2" />} */}
                 <div className="bg-white rounded-xl p-4 border border-[#E8E4DF]">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">

@@ -142,12 +142,12 @@ export default function NotificationsPage() {
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-4">
         {/* 상단 배너 광고 */}
-        <KakaoAdFit
+        {/* <KakaoAdFit
           unit="DAN-iVBs4WEVxAqEzceP"
           width={320}
           height={50}
           className="mx-auto my-4"
-        />
+        /> */}
 
         {loading ? (
           <div className="flex justify-center py-12">
