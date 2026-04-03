@@ -12,11 +12,19 @@ import { sharePositiveTest } from '@/lib/kakao/share'
 import { HeartIcon, PenIcon, SparkleIcon, BookOpenIcon, PregnantIcon, MoonIcon, BabyIcon, ActivityIcon, CompassIcon, SproutIcon, ExternalLinkIcon } from '@/components/ui/Icons'
 import IllustVideo from '@/components/ui/IllustVideo'
 import BenefitTabs from '@/components/ui/BenefitTabs'
-import AIMealCard from '@/components/ai-cards/AIMealCard'
 import BabyItemChecklist from '@/components/pregnant/BabyItemChecklist'
 
 const HospitalGuide = dynamic(() => import('@/components/pregnant/HospitalGuide'), {
   loading: () => <div className="h-24 bg-[#F0EDE8] rounded-xl animate-pulse" />,
+})
+const CheckupScheduleSection = dynamic(() => import('@/components/pregnant/CheckupSchedule/CheckupScheduleSection'), {
+  loading: () => (
+    <div className="space-y-3">
+      <div className="h-24 bg-[#F0EDE8] rounded-xl animate-pulse" />
+      <div className="h-16 bg-[#F0EDE8] rounded-xl animate-pulse" />
+      <div className="h-16 bg-[#F0EDE8] rounded-xl animate-pulse" />
+    </div>
+  ),
 })
 // ===== 주기 계산 =====
 function addDays(date: Date, days: number): Date {
@@ -68,19 +76,26 @@ function PreparingWaitingPage() {
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
   const [chosenNickname, setChosenNickname] = useState<string>('')
-  const [lastPeriod, setLastPeriod] = useState<string>('')
-  const [cycleLength, setCycleLength] = useState<number>(28)
+  // localStorage 우선 읽기 — DB 지연 시에도 달력 즉시 표시
+  const [lastPeriod, setLastPeriod] = useState<string>(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('dodam_last_period') || ''
+    return ''
+  })
+  const [cycleLength, setCycleLength] = useState<number>(() => {
+    if (typeof window !== 'undefined') { const v = localStorage.getItem('dodam_cycle_length'); if (v) return Number(v) }
+    return 28
+  })
   const [periodRecords] = useState<Record<string, string>>({})
   const [bbtRecords, setBbtRecords] = useState<Record<string, number>>({})
   const [ovulationTests, setOvulationTests] = useState<Record<string, boolean>>({})
   const [intimacyDates, setIntimacyDates] = useState<Record<string, boolean>>({})
 
-  // DB에서 프로필 + 준비 기록 로드
+  // DB에서 프로필 로드 → localStorage 동기화
   useEffect(() => {
     getProfile().then(p => {
       if (p?.chosen_nickname) setChosenNickname(p.chosen_nickname)
-      if (p?.last_period) setLastPeriod(p.last_period)
-      if (p?.cycle_length) setCycleLength(p.cycle_length)
+      if (p?.last_period) { setLastPeriod(p.last_period); localStorage.setItem('dodam_last_period', p.last_period) }
+      if (p?.cycle_length) { setCycleLength(p.cycle_length); localStorage.setItem('dodam_cycle_length', String(p.cycle_length)) }
     })
     fetchPrepRecords(['bbt', 'ovulation_test', 'intimacy', 'preg_test']).then(records => {
       const tests = records
@@ -115,12 +130,7 @@ function PreparingWaitingPage() {
     else deletePrepRecord(date, 'intimacy')
     showToast(next[date] ? '함께한 날 기록!' : '기록 취소')
   }
-  const [checked, setChecked] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('dodam_preparing_checks'); return s ? JSON.parse(s) : {}
-    }
-    return {}
-  })
+  const [checked, setChecked] = useState<Record<string, boolean>>({})
   const [journals, setJournals] = useState<{ text: string; date: string; comment?: string }[]>([])
   const [journalText, setJournalText] = useState('')
   const [journalSheetOpen, setJournalSheetOpen] = useState(false)
@@ -136,27 +146,23 @@ function PreparingWaitingPage() {
     const entry = { text: savedText, date: entryDate, comment: fallback }
     setJournals(prev => {
       const next = [entry, ...prev]
-      try {
-        localStorage.setItem('dodam_prep_journal', JSON.stringify(next))
-        const tsMap = JSON.parse(localStorage.getItem(`dodam_prep_ts_${today}`) || '{}')
-        if (!tsMap['prep_journal']) { tsMap['prep_journal'] = entryDate; localStorage.setItem(`dodam_prep_ts_${today}`, JSON.stringify(tsMap)) }
-        const done: string[] = JSON.parse(localStorage.getItem(`dodam_prep_done_${today}`) || '[]')
-        if (!done.includes('prep_journal')) { done.push('prep_journal'); localStorage.setItem(`dodam_prep_done_${today}`, JSON.stringify(done)) }
-      } catch {}
+      upsertPrepRecord(today, 'journal', { entries: next })
       return next
     })
     setJournalText('')
     setJournalSheetOpen(false)
     showToast('기다림 일기 저장됐어요 🌱')
-    // AI 답장은 백그라운드에서 업데이트
+    // AI 답장 — 아기 시점의 따뜻한 편지 (letter 타입)
+    const letterCount = journals.length + 1
     fetch('/api/ai-preparing', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'diary', text: savedText }),
+      body: JSON.stringify({ type: 'letter', letterText: savedText, letterCount }),
     }).then(r => r.json()).then(data => {
-      if (!data.comment) return
+      const aiReply = data.reply
+      if (!aiReply) return
       setJournals(prev => {
-        const updated = prev.map(e => e.date === entryDate ? { ...e, comment: data.comment } : e)
-        try { localStorage.setItem('dodam_prep_journal', JSON.stringify(updated)) } catch {}
+        const updated = prev.map(e => e.date === entryDate ? { ...e, comment: aiReply } : e)
+        upsertPrepRecord(today, 'journal', { entries: updated })
         return updated
       })
     }).catch(() => {})
@@ -164,11 +170,41 @@ function PreparingWaitingPage() {
   const [pregTests, setPregTests] = useState<{ date: string; result: string; dpo: number }[]>([])
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
-  useEffect(() => {
-    try { setJournals(JSON.parse(localStorage.getItem('dodam_prep_journal') || '[]')) } catch {}
+  const loadJournals = useCallback(() => {
+    fetchPrepRecords(['journal']).then(rows => {
+      if (rows.length > 0) {
+        const v = rows[0].value as Record<string, unknown>
+        if (Array.isArray(v.entries)) {
+          setJournals(v.entries as { text: string; date: string; comment?: string }[])
+        } else if (v.text) {
+          // 레거시 flat 형식 호환
+          const all = rows.map(r => ({ text: String((r.value as Record<string, unknown>).text ?? ''), date: String((r.value as Record<string, unknown>).date ?? r.record_date), comment: (r.value as Record<string, unknown>).comment ? String((r.value as Record<string, unknown>).comment) : undefined }))
+          setJournals(all)
+        }
+      }
+    })
   }, [])
 
-  // prep_journal FAB → BottomNav에서 직접 처리
+  useEffect(() => {
+    // DB에서 체크리스트 + 일기 로드
+    fetchPrepRecords(['checklist']).then(rows => {
+      if (rows.length > 0) {
+        setChecked(rows[0].value as Record<string, boolean>)
+      }
+    })
+    loadJournals()
+
+    // FAB에서 일기 작성 완료 후 이 페이지로 돌아오면 리로드
+    const onRecord = (e: Event) => {
+      const type = (e as CustomEvent).detail?.type as string
+      if (type === 'prep_journal') {
+        // AI 답장 반영 대기 후 리로드 (1.5초)
+        setTimeout(loadJournals, 1500)
+      }
+    }
+    window.addEventListener('dodam-record', onRecord)
+    return () => window.removeEventListener('dodam-record', onRecord)
+  }, [loadJournals])
 
   const cycle = useMemo(() => {
     if (!lastPeriod) return null
@@ -198,7 +234,8 @@ function PreparingWaitingPage() {
 
   const toggleCheck = (id: string) => {
     const next = { ...checked, [id]: !checked[id] }; setChecked(next)
-    localStorage.setItem('dodam_preparing_checks', JSON.stringify(next))
+    const today = new Date().toISOString().split('T')[0]
+    upsertPrepRecord(today, 'checklist', next)
     const done = Object.values(next).filter(Boolean).length
     showToast(next[id] ? `체크 완료! (${done}/${checklist.length})` : '체크 취소')
   }
@@ -328,7 +365,13 @@ function PreparingWaitingPage() {
               </p>
               <p className="text-body text-primary leading-relaxed line-clamp-3">{journals[0].text}</p>
               {journals[0].comment && (
-                <p className="text-caption text-[var(--color-primary)] mt-2 italic leading-relaxed">{journals[0].comment}</p>
+                <div className="mt-2.5 pt-2.5 border-t border-[#E8E4DF]">
+                  <div className="flex items-center gap-1 mb-1">
+                    <SparkleIcon className="w-3 h-3 text-[var(--color-primary)]" />
+                    <span className="text-label font-bold text-[var(--color-primary)]">아기의 답장</span>
+                  </div>
+                  <p className="text-caption text-[var(--color-primary)] italic leading-relaxed">{journals[0].comment}</p>
+                </div>
               )}
             </div>
           )}
@@ -404,8 +447,8 @@ function PreparingWaitingPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-body-emphasis text-secondary">배란 테스트</span>
                   <div className="flex gap-1.5">
-                    <button onClick={() => recordOvulationTest(selectedDate, true)} className={`px-3 py-1.5 rounded-xl text-body ${ovulationTests[selectedDate] === true ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-secondary'}`}>양성</button>
-                    <button onClick={() => recordOvulationTest(selectedDate, false)} className={`px-3 py-1.5 rounded-xl text-body ${ovulationTests[selectedDate] === false ? 'bg-[#D08068] text-white' : 'bg-[#E8E4DF] text-secondary'}`}>음성</button>
+                    <button onClick={() => recordOvulationTest(selectedDate, true)} className={`px-3 py-1.5 rounded-xl ${ovulationTests[selectedDate] === true ? 'bg-[var(--color-primary)] font-bold' : 'bg-[#E8E4DF] text-secondary'}`} style={ovulationTests[selectedDate] === true ? { fontSize: 14, color: '#FFFFFF' } : { fontSize: 14 }}>양성</button>
+                    <button onClick={() => recordOvulationTest(selectedDate, false)} className={`px-3 py-1.5 rounded-xl ${ovulationTests[selectedDate] === false ? 'bg-[#D08068] font-bold' : 'bg-[#E8E4DF] text-secondary'}`} style={ovulationTests[selectedDate] === false ? { fontSize: 14, color: '#FFFFFF' } : { fontSize: 14 }}>음성</button>
                   </div>
                 </div>
                 <button onClick={() => setSelectedDate(null)} className="w-full py-3 bg-[var(--color-primary)] text-white font-bold rounded-xl">완료</button>
@@ -595,8 +638,10 @@ function PreparingWaitingPage() {
 
       {/* 토스트 */}
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1A1918]/80 text-white text-body font-medium px-4 py-2.5 rounded-xl shadow-lg animate-[fadeIn_0.15s_ease-out]">
-          {toast}
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-[#1A1A1A] px-5 py-2.5 rounded-xl text-body font-bold shadow-[0_8px_30px_rgba(0,0,0,0.3)] max-w-[320px] text-center" style={{ color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+            {toast}
+          </div>
         </div>
       )}
     </div>
@@ -731,8 +776,7 @@ const WaitingBenefitTabs = BenefitTabs
 
 export function PregnantWaitingPage() {
   const router = useRouter()
-  const [tab, setTab] = useState<'diary' | 'info' | 'benefit'>('diary')
-  const [foodQuery, setFoodQuery] = useState('')
+  const [tab, setTab] = useState<'diary' | 'info' | 'checkup' | 'benefit'>('diary')
   const [dueDate, setDueDate] = useState('')
   const [chosenNickname, setChosenNickname2] = useState<string>('')
   useEffect(() => {
@@ -755,23 +799,21 @@ export function PregnantWaitingPage() {
   const trimester = currentWeek <= 13 ? '초기' : currentWeek <= 27 ? '중기' : '후기'
 
   // 기다림 일기
-  const [diaries, setDiaries] = useState<{ text: string; date: string; mood: string; comment: string }[]>(() => {
-    if (typeof window !== 'undefined') { try { return JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]') } catch { return [] } }
-    return []
-  })
+  const [diaries, setDiaries] = useState<{ text: string; date: string; mood: string; comment: string }[]>([])
   const [diaryText, setDiaryText] = useState('')
   const [diarySaving, setDiarySaving] = useState(false)
   const [diarySheetOpen, setDiarySheetOpen] = useState(false)
 
-  // FAB에서 preg_journal 저장 시 목록 동기화
+  // DB에서 임신 다이어리 로드
   useEffect(() => {
-    const handler = (e: Event) => {
-      if ((e as CustomEvent).detail?.type === 'preg_journal') {
-        try { setDiaries(JSON.parse(localStorage.getItem('dodam_preg_diary') || '[]')) } catch {}
-      }
-    }
-    window.addEventListener('dodam-record', handler)
-    return () => window.removeEventListener('dodam-record', handler)
+    import('@/lib/supabase/pregRecord').then(({ fetchPregRecords }) => {
+      fetchPregRecords(['diary']).then(rows => {
+        if (rows.length > 0) {
+          const entries = rows.map(r => r.value as { text: string; date: string; mood: string; comment: string })
+          if (entries.length > 0) setDiaries(entries)
+        }
+      })
+    })
   }, [])
 
   const saveDiary = async () => {
@@ -788,7 +830,11 @@ export function PregnantWaitingPage() {
     } catch { /* fallback */ }
     const entry = { text: diaryText.trim(), date: new Date().toISOString(), mood: '', comment }
     const next = [entry, ...diaries]
-    setDiaries(next); localStorage.setItem('dodam_preg_diary', JSON.stringify(next))
+    setDiaries(next)
+    import('@/lib/supabase/pregRecord').then(({ upsertPregRecord }) => {
+      const today = new Date().toISOString().split('T')[0]
+      upsertPregRecord(today, 'diary', entry)
+    })
     setDiaryText(''); setDiarySaving(false)
   }
 
@@ -843,6 +889,7 @@ export function PregnantWaitingPage() {
             {([
               { key: 'diary' as const, label: '일기·감성' },
               { key: 'info' as const, label: '발달·정보' },
+              { key: 'checkup' as const, label: '검진 관리' },
               { key: 'benefit' as const, label: '혜택·준비' },
             ]).map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
@@ -927,25 +974,17 @@ export function PregnantWaitingPage() {
             <div className="p-3 space-y-3">
               <VerticalFetalGuide currentWeek={currentWeek} />
               {currentWeek > 0 && <HospitalGuide week={currentWeek} />}
-              <AIMealCard mode="pregnant" value={currentWeek} />
-              <form onSubmit={e => { e.preventDefault(); if (foodQuery.trim()) router.push(`/food-check?q=${encodeURIComponent(foodQuery.trim())}`) }}
-                className="flex items-center gap-2 bg-[var(--color-page-bg)] rounded-xl border border-[#E8E4DF] p-2.5">
-                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
-                  <span className="text-subtitle">🍽️</span>
-                </div>
-                <input type="text" value={foodQuery} onChange={e => setFoodQuery(e.target.value)}
-                  placeholder="이 음식 먹어도 되나요? 검색"
-                  className="flex-1 text-body bg-transparent outline-none text-primary placeholder:text-tertiary" />
-                {foodQuery.trim() ? (
-                  <button type="submit" className="shrink-0 px-3 py-1 rounded-lg bg-[var(--color-primary)] text-white text-caption font-semibold">확인</button>
-                ) : (
-                  <span className="text-caption text-tertiary shrink-0">AI 확인</span>
-                )}
-              </form>
             </div>
           )}
 
-          {/* ── 탭 3: 혜택·준비 ── */}
+          {/* ── 탭 3: 검진 관리 ── */}
+          {tab === 'checkup' && (
+            <div className="p-3 space-y-3">
+              <CheckupScheduleSection />
+            </div>
+          )}
+
+          {/* ── 탭 4: 혜택·준비 ── */}
           {tab === 'benefit' && (
             <div className="p-3 space-y-3">
               <WaitingBenefitTabs />

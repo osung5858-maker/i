@@ -2,6 +2,9 @@
 
 import { useState, useEffect, memo } from 'react'
 import { HeartFilledIcon } from '@/components/ui/Icons'
+import { fetchUserRecords, insertUserRecord } from '@/lib/supabase/userRecord'
+import { getProfile } from '@/lib/supabase/userProfile'
+import { createClient } from '@/lib/supabase/client'
 
 type Mode = 'preparing' | 'pregnant' | 'parenting'
 
@@ -71,12 +74,43 @@ function getTodayKey() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-function sendMission(mission: { emoji: string; title: string; sendMsg: string }) {
+async function sendMission(mission: { emoji: string; title: string; sendMsg: string }, provider: 'kakao' | 'google' | '') {
   const text = `${mission.emoji} 오늘의 부부 미션\n\n${mission.sendMsg}\n\n— 도담 앱에서 보냄`
   const url = SITE_URL
 
   if (typeof window === 'undefined') return
 
+  // 구글 로그인 → FCM 푸시로 파트너에게 전송
+  if (provider === 'google') {
+    try {
+      const res = await fetch('/api/push/partner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `${mission.emoji} 오늘의 부부 미션: ${mission.title}`,
+          body: mission.sendMsg,
+          url,
+          tag: 'mission',
+        }),
+      })
+      const data = await res.json()
+      if (data.sent > 0) {
+        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '파트너에게 푸시 알림을 보냈어요!' } }))
+      } else if (data.reason === 'no_partner') {
+        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '연결된 파트너가 없어요. 초대해보세요!' } }))
+      } else {
+        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '파트너의 알림 설정을 확인해주세요.' } }))
+      }
+    } catch {
+      // FCM 실패 시 Web Share 폴백
+      if (navigator.share) {
+        navigator.share({ title: `${mission.emoji} 오늘의 부부 미션`, text, url }).catch(() => {})
+      }
+    }
+    return
+  }
+
+  // 카카오 로그인 → 카카오톡 공유
   if (window.Kakao && !window.Kakao.isInitialized()) {
     const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
     if (key) window.Kakao.init(key)
@@ -96,6 +130,7 @@ function sendMission(mission: { emoji: string; title: string; sendMsg: string })
     return
   }
 
+  // 폴백: Web Share → 클립보드
   if (navigator.share) {
     navigator.share({ title: `${mission.emoji} 오늘의 부부 미션`, text, url }).catch(() => {})
     return
@@ -109,32 +144,57 @@ function sendMission(mission: { emoji: string; title: string; sendMsg: string })
 function MissionCard({ mode }: { mode: Mode }) {
   const idx = getDailyMissionIdx(mode)
   const mission = MISSIONS[mode][idx]
-  const storageKey = `dodam_mission_sent_${mode}_${getTodayKey()}`
-
   const [dismissed, setDismissed] = useState(false)
   const [sent, setSent] = useState(false)
   const [streak, setStreak] = useState(0)
   const [milestone, setMilestone] = useState<typeof MILESTONES[number] | null>(null)
+  const [myRole, setMyRole] = useState<'mom' | 'dad' | null>(null)
+  const [roleLoaded, setRoleLoaded] = useState(false)
+  const [authProvider, setAuthProvider] = useState<'kakao' | 'google' | ''>('')
+
+  useEffect(() => {
+    getProfile().then(p => {
+      if (p?.my_role) setMyRole(p.my_role as 'mom' | 'dad')
+    }).catch(() => {}).finally(() => setRoleLoaded(true))
+
+    // OAuth provider 감지
+    createClient().auth.getUser().then(({ data: { user } }: { data: { user: { app_metadata?: Record<string, string> } | null } }) => {
+      if (user) {
+        const provider = user.app_metadata?.provider || ''
+        if (provider === 'kakao') setAuthProvider('kakao')
+        else if (provider === 'google') setAuthProvider('google')
+      }
+    }).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (sessionStorage.getItem(`dodam_mission_dismissed_${mode}`) === '1') { setDismissed(true); return }
-    setSent(localStorage.getItem(storageKey) === '1')
-    let count = 0
-    const d = new Date()
-    for (let i = 1; i <= 30; i++) {
-      d.setDate(d.getDate() - 1)
-      const k = `dodam_mission_sent_${mode}_${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-      if (localStorage.getItem(k) === '1') count++
-      else break
-    }
-    setStreak(count)
-  }, [storageKey, mode])
+    fetchUserRecords(['mission_sent']).then(rows => {
+      const today = getTodayKey()
+      const modeRows = rows.filter(r => (r.value as any).mode === mode)
+      const todayRow = modeRows.find(r => r.record_date === today)
+      if (todayRow) setSent(true)
+
+      // Calculate streak
+      let count = 0
+      const dates = new Set(modeRows.map(r => r.record_date))
+      const d = new Date()
+      for (let i = 1; i <= 30; i++) {
+        d.setDate(d.getDate() - 1)
+        const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        if (dates.has(ds)) count++
+        else break
+      }
+      setStreak(count)
+    }).catch(() => {})
+  }, [mode])
 
   const handleSend = () => {
-    sendMission(mission)
+    sendMission(mission, authProvider)
 
     if (!sent) {
-      localStorage.setItem(storageKey, '1')
+      const today = getTodayKey()
+      insertUserRecord(today, 'mission_sent', { mode }).catch(() => {})
       setSent(true)
       const newStreak = streak + 1
       setStreak(newStreak)
@@ -145,6 +205,8 @@ function MissionCard({ mode }: { mode: Mode }) {
 
   const level = getLevel(streak)
 
+  // 배우자 미등록 시 카드 숨김
+  if (roleLoaded && !myRole) return null
   if (dismissed) return null
 
   const handleDismiss = () => {
@@ -168,9 +230,12 @@ function MissionCard({ mode }: { mode: Mode }) {
             {level && <span className="text-label" style={{ color: 'var(--neutral-400)' }}>{level}</span>}
             {streak > 0 && (
               <span
-                className="text-label font-bold text-[var(--color-primary)] rounded-full bg-[var(--color-primary-bg)]"
+                className="text-label rounded-full"
                 style={{
-                  padding: '2px var(--spacing-2)'
+                  padding: '2px var(--spacing-2)',
+                  fontWeight: 700,
+                  color: 'var(--color-primary)',
+                  backgroundColor: 'var(--color-primary-bg)',
                 }}
               >
                 🔥 {streak}일 연속
@@ -206,13 +271,18 @@ function MissionCard({ mode }: { mode: Mode }) {
         {/* 전송 버튼 */}
         <button
           onClick={handleSend}
-          className={`w-full py-2.5 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95
-            ${sent
-              ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20'
-              : 'bg-[var(--color-primary)] text-white'
-            }`}
+          className={`w-full py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 ${
+            sent ? 'border border-[var(--color-primary)]/30' : 'bg-[var(--color-primary)]'
+          }`}
+          style={sent
+            ? { fontSize: 14, fontWeight: 700, backgroundColor: 'var(--color-primary-bg)', color: 'var(--color-primary)' }
+            : { fontSize: 14, fontWeight: 700, color: '#FFFFFF' }
+          }
         >
-          {sent ? '✓ 전송했어요 · 다시 보내기' : '💌 파트너에게 보내기'}
+          {sent
+            ? '✓ 전송했어요 · 다시 보내기'
+            : `${authProvider === 'google' ? '🔔' : '💌'} ${myRole === 'mom' ? '남편' : myRole === 'dad' ? '아내' : '파트너'}에게 보내기`
+          }
         </button>
       </div>
 
@@ -226,12 +296,13 @@ function MissionCard({ mode }: { mode: Mode }) {
             <p className="text-[48px] mb-2">{milestone.emoji}</p>
             <p className="text-heading-2 text-primary mb-1">{milestone.title}</p>
             <p className="text-body-emphasis text-secondary whitespace-pre-line mb-4">{milestone.msg}</p>
-            <div className="inline-flex items-center gap-1.5 bg-[var(--color-primary-bg)] px-4 py-2 rounded-full mb-5">
-              <span className="text-body font-bold text-[var(--color-primary)]">🏷️ {milestone.badge} 달성</span>
+            <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full mb-5" style={{ backgroundColor: 'var(--color-primary-bg)' }}>
+              <span className="font-bold" style={{ fontSize: 14, color: 'var(--color-primary)' }}>🏷️ {milestone.badge} 달성</span>
             </div>
             <button
               onClick={() => setMilestone(null)}
-              className="w-full py-3 bg-[var(--color-primary)] text-white rounded-2xl active:opacity-80"
+              className="w-full py-3 bg-[var(--color-primary)] rounded-2xl active:opacity-80"
+              style={{ fontSize: 14, color: '#FFFFFF', fontWeight: 700 }}
             >
               계속 이어가기
             </button>
