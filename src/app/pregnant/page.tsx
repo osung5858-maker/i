@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useRemoteContent } from '@/lib/useRemoteContent'
@@ -410,6 +410,14 @@ export default function PregnantPage() {
 
   // 출산 예정일 입력
   const [tempDueDate, setTempDueDate] = useState(dueDate)
+  const confirmDueDate = useCallback(() => {
+    ;(document.getElementById('due-date-input') as HTMLInputElement)?.blur()
+    if (tempDueDate) {
+      setDueDate(tempDueDate)
+      setEditingDate(false)
+      upsertProfile({ due_date: tempDueDate } as Parameters<typeof upsertProfile>[0])
+    }
+  }, [tempDueDate])
   if (editingDate === null) {
     return <PageSkeleton variant="pregnant" />
   }
@@ -418,18 +426,13 @@ export default function PregnantPage() {
       <div className="fixed inset-0 z-[80] bg-white flex flex-col items-center justify-center px-6">
         <h1 className="text-heading-2 font-bold text-primary mb-2">출산 예정일이 언제인가요?</h1>
         <p className="text-body text-secondary mb-8">주차별 성장 정보를 알려드릴게요</p>
-        <input type="date" value={tempDueDate} onChange={(e) => setTempDueDate(e.target.value)}
+        <input type="date" id="due-date-input" value={tempDueDate} onChange={(e) => setTempDueDate(e.target.value)}
           className="w-full max-w-xs h-[52px] rounded-xl border border-[#E8E4DF] px-4 text-subtitle text-center" />
         <button
-          onClick={() => {
-            if (tempDueDate) {
-              setDueDate(tempDueDate)
-              setEditingDate(false)
-              upsertProfile({ due_date: tempDueDate } as Parameters<typeof upsertProfile>[0])
-            }
-          }}
+          onClick={confirmDueDate}
+          onTouchEnd={(e) => { e.preventDefault(); confirmDueDate() }}
           disabled={!tempDueDate}
-          className={`mt-6 w-full max-w-xs py-3 rounded-xl font-semibold ${tempDueDate ? 'bg-[var(--color-primary)] text-white active:opacity-80' : 'bg-[#E8E4DF] text-tertiary'}`}
+          className={`mt-8 w-full max-w-xs py-3.5 rounded-xl font-semibold ${tempDueDate ? 'bg-[var(--color-primary)] text-white active:opacity-80' : 'bg-[#E8E4DF] text-tertiary'}`}
         >
           완료
         </button>
