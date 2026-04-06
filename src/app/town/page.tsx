@@ -312,6 +312,7 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
     mapObjRef.current.setLevel(level)
   }, [previewRange, editingRange, updateCircle])
 
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchPlaces = useCallback((query: string) => {
     const cacheKey = `${query}_${rangeRef.current}`
     if (cacheRef.current[cacheKey]) {
@@ -328,6 +329,8 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
     }
 
     setLoading(true); setPlaces([])
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
+    searchTimeoutRef.current = setTimeout(() => { setLoading(false); setMapError(true) }, 15000)
     if (!window.kakao?.maps) { setLoading(false); setMapError(true); return }
 
     const mapLevel = rangeRef.current <= 500 ? 4 : rangeRef.current <= 1000 ? 5 : rangeRef.current <= 3000 ? 6 : 7
@@ -360,10 +363,12 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
               })
             }
           }
+          if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
           setLoading(false)
         }, { location: latlng, radius: rangeRef.current, sort: (window.kakao.maps.services as any).SortBy?.DISTANCE })
       } catch (err) {
         console.error('Kakao map error:', err)
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
         setLoading(false)
         setMapError(true)
       }
