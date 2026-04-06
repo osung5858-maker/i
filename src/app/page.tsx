@@ -175,6 +175,22 @@ export default function HomePage() {
 
   const router = useRouter()
 
+  // ?demo=parenting 파라미터로 데모 모드 설정 (콘솔 접근 불필요)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const demo = params.get('demo')
+    if (demo === 'parenting' || demo === 'pregnant' || demo === 'preparing') {
+      localStorage.setItem('dodam_mode', demo)
+      localStorage.setItem('dodam_guide_parenting', '1')
+      localStorage.setItem('dodam_guide_pregnant', '1')
+      localStorage.setItem('dodam_guide_preparing', '1')
+      localStorage.setItem('dodam_splash_shown', '1')
+      localStorage.setItem('dodam_push_prompt_dismissed', '1')
+      window.location.href = '/'
+      return
+    }
+  }, [])
+
   // 모드별 리디렉트: preparing/pregnant 모드인데 / 에 접근하면 해당 모드 홈으로
   useEffect(() => {
     const mode = localStorage.getItem('dodam_mode')

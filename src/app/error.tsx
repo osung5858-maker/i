@@ -33,7 +33,7 @@ export default function Error({
           잠시 후 다시 시도해주세요.
         </p>
 
-        {process.env.NODE_ENV === 'development' && error.message && (
+        {error.message && (
           <div className="mb-6 p-4 bg-red-50 rounded-lg text-left">
             <p className="text-xs font-mono text-red-600 break-all">
               {error.message}
