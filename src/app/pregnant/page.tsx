@@ -12,7 +12,6 @@ import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import IllustVideo from '@/components/ui/IllustVideo'
 import MissionCard from '@/components/ui/MissionCard'
 import PushPrompt from '@/components/push/PushPrompt'
-import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import { setSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
 import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
@@ -579,9 +578,6 @@ export default function PregnantPage() {
             </p>
           </div>
         </div>
-
-        {/* PWA 설치 안내 (웹에서만) */}
-        <PWAInstallPrompt />
 
         {/* 푸시 알림 동의 */}
         <PushPrompt message="검진일과 주차 변경을 알려드릴까요?" />

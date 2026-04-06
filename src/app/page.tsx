@@ -18,7 +18,6 @@ import MissionCard from '@/components/ui/MissionCard'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import type { RecordTile } from '@/components/ui/TodayRecordSection'
 import PushPrompt from '@/components/push/PushPrompt'
-import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import CareFlowCard from '@/components/care-flow/CareFlowCard'
 import ReviewPrompt from '@/components/review/ReviewPrompt'
 import KakaoAdFit from '@/components/ads/KakaoAdFit'
@@ -607,9 +606,6 @@ export default function HomePage() {
             onShare={() => shareTodayRecord(child?.name || '아이', ageMonths, todayFeedCount, todaySleepCount, todayPoopCount)}
           />
           </div>
-
-          {/* PWA 설치 안내 (웹에서만) */}
-          <PWAInstallPrompt />
 
           {/* 푸시 알림 동의 (AI 결과 표시 후 자연스럽게) */}
           <PushPrompt show={events.length >= 3} />

@@ -14,7 +14,6 @@ import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, Wa
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import MissionCard from '@/components/ui/MissionCard'
 import PushPrompt from '@/components/push/PushPrompt'
-import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import PageSkeleton from '@/components/ui/PageSkeleton'
 
 // Lazy load below-the-fold and modal components
@@ -929,9 +928,6 @@ export default function PreparingPage() {
         </form>
           )
         })()}
-
-        {/* PWA 설치 안내 (웹에서만) */}
-        <PWAInstallPrompt />
 
         {/* 푸시 알림 동의 */}
         <PushPrompt message="배란일과 엽산 리마인더를 받아볼까요?" />
