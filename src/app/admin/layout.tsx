@@ -6,13 +6,13 @@ import { createClient } from '@/lib/supabase/client'
 
 const NAV_ITEMS = [
   { href: '/admin', label: '대시보드', icon: '📊' },
-  { href: '/admin/users', label: '유저', icon: '👤' },
-  { href: '/admin/posts', label: '게시글', icon: '📝' },
-  { href: '/admin/reports', label: '신고', icon: '🚨' },
-  { href: '/admin/places', label: '장소', icon: '📍' },
-  { href: '/admin/ads', label: '광고', icon: '📢' },
-  { href: '/admin/analytics', label: '애널리틱스', icon: '📈' },
+  { href: '/admin/users', label: '유저 관리', icon: '👤' },
+  { href: '/admin/posts', label: '게시글 관리', icon: '📝' },
+  { href: '/admin/reports', label: '신고 관리', icon: '🚨' },
+  { href: '/admin/places', label: '장소 관리', icon: '📍' },
   { href: '/admin/stats', label: '통계', icon: '🔢' },
+  { href: '/admin/ads', label: '광고 관리', icon: '📢' },
+  { href: '/admin/analytics', label: '페이지 분석', icon: '📈' },
 ] as const
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -64,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
         <div className="px-5 py-3 border-t border-slate-700 text-xs text-slate-400">
-          v1.0 Phase 1
+          v1.0 Phase 5
         </div>
       </aside>
 
