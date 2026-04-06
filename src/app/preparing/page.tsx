@@ -69,7 +69,8 @@ function BirthDatePicker({ value, onChange }: { value: string; onChange: (v: str
 
   const daysInMonth = yr && mo ? new Date(Number(yr), Number(mo), 0).getDate() : 31
 
-  const selectClass = 'flex-1 h-12 rounded-xl border border-[#E8E4DF] bg-white px-2 text-center text-body-emphasis appearance-none cursor-pointer'
+  const selectClass = 'flex-1 h-12 rounded-xl border border-[#E8E4DF] bg-white px-2 text-center appearance-none cursor-pointer font-semibold'
+  const selectStyle = { fontSize: 16 }
 
   return (
     <div className="flex gap-2">
@@ -77,6 +78,7 @@ function BirthDatePicker({ value, onChange }: { value: string; onChange: (v: str
         value={yr}
         onChange={(e) => { setYr(e.target.value); emit(e.target.value, mo, dy) }}
         className={`${selectClass} ${!yr ? 'text-[#C0B8B0]' : ''}`}
+        style={selectStyle}
       >
         <option value="" disabled>년도</option>
         {Array.from({ length: CURRENT_YEAR - 15 - 1959 }, (_, i) => CURRENT_YEAR - 15 - i).map(y => (
@@ -87,6 +89,7 @@ function BirthDatePicker({ value, onChange }: { value: string; onChange: (v: str
         value={mo}
         onChange={(e) => { setMo(e.target.value); emit(yr, e.target.value, dy) }}
         className={`${selectClass} ${!mo ? 'text-[#C0B8B0]' : ''}`}
+        style={selectStyle}
       >
         <option value="" disabled>월</option>
         {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
@@ -97,6 +100,7 @@ function BirthDatePicker({ value, onChange }: { value: string; onChange: (v: str
         value={dy}
         onChange={(e) => { setDy(e.target.value); emit(yr, mo, e.target.value) }}
         className={`${selectClass} ${!dy ? 'text-[#C0B8B0]' : ''}`}
+        style={selectStyle}
       >
         <option value="" disabled>일</option>
         {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
