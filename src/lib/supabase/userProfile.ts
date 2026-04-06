@@ -31,10 +31,13 @@ export async function upsertProfile(fields: ProfileFields): Promise<void> {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
-  await supabase.from('user_profiles').upsert(
+  const { error } = await supabase.from('user_profiles').upsert(
     { user_id: user.id, ...fields },
     { onConflict: 'user_id' }
   )
+  if (error) {
+    console.error('[upsertProfile] upsert failed:', error.message)
+  }
 }
 
 /** Fetch the current user's full profile row. Returns null if not logged in or no row yet. */
@@ -42,10 +45,14 @@ export async function getProfile(): Promise<ProfileFields & { user_id?: string }
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('user_id', user.id)
     .single()
+  if (error) {
+    console.error('[getProfile] query failed:', error.message)
+    return null
+  }
   return data ?? null
 }

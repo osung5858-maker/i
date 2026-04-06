@@ -75,43 +75,24 @@ export async function POST(request: Request) {
       const hour = new Date().getHours()
       const timeContext = hour < 6 ? '새벽' : hour < 12 ? '오전' : hour < 18 ? '오후' : '저녁'
 
-      const prompt = `당신은 "도담" 앱의 AI 육아 전문가입니다. 실제 소아과 의사처럼 구체적이고 실용적으로 조언하세요.
-의료 진단은 하지 말고, 걱정되면 소아과 상담을 권하세요.
+      const prompt = `당신은 "도담" 앱의 AI 육아 전문가입니다. 소아과 의사처럼 간결하게 조언하세요. 의료 진단은 하지 마세요.
 
-[아이 정보]
-- 이름: ${childName || '아이'}
-- 월령: ${ageMonths}개월
-- 현재 시각: ${timeContext} ${hour}시
+[데이터] ${ageMonths}개월 아기, ${timeContext} ${hour}시
+수유 ${feedCount}회${feedTotal ? ` 총${feedTotal}ml` : ''}${feedAmounts ? ` [${feedAmounts}]` : ''} | 수면 ${sleepCount}회${sleepTotal ? ` 총${sleepTotal}분` : ''}${sleepingNow ? ' (수면중)' : ''} | 배변 ${poopCount}회
+마지막수유 ${lastFeedMinAgo ? `${lastFeedMinAgo}분전` : '-'} | 마지막수면 ${lastSleepMinAgo ? `${lastSleepMinAgo}분전` : '-'} | 평균수유간격 ${avgFeedGap ? `${avgFeedGap}분` : '-'}
 
-[오늘 기록]
-- 수유: ${feedCount}회${feedTotal ? ` (총 ${feedTotal}ml)` : ''}${feedAmounts ? ` [각 ${feedAmounts}]` : ''}
-- 수면: ${sleepCount}회${sleepTotal ? ` (총 ${sleepTotal}분)` : ''}${sleepingNow ? ' ← 현재 수면 중' : ''}
-- 배변: ${poopCount}회
-- 마지막 수유: ${lastFeedMinAgo ? `${lastFeedMinAgo}분 전` : '없음'}
-- 마지막 수면: ${lastSleepMinAgo ? `${lastSleepMinAgo}분 전` : '없음'}
-- 평균 수유 간격: ${avgFeedGap ? `${avgFeedGap}분` : '미측정'}
-- 최근 3일 일평균: ${recentDays || '미측정'}
-- 부모 기분: ${mood || '미기록'}
+[규칙]
+1. 각 필드는 완전히 다른 레이어의 정보를 담는다. 같은 내용을 다른 말로 반복하면 실격.
+2. status/mainInsight/warning 사이에 모순 금지. 수유가 과다면 "양호"라 하지 마라.
+3. feedAnalysis/sleepAnalysis는 숫자+단위만. 판단어(양호/부족/과다/정상) 절대 금지.
+4. mainInsight에 "수유"/"수면" 단어 쓰지 마라 (feedAnalysis/sleepAnalysis가 담당).
+5. warning은 수치 반복 금지. 왜 조치가 필요한지 이유만.
+6. nextAction은 동사로 시작하는 행동만 (상태 설명 금지).
+7. 모든 값 최대 20자.
 
-[중요 규칙]
-1. "잘하고 있어요" 같은 식상한 말 금지. 데이터 기반으로 간결하게.
-2. ${ageMonths}개월 기준에 비춰 상태를 판단.
-3. 지금 시각 기준 "다음에 할 일" 1가지만.
-4. 이상 징후 있으면 부드럽게 경고.
-5. ★ 모든 필드는 반드시 1문장, 최대 30자. 짧을수록 좋음. ★
-
-[JSON 출력]
-{
-  "status": "좋음/보통/주의 중 하나",
-  "statusEmoji": "해당 이모지",
-  "mainInsight": "핵심 한 줄 요약 (15~25자, 예: '수유 리듬 안정적, 수면 보충 필요')",
-  "nextAction": "다음 행동 1가지 (20자 이내, 예: '30분 후 수유 시도')",
-  "feedAnalysis": "수유 한 줄 (20자, 예: '권장 대비 70% 섭취')",
-  "sleepAnalysis": "수면 한 줄 (20자, 예: '총 6시간, 2시간 부족')",
-  "warning": "이상 징후 한 줄 또는 null (25자 이내)",
-  "parentTip": "부모 팁 한 줄 (20자 이내)"
-}
-JSON만 출력. 긴 문장 절대 금지.`
+[JSON]
+{"status":"좋음|보통|주의","statusEmoji":"😊|😐|⚠️","mainInsight":"전체 톤 한마디 (수유/수면 언급X)","feedAnalysis":"숫자만 (예: 총540ml, 4회)","sleepAnalysis":"숫자만 (예: 총4시간, 2회)","warning":"이유만 or null","nextAction":"동사+행동"}
+JSON만 출력. parentTip 필드 불필요.`
 
       const { text, error } = await callGemini(prompt, 300)
       if (!text) return NextResponse.json({ error: error || 'AI failed' }, { status: 500 })

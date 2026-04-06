@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { BellIcon, XIcon } from '@/components/ui/Icons'
 import { subscribePush, isPushSubscribed } from '@/lib/push/subscribe'
+import { trackEvent } from '@/lib/analytics'
+import { safeGetItem, safeSetItem } from '@/lib/safeStorage'
 
 const DISMISSED_KEY = 'dodam_push_prompt_dismissed'
 const SHOWN_COUNT_KEY = 'dodam_push_prompt_shown'
@@ -40,12 +42,12 @@ export default function PushPrompt({ message, show = true }: Props) {
       if (Notification.permission === 'denied') return
 
       // 영구 닫기했으면 안 보임
-      if (localStorage.getItem(DISMISSED_KEY) === 'permanent') return
+      if (safeGetItem(DISMISSED_KEY) === 'permanent') return
 
       // 표시 횟수 체크
-      const shown = Number(localStorage.getItem(SHOWN_COUNT_KEY) || 0)
+      const shown = Number(safeGetItem(SHOWN_COUNT_KEY) || 0)
       if (shown >= MAX_SHOWS) {
-        localStorage.setItem(DISMISSED_KEY, 'permanent')
+        safeSetItem(DISMISSED_KEY, 'permanent')
         return
       }
 
@@ -55,7 +57,8 @@ export default function PushPrompt({ message, show = true }: Props) {
       // 약간 딜레이 후 표시 (AI 결과 읽을 시간)
       const timer = setTimeout(() => {
         setVisible(true)
-        localStorage.setItem(SHOWN_COUNT_KEY, String(shown + 1))
+        trackEvent('push_prompt_shown')
+        safeSetItem(SHOWN_COUNT_KEY, String(shown + 1))
       }, 2000)
 
       return () => clearTimeout(timer)
@@ -68,10 +71,12 @@ export default function PushPrompt({ message, show = true }: Props) {
     setSubscribing(false)
 
     if (result.ok) {
-      localStorage.setItem(DISMISSED_KEY, 'permanent') // 성공하면 더 이상 안 보임
+      trackEvent('push_prompt_accepted')
+      safeSetItem(DISMISSED_KEY, 'permanent') // 성공하면 더 이상 안 보임
       setVisible(false)
       window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '알림이 설정됐어요!' } }))
     } else {
+      trackEvent('push_prompt_dismissed', { reason: 'denied' })
       // 권한 거부 시
       setVisible(false)
       sessionStorage.setItem(DISMISSED_KEY, '1')
@@ -79,13 +84,15 @@ export default function PushPrompt({ message, show = true }: Props) {
   }
 
   const handleLater = () => {
+    trackEvent('push_prompt_dismissed', { reason: 'later' })
     setVisible(false)
     sessionStorage.setItem(DISMISSED_KEY, '1') // 이번 세션만 숨김
   }
 
   const handleNever = () => {
+    trackEvent('push_prompt_dismissed', { reason: 'never' })
     setVisible(false)
-    localStorage.setItem(DISMISSED_KEY, 'permanent')
+    safeSetItem(DISMISSED_KEY, 'permanent')
   }
 
   if (!visible) return null

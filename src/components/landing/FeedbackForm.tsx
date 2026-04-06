@@ -58,6 +58,7 @@ export default function FeedbackForm() {
           value={message}
           onChange={e => setMessage(e.target.value)}
           placeholder="자유롭게 적어주세요..."
+          maxLength={2000}
           rows={4}
           className="w-full p-4 lg:p-5 rounded-2xl border border-[#E8E4DF] bg-[#FAFAF8] text-body-emphasis lg:text-subtitle text-primary placeholder-[#C4C0BB] resize-none focus:outline-none focus:border-[#E8937A] transition-colors"
         />

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {MapIcon, BabyIcon, PenIcon, ClockIcon, UsersIcon, ChatIcon} from '@/components/ui/Icons'
+import { sanitizeTitle, sanitizeUserInput } from '@/lib/sanitize'
 
 interface Gathering {
   id: string
@@ -68,6 +69,7 @@ export default function TownGatherTab({ range }: { range: number }) {
       const supabase = createClient()
 
       // 소모임 목록 + 참여자 수 + 최근 게시글
+      const now = new Date().toISOString()
       const { data } = await supabase
         .from('town_gatherings')
         .select(`
@@ -76,6 +78,7 @@ export default function TownGatherTab({ range }: { range: number }) {
           gathering_posts(content, created_at)
         `)
         .eq('status', 'open')
+        .lte('created_at', now)
         .order('created_at', { ascending: false })
         .limit(20)
 
@@ -133,12 +136,16 @@ export default function TownGatherTab({ range }: { range: number }) {
         return
       }
 
+      const sanitizedTitle = sanitizeTitle(title, 50)
+      const sanitizedDesc = sanitizeUserInput(description, 300, { preserveNewlines: true })
+      const sanitizedPlace = sanitizeTitle(placeName, 100)
+      if (!sanitizedTitle) { setCreating(false); return }
       const { data: newGathering, error } = await supabase.from('town_gatherings').insert({
         creator_id: user.id,
-        title: title.trim(),
-        description: description.trim() || null,
+        title: sanitizedTitle,
+        description: sanitizedDesc || null,
         category: category,
-        place_name: placeName.trim() || null,
+        place_name: sanitizedPlace || null,
         lat: userPos.lat,
         lng: userPos.lng,
         meeting_frequency: frequency,
@@ -348,6 +355,7 @@ export default function TownGatherTab({ range }: { range: number }) {
                   value={description}
                   onChange={(e) => setDescription(e.target.value.slice(0, 300))}
                   placeholder="어떤 소모임인지 자유롭게 소개해주세요"
+                  maxLength={300}
                   className="w-full h-20 px-3 py-2 rounded-xl border border-[#E8E4DF] text-body-emphasis resize-none focus:outline-none focus:border-[var(--color-primary)]"
                 />
               </div>

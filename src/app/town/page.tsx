@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { safeGetItem, safeSetItem } from '@/lib/safeStorage'
 import { MapIcon, PhoneIcon, CompassIcon, ChatIcon, PenIcon } from '@/components/ui/Icons'
 import AdSlot from '@/components/ads/AdSlot'
 import PlaceCard from '@/components/town/PlaceCard'
@@ -20,7 +21,7 @@ const STORAGE_KEY_RANGE_SET = 'dodam_neighborhood_range_set'
 
 function getSavedRange(): number {
   if (typeof window === 'undefined') return 1000
-  const saved = localStorage.getItem(STORAGE_KEY_RANGE)
+  const saved = safeGetItem(STORAGE_KEY_RANGE)
   return saved ? Number(saved) : 1000
 }
 
@@ -89,19 +90,19 @@ export default function TownPage() {
   const [editingRange, setEditingRange] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('dodam_mode')
+    const saved = safeGetItem('dodam_mode')
     if (saved) setMode(saved)
     setRange(getSavedRange())
     // 최초 진입 시 범위 편집 모드 자동 활성화
-    if (!localStorage.getItem(STORAGE_KEY_RANGE_SET)) {
+    if (!safeGetItem(STORAGE_KEY_RANGE_SET)) {
       setEditingRange(true)
     }
   }, [])
 
   const handleRangeConfirm = (meters: number) => {
     setRange(meters)
-    localStorage.setItem(STORAGE_KEY_RANGE, String(meters))
-    localStorage.setItem(STORAGE_KEY_RANGE_SET, '1')
+    safeSetItem(STORAGE_KEY_RANGE, String(meters))
+    safeSetItem(STORAGE_KEY_RANGE_SET, '1')
     setEditingRange(false)
   }
 

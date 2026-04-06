@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '**.supabase.co' },
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
       { protocol: 'https', hostname: '**.daumcdn.net' },
+      { protocol: 'https', hostname: 'picsum.photos' },
     ],
     localPatterns: [
       {
@@ -44,7 +45,12 @@ const nextConfig: NextConfig = {
       },
       {
         key: 'Permissions-Policy',
-        value: 'camera=(), microphone=(), geolocation=(self)',
+        value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()',
+      },
+      {
+        // Protect against cross-origin attacks while allowing OAuth popups
+        key: 'Cross-Origin-Opener-Policy',
+        value: 'same-origin-allow-popups',
       },
       {
         key: 'Content-Security-Policy',
@@ -60,6 +66,7 @@ const nextConfig: NextConfig = {
           "object-src 'none'",
           "base-uri 'self'",
           "form-action 'self' https://*.supabase.co https://accounts.google.com https://kauth.kakao.com",
+          "upgrade-insecure-requests",
         ].join('; '),
       },
       {

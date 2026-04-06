@@ -12,17 +12,24 @@ export async function upsertUserRecord(
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
-  await supabase.from('user_records')
+  const { error: delError } = await supabase.from('user_records')
     .delete()
     .eq('user_id', user.id)
     .eq('record_date', date)
     .eq('type', type)
-  await supabase.from('user_records').insert({
+  if (delError) {
+    console.error('[upsertUserRecord] delete failed:', delError.message)
+    return
+  }
+  const { error: insError } = await supabase.from('user_records').insert({
     user_id: user.id,
     record_date: date,
     type,
     value,
   })
+  if (insError) {
+    console.error('[upsertUserRecord] insert failed:', insError.message)
+  }
 }
 
 /**
@@ -37,12 +44,15 @@ export async function insertUserRecord(
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
-  await supabase.from('user_records').insert({
+  const { error } = await supabase.from('user_records').insert({
     user_id: user.id,
     record_date: date,
     type,
     value,
   })
+  if (error) {
+    console.error('[insertUserRecord] insert failed:', error.message)
+  }
 }
 
 /** Fetch all user_records for the current user, optionally filtered by types. */
@@ -61,7 +71,11 @@ export async function fetchUserRecords(types?: string[]): Promise<Array<{
     .eq('user_id', user.id)
     .order('record_date', { ascending: false })
   if (types && types.length > 0) query = query.in('type', types)
-  const { data } = await query
+  const { data, error } = await query
+  if (error) {
+    console.error('[fetchUserRecords] query failed:', error.message)
+    return []
+  }
   return (data ?? []) as Array<{ id: string; record_date: string; type: string; value: Record<string, unknown> }>
 }
 
@@ -70,11 +84,14 @@ export async function deleteUserRecord(date: string, type: string): Promise<void
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
-  await supabase.from('user_records')
+  const { error } = await supabase.from('user_records')
     .delete()
     .eq('user_id', user.id)
     .eq('record_date', date)
     .eq('type', type)
+  if (error) {
+    console.error('[deleteUserRecord] delete failed:', error.message)
+  }
 }
 
 /**
@@ -93,5 +110,8 @@ export async function bulkInsertUserRecords(
     type: r.type,
     value: r.value,
   }))
-  await supabase.from('user_records').insert(rows)
+  const { error } = await supabase.from('user_records').insert(rows)
+  if (error) {
+    console.error('[bulkInsertUserRecords] insert failed:', error.message)
+  }
 }

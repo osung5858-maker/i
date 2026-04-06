@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getProfile } from '@/lib/supabase/userProfile'
 const PROFILE_AVATARS = [
   '/images/illustrations/profile-default1.webm',
   '/images/illustrations/profile-default2.webm',
@@ -14,12 +15,22 @@ export default function AddChildPage() {
   const router = useRouter()
   const supabase = createClient()
 
+  const [nickname, setNickname] = useState('')
   const [name, setName] = useState('도담이')
   const [birthdate, setBirthdate] = useState('')
   const [sex, setSex] = useState<string>('not_specified')
   const [photoUrl, setPhotoUrl] = useState(PROFILE_AVATARS[0])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    getProfile().then(p => {
+      if (p?.chosen_nickname) {
+        setNickname(p.chosen_nickname)
+        setName(p.chosen_nickname)
+      }
+    })
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,7 +79,9 @@ export default function AddChildPage() {
           <button onClick={() => router.back()} className="text-tertiary text-sm">
             취소
           </button>
-          <h1 className="text-subtitle text-primary">도담이 등록</h1>
+          <h1 className="text-subtitle text-primary">
+            {nickname ? `${nickname} 등록` : '도담이 등록'}
+          </h1>
           <div className="w-8" />
         </div>
       </header>
@@ -90,18 +103,33 @@ export default function AddChildPage() {
           />
         </div>
 
-        {/* 생년월일 */}
-        <div className="mb-6">
+        {/* 생년월일 — button + hidden native picker */}
+        <div className="mb-6 relative isolate">
           <label className="block text-xs font-semibold text-[#6B6B6B] mb-2 uppercase tracking-wide">
             생년월일 <span className="text-[var(--color-primary)]">*</span>
           </label>
-          <input
-            type="date"
-            value={birthdate}
-            onChange={(e) => setBirthdate(e.target.value)}
-            max={new Date().toISOString().split('T')[0]}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
-          />
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                const inp = document.getElementById('child-birthdate-input') as HTMLInputElement
+                inp?.showPicker?.()
+                inp?.focus()
+              }}
+              className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary text-left focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+            >
+              {birthdate || <span className="text-[#9B9B9B]">생년월일 선택</span>}
+            </button>
+            <input
+              id="child-birthdate-input"
+              type="date"
+              value={birthdate}
+              onChange={(e) => setBirthdate(e.target.value)}
+              max={new Date().toISOString().split('T')[0]}
+              className="absolute inset-0 opacity-0 pointer-events-none"
+              tabIndex={-1}
+            />
+          </div>
         </div>
 
         {/* 성별 */}
@@ -151,7 +179,7 @@ export default function AddChildPage() {
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
             ) : (
-              '도담이 등록하기'
+              nickname ? `${nickname} 등록하기` : '도담이 등록하기'
             )}
           </button>
           <p className="text-xs text-tertiary text-center mt-3">

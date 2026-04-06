@@ -26,6 +26,7 @@ export default function EditChildPage() {
   const [photoUrl, setPhotoUrl] = useState(PROFILE_AVATARS[0])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -70,8 +71,6 @@ export default function EditChildPage() {
   }
 
   const handleDelete = async () => {
-    if (!confirm('정말 삭제할까요? 모든 기록이 사라져요.')) return
-
     await supabase.from('children').delete().eq('id', childId)
     window.location.href = '/'
   }
@@ -178,12 +177,34 @@ export default function EditChildPage() {
 
       {/* 삭제 */}
       <div className="px-6 pb-28 max-w-lg mx-auto w-full">
-        <button
-          onClick={handleDelete}
-          className="w-full py-3 text-sm text-red-500 font-medium active:opacity-70"
-        >
-          프로필 삭제
-        </button>
+        {!showDeleteConfirm ? (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="w-full py-3 text-sm text-red-500 font-medium active:opacity-70"
+          >
+            프로필 삭제
+          </button>
+        ) : (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-body text-red-700 font-semibold mb-3 text-center">
+              정말 삭제할까요? 모든 기록이 사라져요.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-2.5 rounded-lg bg-white border border-[#E8E4DF] text-primary font-medium active:bg-[#F0EDE8]"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 py-2.5 rounded-lg bg-red-500 text-white font-medium active:bg-red-600"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 하단 고정 저장 버튼 */}

@@ -897,6 +897,7 @@ function BottomNavComponent() {
                   <input
                     type="text" placeholder="약 이름 (선택)" value={memoText}
                     onChange={(e) => setMemoText(e.target.value)}
+                    maxLength={50}
                     className="w-full px-4 py-3 rounded-xl border border-[#E8E4DF] bg-[#FAFAF8] text-body-emphasis text-primary placeholder-[#C4C0BB] focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-4"
                     autoFocus
                   />
@@ -1096,6 +1097,7 @@ function BottomNavComponent() {
                       else if (selectedCategory) setSelectedCategory(null)
                       else setFabOpen(v => !v)
                     }}
+                    data-fab-button
                     className={`absolute -top-14 flex flex-col items-center justify-center transition-transform duration-200 z-[80] ${fabOpen ? 'scale-95' : ''}`}
                     style={{ pointerEvents: 'auto', cursor: 'pointer', touchAction: 'manipulation' }}
                     type="button"
@@ -1179,6 +1181,7 @@ function BottomNavComponent() {
               </div>
               <textarea value={journalText} onChange={e => setJournalText(e.target.value.slice(0, 500))}
                 placeholder={journalType === 'preg_journal' ? '우리 아기에게, 오늘의 마음을 전해요' : '아직 만나지 못한 아이에게, 오늘의 마음을 전해요'}
+                maxLength={500}
                 className="w-full h-28 text-body-emphasis p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[#A78BFA]"
                 autoFocus />
               <p className="text-right text-caption text-tertiary mt-1">{journalText.length}/500</p>

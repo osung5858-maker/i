@@ -19,17 +19,19 @@ type DbStats = {
 
 export default function DevPanel() {
   const [open, setOpen] = useState(false)
+  const [hidden, setHidden] = useState(false)
   const [confirming, setConfirming] = useState<string | null>(null)
   const [dbStats, setDbStats] = useState<DbStats | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const currentMode = typeof window !== 'undefined'
-    ? localStorage.getItem('dodam_mode') || 'parenting'
-    : 'parenting'
+  // 스크린샷 촬영용 히든 (콘솔: localStorage.setItem('dodam_dev_hidden','1'))
+  useEffect(() => {
+    if (localStorage.getItem('dodam_dev_hidden') === '1') setHidden(true)
+  }, [])
 
   // 패널 열릴 때 DB 상태 조회
   useEffect(() => {
-    if (!open) return
+    if (!open || hidden) return
     let cancelled = false
     async function loadStats() {
       const supabase = createClient()
@@ -56,7 +58,13 @@ export default function DevPanel() {
     }
     loadStats()
     return () => { cancelled = true }
-  }, [open])
+  }, [open, hidden])
+
+  const currentMode = typeof window !== 'undefined'
+    ? localStorage.getItem('dodam_mode') || 'parenting'
+    : 'parenting'
+
+  if (hidden) return null
 
   const switchMode = useCallback(async (mode: string) => {
     // APP_STATE 키 — 동기적 접근 필요하므로 localStorage 유지

@@ -1,14 +1,20 @@
 'use client'
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import { useRemoteContent } from '@/lib/useRemoteContent'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChatIcon, FireIcon, TrashIcon, HeartIcon, HeartFilledIcon, BookmarkIcon, BookmarkFilledIcon, GiftIcon, PackageIcon, MapPinIcon, CameraIcon, XIcon } from '@/components/ui/Icons'
+import { sanitizeUserInput, sanitizeTitle } from '@/lib/sanitize'
 import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 import { getProfile } from '@/lib/supabase/userProfile'
 import AdSlot from '@/components/ads/AdSlot'
 import Image from 'next/image'
+import { trackEvent } from '@/lib/analytics'
+
+// Lazy load Image component for heavy image rendering (thumbnails are kept SSR)
+// Note: next/image is already optimized, this is just for demonstration
 
 type MainTab = 'feed' | 'market'
 
@@ -236,7 +242,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
     })
   }
 
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dodam.life'
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://i.dodam.life'
 
   const sharePost = (post: any) => {
     const url = `${SITE_URL}/post/${post.id}`
@@ -293,9 +299,10 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
       const { data: likes } = await supabase.from('post_likes').select('post_id').eq('user_id', user.id)
       if (likes) setUserLikes(new Set(likes.map((l: { post_id: string }) => l.post_id)))
 
+      const now = new Date().toISOString()
       const [postsRes, itemsRes] = await Promise.all([
-        supabase.from('posts').select('id, user_id, content, like_count, comment_count, created_at').order('created_at', { ascending: false }).limit(30),
-        supabase.from('market_items').select('id, user_id, title, description, price, category, baby_age_months, region, photos, status, chat_count, created_at, transaction_type, exchange_want').order('created_at', { ascending: false }).limit(30),
+        supabase.from('posts').select('id, user_id, content, like_count, comment_count, created_at').lte('created_at', now).order('created_at', { ascending: false }).limit(30),
+        supabase.from('market_items').select('id, user_id, title, description, price, category, baby_age_months, region, photos, status, chat_count, created_at, transaction_type, exchange_want').lte('created_at', now).order('created_at', { ascending: false }).limit(30),
       ])
       setPosts((postsRes.data as Post[]) || [])
       setItems((itemsRes.data as MarketItem[]) || [])
@@ -307,8 +314,13 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   const handlePost = useCallback(async () => {
     if (!writeText.trim() || !userId || posting) return
     setPosting(true)
-    const { data } = await supabase.from('posts').insert({ user_id: userId, board_type: 'general', content: writeText.trim() }).select().single()
-    if (data) setPosts((prev) => [data as Post, ...prev])
+    const sanitizedContent = sanitizeUserInput(writeText, 2000, { preserveNewlines: true })
+    if (!sanitizedContent) { setPosting(false); return }
+    const { data } = await supabase.from('posts').insert({ user_id: userId, board_type: 'general', content: sanitizedContent }).select().single()
+    if (data) {
+      setPosts((prev) => [data as Post, ...prev])
+      trackEvent('community_post_created')
+    }
     setWriteText(''); setWriteOpen(false); setPosting(false)
   }, [writeText, userId, posting, supabase])
 
@@ -335,13 +347,17 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   const handleMarketPost = useCallback(async () => {
     if (!mTitle.trim() || !userId || posting) return
     setPosting(true)
+    const sanitizedTitle = sanitizeTitle(mTitle, 100)
+    const sanitizedDesc = sanitizeUserInput(mDesc, 1000, { preserveNewlines: true })
+    const sanitizedExchangeWant = sanitizeTitle(mExchangeWant, 200)
+    if (!sanitizedTitle) { setPosting(false); return }
     const insertData: Record<string, unknown> = {
-      user_id: userId, title: mTitle.trim(), description: mDesc.trim(),
+      user_id: userId, title: sanitizedTitle, description: sanitizedDesc,
       price: mTransType === 'share' ? 0 : mTransType === 'exchange' ? 0 : mPrice,
       category: mCategory, baby_age_months: mAge, region: mRegion || '미설정',
       photos: mPhotos, condition: mCondition,
       transaction_type: mTransType,
-      exchange_want: mTransType === 'exchange' ? mExchangeWant.trim() : null,
+      exchange_want: mTransType === 'exchange' ? sanitizedExchangeWant : null,
     }
     const { data, error } = await supabase.from('market_items').insert(insertData).select().single()
     if (error) {
@@ -349,7 +365,10 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
       setPosting(false)
       return
     }
-    if (data) setItems((prev) => [data as MarketItem, ...prev])
+    if (data) {
+      setItems((prev) => [data as MarketItem, ...prev])
+      trackEvent('market_item_listed', { category: mCategory })
+    }
     setMTitle(''); setMDesc(''); setMPrice(0); setMPhotos([]); setMTransType('sell'); setMExchangeWant(''); setMarketOpen(false); setPosting(false)
   }, [mTitle, mDesc, mPrice, mCategory, mAge, mRegion, mTransType, mExchangeWant, userId, posting, supabase])
 
@@ -394,8 +413,10 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   const submitComment = useCallback(async (postId: string) => {
     if (!commentText.trim() || !userId || commentLoading) return
     setCommentLoading(true)
+    const sanitizedComment = sanitizeUserInput(commentText, 500)
+    if (!sanitizedComment) { setCommentLoading(false); return }
     const { data } = await supabase
-      .from('comments').insert({ post_id: postId, user_id: userId, content: commentText.trim() })
+      .from('comments').insert({ post_id: postId, user_id: userId, content: sanitizedComment })
       .select().single()
     if (data) {
       setComments((prev) => ({ ...prev, [postId]: [...(prev[postId] || []), data as Comment] }))
@@ -602,6 +623,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                           value={commentText}
                           onChange={(e) => setCommentText(e.target.value.slice(0, 500))}
                           placeholder="댓글을 입력하세요..."
+                          maxLength={500}
                           className="flex-1 h-9 px-3 rounded-xl bg-[var(--color-page-bg)] text-body-emphasis focus:outline-none"
                           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(post.id) } }}
                         />
@@ -808,7 +830,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
               <div className="w-8" />
             </div>
             <div className="px-5 py-4">
-              <textarea value={writeText} onChange={(e) => setWriteText(e.target.value.slice(0, 2000))} placeholder="육아 이야기를 나눠보세요..." className="w-full h-32 text-body-emphasis text-primary resize-none focus:outline-none" autoFocus />
+              <textarea value={writeText} onChange={(e) => setWriteText(e.target.value.slice(0, 2000))} placeholder="육아 이야기를 나눠보세요..." maxLength={2000} className="w-full h-32 text-body-emphasis text-primary resize-none focus:outline-none" autoFocus />
               <p className="text-right text-body text-tertiary pt-2">{writeText.length}/2000</p>
             </div>
             <div className="px-5 pb-4">
@@ -833,7 +855,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
             <div className="px-5 py-4 space-y-4">
               <div>
                 <p className="text-body-emphasis text-secondary mb-1">제목</p>
-                <input value={mTitle} onChange={(e) => setMTitle(e.target.value.slice(0, 100))} placeholder="예: 내복 세트 6~12개월" className="w-full h-10 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis focus:outline-none focus:border-[var(--color-primary)]" />
+                <input value={mTitle} onChange={(e) => setMTitle(e.target.value.slice(0, 100))} placeholder="예: 내복 세트 6~12개월" maxLength={100} className="w-full h-10 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis focus:outline-none focus:border-[var(--color-primary)]" />
               </div>
               <div>
                 <p className="text-body-emphasis text-secondary mb-1">카테고리</p>
@@ -901,7 +923,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
               </div>
               <div>
                 <p className="text-body-emphasis text-secondary mb-1">설명 (선택)</p>
-                <textarea value={mDesc} onChange={(e) => setMDesc(e.target.value.slice(0, 1000))} placeholder="상태, 사용 기간 등을 적어주세요" className="w-full h-20 px-3 py-2 rounded-xl border border-[#E8E4DF] text-body resize-none focus:outline-none" />
+                <textarea value={mDesc} onChange={(e) => setMDesc(e.target.value.slice(0, 1000))} placeholder="상태, 사용 기간 등을 적어주세요" maxLength={1000} className="w-full h-20 px-3 py-2 rounded-xl border border-[#E8E4DF] text-body resize-none focus:outline-none" />
               </div>
               <button onClick={handleMarketPost} disabled={!mTitle.trim() || posting}
                 className={`w-full py-3.5 rounded-xl text-subtitle transition-colors ${mTitle.trim() ? 'bg-[var(--color-primary)] text-white active:bg-[#2D6B45]' : 'bg-[#E8E4DF] text-tertiary'}`}>

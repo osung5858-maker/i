@@ -122,7 +122,7 @@ export default function AnalyticsClient() {
               />
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip
-                labelFormatter={(v: string) => v}
+                labelFormatter={(v: any) => String(v)}
                 contentStyle={{ fontSize: 12 }}
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />

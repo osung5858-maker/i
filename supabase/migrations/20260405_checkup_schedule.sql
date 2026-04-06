@@ -46,14 +46,32 @@ WHERE type IN ('checkup_schedule', 'checkup_result');
 -- - Allowed MIME types: image/jpeg, image/png, video/mp4, video/quicktime
 
 -- ============================================================
--- 4. Storage RLS 정책: 본인 + 파트너만 접근
+-- 4. user_profiles에 partner_user_id 추가 (없는 경우)
+--    ※ Storage RLS 정책이 이 컬럼을 참조하므로 먼저 추가
+-- ============================================================
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'user_profiles'
+      AND column_name = 'partner_user_id'
+  ) THEN
+    ALTER TABLE user_profiles
+      ADD COLUMN partner_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL;
+
+    COMMENT ON COLUMN user_profiles.partner_user_id IS '배우자 user_id (family 연결)';
+  END IF;
+END $$;
+
+-- ============================================================
+-- 5. Storage RLS 정책: 본인 + 파트너만 접근
 -- ============================================================
 
 -- 주의: storage.objects 테이블에 정책 적용
--- user_profiles.partner_user_id 컬럼이 존재한다고 가정
--- (없으면 caregivers 테이블 사용 또는 향후 추가)
 
-CREATE POLICY IF NOT EXISTS "Ultrasound media - own and partner access"
+DROP POLICY IF EXISTS "Ultrasound media - own and partner access" ON storage.objects;
+CREATE POLICY "Ultrasound media - own and partner access"
 ON storage.objects FOR SELECT
 USING (
   bucket_id = 'ultrasound'
@@ -72,7 +90,8 @@ USING (
 );
 
 -- 업로드 정책: 본인 폴더만
-CREATE POLICY IF NOT EXISTS "Ultrasound media - own upload only"
+DROP POLICY IF EXISTS "Ultrasound media - own upload only" ON storage.objects;
+CREATE POLICY "Ultrasound media - own upload only"
 ON storage.objects FOR INSERT
 WITH CHECK (
   bucket_id = 'ultrasound'
@@ -80,31 +99,13 @@ WITH CHECK (
 );
 
 -- 삭제 정책: 본인 파일만
-CREATE POLICY IF NOT EXISTS "Ultrasound media - own delete only"
+DROP POLICY IF EXISTS "Ultrasound media - own delete only" ON storage.objects;
+CREATE POLICY "Ultrasound media - own delete only"
 ON storage.objects FOR DELETE
 USING (
   bucket_id = 'ultrasound'
   AND (storage.foldername(name))[1] = auth.uid()::text
 );
-
--- ============================================================
--- 5. user_profiles에 partner_user_id 추가 (없는 경우)
--- ============================================================
-
--- 이미 존재하는지 확인
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_name = 'user_profiles'
-      AND column_name = 'partner_user_id'
-  ) THEN
-    ALTER TABLE user_profiles
-      ADD COLUMN partner_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL;
-
-    COMMENT ON COLUMN user_profiles.partner_user_id IS '배우자 user_id (family 연결)';
-  END IF;
-END $$;
 
 -- ============================================================
 -- 6. notification_log 테이블 확장 (검진 알림 타입 추가)

@@ -5,11 +5,14 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { safeGetItem, safeRemoveItem } from '@/lib/safeStorage'
 import { ChevronRightIcon, UsersIcon, BellIcon } from '@/components/ui/Icons'
 import { loadNotificationSettings, loadNotificationSettingsFromDB, saveNotificationSettings, type NotificationSettings } from '@/lib/push/config'
 import { subscribePush, unsubscribePush, isPushSubscribed } from '@/lib/push/subscribe'
 // child avatars are .webm video files
 import ThemeSelector from '@/components/settings/ThemeSelector'
+import dynamic from 'next/dynamic'
+const DemoDataSeeder = dynamic(() => import('@/components/dev/DemoDataSeeder'), { ssr: false })
 import type { User } from '@supabase/supabase-js'
 import type { Child } from '@/types'
 
@@ -34,7 +37,7 @@ export default function SettingsPage() {
       if (data) setChildren(data as Child[])
     }
     load()
-    setMode(localStorage.getItem('dodam_mode') || 'parenting')
+    setMode(safeGetItem('dodam_mode') || 'parenting')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLogout = async () => {
@@ -88,8 +91,10 @@ export default function SettingsPage() {
   const executeDeleteAccount = async () => {
     try {
       await supabase.from('user_profiles').upsert({ user_id: user?.id, status: 'withdrawn', updated_at: new Date().toISOString() })
-      const keysToRemove = Object.keys(localStorage).filter(k => k.startsWith('dodam_') || k.startsWith('kn_'))
-      keysToRemove.forEach(k => localStorage.removeItem(k))
+      try {
+        const keysToRemove = Object.keys(localStorage).filter(k => k.startsWith('dodam_') || k.startsWith('kn_'))
+        keysToRemove.forEach(k => safeRemoveItem(k))
+      } catch { /* Safari private mode — skip localStorage cleanup */ }
       await supabase.auth.signOut()
       window.location.href = '/onboarding'
     } catch {
@@ -356,6 +361,7 @@ export default function SettingsPage() {
                       value={deleteConfirmText}
                       onChange={e => setDeleteConfirmText(e.target.value)}
                       placeholder="탈퇴합니다"
+                      maxLength={10}
                       className="w-full h-12 px-4 rounded-xl border border-[#E8E4DF] text-body-emphasis"
                     />
                     <button
@@ -379,6 +385,11 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+
+        {/* 개발용: 데모 데이터 시더 */}
+        <div className="mx-4 mt-4">
+          <DemoDataSeeder />
+        </div>
 
         <p className="text-center text-xs text-tertiary mt-6">
           오늘도 도담하게

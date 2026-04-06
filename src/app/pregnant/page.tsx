@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
@@ -10,15 +11,18 @@ import { SparkleIcon, PenIcon, ActivityIcon, HeartFilledIcon, HeartPulseIcon, Wa
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import IllustVideo from '@/components/ui/IllustVideo'
 import MissionCard from '@/components/ui/MissionCard'
-import AIMealCard from '@/components/ai-cards/AIMealCard'
 import PushPrompt from '@/components/push/PushPrompt'
-import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
+import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import { setSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
 import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
 import { upsertPregRecord, fetchPregRecords } from '@/lib/supabase/pregRecord'
 import { fetchUserRecords } from '@/lib/supabase/userRecord'
 import PageSkeleton from '@/components/ui/PageSkeleton'
+
+// Lazy load below-the-fold and modal components
+const AIMealCard = dynamic(() => import('@/components/ai-cards/AIMealCard'), { ssr: true })
+const SpotlightGuide = dynamic(() => import('@/components/onboarding/SpotlightGuide'), { ssr: false })
 
 // ===== 태아 데이터 =====
 const FETAL_DATA = [
@@ -76,10 +80,8 @@ function getSeasonalBag(): { season: string; items: string[] } | null {
   return null
 }
 
-// ===== AI 디스플레이 — 요약 + 펼치기 =====
+// ===== AI 디스플레이 — 요약 + 상세 항목 =====
 function PregnantAIDisplay({ briefing, onRefresh, week, daysLeft, fruitName }: { briefing: any; onRefresh: () => void; week: number; daysLeft: number; fruitName: string }) {
-  const [expanded, setExpanded] = useState(false)
-
   return (
     <div>
       <div className="flex items-start" style={{ gap: 'var(--spacing-2)' }}>
@@ -101,28 +103,26 @@ function PregnantAIDisplay({ briefing, onRefresh, week, daysLeft, fruitName }: {
             )
           })()}
 
-          {/* 아기 메시지 (항상) */}
+          {/* 아기 메시지 */}
           {briefing.babyMessage && (
             <div className="bg-[var(--color-primary-bg)] rounded-lg mt-1.5 border border-[var(--color-primary)]/10" style={{ padding: 'var(--spacing-2)' }}>
               <p className="text-caption text-[var(--color-primary)]">💬 {briefing.babyMessage}</p>
             </div>
           )}
 
-          {/* 상세 (펼치기) */}
-          {expanded && (
-            <div className="mt-2 bg-white/60 rounded-lg border border-[var(--color-accent-bg)]" style={{ padding: 'var(--spacing-3)', gap: 'var(--spacing-2)' }}>
-              {briefing.mainAdvice && <p className="text-caption text-secondary leading-relaxed">{briefing.mainAdvice}</p>}
-              {briefing.weekHighlight && <p className="text-caption text-secondary leading-relaxed">{briefing.weekHighlight}</p>}
-              {briefing.bodyTip && <p className="text-caption text-secondary leading-relaxed">{briefing.bodyTip}</p>}
-              {briefing.emotionalCare && <p className="text-caption text-secondary leading-relaxed">{briefing.emotionalCare}</p>}
+          {/* 상세 항목 */}
+          {(briefing.mainAdvice || briefing.weekHighlight || briefing.bodyTip || briefing.emotionalCare) && (
+            <div className="mt-2 space-y-1.5">
+              {briefing.mainAdvice && <p className="text-caption text-secondary leading-relaxed">💡 {briefing.mainAdvice}</p>}
+              {briefing.weekHighlight && <p className="text-caption text-secondary leading-relaxed">📋 {briefing.weekHighlight}</p>}
+              {briefing.bodyTip && <p className="text-caption text-secondary leading-relaxed">🧘 {briefing.bodyTip}</p>}
+              {briefing.emotionalCare && <p className="text-caption text-secondary leading-relaxed">💛 {briefing.emotionalCare}</p>}
             </div>
           )}
 
-          <div className="flex items-center mt-2" style={{ gap: 'var(--spacing-3)' }}>
-            <button onClick={() => setExpanded(!expanded)} className="text-caption text-[var(--color-primary)] font-medium press-feedback">
-              {expanded ? '접기 ▲' : '자세히 ▼'}
-            </button>
+          <div className="flex items-center justify-center mt-2" style={{ gap: 'var(--spacing-3)' }}>
             <button onClick={onRefresh} className="text-caption text-tertiary press-feedback">다시 받기</button>
+            <span className="text-[#E8E4DF]">·</span>
             <button onClick={() => shareDday(week, daysLeft, fruitName)} className="text-caption text-[var(--color-primary)] press-feedback">공유</button>
           </div>
         </div>
@@ -135,6 +135,14 @@ function haptic() { if (navigator.vibrate) navigator.vibrate(20) }
 
 export default function PregnantPage() {
   const router = useRouter()
+
+  // 모드별 리디렉트: pregnant 모드가 아닌데 /pregnant 에 접근하면 해당 모드 홈으로
+  useEffect(() => {
+    const mode = localStorage.getItem('dodam_mode')
+    if (mode === 'parenting') { router.replace('/'); return }
+    if (mode === 'preparing') { router.replace('/preparing'); return }
+  }, [router])
+
   const checkups = useRemoteContent('checkups', DEFAULT_CHECKUPS)
   const hospitalBag = useRemoteContent('hospital_bag', DEFAULT_HOSPITAL_BAG)
   const [toast, setToast] = useState<string | null>(null)
@@ -572,6 +580,9 @@ export default function PregnantPage() {
           </div>
         </div>
 
+        {/* PWA 설치 안내 (웹에서만) */}
+        <PWAInstallPrompt />
+
         {/* 푸시 알림 동의 */}
         <PushPrompt message="검진일과 주차 변경을 알려드릴까요?" />
 
@@ -759,6 +770,7 @@ export default function PregnantPage() {
                 value={foodQuery}
                 onChange={e => setFoodQuery(e.target.value)}
                 placeholder={placeholder}
+                maxLength={100}
                 className="flex-1 text-body bg-transparent outline-none text-primary placeholder:text-tertiary"
               />
               {foodQuery.trim() ? (

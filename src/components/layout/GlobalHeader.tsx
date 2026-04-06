@@ -13,7 +13,14 @@ const NO_HEADER_PATHS = ['/onboarding', '/invite/', '/auth', '/landing', '/setti
 
 function GlobalHeaderComponent() {
   const pathname = usePathname()
-  const [mode, setMode] = useState('')
+  const [mode, setMode] = useState<string>(() => {
+    if (typeof document !== 'undefined') {
+      return document.documentElement.getAttribute('data-mode')
+        || localStorage.getItem('dodam_mode')
+        || 'parenting'
+    }
+    return 'parenting'
+  })
   const [data, setData] = useState<any>(null)
   const [userPhotoUrl, setUserPhotoUrl] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
@@ -143,8 +150,36 @@ function GlobalHeaderComponent() {
     } catch { /* 오프라인 무시 */ }
   }, [])
 
-  if (!pathname || !data || !mode) return null
+  if (!pathname || !mode) return null
   if (NO_HEADER_PATHS.some(p => pathname.startsWith(p))) return null
+
+  // data 로딩 전 스켈레톤 — 레이아웃 시프트 방지
+  if (!data) return (
+    <header className="sticky top-0 z-40 pointer-events-none" style={{ paddingTop: '8px' }}>
+      <div className="max-w-lg mx-auto w-full px-4">
+        <div style={{
+          height: 52,
+          padding: '0 16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          borderRadius: 16,
+          background: 'rgba(255,255,255,0.72)',
+          backdropFilter: 'blur(20px) saturate(1.8)',
+          WebkitBackdropFilter: 'blur(20px) saturate(1.8)',
+          border: '1px solid rgba(255,255,255,0.5)',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+        }}>
+          <div className="w-[34px] h-[34px] rounded-full bg-[#F0EDE8] animate-pulse shrink-0" />
+          <div className="flex-1 space-y-1.5">
+            <div className="h-3 w-24 bg-[#F0EDE8] rounded animate-pulse" />
+            <div className="h-4 w-32 bg-[#F0EDE8] rounded animate-pulse" />
+          </div>
+        </div>
+      </div>
+      <div style={{ height: '8px' }} />
+    </header>
+  )
 
   const homeHref = mode === 'parenting' ? '/' : mode === 'pregnant' ? '/pregnant' : '/preparing'
   const isNight = new Date().getHours() >= 20 || new Date().getHours() < 6

@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 import { SparkleIcon, ChartIcon, ClipboardIcon } from '@/components/ui/Icons'
 import Image from 'next/image'
+import { shareGrowthAnalysis } from '@/lib/share'
+import { trackEvent } from '@/lib/analytics'
 
 interface AnalysisResult {
   extracted: {
@@ -83,6 +85,7 @@ export default function AnalyzeCheckupPage() {
     if (!file || !preview) return
     setAnalyzing(true)
     setError(null)
+    trackEvent('ai_analysis_triggered', { type: 'checkup' })
 
     try {
       const res = await fetch('/api/analyze-checkup', {
@@ -95,6 +98,7 @@ export default function AnalyzeCheckupPage() {
 
       const data = await res.json()
       setResult(data)
+      trackEvent('ai_analysis_completed', { type: 'checkup' })
     } catch {
       setError('분석에 실패했어요. 다시 시도해주세요.')
     } finally {
@@ -311,6 +315,18 @@ export default function AnalyzeCheckupPage() {
                 </ul>
               </div>
             )}
+
+            {/* 공유 */}
+            <button
+              onClick={() => shareGrowthAnalysis(result.summary)}
+              className="w-full h-11 rounded-2xl font-semibold text-body border border-[var(--color-primary)] text-[var(--color-primary)] active:bg-[var(--color-primary)]/5 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              분석 결과 공유하기
+            </button>
 
             {/* 면책 */}
             <p className="text-body text-tertiary text-center px-4">

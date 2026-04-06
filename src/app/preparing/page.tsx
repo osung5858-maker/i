@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { useRemoteContent } from '@/lib/useRemoteContent'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -11,11 +12,14 @@ import { fetchUserRecords } from '@/lib/supabase/userRecord'
 import { fetchPrepRecords, upsertPrepRecord } from '@/lib/supabase/prepRecord'
 import { SparkleIcon, PenIcon, PillIcon, HospitalIcon, BanIcon, ActivityIcon, WalkIcon, FootstepsIcon, YogaIcon, HeartFilledIcon, MoonIcon, WaterGlassIcon, MusicIcon, BookOpenIcon, CompassIcon, SproutIcon, DropletIcon, SunIcon, OmegaIcon, MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodTiredIcon } from '@/components/ui/Icons'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
-import AIMealCard from '@/components/ai-cards/AIMealCard'
 import MissionCard from '@/components/ui/MissionCard'
 import PushPrompt from '@/components/push/PushPrompt'
-import SpotlightGuide from '@/components/onboarding/SpotlightGuide'
+import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import PageSkeleton from '@/components/ui/PageSkeleton'
+
+// Lazy load below-the-fold and modal components
+const AIMealCard = dynamic(() => import('@/components/ai-cards/AIMealCard'), { ssr: true })
+const SpotlightGuide = dynamic(() => import('@/components/onboarding/SpotlightGuide'), { ssr: false })
 
 function addDays(date: Date, days: number): Date {
   const d = new Date(date); d.setDate(d.getDate() + days); return d
@@ -104,10 +108,8 @@ function BirthDatePicker({ value, onChange }: { value: string; onChange: (v: str
   )
 }
 
-// ===== AI 디스플레이 — 요약 기본 + 펼쳐서 전체 =====
+// ===== AI 디스플레이 — 요약 + 상세 항목 =====
 function AITypingDisplay({ briefing, onRefresh, onShare }: { briefing: any; onRefresh: () => void; onShare: () => void }) {
-  const [expanded, setExpanded] = useState(false)
-
   return (
     <div className="bg-white/80 rounded-xl p-3 border border-white shadow-sm">
       <div className="flex items-start gap-2.5">
@@ -129,8 +131,14 @@ function AITypingDisplay({ briefing, onRefresh, onShare }: { briefing: any; onRe
             )
           })()}
 
-          {/* 상세 (펼치기) */}
-          {expanded && (
+          {/* 상세 항목 */}
+          {[
+            { icon: '💡', label: '오늘의 조언', text: briefing.mainAdvice },
+            { icon: '🔄', label: '주기 인사이트', text: briefing.cycleInsight },
+            { icon: '💛', label: '마음 케어', text: briefing.emotionalCare },
+            { icon: '🥗', label: '영양 팁', text: briefing.nutritionTip },
+            { icon: '👫', label: '파트너 팁', text: briefing.partnerTip },
+          ].filter(s => s.text).length > 0 && (
             <div className="mt-3 space-y-2.5">
               {[
                 { icon: '💡', label: '오늘의 조언', text: briefing.mainAdvice },
@@ -149,11 +157,6 @@ function AITypingDisplay({ briefing, onRefresh, onShare }: { briefing: any; onRe
 
           {/* 액션 버튼 */}
           <div className="flex items-center gap-2 mt-3">
-            <button onClick={() => setExpanded(!expanded)}
-              className="flex-1 py-2 rounded-lg bg-[var(--color-primary)] active:opacity-80 transition-opacity"
-              style={{ fontSize: 13, color: '#FFFFFF', fontWeight: 700 }}>
-              {expanded ? '접기' : '자세히 보기'}
-            </button>
             <button onClick={onRefresh}
               className="px-3 py-2 rounded-lg font-medium text-secondary bg-[var(--color-page-bg)] active:bg-[#E8E4DF] transition-colors"
               style={{ fontSize: 13 }}>
@@ -250,6 +253,14 @@ function PreparingMealCard({ phase }: { phase: string }) {
 
 export default function PreparingPage() {
   const router = useRouter()
+
+  // 모드별 리디렉트: preparing 모드가 아닌데 /preparing 에 접근하면 해당 모드 홈으로
+  useEffect(() => {
+    const mode = localStorage.getItem('dodam_mode')
+    if (mode === 'parenting') { router.replace('/'); return }
+    if (mode === 'pregnant') { router.replace('/pregnant'); return }
+  }, [router])
+
   const apptList = useRemoteContent('preparing_appointments', DEFAULT_APPOINTMENTS)
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); haptic(); setTimeout(() => setToast(null), 2000) }
@@ -907,6 +918,7 @@ export default function PreparingPage() {
             value={foodQuery}
             onChange={e => setFoodQuery(e.target.value)}
             placeholder={placeholder}
+            maxLength={100}
             className="flex-1 text-body bg-transparent outline-none text-primary placeholder:text-tertiary"
           />
           {foodQuery.trim() ? (
@@ -917,6 +929,9 @@ export default function PreparingPage() {
         </form>
           )
         })()}
+
+        {/* PWA 설치 안내 (웹에서만) */}
+        <PWAInstallPrompt />
 
         {/* 푸시 알림 동의 */}
         <PushPrompt message="배란일과 엽산 리마인더를 받아볼까요?" />

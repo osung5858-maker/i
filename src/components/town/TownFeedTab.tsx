@@ -31,9 +31,12 @@ export default function TownFeedTab({ range }: { range: number }) {
   const loadFeed = async () => {
     try {
       const supabase = createClient()
+      const now = new Date().toISOString()
       const { data } = await supabase
         .from('town_feed')
         .select('*')
+        .lte('created_at', now)
+        .gte('expires_at', now)
         .order('created_at', { ascending: false })
         .limit(20)
 
@@ -104,6 +107,7 @@ export default function TownFeedTab({ range }: { range: number }) {
           value={newPost}
           onChange={(e) => setNewPost(e.target.value)}
           placeholder="동네 소식을 공유해보세요 (24시간 후 자동 삭제)"
+          maxLength={2000}
           className="w-full h-20 text-body-emphasis text-primary placeholder:text-tertiary resize-none outline-none"
         />
         <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#F0EDE8]">

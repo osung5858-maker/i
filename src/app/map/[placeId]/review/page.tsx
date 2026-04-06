@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { sanitizeUserInput } from '@/lib/sanitize'
 
 const PRESET_TAGS = [
   '피부 잘 봄', '대기 짧음', '주차 편함', '친절함',
@@ -62,11 +63,13 @@ export default function WriteReviewPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/onboarding'); return }
 
+    const sanitizedContent = sanitizeUserInput(content, 500, { preserveNewlines: true })
+    if (!sanitizedContent) { setError('내용을 입력해주세요.'); setLoading(false); return }
     const { error: insertError } = await supabase.from('reviews').insert({
       place_id: placeId,
       user_id: user.id,
       rating,
-      content,
+      content: sanitizedContent,
       tags: selectedTags.length > 0 ? selectedTags : null,
       child_age_months: childAgeMonths,
     })

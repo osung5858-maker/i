@@ -3,6 +3,7 @@ import { OnboardingPage } from '../page-objects/OnboardingPage'
 import { HomePage } from '../page-objects/HomePage'
 import { PregnantPage } from '../page-objects/PregnantPage'
 import { SettingsPage } from '../page-objects/SettingsPage'
+import { CheckupPage } from '../page-objects/CheckupPage'
 
 /**
  * Auth Fixture
@@ -22,6 +23,7 @@ type AuthFixtures = {
   homePage: HomePage
   pregnantPage: PregnantPage
   settingsPage: SettingsPage
+  checkupPage: CheckupPage
   authenticatedPage: void // Auto-login fixture
 }
 
@@ -40,6 +42,10 @@ export const test = base.extend<AuthFixtures>({
 
   settingsPage: async ({ page }, use) => {
     await use(new SettingsPage(page))
+  },
+
+  checkupPage: async ({ page }, use) => {
+    await use(new CheckupPage(page))
   },
 
   /**

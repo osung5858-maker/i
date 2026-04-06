@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/settings/', '/auth/', '/invite/'],
       },
     ],
-    sitemap: 'https://dodam.life/sitemap.xml',
+    sitemap: 'https://i.dodam.life/sitemap.xml',
   }
 }

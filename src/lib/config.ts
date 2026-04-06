@@ -21,7 +21,7 @@ function getEnv(key: string, defaultValue: string): string {
 
 export const config = {
   // Site
-  siteUrl: getEnv('NEXT_PUBLIC_SITE_URL', 'https://dodam.life'),
+  siteUrl: getEnv('NEXT_PUBLIC_SITE_URL', 'https://i.dodam.life'),
 
   // Supabase
   supabase: {

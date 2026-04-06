@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
 import Image from 'next/image'
 import ModeTutorial from '@/components/onboarding/ModeTutorial'
+import { trackEvent } from '@/lib/analytics'
 type Mode = 'preparing' | 'pregnant' | 'parenting'
 
 
@@ -63,6 +64,7 @@ export default function OnboardingPage() {
   const handleLogin = async (provider: 'kakao' | 'google') => {
     setLoading(provider)
     setError(null)
+    trackEvent('onboarding_started', { provider })
 
     const scopes = provider === 'kakao'
       ? 'profile_nickname profile_image'
@@ -83,6 +85,8 @@ export default function OnboardingPage() {
 
   const handleModeSelect = async (mode: Mode) => {
     localStorage.setItem('dodam_mode', mode)
+    trackEvent('mode_selected', { mode })
+    trackEvent('onboarding_completed', { mode })
     upsertProfile({ mode })
     if (mode === 'preparing') router.push('/preparing')
     else if (mode === 'pregnant') router.push('/pregnant')

@@ -329,6 +329,7 @@ export default function VaccinationPage() {
                             placeholder="메모 (선택)"
                             value={s.notes}
                             onChange={(e) => updateSENotes(entry.vaccineId, i, e.target.value)}
+                            maxLength={200}
                             className="w-full px-3 py-2 bg-white border border-[#E8E4DF] rounded-lg text-caption text-primary placeholder:text-tertiary"
                           />
                         )}

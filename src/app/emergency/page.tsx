@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { AlertIcon, MapIcon, HospitalIcon } from '@/components/ui/Icons'
 
@@ -73,6 +74,7 @@ const EMERGENCY_CATEGORIES: { key: EmergencyCategory; label: string }[] = [
 ]
 
 export default function EmergencyPage() {
+  const router = useRouter()
   const [clinics, setClinics] = useState<NearbyClinic[]>([])
   const [loading, setLoading] = useState(true)
   const [locationError, setLocationError] = useState(false)
@@ -182,8 +184,11 @@ export default function EmergencyPage() {
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[#f5f5f5]">
       {/* 헤더 */}
-      <div className="bg-gradient-to-b from-[#E53935] to-[#C62828] px-5 pt-14 pb-6">
+      <div className="bg-gradient-to-b from-[#E53935] to-[#C62828] px-5 pt-4 pb-6">
         <div className="max-w-lg mx-auto w-full">
+          <button onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full active:bg-white/20 mb-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
               <AlertIcon className="w-6 h-6 text-white" />

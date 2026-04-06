@@ -91,8 +91,14 @@ function MapPageInner() {
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[#f5f5f5] flex flex-col">
       {/* 헤더 */}
-      <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full text-center">
-        <h1 className="text-subtitle text-primary">동네 육아 지도</h1>
+      <div className="sticky top-0 z-40 bg-[#f5f5f5] border-b border-[#E8E4DF]">
+        <div className="flex items-center h-12 px-4 max-w-lg mx-auto">
+          <button onClick={() => router.back()} className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full active:bg-[rgba(0,0,0,0.05)]" aria-label="뒤로가기">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+          <div className="flex-1 text-center"><p className="text-subtitle truncate">동네 육아 지도</p></div>
+          <div className="w-10" />
+        </div>
       </div>
 
       {/* 카카오맵 */}

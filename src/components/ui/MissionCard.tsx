@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 
 type Mode = 'preparing' | 'pregnant' | 'parenting'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dodam.life'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://i.dodam.life'
 
 const MISSIONS: Record<Mode, { emoji: string; title: string; desc: string; sendMsg: string }[]> = {
   preparing: [

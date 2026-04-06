@@ -12,9 +12,10 @@ import SplashProvider from '@/components/SplashProvider'
 import SecurityMigrator from '@/components/SecurityMigrator'
 import DataMigrator from '@/components/DataMigrator'
 import DevPanel from '@/components/dev/DevPanel'
+import AnalyticsPageView from '@/components/AnalyticsPageView'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://dodam.life'),
+  metadataBase: new URL('https://i.dodam.life'),
   title: {
     default: '도담 · AI 육아 파트너',
     template: '%s | 도담',
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     '부모급여', '첫만남이용권', '국민행복카드',
     '도담', 'dodam', '육아 일기', '아기 발달 체크',
   ],
-  authors: [{ name: '도담', url: 'https://dodam.life' }],
+  authors: [{ name: '도담', url: 'https://i.dodam.life' }],
   creator: '도담',
   publisher: '도담',
   category: 'health',
@@ -43,11 +44,19 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: '도담',
+    startupImage: '/apple-touch-icon.png',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'application-name': '도담',
   },
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
-    url: 'https://dodam.life',
+    url: 'https://i.dodam.life',
     siteName: '도담 · AI 육아 파트너',
     title: '도담 · AI 육아 파트너',
     description: 'AI가 아이의 리듬을 분석하고, 이유식 추천부터 발달 체크·동네 소아과까지 연결해주는 스마트 육아 앱',
@@ -79,7 +88,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://dodam.life',
+    canonical: 'https://i.dodam.life',
   },
   verification: {
     google: '',
@@ -148,7 +157,7 @@ export default function RootLayout({
               operatingSystem: 'Web, iOS, Android',
               offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' },
               aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.8', ratingCount: '1200' },
-              author: { '@type': 'Organization', name: '도담', url: 'https://dodam.life' },
+              author: { '@type': 'Organization', name: '도담', url: 'https://i.dodam.life' },
               inLanguage: 'ko',
               keywords: '육아앱,아기수유기록,AI육아,이유식추천,임신앱,출산준비,소아과찾기,예방접종',
             }),
@@ -165,6 +174,18 @@ export default function RootLayout({
           src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false&libraries=services`}
           strategy="afterInteractive"
         />
+        {/* Google Analytics (GA4) */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${process.env.NEXT_PUBLIC_GA_ID}',{page_path:window.location.pathname})`}
+            </Script>
+          </>
+        )}
         {/* 테마+모드 FOUC 방지: React hydrate 전에 CSS 변수 + data-mode 즉시 적용 */}
         <script
           dangerouslySetInnerHTML={{
@@ -205,6 +226,7 @@ export default function RootLayout({
           <ScrollToTop />
           <BottomNav />
           <GlobalToast />
+          <AnalyticsPageView />
           <Analytics />
           {process.env.NODE_ENV === 'development' && <DevPanel />}
         </div>

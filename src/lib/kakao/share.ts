@@ -1,5 +1,5 @@
 // 카카오톡 공유 유틸리티 — 임신 준비 모드
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://dodam.life'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://i.dodam.life'
 
 function sendKakao(params: {
   title: string

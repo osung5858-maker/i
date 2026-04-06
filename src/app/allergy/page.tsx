@@ -265,6 +265,7 @@ export default function AllergyPage() {
                         placeholder="메모 (선택)"
                         value={entry[`day${editingDay + 1}` as 'day1' | 'day2' | 'day3'].notes}
                         onChange={(e) => updateNotes(entry.id, editingDay, e.target.value)}
+                        maxLength={200}
                         className="w-full px-3 py-2 bg-white border border-[#E8E4DF] rounded-lg text-body text-primary placeholder:text-tertiary"
                       />
                     </div>
@@ -354,6 +355,7 @@ export default function AllergyPage() {
                 value={customFood}
                 onChange={e => setCustomFood(e.target.value)}
                 placeholder="기타 식재료 직접 입력"
+                maxLength={50}
                 className="flex-1 px-3 py-2.5 border border-[#E8E4DF] rounded-lg text-body-emphasis text-primary placeholder:text-tertiary"
                 onKeyDown={e => { if (e.key === 'Enter') addFood(customFood) }}
               />

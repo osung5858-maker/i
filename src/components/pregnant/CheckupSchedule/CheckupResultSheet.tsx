@@ -17,6 +17,7 @@ import {
   deleteMedia,
 } from '@/lib/supabase/storage'
 import { notifyPartnerCheckup } from '@/lib/push/checkupNotify'
+import TimePicker from '@/components/ui/TimePicker'
 
 const STATUS_OPTIONS: { value: CheckupStatus; label: string; color: string; bg: string }[] = [
   { value: 'normal', label: '정상', color: '#4CAF50', bg: '#E8F5E9' },
@@ -29,6 +30,13 @@ const MAX_VIDEO = 1
 
 function haptic() {
   if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(20)
+}
+
+function formatTime12h(time24: string): string {
+  const [h, m] = time24.split(':').map(Number)
+  const period = h >= 12 ? '오후' : '오전'
+  const hour = h % 12 || 12
+  return `${period} ${hour}:${String(m).padStart(2, '0')}`
 }
 
 interface LocalMedia {
@@ -64,6 +72,7 @@ export default function CheckupResultSheet({ open, onClose, checkup, onSaved }: 
   const [nextCheckupId, setNextCheckupId] = useState('')
   const [nextDate, setNextDate] = useState('')
   const [nextTime, setNextTime] = useState('')
+  const [nextTimePickerOpen, setNextTimePickerOpen] = useState(false)
 
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
@@ -244,28 +253,36 @@ export default function CheckupResultSheet({ open, onClose, checkup, onSaved }: 
   const isUploading = media.some(m => m.uploading)
 
   return (
-    <div className="fixed inset-0 z-[90] bg-black/40 animate-fadeIn" onClick={onClose}>
-      <div
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white rounded-t-2xl pb-[env(safe-area-inset-bottom)] animate-slideUp"
-        onClick={e => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-      >
-        {/* Handle bar */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-10 h-1 bg-[#E0E0E0] rounded-full" />
+    <div className="fixed inset-0 z-[90] bg-[var(--color-page-bg)] animate-fadeIn flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-[#E8E4DF]">
+        <button
+          onClick={onClose}
+          className="text-body text-secondary active:opacity-60 py-1 px-2 -ml-2"
+        >
+          취소
+        </button>
+        <p className="text-subtitle text-primary font-bold">
+          {existingResult ? '결과 수정' : '결과 입력'}
+        </p>
+        <button
+          onClick={handleSave}
+          disabled={!date || saving || isUploading}
+          className={`text-body font-bold py-1 px-2 -mr-2 ${
+            date && !saving && !isUploading ? 'text-[var(--color-primary)] active:opacity-60' : 'text-tertiary'
+          }`}
+        >
+          {saving ? '저장 중...' : '저장'}
+        </button>
+      </div>
+
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 space-y-5">
+        {/* Checkup info */}
+        <div className="bg-white rounded-xl p-3 border border-[#E8E4DF]">
+          <p className="text-body-emphasis font-bold text-primary">{checkup.title}</p>
+          {checkup.week && <p className="text-caption text-tertiary">{checkup.week}주차 검진</p>}
         </div>
-
-        <div className="px-5 pb-5 space-y-4 max-h-[80vh] overflow-y-auto">
-          <p className="text-subtitle text-primary">
-            {existingResult ? '결과 수정' : '결과 입력'}
-          </p>
-
-          {/* Checkup info */}
-          <div className="bg-[var(--color-page-bg)] rounded-xl p-3 border border-[#E8E4DF]">
-            <p className="text-body-emphasis font-bold text-primary">{checkup.title}</p>
-            {checkup.week && <p className="text-caption text-tertiary">{checkup.week}주차 검진</p>}
-          </div>
 
           {loading ? (
             <div className="h-40 flex items-center justify-center">
@@ -273,15 +290,30 @@ export default function CheckupResultSheet({ open, onClose, checkup, onSaved }: 
             </div>
           ) : (
             <>
-              {/* Date */}
-              <div>
+              {/* Date — button + hidden native picker */}
+              <div className="relative isolate">
                 <label className="block text-caption text-secondary mb-2">검진 날짜</label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={e => setDate(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white focus:border-[var(--color-primary)]"
-                />
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const inp = document.getElementById('result-date-input') as HTMLInputElement
+                      inp?.showPicker?.()
+                      inp?.focus()
+                    }}
+                    className="w-full h-12 px-4 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white text-left focus:border-[var(--color-primary)] focus:outline-none"
+                  >
+                    {date || <span className="text-tertiary">날짜 선택</span>}
+                  </button>
+                  <input
+                    id="result-date-input"
+                    type="date"
+                    value={date}
+                    onChange={e => setDate(e.target.value)}
+                    className="absolute inset-0 opacity-0 pointer-events-none"
+                    tabIndex={-1}
+                  />
+                </div>
               </div>
 
               {/* Status selector */}
@@ -306,38 +338,41 @@ export default function CheckupResultSheet({ open, onClose, checkup, onSaved }: 
               </div>
 
               {/* Memo */}
-              <div>
+              <div className="relative isolate">
                 <label className="block text-caption text-secondary mb-2">소견/메모</label>
                 <textarea
                   value={memo}
                   onChange={e => setMemo(e.target.value.slice(0, 500))}
                   placeholder="검사 결과, 의사 소견 등을 기록하세요"
+                  maxLength={500}
                   rows={3}
-                  className="w-full p-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white placeholder:text-tertiary resize-none focus:border-[var(--color-primary)]"
+                  className="w-full p-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white placeholder:text-tertiary resize-none focus:border-[var(--color-primary)] focus:outline-none"
                 />
                 <p className="text-label text-tertiary text-right mt-1">{memo.length}/500</p>
               </div>
 
               {/* Hospital + Doctor */}
               <div className="grid grid-cols-2 gap-3">
-                <div>
+                <div className="relative isolate">
                   <label className="block text-caption text-secondary mb-2">병원</label>
                   <input
                     type="text"
+                    inputMode="text"
                     value={hospital}
                     onChange={e => setHospital(e.target.value.slice(0, 50))}
                     placeholder="병원명"
-                    className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white placeholder:text-tertiary focus:border-[var(--color-primary)]"
+                    className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white placeholder:text-tertiary focus:border-[var(--color-primary)] focus:outline-none"
                   />
                 </div>
-                <div>
+                <div className="relative isolate">
                   <label className="block text-caption text-secondary mb-2">담당의</label>
                   <input
                     type="text"
+                    inputMode="text"
                     value={doctor}
                     onChange={e => setDoctor(e.target.value.slice(0, 20))}
                     placeholder="담당의 이름"
-                    className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white placeholder:text-tertiary focus:border-[var(--color-primary)]"
+                    className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white placeholder:text-tertiary focus:border-[var(--color-primary)] focus:outline-none"
                   />
                 </div>
               </div>
@@ -444,7 +479,7 @@ export default function CheckupResultSheet({ open, onClose, checkup, onSaved }: 
                 <select
                   value={nextCheckupId}
                   onChange={e => setNextCheckupId(e.target.value)}
-                  className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white focus:border-[var(--color-primary)]"
+                  className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white focus:border-[var(--color-primary)] focus:outline-none"
                 >
                   <option value="">선택 안 함</option>
                   {DEFAULT_CHECKUPS.map(dc => (
@@ -453,23 +488,50 @@ export default function CheckupResultSheet({ open, onClose, checkup, onSaved }: 
                 </select>
                 {nextCheckupId && (
                   <div className="grid grid-cols-2 gap-3 mt-3">
-                    <input
-                      type="date"
-                      value={nextDate}
-                      onChange={e => setNextDate(e.target.value)}
-                      className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white focus:border-[var(--color-primary)]"
-                    />
-                    <input
-                      type="time"
-                      value={nextTime}
-                      onChange={e => setNextTime(e.target.value)}
-                      className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white focus:border-[var(--color-primary)]"
-                    />
+                    <div className="relative isolate">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const inp = document.getElementById('next-date-input') as HTMLInputElement
+                            inp?.showPicker?.()
+                            inp?.focus()
+                          }}
+                          className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white text-left focus:border-[var(--color-primary)] focus:outline-none"
+                        >
+                          {nextDate || <span className="text-tertiary">날짜</span>}
+                        </button>
+                        <input
+                          id="next-date-input"
+                          type="date"
+                          value={nextDate}
+                          onChange={e => setNextDate(e.target.value)}
+                          className="absolute inset-0 opacity-0 pointer-events-none"
+                          tabIndex={-1}
+                        />
+                      </div>
+                    </div>
+                    <div className="relative isolate">
+                      <button
+                        type="button"
+                        onClick={() => setNextTimePickerOpen(true)}
+                        className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white text-left focus:border-[var(--color-primary)] focus:outline-none"
+                      >
+                        {nextTime ? formatTime12h(nextTime) : <span className="text-tertiary">시간</span>}
+                      </button>
+                      {nextTimePickerOpen && (
+                        <TimePicker
+                          value={nextTime}
+                          onChange={setNextTime}
+                          onClose={() => setNextTimePickerOpen(false)}
+                        />
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Save */}
+              {/* Save button at bottom of scrollable area */}
               <button
                 onClick={handleSave}
                 disabled={!date || saving || isUploading}
@@ -485,6 +547,5 @@ export default function CheckupResultSheet({ open, onClose, checkup, onSaved }: 
           )}
         </div>
       </div>
-    </div>
   )
 }

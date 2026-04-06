@@ -14,17 +14,24 @@ export async function upsertPregRecord(
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
-  await supabase.from('preg_records')
+  const { error: delError } = await supabase.from('preg_records')
     .delete()
     .eq('user_id', user.id)
     .eq('record_date', date)
     .eq('type', type)
-  await supabase.from('preg_records').insert({
+  if (delError) {
+    console.error('[upsertPregRecord] delete failed:', delError.message)
+    return
+  }
+  const { error: insError } = await supabase.from('preg_records').insert({
     user_id: user.id,
     record_date: date,
     type,
     value,
   })
+  if (insError) {
+    console.error('[upsertPregRecord] insert failed:', insError.message)
+  }
 }
 
 /** Fetch all preg_records for the current user, optionally filtered by types. */
@@ -43,7 +50,11 @@ export async function fetchPregRecords(types?: string[]): Promise<Array<{
     .eq('user_id', user.id)
     .order('record_date', { ascending: false })
   if (types && types.length > 0) query = query.in('type', types)
-  const { data } = await query
+  const { data, error } = await query
+  if (error) {
+    console.error('[fetchPregRecords] query failed:', error.message)
+    return []
+  }
   return (data ?? []) as Array<{ id: string; record_date: string; type: string; value: Record<string, unknown> }>
 }
 
@@ -52,11 +63,14 @@ export async function deletePregRecord(date: string, type: string): Promise<void
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
-  await supabase.from('preg_records')
+  const { error } = await supabase.from('preg_records')
     .delete()
     .eq('user_id', user.id)
     .eq('record_date', date)
     .eq('type', type)
+  if (error) {
+    console.error('[deletePregRecord] delete failed:', error.message)
+  }
 }
 
 // ===== Checkup Schedule CRUD =====
@@ -140,7 +154,10 @@ export async function bulkInsertPregRecords(
     type: r.type,
     value: r.value,
   }))
-  await supabase.from('preg_records').insert(rows)
+  const { error } = await supabase.from('preg_records').insert(rows)
+  if (error) {
+    console.error('[bulkInsertPregRecords] insert failed:', error.message)
+  }
 }
 
 // ===== Checkup Result CRUD =====

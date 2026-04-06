@@ -308,7 +308,7 @@ export default function NamePage() {
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div>
                   <p className="text-body-emphasis text-secondary mb-1">성</p>
-                  <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="김"
+                  <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="김" maxLength={10}
                     className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-body-emphasis" />
                 </div>
                 <div>
@@ -402,7 +402,7 @@ export default function NamePage() {
                 {compareNames.map((name, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <span className="text-body-emphasis text-tertiary w-5">{i + 1}.</span>
-                    <input value={name} onChange={e => updateCompareName(i, e.target.value)} placeholder={`후보 ${i + 1}`}
+                    <input value={name} onChange={e => updateCompareName(i, e.target.value)} placeholder={`후보 ${i + 1}`} maxLength={50}
                       className="flex-1 h-10 rounded-lg border border-[#E8E4DF] px-3 text-body-emphasis" />
                     {compareNames.length > 2 && (
                       <button onClick={() => setCompareNames(compareNames.filter((_, j) => j !== i))} className="text-tertiary"><XIcon className="w-4 h-4" /></button>
@@ -416,7 +416,7 @@ export default function NamePage() {
                   <button onClick={addCompareSlot} className="flex-1 py-2 rounded-lg border border-dashed border-[#AEB1B9] text-body-emphasis text-secondary">+ 후보 추가</button>
                 )}
                 <div className="flex-1">
-                  <input value={compareBirthYear} onChange={e => setCompareBirthYear(e.target.value)} placeholder="출생 연도 (선택)"
+                  <input value={compareBirthYear} onChange={e => setCompareBirthYear(e.target.value)} placeholder="출생 연도 (선택)" maxLength={4}
                     className="w-full h-9 rounded-lg border border-[#E8E4DF] px-3 text-body-emphasis" />
                 </div>
               </div>
@@ -489,12 +489,12 @@ export default function NamePage() {
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div>
                     <p className="text-body-emphasis text-secondary mb-1">이름 (성 포함)</p>
-                    <input value={analyzeName} onChange={e => setAnalyzeName(e.target.value)} placeholder="김도담"
+                    <input value={analyzeName} onChange={e => setAnalyzeName(e.target.value)} placeholder="김도담" maxLength={50}
                       className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-body-emphasis" />
                   </div>
                   <div>
                     <p className="text-body-emphasis text-secondary mb-1">출생 연도 (선택)</p>
-                    <input value={birthYear} onChange={e => setBirthYear(e.target.value)} placeholder="2026"
+                    <input value={birthYear} onChange={e => setBirthYear(e.target.value)} placeholder="2026" maxLength={4}
                       className="w-full h-10 rounded-lg border border-[#E8E4DF] px-3 text-body-emphasis" />
                   </div>
                 </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { sanitizeTitle, sanitizeUserInput } from '@/lib/sanitize'
 
 const CATEGORY_LABELS: Record<string, string> = {
   playgroup: '놀이모임',
@@ -96,13 +97,17 @@ export default function GatheringEditPage() {
     try {
       const supabase = createClient()
 
+      const sanitizedTitle = sanitizeTitle(title, 50)
+      const sanitizedDesc = sanitizeUserInput(description, 300, { preserveNewlines: true })
+      const sanitizedPlace = sanitizeTitle(placeName, 100)
+      if (!sanitizedTitle) { setSaving(false); return }
       const { error } = await supabase
         .from('town_gatherings')
         .update({
-          title: title.trim(),
-          description: description.trim() || null,
+          title: sanitizedTitle,
+          description: sanitizedDesc || null,
           category: category,
-          place_name: placeName.trim() || null,
+          place_name: sanitizedPlace || null,
           meeting_frequency: frequency,
           max_participants: maxParticipants,
           min_child_age_months: minAge,
@@ -174,6 +179,7 @@ export default function GatheringEditPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value.slice(0, 50))}
             placeholder="예: 서초 놀이터 친구들"
+            maxLength={50}
             className="w-full h-10 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis focus:outline-none focus:border-[var(--color-primary)] bg-white"
           />
         </div>
@@ -205,6 +211,7 @@ export default function GatheringEditPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value.slice(0, 300))}
             placeholder="어떤 소모임인지 자유롭게 소개해주세요"
+            maxLength={300}
             className="w-full h-20 px-3 py-2 rounded-xl border border-[#E8E4DF] text-body-emphasis resize-none focus:outline-none focus:border-[var(--color-primary)] bg-white"
           />
         </div>
@@ -236,6 +243,7 @@ export default function GatheringEditPage() {
             value={placeName}
             onChange={(e) => setPlaceName(e.target.value.slice(0, 100))}
             placeholder="예: 서초동 놀이터"
+            maxLength={100}
             className="w-full h-10 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis focus:outline-none focus:border-[var(--color-primary)] bg-white"
           />
         </div>

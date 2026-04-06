@@ -110,8 +110,9 @@ export default function DashboardClient() {
                   innerRadius={50}
                   outerRadius={90}
                   dataKey="value"
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  label={(entry: any) =>
+                    `${entry.name} ${((entry.percent ?? 0) * 100).toFixed(0)}%`
                   }
                 >
                   {stats.mode_distribution.map((_, idx) => (

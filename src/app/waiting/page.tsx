@@ -30,11 +30,15 @@ const CheckupScheduleSection = dynamic(() => import('@/components/pregnant/Check
 function addDays(date: Date, days: number): Date {
   const d = new Date(date); d.setDate(d.getDate() + days); return d
 }
-function formatDate(d: Date): string { return d.toISOString().split('T')[0] }
+function formatDate(d: Date): string {
+  if (isNaN(d.getTime())) return ''
+  return d.toISOString().split('T')[0]
+}
 function isSameDay(a: Date, b: Date): boolean { return formatDate(a) === formatDate(b) }
 
 function getCycleInfo(lastPeriodStart: string, cycleLength: number) {
   const start = new Date(lastPeriodStart)
+  if (isNaN(start.getTime())) return null
   // 현재 주기 + 다음 주기까지 계산 (캘린더 다음 달 표시용)
   const cycles: { ovulation: string; fertileStart: string; fertileEnd: string; periodStart: string }[] = []
   for (let i = 0; i < 3; i++) {
@@ -625,6 +629,7 @@ function PreparingWaitingPage() {
               </div>
               <textarea value={journalText} onChange={e => setJournalText(e.target.value.slice(0, 500))}
                 placeholder="아직 만나지 못한 아이에게, 오늘의 마음을 전해요"
+                maxLength={500}
                 className="w-full h-28 text-body-emphasis p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]" autoFocus />
               <p className="text-right text-caption text-tertiary mt-1">{journalText.length}/500</p>
               <button onClick={saveJournal} disabled={!journalText.trim()}
@@ -1011,6 +1016,7 @@ export function PregnantWaitingPage() {
               </div>
               <textarea value={diaryText} onChange={e => setDiaryText(e.target.value.slice(0, 500))}
                 placeholder={`${currentWeek}주차, 오늘 아이에게 하고 싶은 말이 있나요?`}
+                maxLength={500}
                 className="w-full h-28 text-body-emphasis p-3 bg-[#F5F1EC] rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]" autoFocus />
               <p className="text-right text-caption text-tertiary mt-1">{diaryText.length}/500</p>
               <button onClick={() => { saveDiary(); setDiarySheetOpen(false) }} disabled={!diaryText.trim() || diarySaving}

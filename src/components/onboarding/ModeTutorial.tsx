@@ -201,6 +201,7 @@ export default function ModeTutorial({ mode, onComplete, modal = false }: Props)
             <button
               key={i}
               onClick={() => goTo(i)}
+              aria-label={`${i + 1}단계로 이동`}
               className={`rounded-full transition-all duration-300 ${i === step ? 'w-6 h-2' : 'w-2 h-2'}`}
               style={{ backgroundColor: i === step ? current.accent : '#E8E4DF' }}
             />

@@ -3,7 +3,12 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/layout/PageLayout'
 import { encrypt, decrypt } from '@/lib/security/crypto'
+import { safeGetItem, safeSetItem, safeRemoveItem } from '@/lib/safeStorage'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
+
+// Lazy load ImageViewer - only shown when user clicks on images (modal)
+const ImageViewerLazy = dynamic(() => Promise.resolve({ default: ImageViewer }), { ssr: false })
 
 // 사진 확대 뷰어
 function ImageViewer({ images, startIndex, onClose }: { images: { original: string; thumbnail: string }[]; startIndex: number; onClose: () => void }) {
@@ -69,7 +74,7 @@ export default function KidsnotePage() {
 
   const [error, setError] = useState<string | null>(null)
   const [agreed, setAgreed] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('kn_agreed') === 'true'
+    if (typeof window !== 'undefined') return safeGetItem('kn_agreed') === 'true'
     return false
   })
   const [session, setSession] = useState<string | null>(null)
@@ -83,18 +88,18 @@ export default function KidsnotePage() {
   // 세션 + 저장된 계정 + 캐시 복원
   useEffect(() => {
     async function restoreCredentials() {
-      const savedCreds = localStorage.getItem('kn_credentials_enc')
+      const savedCreds = safeGetItem('kn_credentials_enc')
       // 마이그레이션: 평문 credential이 남아있으면 삭제
-      const legacyCreds = localStorage.getItem('kn_credentials')
+      const legacyCreds = safeGetItem('kn_credentials')
       if (legacyCreds) {
-        localStorage.removeItem('kn_credentials')
+        safeRemoveItem('kn_credentials')
         // 레거시 데이터로 암호화 재저장 시도
         try {
           const { u, p } = JSON.parse(legacyCreds)
           setUsername(u); setPassword(p); setSaveCredentials(true)
           const payload = JSON.stringify({ u, p })
           const encrypted = await encrypt(payload, 'dodam-kn-local-key')
-          localStorage.setItem('kn_credentials_enc', encrypted)
+          safeSetItem('kn_credentials_enc', encrypted)
         } catch { /* */ }
       } else if (savedCreds) {
         try {
@@ -109,8 +114,8 @@ export default function KidsnotePage() {
     restoreCredentials()
 
     // 캐시된 데이터 복원
-    const cachedAlbums = localStorage.getItem('kn_cache_albums')
-    const cachedReports = localStorage.getItem('kn_cache_reports')
+    const cachedAlbums = safeGetItem('kn_cache_albums')
+    const cachedReports = safeGetItem('kn_cache_reports')
     if (cachedAlbums) try { setAlbums(JSON.parse(cachedAlbums)) } catch { /* */ }
     if (cachedReports) try { setReports(JSON.parse(cachedReports)) } catch { /* */ }
 
@@ -141,11 +146,11 @@ export default function KidsnotePage() {
         try {
           const payload = JSON.stringify({ u: username, p: password })
           const encrypted = await encrypt(payload, 'dodam-kn-local-key')
-          localStorage.setItem('kn_credentials_enc', encrypted)
+          safeSetItem('kn_credentials_enc', encrypted)
         } catch { /* 암호화 실패 시 저장하지 않음 */ }
       } else {
-        localStorage.removeItem('kn_credentials_enc')
-        localStorage.removeItem('kn_credentials') // 레거시 정리
+        safeRemoveItem('kn_credentials_enc')
+        safeRemoveItem('kn_credentials') // 레거시 정리
         setPassword('') // 비밀번호 즉시 삭제
       }
       // 로그인 응답에 children이 바로 포함됨
@@ -209,7 +214,7 @@ export default function KidsnotePage() {
         nextCursor = newCursor
       }
       setAlbumProgress(100)
-      localStorage.setItem('kn_cache_albums', JSON.stringify(all))
+      safeSetItem('kn_cache_albums', JSON.stringify(all))
     } catch { /* */ }
     setLoadingAlbums(false)
   }
@@ -238,7 +243,7 @@ export default function KidsnotePage() {
         nextCursor = newCursor
       }
       setReportProgress(100)
-      localStorage.setItem('kn_cache_reports', JSON.stringify(all))
+      safeSetItem('kn_cache_reports', JSON.stringify(all))
     } catch { /* */ }
     setLoadingReports(false)
   }
@@ -304,7 +309,7 @@ export default function KidsnotePage() {
     setShowDownloadMenu(null)
 
     // Google OAuth 토큰 확인
-    let gToken = localStorage.getItem('dodam_gdrive_token')
+    let gToken = safeGetItem('dodam_gdrive_token')
     if (!gToken) {
       // Google 로그인 필요 → 간이 토스트 안내
       window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 로그인이 필요해요. 설정에서 Google 계정을 연결해주세요.' } }))
@@ -339,7 +344,7 @@ export default function KidsnotePage() {
 
         if (driveRes.status === 401) {
           // 토큰 만료
-          localStorage.removeItem('dodam_gdrive_token')
+          safeRemoveItem('dodam_gdrive_token')
           window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 인증이 만료됐어요. 다시 연결해주세요.' } }))
           break
         }
@@ -400,7 +405,7 @@ export default function KidsnotePage() {
       }
       window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `전체 ${allImages.length}장 다운로드 완료!` } }))
     } else {
-      const gToken = localStorage.getItem('dodam_gdrive_token')
+      const gToken = safeGetItem('dodam_gdrive_token')
       if (!gToken) {
         window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 로그인이 필요해요' } }))
         setDownloadProgress(null)
@@ -420,7 +425,7 @@ export default function KidsnotePage() {
           const dr = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
             method: 'POST', headers: { Authorization: `Bearer ${gToken}` }, body: form,
           })
-          if (dr.status === 401) { localStorage.removeItem('dodam_gdrive_token'); window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 인증 만료' } })); break }
+          if (dr.status === 401) { safeRemoveItem('dodam_gdrive_token'); window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 인증 만료' } })); break }
           if (dr.ok) ok++
         } catch { /* */ }
         setDownloadProgress(prev => prev ? { ...prev, done: prev.done + 1 } : null)
@@ -473,7 +478,7 @@ export default function KidsnotePage() {
               </div>
             </div>
 
-            <button onClick={() => { setAgreed(true); localStorage.setItem('kn_agreed', 'true') }}
+            <button onClick={() => { setAgreed(true); safeSetItem('kn_agreed', 'true') }}
               className="w-full mt-4 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80">
               위 내용을 확인했으며 동의합니다
             </button>
@@ -500,7 +505,7 @@ export default function KidsnotePage() {
               <div>
                 <p className="text-body text-secondary mb-1">키즈노트 아이디 (이메일/전화번호)</p>
                 <input type="text" value={username} onChange={e => setUsername(e.target.value)}
-                  placeholder="kidsnote@example.com" className="w-full h-11 rounded-xl border border-[#E8E4DF] px-3 text-body" />
+                  placeholder="kidsnote@example.com" maxLength={100} className="w-full h-11 rounded-xl border border-[#E8E4DF] px-3 text-body" />
               </div>
               <div>
                 <p className="text-body text-secondary mb-1">비밀번호</p>
@@ -787,7 +792,7 @@ export default function KidsnotePage() {
 
       {/* 사진 확대 뷰어 */}
       {viewerImages && (
-        <ImageViewer images={viewerImages} startIndex={viewerStart} onClose={() => setViewerImages(null)} />
+        <ImageViewerLazy images={viewerImages} startIndex={viewerStart} onClose={() => setViewerImages(null)} />
       )}
     </div>
   )

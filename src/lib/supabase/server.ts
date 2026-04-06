@@ -1,6 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+/**
+ * Server-side Supabase client using ANON key + user cookies.
+ * Respects RLS policies. For admin operations that bypass RLS,
+ * use the service_role client only inside /api routes with proper auth guards.
+ */
 export async function createServerSupabase() {
   const cookieStore = await cookies()
 

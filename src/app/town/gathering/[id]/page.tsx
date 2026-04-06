@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { MapIcon, BabyIcon, UsersIcon, ChatIcon, PenIcon, ArrowLeftIcon, TrashIcon, HeartIcon, ShareIcon, CalendarIcon } from '@/components/ui/Icons'
+import { sanitizeUserInput } from '@/lib/sanitize'
 
 interface Gathering {
   id: string
@@ -67,6 +68,9 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
   const [newPost, setNewPost] = useState('')
   const [posting, setPosting] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+  const [deletePostId, setDeletePostId] = useState<string | null>(null)
+  const [kickMemberId, setKickMemberId] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
@@ -178,7 +182,6 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
 
   const handleLeave = async () => {
     if (!userId || !isMember || isCreator) return
-    if (!confirm('정말 소모임을 나가시겠어요?')) return
 
     try {
       const supabase = createClient()
@@ -201,12 +204,14 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
     setPosting(true)
     try {
       const supabase = createClient()
+      const sanitizedContent = sanitizeUserInput(newPost, 2000, { preserveNewlines: true })
+      if (!sanitizedContent) { setPosting(false); return }
       const { data, error } = await supabase
         .from('gathering_posts')
         .insert({
           gathering_id: resolvedParams.id,
           user_id: userId,
-          content: newPost.trim(),
+          content: sanitizedContent,
         })
         .select()
         .single()
@@ -228,12 +233,11 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
   }
 
   const handleDeletePost = async (postId: string) => {
-    if (!confirm('정말 삭제하시겠어요?')) return
-
     try {
       const supabase = createClient()
       await supabase.from('gathering_posts').delete().eq('id', postId)
       setPosts(posts.filter(p => p.id !== postId))
+      setDeletePostId(null)
     } catch (err) {
       console.error('Failed to delete post:', err)
     }
@@ -314,7 +318,6 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
 
   const handleKickMember = async (memberId: string) => {
     if (!isCreator) return
-    if (!confirm('이 멤버를 내보내시겠어요?')) return
 
     try {
       const supabase = createClient()
@@ -324,6 +327,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
         .eq('id', memberId)
 
       loadData()
+      setKickMemberId(null)
     } catch (err) {
       console.error('Failed to kick member:', err)
     }
@@ -454,12 +458,36 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
           </button>
         )}
         {isMember && !isCreator && (
-          <button
-            onClick={handleLeave}
-            className="w-full py-2.5 rounded-lg bg-[#E8E4DF] text-secondary text-body-emphasis active:opacity-80 transition-opacity"
-          >
-            소모임 나가기
-          </button>
+          <>
+            {!showLeaveConfirm ? (
+              <button
+                onClick={() => setShowLeaveConfirm(true)}
+                className="w-full py-2.5 rounded-lg bg-[#E8E4DF] text-secondary text-body-emphasis active:opacity-80 transition-opacity"
+              >
+                소모임 나가기
+              </button>
+            ) : (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <p className="text-body text-orange-700 font-semibold mb-2 text-center">
+                  정말 소모임을 나가시겠어요?
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowLeaveConfirm(false)}
+                    className="flex-1 py-2 rounded-lg bg-white border border-[#E8E4DF] text-primary text-body-emphasis active:bg-[#F0EDE8]"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleLeave}
+                    className="flex-1 py-2 rounded-lg bg-orange-500 text-white text-body-emphasis active:bg-orange-600"
+                  >
+                    나가기
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -584,6 +612,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
                   value={newPost}
                   onChange={(e) => setNewPost(e.target.value)}
                   placeholder="소모임 멤버들과 이야기를 나눠보세요"
+                  maxLength={2000}
                   className="w-full h-24 text-body-emphasis text-primary placeholder:text-tertiary resize-none outline-none"
                 />
                 <div className="flex justify-end mt-3 pt-3 border-t border-[#F0EDE8]">
@@ -621,7 +650,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
                       </div>
                       <div className="flex items-center gap-1">
                         {(post.user_id === userId || isCreator) && (
-                          <button onClick={() => handleDeletePost(post.id)} className="p-1 text-tertiary hover:text-red-500 transition-colors">
+                          <button onClick={() => setDeletePostId(post.id)} className="p-1 text-tertiary hover:text-red-500 transition-colors">
                             <TrashIcon className="w-4 h-4" />
                           </button>
                         )}
@@ -632,6 +661,29 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
                         )}
                       </div>
                     </div>
+
+                    {deletePostId === post.id ? (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                        <p className="text-body text-red-700 font-semibold mb-2 text-center">
+                          정말 삭제할까요?
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setDeletePostId(null)}
+                            className="flex-1 py-2 rounded-lg bg-white border border-[#E8E4DF] text-primary text-body active:bg-[#F0EDE8]"
+                          >
+                            취소
+                          </button>
+                          <button
+                            onClick={() => handleDeletePost(post.id)}
+                            className="flex-1 py-2 rounded-lg bg-red-500 text-white text-body active:bg-red-600"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+
                     <p className="text-body-emphasis text-primary leading-relaxed whitespace-pre-wrap mb-3">{post.content}</p>
 
                     {/* 반응 버튼 */}
@@ -676,12 +728,31 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
                     </div>
                   </div>
                   {isCreator && member.user_id !== userId && (
-                    <button
-                      onClick={() => handleKickMember(member.id)}
-                      className="px-3 py-1.5 rounded-lg text-caption font-semibold text-red-600 border border-red-200 active:bg-red-50 transition-colors"
-                    >
-                      내보내기
-                    </button>
+                    <>
+                      {kickMemberId !== member.id ? (
+                        <button
+                          onClick={() => setKickMemberId(member.id)}
+                          className="px-3 py-1.5 rounded-lg text-caption font-semibold text-red-600 border border-red-200 active:bg-red-50 transition-colors"
+                        >
+                          내보내기
+                        </button>
+                      ) : (
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => setKickMemberId(null)}
+                            className="px-2 py-1 rounded text-label text-tertiary border border-[#E8E4DF] active:bg-[#F0EDE8]"
+                          >
+                            취소
+                          </button>
+                          <button
+                            onClick={() => handleKickMember(member.id)}
+                            className="px-2 py-1 rounded text-label font-semibold text-white bg-red-500 active:bg-red-600"
+                          >
+                            확인
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               ))}

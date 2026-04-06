@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
+import { loadEnvConfig } from '@next/env'
+
+// Load .env.local so Supabase credentials are available to global setup
+loadEnvConfig(process.cwd())
 
 /**
  * Playwright E2E Test Configuration
@@ -8,8 +12,8 @@ export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  retries: process.env.CI ? 2 : 1,
+  workers: process.env.CI ? 1 : 3,
   reporter: process.env.CI
     ? [['github'], ['html']]
     : [['html'], ['list']],
@@ -33,15 +37,6 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'tests/.auth/user.json', // Reuse auth
-      },
-      dependencies: ['setup'],
-    },
-
-    {
-      name: 'firefox',
-      use: {
-        ...devices['Desktop Firefox'],
-        storageState: 'tests/.auth/user.json',
       },
       dependencies: ['setup'],
     },

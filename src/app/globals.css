@@ -633,6 +633,84 @@ a:focus-visible {
 }
 .cta-glow { animation: ctaGlow 2.8s ease-in-out infinite; }
 
+/* ===== 몰입형 스크롤 애니메이션 ===== */
+
+/* 핀 섹션 — sticky 컨테이너 내부 콘텐츠 트랜지션 */
+.pin-section {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 단어별 페이드인 */
+.word-reveal > span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.word-reveal.is-visible > span {
+  opacity: 1;
+  transform: none;
+}
+
+/* 카운터 스크롤 — 숫자 강조 */
+@keyframes countPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* 그라디언트 텍스트 — Apple 스타일 강조 */
+.gradient-text {
+  background: linear-gradient(135deg, #E8937A, #D47B62, #C4603E);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 스크롤 진행 기반 스케일 */
+.scroll-scale {
+  will-change: transform, opacity;
+}
+
+/* 호버시 부드러운 3D 기울기 */
+.tilt-card {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
+}
+.tilt-card:hover {
+  transform: perspective(800px) rotateX(2deg) rotateY(-2deg) scale(1.02);
+}
+
+/* 수평 스크롤 카드 트랙 */
+.h-scroll-track {
+  display: flex;
+  gap: 20px;
+  will-change: transform;
+}
+
+/* 배경 그라디언트 모핑 */
+@keyframes gradientMorph {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.morph-bg {
+  background-size: 200% 200%;
+  animation: gradientMorph 12s ease-in-out infinite;
+}
+
+/* 비디오 마스크 확장 — 원형에서 사각형으로 */
+.video-mask-expand {
+  clip-path: inset(20% round 50%);
+  transition: clip-path 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.video-mask-expand.is-expanded {
+  clip-path: inset(0% round 24px);
+}
+
 /* ===== Glassmorphism Header ===== */
 .backdrop-blur-xl {
   backdrop-filter: blur(16px);

@@ -12,12 +12,15 @@ import { createClient } from '@/lib/supabase/client'
 import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 import { getProfile, upsertProfile } from '@/lib/supabase/userProfile'
 import { shareTodayRecord } from '@/lib/kakao/share-parenting'
+import { trackEvent } from '@/lib/analytics'
 import AIMealCard from '@/components/ai-cards/AIMealCard'
 import MissionCard from '@/components/ui/MissionCard'
 import TodayRecordSection from '@/components/ui/TodayRecordSection'
 import type { RecordTile } from '@/components/ui/TodayRecordSection'
 import PushPrompt from '@/components/push/PushPrompt'
+import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt'
 import CareFlowCard from '@/components/care-flow/CareFlowCard'
+import ReviewPrompt from '@/components/review/ReviewPrompt'
 import KakaoAdFit from '@/components/ads/KakaoAdFit'
 
 const FeedSheet = dynamic(() => import('@/components/quick-buttons/FeedSheet'), { ssr: false })
@@ -172,6 +175,13 @@ export default function HomePage() {
   const [careActions, setCareActions] = useState<CareAction[]>([])
 
   const router = useRouter()
+
+  // 모드별 리디렉트: preparing/pregnant 모드인데 / 에 접근하면 해당 모드 홈으로
+  useEffect(() => {
+    const mode = localStorage.getItem('dodam_mode')
+    if (mode === 'preparing') { router.replace('/preparing'); return }
+    if (mode === 'pregnant') { router.replace('/pregnant'); return }
+  }, [router])
   const supabase = createClient()
 
   useEffect(() => {
@@ -249,6 +259,7 @@ export default function HomePage() {
 
   // 기록 핸들러
   const handleRecord = useCallback(async (type: EventType) => {
+    trackEvent('record_created', { type })
     if (!user || !child) {
       setToast({ message: '아이 정보를 먼저 입력해주세요', action: { label: '입력하기', onClick: () => router.push('/settings/children/add') } })
       return
@@ -597,8 +608,14 @@ export default function HomePage() {
           />
           </div>
 
+          {/* PWA 설치 안내 (웹에서만) */}
+          <PWAInstallPrompt />
+
           {/* 푸시 알림 동의 (AI 결과 표시 후 자연스럽게) */}
           <PushPrompt show={events.length >= 3} />
+
+          {/* 앱 리뷰 유도 (3일 + 10건 이상 기록 시) */}
+          <ReviewPrompt eventCount={events.length} />
 
           {/* 케어 플로우 — 기록 후 AI 제안/알림 */}
           {careActions.length > 0 && (
@@ -1034,28 +1051,64 @@ function KidsnoteCard({ ageMonths, userId }: { ageMonths: number; userId?: strin
   )
 }
 
+// AI 응답 후처리: 모순·중복 제거
+function sanitizeAiResponse(d: Record<string, unknown>) {
+  const r = { ...d }
+  const mi = (r.mainInsight as string) || ''
+  const fa = (r.feedAnalysis as string) || ''
+  const sa = (r.sleepAnalysis as string) || ''
+  const wa = (r.warning as string) || ''
+  const na = (r.nextAction as string) || ''
+
+  // 1) mainInsight에서 수유/수면 수치 제거 (feedAnalysis/sleepAnalysis와 중복)
+  //    "수유량 양호, 수면 부족" 같은 패턴 → feedAnalysis/sleepAnalysis가 이미 커버
+  const feedSleepPattern = /수유[량\s]*(양호|과다|부족|많|적|높|낮|정상)[^,.]*/gi
+  const sleepPattern = /수면[시간\s]*(양호|부족|과다|많|적|높|낮|정상|충분)[^,.]*/gi
+  let cleanInsight = mi.replace(feedSleepPattern, '').replace(sleepPattern, '').replace(/^[,\s·]+|[,\s·]+$/g, '').trim()
+  if (!cleanInsight || cleanInsight.length < 3) {
+    // mainInsight가 비어버리면 status 기반 기본값
+    const status = r.status as string
+    cleanInsight = status === '주의' ? '리듬 조절이 필요해요' : status === '보통' ? '대체로 괜찮아요' : '오늘 하루 잘 진행 중'
+  }
+  r.mainInsight = cleanInsight
+
+  // 2) feedAnalysis/sleepAnalysis에서 판단어 제거 (숫자만 남기기)
+  const judgmentWords = /\s*(양호|과다|부족|많음|적음|높은 편|낮은 편|정상|충분|불충분|넘침|미달)[^0-9]*/gi
+  if (fa) r.feedAnalysis = fa.replace(judgmentWords, '').replace(/[,\s]+$/, '').trim() || fa
+  if (sa) r.sleepAnalysis = sa.replace(judgmentWords, '').replace(/[,\s]+$/, '').trim() || sa
+
+  // 3) warning이 feedAnalysis/sleepAnalysis 수치와 거의 같은 내용이면 null로
+  if (wa && fa) {
+    // warning이 수유 수치를 그대로 반복하는지 확인
+    const faNumbers = fa.match(/\d+/g)?.join('') || ''
+    const waNumbers = wa.match(/\d+/g)?.join('') || ''
+    if (faNumbers && waNumbers && faNumbers === waNumbers) {
+      r.warning = null
+    }
+  }
+
+  // 4) mainInsight와 warning 사이 모순 방지
+  //    mainInsight에 "양호"가 있는데 warning이 있으면 → mainInsight 톤 조정
+  if (r.warning && mi.includes('양호')) {
+    r.mainInsight = cleanInsight.replace(/양호/g, '').trim() || '리듬 점검이 필요해요'
+  }
+
+  // 5) nextAction이 상태 설명이면 정리
+  if (na && !/[해하가]/.test(na.slice(-3))) {
+    // 동사로 끝나지 않으면 그냥 유지 (완벽하진 않지만 AI가 대부분 동사로 씀)
+  }
+
+  return r
+}
+
 // === AI 데일리 케어 카드 (Gemini) ===
 function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCount, todayPoopCount, onShare }: {
   childName: string; ageMonths: number; events: CareEvent[]; todayFeedCount: number; todaySleepCount: number; todayPoopCount: number; onShare: () => void
 }) {
   const [ai, setAi] = useState<any>(null)
   const [loading, setLoading] = useState(false)
-  const [expanded, setExpanded] = useState(false)
 
-  useEffect(() => {
-    // 캐시만 복원 (자동 호출 안 함)
-    const cacheKey = `dodam_ai_care_${new Date().toISOString().split('T')[0]}_${events.length}`
-    const cached = localStorage.getItem(cacheKey)
-    if (cached) { try { setAi(JSON.parse(cached)) } catch { /* */ } }
-  }, [events.length])
-
-  const handleAiCare = () => {
-    if (events.length < 3) return
-    const cacheKey = `dodam_ai_care_${new Date().toISOString().split('T')[0]}_${events.length}`
-    fetchAi(cacheKey)
-  }
-
-  const fetchAi = async (cacheKey: string) => {
+  const fetchAi = useCallback(async (cacheKey: string) => {
     setLoading(true)
     try {
       const lastFeed = events.find(e => e.type === 'feed')
@@ -1080,11 +1133,34 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
       })
       const data = await res.json()
       if (data.mainInsight || data.greeting) {
-        setAi(data)
-        localStorage.setItem(cacheKey, JSON.stringify(data))
+        // 후처리: AI가 규칙을 어기면 모순 제거
+        const clean = sanitizeAiResponse(data)
+        setAi(clean)
+        localStorage.setItem(cacheKey, JSON.stringify(clean))
       }
     } catch { /* */ }
     setLoading(false)
+  }, [events, childName, ageMonths, todayFeedCount, todaySleepCount, todayPoopCount])
+
+  useEffect(() => {
+    // 캐시 복원 + 자동 트리거
+    const cacheKey = `dodam_ai_care_${new Date().toISOString().split('T')[0]}_${events.length}`
+    const cached = localStorage.getItem(cacheKey)
+    if (cached) {
+      try { setAi(sanitizeAiResponse(JSON.parse(cached))) } catch { /* */ }
+    } else if (events.length >= 5) {
+      // 기록 5건 이상 + 캐시 없음 → 2초 후 자동 분석
+      const timer = setTimeout(() => {
+        fetchAi(cacheKey)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [events.length, fetchAi])
+
+  const handleAiCare = () => {
+    if (events.length < 3) return
+    const cacheKey = `dodam_ai_care_${new Date().toISOString().split('T')[0]}_${events.length}`
+    fetchAi(cacheKey)
   }
 
   const statusColors: Record<string, string> = {
@@ -1142,8 +1218,6 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
       </div>
 
       {/* AI 분석 결과 */}
-      {loading && <p className="text-body text-tertiary text-center py-2">AI가 기록을 분석하고 있어요...</p>}
-
       {!ai && !loading && (
         <button onClick={handleAiCare} disabled={events.length < 3}
           className="w-full py-3 bg-[var(--color-primary)] rounded-xl active:opacity-80 disabled:opacity-40"
@@ -1152,44 +1226,49 @@ function AiCareCard({ childName, ageMonths, events, todayFeedCount, todaySleepCo
         </button>
       )}
 
+      {!ai && loading && (
+        <button disabled
+          className="w-full py-3 bg-[var(--color-primary)] rounded-xl opacity-80 flex items-center justify-center gap-2"
+          style={{ fontSize: 15, color: '#FFFFFF', fontWeight: 700 }}>
+          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          분석 중...
+        </button>
+      )}
+
       {ai && (
         <div className="space-y-2">
-          {/* 핵심: 첫 문장 볼드 + 나머지 일반 */}
-          {ai.mainInsight && (() => {
-            const text = ai.mainInsight as string
-            const firstDot = text.search(/[.!?]\s|[.!?]$/)
-            const headline = firstDot > 0 ? text.slice(0, firstDot + 1) : text.slice(0, 50)
-            const rest = firstDot > 0 ? text.slice(firstDot + 1).trim() : text.slice(50).trim()
-            return (
-              <div>
-                <span className="text-subtitle text-primary">{headline}</span>
-                {rest && <span className="text-body-emphasis text-[#4A4744]"> {rest}</span>}
-              </div>
-            )
-          })()}
+          {/* 종합 평가 + 다음 행동 (한 줄 묶음) */}
+          {(ai.mainInsight || ai.nextAction) && (
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              {ai.mainInsight && <p className="text-subtitle text-primary">{ai.mainInsight}</p>}
+              {ai.nextAction && <p className="text-body text-[var(--color-primary)]">→ {ai.nextAction}</p>}
+            </div>
+          )}
 
-          {/* 다음 행동 + 경고 (인라인) */}
-          <div className="space-y-1.5">
-            {ai.nextAction && (
-              <p className="text-body text-[var(--color-primary)] bg-[var(--color-primary-bg)] rounded-lg px-3 py-1.5">{ai.nextAction}</p>
-            )}
-            {ai.warning && (
-              <p className="text-body text-red-600 bg-red-50 rounded-lg px-3 py-1.5">{ai.warning}</p>
-            )}
-          </div>
+          {/* 수유·수면 수치 카드 */}
+          {(ai.feedAnalysis || ai.sleepAnalysis) && (
+            <div className="flex gap-1.5">
+              {ai.feedAnalysis && (
+                <div className="flex-1 rounded-lg bg-white/60 border border-white/80 px-2.5 py-2">
+                  <p className="text-label text-tertiary mb-0.5">수유</p>
+                  <p className="text-body-emphasis text-primary">{ai.feedAnalysis}</p>
+                </div>
+              )}
+              {ai.sleepAnalysis && (
+                <div className="flex-1 rounded-lg bg-white/60 border border-white/80 px-2.5 py-2">
+                  <p className="text-label text-tertiary mb-0.5">수면</p>
+                  <p className="text-body-emphasis text-primary">{ai.sleepAnalysis}</p>
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* 상세 (접기) */}
-          {(ai.feedAnalysis || ai.sleepAnalysis || ai.parentTip) && (
-            !expanded ? (
-              <button onClick={() => setExpanded(true)} className="text-caption text-[var(--color-primary)]">자세히 ▼</button>
-            ) : (
-              <div className="text-caption text-secondary space-y-1 pt-1.5 border-t border-[var(--color-accent-bg)]/40">
-                {ai.feedAnalysis && <p>{ai.feedAnalysis}</p>}
-                {ai.sleepAnalysis && <p>{ai.sleepAnalysis}</p>}
-                {ai.parentTip && <p className="text-[var(--color-primary)]">{ai.parentTip}</p>}
-                <button onClick={() => setExpanded(false)} className="text-tertiary">접기 ▲</button>
-              </div>
-            )
+          {/* 경고 (수치 아닌 조치 이유만) */}
+          {ai.warning && (
+            <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+              <span className="text-body shrink-0">⚠️</span>
+              <p className="text-body font-medium text-red-700">{ai.warning}</p>
+            </div>
           )}
         </div>
       )}

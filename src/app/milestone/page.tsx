@@ -5,6 +5,8 @@ import { PageHeader } from '@/components/layout/PageLayout'
 import { createClient } from '@/lib/supabase/client'
 import { upsertUserRecord, fetchUserRecords } from '@/lib/supabase/userRecord'
 import Image from 'next/image'
+import { shareMilestone } from '@/lib/share'
+import { trackEvent } from '@/lib/analytics'
 
 // ─── Types ───
 interface Milestone {
@@ -112,6 +114,7 @@ export default function MilestonePage() {
     updated.push({ id: `ms-${Date.now()}`, type: editing, date: editDate, note: editNote, photoUrl: editPhoto || undefined, custom: isCustom || undefined })
     setMilestones(updated)
     saveMilestonesToDB(updated)
+    trackEvent('milestone_recorded', { type: editing })
     setEditing(null)
   }, [editing, editDate, editNote, editPhoto, milestones])
 
@@ -210,6 +213,7 @@ export default function MilestonePage() {
                 placeholder="예: 첫 생일 파티, 첫 동물원"
                 value={customName}
                 onChange={e => setCustomName(e.target.value)}
+                maxLength={50}
                 className="w-full px-3 py-2 rounded-lg border border-[#E8E4DF] text-body-emphasis text-primary placeholder:text-tertiary focus:outline-none focus:border-[var(--color-primary)]"
               />
               <div className="flex gap-2 mt-3">
@@ -239,6 +243,13 @@ export default function MilestonePage() {
                     <span className="text-body font-semibold text-primary">{m.type}</span>
                     {m.note && <span className="text-caption text-secondary ml-1.5">{m.note}</span>}
                   </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); shareMilestone(m.type, m.date.replace(/-/g, '.')) }}
+                    className="text-caption text-[var(--color-primary)] font-medium shrink-0 px-1.5 active:opacity-60"
+                    aria-label="공유"
+                  >
+                    공유
+                  </button>
                   <span className="text-caption text-tertiary shrink-0">{m.date.replace(/-/g, '.')}</span>
                 </div>
               ))}
@@ -283,6 +294,7 @@ export default function MilestonePage() {
                   value={editNote}
                   onChange={e => setEditNote(e.target.value)}
                   placeholder="그 순간을 기록해보세요..."
+                  maxLength={500}
                   rows={3}
                   className="w-full px-3 py-2.5 rounded-lg border border-[#E8E4DF] text-body-emphasis text-primary placeholder:text-tertiary resize-none focus:outline-none focus:border-[var(--color-primary)]"
                 />

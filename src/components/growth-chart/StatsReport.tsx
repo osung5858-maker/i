@@ -380,7 +380,7 @@ export default function StatsReport({ events, ageMonths }: Props) {
       <button
         onClick={() => {
           const description = `수유 하루 평균 ${avgFeed}회 · 수면 평균 ${avgSleep}시간 · ${insights[0] || ''}`
-          const url = 'https://dodam.life/growth'
+          const url = 'https://i.dodam.life/growth'
 
           if (typeof window !== 'undefined' && window.Kakao?.isInitialized?.()) {
             window.Kakao.Share.sendDefault({
@@ -388,7 +388,7 @@ export default function StatsReport({ events, ageMonths }: Props) {
               content: {
                 title: '도담 주간 리포트',
                 description,
-                imageUrl: 'https://dodam.life/og-image.png',
+                imageUrl: 'https://i.dodam.life/og-image.png',
                 link: { mobileWebUrl: url, webUrl: url },
               },
               buttons: [

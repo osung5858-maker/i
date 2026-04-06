@@ -70,8 +70,8 @@ export async function POST(request: Request) {
           object_type: 'text',
           text: templateText,
           link: {
-            web_url: 'https://dodam.life',
-            mobile_web_url: 'https://dodam.life',
+            web_url: 'https://i.dodam.life',
+            mobile_web_url: 'https://i.dodam.life',
           },
           button_title: '도담 열기',
         }),

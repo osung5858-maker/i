@@ -93,12 +93,27 @@ export default function TodayRecordSection({ count, tiles, chips, emptyMessage, 
 
       {/* 빈 상태 */}
       {count === 0 && !hasActivity && (
-        <p className="text-body text-center" style={{
-          color: 'var(--neutral-400)',
-          padding: 'var(--spacing-2) 0'
-        }}>
-          {emptyMessage ?? '아래 버튼으로 오늘의 첫 기록을 남겨보세요'}
-        </p>
+        <div className="text-center" style={{ padding: 'var(--spacing-2) 0' }}>
+          <p className="text-body mb-3" style={{ color: 'var(--neutral-400)' }}>
+            아직 기록이 없어요
+          </p>
+          <button
+            onClick={() => {
+              const fabButton = document.querySelector('[data-fab-button]') as HTMLElement
+              if (fabButton) {
+                fabButton.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                setTimeout(() => fabButton.click(), 300)
+              }
+            }}
+            className="px-5 py-2.5 rounded-xl font-medium text-sm transition-opacity active:opacity-70"
+            style={{
+              backgroundColor: 'var(--color-primary)',
+              color: '#FFFFFF'
+            }}
+          >
+            첫 기록 남기기
+          </button>
+        </div>
       )}
 
       {/* 푸터 슬롯 */}

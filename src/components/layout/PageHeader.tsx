@@ -8,15 +8,14 @@ interface PageHeaderProps {
   rightAction?: React.ReactNode
   subtitle?: string
   transparent?: boolean
-  standalone?: boolean  // GlobalHeader 없는 페이지에서 top-0으로
 }
 
-export default function PageHeader({ title, showBack = false, rightAction, subtitle, transparent = false, standalone = false }: PageHeaderProps) {
+export default function PageHeader({ title, showBack = true, rightAction, subtitle, transparent = false }: PageHeaderProps) {
   const router = useRouter()
 
   return (
     <header
-      className={`sticky ${standalone ? 'top-0 z-40' : 'top-[72px] z-30'} ${transparent ? 'bg-transparent' : 'bg-white'}`}
+      className={`sticky top-[72px] z-30 ${transparent ? 'bg-transparent' : 'bg-[var(--color-page-bg)]'}`}
       style={{
         borderBottom: transparent ? 'none' : '1px solid var(--border-default)'
       }}
