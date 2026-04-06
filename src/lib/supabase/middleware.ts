@@ -29,6 +29,24 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const pathname = request.nextUrl.pathname
+
+  // /admin/* 라우트 보호: 어드민 role 체크
+  if (pathname.startsWith('/admin')) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding'
+      return NextResponse.redirect(url)
+    }
+    const role = user.app_metadata?.role
+    if (role !== 'admin') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+    return supabaseResponse
+  }
+
   // 비로그인 허용 경로
   const publicPaths = [
     '/onboarding', '/invite', '/auth/callback',
@@ -38,9 +56,9 @@ export async function updateSession(request: NextRequest) {
     '/map', '/emergency',
     '/babyfood', '/gov-support', '/guide',
   ]
-  const isPublic = publicPaths.some((p) => request.nextUrl.pathname.startsWith(p))
+  const isPublic = publicPaths.some((p) => pathname.startsWith(p))
 
-  if (!user && !isPublic && request.nextUrl.pathname !== '/') {
+  if (!user && !isPublic && pathname !== '/') {
     const url = request.nextUrl.clone()
     url.pathname = '/onboarding'
     return NextResponse.redirect(url)
