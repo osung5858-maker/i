@@ -530,8 +530,8 @@ function ParentingRecord() {
         const thirtyDaysAgo = new Date()
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
         const [eventsRes, growthRes] = await Promise.all([
-          supabase.from('events').select('id, type, start_ts, end_ts, amount_ml, unit, temperature, tags, memo, notes, child_id, recorder_id').eq('child_id', c.id).gte('start_ts', thirtyDaysAgo.toISOString()).order('start_ts', { ascending: false }),
-          supabase.from('growth_records').select('id, child_id, measured_at, weight_kg, height_cm, head_cm, body_type, notes').eq('child_id', c.id).order('measured_at', { ascending: true }),
+          supabase.from('events').select('id, type, start_ts, end_ts, amount_ml, tags, source, child_id, recorder_id').eq('child_id', c.id).gte('start_ts', thirtyDaysAgo.toISOString()).order('start_ts', { ascending: false }),
+          supabase.from('growth_records').select('id, child_id, measured_at, weight_kg, height_cm, head_cm').eq('child_id', c.id).order('measured_at', { ascending: true }),
         ])
         if (eventsRes.data) setEvents(eventsRes.data as CareEvent[])
         if (growthRes.data) setRecords(growthRes.data as GrowthRecord[])
