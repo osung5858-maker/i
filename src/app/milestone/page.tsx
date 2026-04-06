@@ -45,13 +45,15 @@ function saveMilestonesToDB(items: Milestone[]) {
 
 export default function MilestonePage() {
   const [milestones, setMilestones] = useState<Milestone[]>([])
-  const [editing, setEditing] = useState<string | null>(null) // milestone type being edited
+  const [editing, setEditing] = useState<string | null>(null)
+  const [viewing, setViewing] = useState<string | null>(null)
   const [editDate, setEditDate] = useState('')
   const [editNote, setEditNote] = useState('')
   const [editPhoto, setEditPhoto] = useState('')
   const [uploading, setUploading] = useState(false)
   const [customName, setCustomName] = useState('')
   const [showCustom, setShowCustom] = useState(false)
+  const [photoViewer, setPhotoViewer] = useState<string | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -68,7 +70,6 @@ export default function MilestonePage() {
     return acc
   }, {})
 
-  // All types: predefined + custom milestones that aren't predefined
   const allTypes = [
     ...MILESTONE_TYPES.map(t => t.type),
     ...milestones.filter(m => m.custom).map(m => m.type).filter(t => !MILESTONE_TYPES.some(p => p.type === t)),
@@ -77,12 +78,22 @@ export default function MilestonePage() {
   const getIcon = (type: string) => {
     const found = MILESTONE_TYPES.find(t => t.type === type)
     if (found) return found.icon('w-5 h-5')
-    // Custom milestone icon — star
     return <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+  }
+
+  // 완료된 항목 탭 → 상세 보기, 미완료 항목 탭 → 바로 편집
+  const handleItemTap = (type: string) => {
+    const done = completed[type]
+    if (done) {
+      setViewing(type)
+    } else {
+      openEditor(type)
+    }
   }
 
   const openEditor = (type: string) => {
     const existing = completed[type]
+    setViewing(null)
     setEditing(type)
     setEditDate(existing?.date || new Date().toISOString().split('T')[0])
     setEditNote(existing?.note || '')
@@ -131,7 +142,6 @@ export default function MilestonePage() {
     if (!name) return
     setCustomName('')
     setShowCustom(false)
-    // Open editor for the new custom type
     openEditor(name)
   }
 
@@ -148,7 +158,6 @@ export default function MilestonePage() {
 
         {/* Timeline */}
         <div className="relative pl-8">
-          {/* Vertical line */}
           <div className="absolute left-[13px] top-2 bottom-2 w-0.5 bg-[#E8E4DF]" />
 
           {allTypes.map((type, idx) => {
@@ -168,33 +177,53 @@ export default function MilestonePage() {
 
                 {/* Card */}
                 <button
-                  onClick={() => openEditor(type)}
-                  className={`w-full text-left p-3 rounded-xl transition-colors ${
+                  onClick={() => handleItemTap(type)}
+                  className={`w-full text-left rounded-xl transition-all ${
                     done
-                      ? 'bg-white border border-[var(--color-primary)]/20'
+                      ? 'bg-white border border-[var(--color-primary)]/20 shadow-sm'
                       : 'bg-white/60 border border-[#E8E4DF]'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
+                  {/* 완료된 항목: 사진 썸네일 표시 */}
+                  {done?.photoUrl && (
+                    <div className="relative w-full h-32 rounded-t-xl overflow-hidden">
+                      {done.photoUrl.match(/\.(mp4|webm|mov)$/i) ? (
+                        <video src={done.photoUrl} className="w-full h-full object-cover" muted />
+                      ) : (
+                        <Image src={done.photoUrl} alt={type} fill className="object-cover" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                      <div className="absolute bottom-2 left-3">
+                        <span className="text-caption text-white/90 font-medium bg-black/30 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                          {done.date.replace(/-/g, '.')}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={`flex items-center gap-2.5 p-3 ${done?.photoUrl ? '' : ''}`}>
                     <span className={done ? 'text-[var(--color-primary)]' : 'text-tertiary'}>
                       {getIcon(type)}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-body-emphasis ${done ? 'text-primary' : 'text-tertiary'}`}>
+                      <p className={`text-body-emphasis ${done ? 'text-primary font-semibold' : 'text-tertiary'}`}>
                         {type}
                       </p>
-                      {done && (
+                      {done && !done.photoUrl && (
                         <p className="text-caption text-secondary mt-0.5">
                           {done.date.replace(/-/g, '.')}
                           {done.note && ` — ${done.note}`}
                         </p>
+                      )}
+                      {done && done.photoUrl && done.note && (
+                        <p className="text-caption text-secondary mt-0.5 truncate">{done.note}</p>
                       )}
                       {!done && (
                         <p className="text-caption text-tertiary">탭하여 기록하기</p>
                       )}
                     </div>
                     {done && (
-                      <span className="text-label text-[var(--color-primary)] font-bold shrink-0">기록됨</span>
+                      <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-label text-[var(--color-primary)] font-bold shrink-0">완료</span>
                     )}
                   </div>
                 </button>
@@ -237,35 +266,113 @@ export default function MilestonePage() {
             <p className="text-body font-bold text-secondary mb-3">기록 타임라인</p>
             <div className="space-y-2">
               {sortedCompleted.map(m => (
-                <div key={m.id} className="flex items-center gap-3 px-3 py-2 bg-white rounded-lg border border-[#E8E4DF]">
-                  <span className="text-[var(--color-primary)]">{getIcon(m.type)}</span>
+                <button
+                  key={m.id}
+                  onClick={() => setViewing(m.type)}
+                  className="w-full flex items-center gap-3 px-3 py-2 bg-white rounded-lg border border-[#E8E4DF] text-left active:bg-[var(--color-page-bg)] transition-colors"
+                >
+                  {m.photoUrl && !m.photoUrl.match(/\.(mp4|webm|mov)$/i) ? (
+                    <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 relative">
+                      <Image src={m.photoUrl} alt={m.type} fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <span className="text-[var(--color-primary)]">{getIcon(m.type)}</span>
+                  )}
                   <div className="flex-1 min-w-0">
                     <span className="text-body font-semibold text-primary">{m.type}</span>
-                    {m.note && <span className="text-caption text-secondary ml-1.5">{m.note}</span>}
+                    {m.note && <span className="text-caption text-secondary ml-1.5 truncate">{m.note}</span>}
                   </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); shareMilestone(m.type, m.date.replace(/-/g, '.')) }}
-                    className="text-caption text-[var(--color-primary)] font-medium shrink-0 px-1.5 active:opacity-60"
-                    aria-label="공유"
-                  >
-                    공유
-                  </button>
                   <span className="text-caption text-tertiary shrink-0">{m.date.replace(/-/g, '.')}</span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
         )}
       </div>
 
-      {/* Bottom Sheet Editor */}
+      {/* ━━━ 상세 보기 시트 ━━━ */}
+      {viewing && completed[viewing] && (
+        <div className="fixed inset-0 z-[80] bg-black/40" onClick={() => setViewing(null)}>
+          <div
+            className="absolute bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white rounded-t-2xl animate-slideUp pb-[env(safe-area-inset-bottom)]"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-10 h-1 bg-[#E0E0E0] rounded-full" />
+            </div>
+
+            <div className="px-5 pb-5">
+              {/* 헤더 */}
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-[var(--color-primary)]">{getIcon(viewing)}</span>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-subtitle font-bold text-primary">{viewing}</h2>
+                  <p className="text-caption text-secondary">{completed[viewing].date.replace(/-/g, '.')}</p>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-label text-[var(--color-primary)] font-bold">완료</span>
+              </div>
+
+              {/* 사진/영상 */}
+              {completed[viewing].photoUrl && (
+                <button
+                  onClick={() => setPhotoViewer(completed[viewing].photoUrl!)}
+                  className="w-full mb-4 rounded-xl overflow-hidden relative"
+                >
+                  {completed[viewing].photoUrl!.match(/\.(mp4|webm|mov)$/i) ? (
+                    <video src={completed[viewing].photoUrl} className="w-full max-h-[300px] object-cover rounded-xl" controls />
+                  ) : (
+                    <div className="relative w-full h-[240px]">
+                      <Image src={completed[viewing].photoUrl!} alt={viewing} fill className="object-cover rounded-xl" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 active:opacity-100 transition-opacity">
+                        <span className="bg-black/40 text-white text-caption px-3 py-1.5 rounded-full backdrop-blur-sm">크게 보기</span>
+                      </div>
+                    </div>
+                  )}
+                </button>
+              )}
+
+              {/* 메모 */}
+              {completed[viewing].note && (
+                <div className="bg-[var(--color-page-bg)] rounded-xl p-3 mb-4">
+                  <p className="text-body text-primary leading-relaxed">{completed[viewing].note}</p>
+                </div>
+              )}
+
+              {/* 사진/메모 없을 때 */}
+              {!completed[viewing].photoUrl && !completed[viewing].note && (
+                <div className="bg-[var(--color-page-bg)] rounded-xl p-4 mb-4 text-center">
+                  <p className="text-body text-tertiary">아직 사진이나 메모가 없어요</p>
+                  <p className="text-caption text-tertiary mt-0.5">수정하기를 눌러 추가해보세요</p>
+                </div>
+              )}
+
+              {/* 액션 버튼 */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { shareMilestone(viewing, completed[viewing].date.replace(/-/g, '.')) }}
+                  className="flex-1 py-3 rounded-xl text-body-emphasis font-semibold text-[var(--color-primary)] bg-[var(--color-primary)]/10 active:opacity-80"
+                >
+                  공유하기
+                </button>
+                <button
+                  onClick={() => openEditor(viewing)}
+                  className="flex-1 py-3 rounded-xl text-body-emphasis font-semibold text-white bg-[var(--color-primary)] active:opacity-80"
+                >
+                  수정하기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ━━━ 편집 시트 ━━━ */}
       {editing && (
         <div className="fixed inset-0 z-[80] bg-black/40" onClick={() => setEditing(null)}>
           <div
             className="absolute bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white rounded-t-2xl animate-slideUp pb-[env(safe-area-inset-bottom)]"
             onClick={e => e.stopPropagation()}
           >
-            {/* Handle */}
             <div className="flex justify-center pt-3 pb-2">
               <div className="w-10 h-1 bg-[#E0E0E0] rounded-full" />
             </div>
@@ -335,6 +442,28 @@ export default function MilestonePage() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ━━━ 사진 전체 보기 ━━━ */}
+      {photoViewer && (
+        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center" onClick={() => setPhotoViewer(null)}>
+          <button
+            onClick={() => setPhotoViewer(null)}
+            className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
+            style={{ paddingBottom: 'env(safe-area-inset-top)' }}
+          >
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+          <Image
+            src={photoViewer}
+            alt=""
+            fill
+            className="object-contain"
+            onClick={e => e.stopPropagation()}
+          />
         </div>
       )}
     </div>

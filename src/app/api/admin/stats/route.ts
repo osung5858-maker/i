@@ -18,10 +18,10 @@ export async function GET() {
     // Auth guard: verify admin role
     const user = await getAuthUser()
     if (!user) {
-      return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 })
+      return NextResponse.json({ error: '로그인이 필요합니다', debug: 'getAuthUser returned null' }, { status: 401 })
     }
     if (user.app_metadata?.role !== 'admin') {
-      return NextResponse.json({ error: '관리자 권한이 필요합니다' }, { status: 403 })
+      return NextResponse.json({ error: '관리자 권한이 필요합니다', debug_role: user.app_metadata?.role, debug_meta: user.app_metadata }, { status: 403 })
     }
 
     const supabase = createAdminSupabase()

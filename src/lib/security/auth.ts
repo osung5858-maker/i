@@ -20,7 +20,15 @@ export async function getAuthUser() {
           getAll() {
             return cookieStore.getAll()
           },
-          setAll() {},
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              )
+            } catch {
+              // Server Component에서는 set 불가 — 무시
+            }
+          },
         },
       },
     )
