@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import { useRemoteContent } from '@/lib/useRemoteContent'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChatIcon, FireIcon, TrashIcon, HeartIcon, HeartFilledIcon, BookmarkIcon, BookmarkFilledIcon, GiftIcon, PackageIcon, MapPinIcon, CameraIcon, XIcon } from '@/components/ui/Icons'
+import UserAvatar from '@/components/ui/UserAvatar'
 import { sanitizeUserInput, sanitizeTitle } from '@/lib/sanitize'
 import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 import { getProfile } from '@/lib/supabase/userProfile'
@@ -228,6 +229,16 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   const [filterAge, setFilterAge] = useState<string>('all')
   const [uploading, setUploading] = useState(false)
 
+  // 장터 상세 보기
+  const [selectedItem, setSelectedItem] = useState<MarketItem | null>(null)
+
+  // 인피니티 스크롤
+  const PAGE_SIZE = 15
+  const [hasMorePosts, setHasMorePosts] = useState(true)
+  const [hasMoreItems, setHasMoreItems] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const observerRef = useRef<HTMLDivElement>(null)
+
   const router = useRouter()
   const supabase = createClient()
   const dailyQuestion = dailyQuestions[new Date().getDay() % dailyQuestions.length]
@@ -301,11 +312,15 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
 
       const now = new Date().toISOString()
       const [postsRes, itemsRes] = await Promise.all([
-        supabase.from('posts').select('id, user_id, content, like_count, comment_count, created_at').lte('created_at', now).order('created_at', { ascending: false }).limit(30),
-        supabase.from('market_items').select('id, user_id, title, description, price, category, baby_age_months, region, photos, status, chat_count, created_at, transaction_type, exchange_want').lte('created_at', now).order('created_at', { ascending: false }).limit(30),
+        supabase.from('posts').select('id, user_id, content, like_count, comment_count, created_at').lte('created_at', now).order('created_at', { ascending: false }).limit(PAGE_SIZE),
+        supabase.from('market_items').select('id, user_id, title, description, price, category, baby_age_months, region, photos, status, chat_count, created_at, transaction_type, exchange_want').lte('created_at', now).order('created_at', { ascending: false }).limit(PAGE_SIZE),
       ])
-      setPosts((postsRes.data as Post[]) || [])
-      setItems((itemsRes.data as MarketItem[]) || [])
+      const p = (postsRes.data as Post[]) || []
+      const m = (itemsRes.data as MarketItem[]) || []
+      setPosts(p)
+      setItems(m)
+      setHasMorePosts(p.length >= PAGE_SIZE)
+      setHasMoreItems(m.length >= PAGE_SIZE)
       setLoading(false)
     }
     init()
@@ -323,6 +338,55 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
     }
     setWriteText(''); setWriteOpen(false); setPosting(false)
   }, [writeText, userId, posting, supabase])
+
+  // 인피니티 스크롤 — 더 불러오기
+  const loadMorePosts = useCallback(async () => {
+    if (loadingMore || !hasMorePosts || posts.length === 0) return
+    setLoadingMore(true)
+    const last = posts[posts.length - 1]
+    const { data } = await supabase
+      .from('posts')
+      .select('id, user_id, content, like_count, comment_count, created_at')
+      .lt('created_at', last.created_at)
+      .order('created_at', { ascending: false })
+      .limit(PAGE_SIZE)
+    if (data) {
+      setPosts(prev => [...prev, ...(data as Post[])])
+      setHasMorePosts(data.length >= PAGE_SIZE)
+    }
+    setLoadingMore(false)
+  }, [loadingMore, hasMorePosts, posts, supabase])
+
+  const loadMoreItems = useCallback(async () => {
+    if (loadingMore || !hasMoreItems || items.length === 0) return
+    setLoadingMore(true)
+    const last = items[items.length - 1]
+    const { data } = await supabase
+      .from('market_items')
+      .select('id, user_id, title, description, price, category, baby_age_months, region, photos, status, chat_count, created_at, transaction_type, exchange_want')
+      .lt('created_at', last.created_at)
+      .order('created_at', { ascending: false })
+      .limit(PAGE_SIZE)
+    if (data) {
+      setItems(prev => [...prev, ...(data as MarketItem[])])
+      setHasMoreItems(data.length >= PAGE_SIZE)
+    }
+    setLoadingMore(false)
+  }, [loadingMore, hasMoreItems, items, supabase])
+
+  // IntersectionObserver
+  useEffect(() => {
+    const el = observerRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        if (tab === 'feed') loadMorePosts()
+        else loadMoreItems()
+      }
+    }, { rootMargin: '200px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [tab, loadMorePosts, loadMoreItems])
 
   const handlePhotoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -552,9 +616,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 <div className="bg-white rounded-xl p-4 border border-[#E8E4DF]">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[var(--color-page-bg)] flex items-center justify-center">
-                        <span className="text-body-emphasis font-bold text-[var(--color-primary)]">도</span>
-                      </div>
+                      <UserAvatar userId={post.user_id} size={28} />
                       <p className="text-body-emphasis text-tertiary">{timeAgo(post.created_at)}</p>
                       {post.like_count >= 5 && <span className="text-body font-semibold text-[#D89575] flex items-center gap-0.5"><FireIcon className="w-3.5 h-3.5" /> 인기</span>}
                     </div>
@@ -598,9 +660,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                         <div className="space-y-2 mb-3">
                           {(comments[post.id] || []).map((c) => (
                             <div key={c.id} className="flex gap-2">
-                              <div className="w-6 h-6 rounded-full bg-[var(--color-page-bg)] flex items-center justify-center shrink-0 mt-0.5">
-                                <span className="text-body font-bold text-[var(--color-primary)]">도</span>
-                              </div>
+                              <UserAvatar userId={c.user_id} size={24} className="mt-0.5" />
                               <div className="flex-1">
                                 <p className="text-body-emphasis text-primary leading-relaxed">{c.content}</p>
                                 <div className="flex items-center gap-2 mt-0.5">
@@ -643,6 +703,12 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 </div>
               ))}
             </div>
+            {/* 인피니티 스크롤 센티널 */}
+            {tab === 'feed' && hasMorePosts && (
+              <div ref={observerRef} className="flex justify-center py-4">
+                {loadingMore && <div className="w-5 h-5 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />}
+              </div>
+            )}
           </>
         )}
 
@@ -709,7 +775,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
             ) : filtered.map((item) => (
               <div key={item.id} className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden">
                 {/* 썸네일 + 기본 정보 */}
-                <div className="flex items-start gap-3 p-4">
+                <div className="flex items-start gap-3 p-4 cursor-pointer active:bg-[#FAFAFA]" onClick={() => setSelectedItem(item)}>
                   <div className="w-20 h-20 rounded-xl bg-[var(--color-page-bg)] flex items-center justify-center shrink-0 overflow-hidden relative">
                     {item.photos && item.photos.length > 0 ? (
                       <Image src={item.photos[0]} alt="" fill className="object-cover" />
@@ -816,6 +882,12 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
               </div>
             ))
             })()}
+            {/* 인피니티 스크롤 센티널 (장터) */}
+            {hasMoreItems && (
+              <div ref={observerRef} className="flex justify-center py-4">
+                {loadingMore && <div className="w-5 h-5 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -838,6 +910,159 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 className={`w-full py-3.5 rounded-xl text-subtitle transition-colors ${writeText.trim() ? 'bg-[var(--color-primary)] text-white active:bg-[#2D6B45]' : 'bg-[#E8E4DF] text-tertiary'}`}>
                 {posting ? '등록 중...' : '등록'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 도담장터 상세 보기 모달 */}
+      {selectedItem && (
+        <div className="fixed inset-0 z-[100] bg-black/40" onClick={() => setSelectedItem(null)}>
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white rounded-t-2xl pb-[env(safe-area-inset-bottom)] max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* 핸들 + 닫기 */}
+            <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
+            <div className="flex items-center justify-between px-5 py-2 border-b border-[#E8E4DF]">
+              <p className="text-subtitle text-primary">상세 보기</p>
+              <button onClick={() => setSelectedItem(null)} className="text-body text-secondary">닫기</button>
+            </div>
+
+            {/* 스크롤 영역 */}
+            <div className="flex-1 overflow-y-auto">
+              {/* 사진 갤러리 */}
+              {selectedItem.photos && selectedItem.photos.length > 0 && (
+                <div className="flex gap-1 overflow-x-auto hide-scrollbar">
+                  {selectedItem.photos.map((url: string, i: number) => (
+                    <div key={i} className="w-full min-w-[280px] h-64 relative shrink-0">
+                      <Image src={url} alt="" fill className="object-cover" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="px-5 py-4 space-y-3">
+                {/* 거래 유형 뱃지 + 제목 */}
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    {selectedItem.transaction_type && (
+                      <span className={`text-body font-semibold px-2 py-0.5 rounded ${
+                        selectedItem.transaction_type === 'share' ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' :
+                        selectedItem.transaction_type === 'exchange' ? 'bg-[#D89575]/10 text-[#D89575]' :
+                        'bg-[#E8E4DF] text-secondary'
+                      }`}>
+                        {TRANSACTION_TYPE_LABELS[selectedItem.transaction_type] || '판매'}
+                      </span>
+                    )}
+                    {selectedItem.status === 'reserved' && (
+                      <span className="text-body font-semibold text-white bg-[#D89575] px-2 py-0.5 rounded">예약중</span>
+                    )}
+                    {selectedItem.status === 'done' && (
+                      <span className="text-body font-semibold text-white bg-[#AEB1B9] px-2 py-0.5 rounded">거래완료</span>
+                    )}
+                  </div>
+                  <h2 className="text-subtitle text-primary">{selectedItem.title}</h2>
+                </div>
+
+                {/* 가격 */}
+                <p className={`text-[20px] font-bold ${selectedItem.price === 0 ? 'text-[var(--color-primary)]' : 'text-primary'}`}>
+                  {selectedItem.price === 0 ? '무료 나눔' : `${selectedItem.price.toLocaleString()}원`}
+                </p>
+
+                {/* 정보 태그 */}
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="text-body px-2 py-1 rounded-lg bg-[#F0EDE8] text-secondary">
+                    {CATEGORY_LABELS[selectedItem.category] || selectedItem.category}
+                  </span>
+                  <span className="text-body px-2 py-1 rounded-lg bg-[#F0EDE8] text-secondary">
+                    {selectedItem.baby_age_months}개월
+                  </span>
+                  {(selectedItem as MarketItem & { condition?: string }).condition && (
+                    <span className="text-body px-2 py-1 rounded-lg bg-[#F0EDE8] text-[#8B7355]">
+                      {CONDITION_LABELS[(selectedItem as MarketItem & { condition?: string }).condition!] || ''}
+                    </span>
+                  )}
+                </div>
+
+                {/* 위치 + 시간 */}
+                <div className="flex items-center gap-1 text-body text-tertiary">
+                  <MapPinIcon className="w-3.5 h-3.5" />
+                  <span>{selectedItem.region}</span>
+                  <span>·</span>
+                  <span>{timeAgo(selectedItem.created_at)}</span>
+                </div>
+
+                {/* 교환 희망 */}
+                {selectedItem.transaction_type === 'exchange' && selectedItem.exchange_want && (
+                  <div className="p-3 rounded-xl bg-[#FFF8F0] border border-[#D89575]/20">
+                    <p className="text-body-emphasis text-[#D89575] font-semibold mb-0.5">교환 희망</p>
+                    <p className="text-body text-primary">{selectedItem.exchange_want}</p>
+                  </div>
+                )}
+
+                {/* 설명 */}
+                {selectedItem.description && (
+                  <div className="pt-3 border-t border-[#E8E4DF]">
+                    <p className="text-body-emphasis text-primary leading-relaxed whitespace-pre-line">{selectedItem.description}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 하단 액션 */}
+            <div className="px-5 py-3 border-t border-[#E8E4DF] flex gap-2">
+              {selectedItem.user_id === userId ? (
+                <>
+                  {selectedItem.status === 'active' && (
+                    <button
+                      onClick={async () => {
+                        await supabase.from('market_items').update({ status: 'reserved' }).eq('id', selectedItem.id)
+                        setItems((prev) => prev.map((i) => i.id === selectedItem.id ? { ...i, status: 'reserved' } : i))
+                        setSelectedItem({ ...selectedItem, status: 'reserved' })
+                      }}
+                      className="flex-1 py-3 rounded-xl bg-[#D89575] text-white font-semibold active:opacity-80"
+                    >
+                      예약중으로 변경
+                    </button>
+                  )}
+                  {selectedItem.status === 'reserved' && (
+                    <button
+                      onClick={async () => {
+                        await supabase.from('market_items').update({ status: 'done' }).eq('id', selectedItem.id)
+                        setItems((prev) => prev.map((i) => i.id === selectedItem.id ? { ...i, status: 'done' } : i))
+                        setSelectedItem({ ...selectedItem, status: 'done' })
+                      }}
+                      className="flex-1 py-3 rounded-xl bg-[var(--color-primary)] text-white font-semibold active:opacity-80"
+                    >
+                      거래완료
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { if (confirm('정말 삭제할까요?')) { handleDeleteItem(selectedItem.id); setSelectedItem(null) } }}
+                    className="py-3 px-6 rounded-xl bg-[#E8E4DF] text-tertiary font-semibold"
+                  >
+                    삭제
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => shareMarketItem(selectedItem)} className="py-3 px-6 rounded-xl bg-[#E8E4DF] text-secondary font-semibold">
+                    공유
+                  </button>
+                  {selectedItem.status === 'active' && (
+                    <button
+                      onClick={() => window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '채팅 기능은 준비 중이에요' } }))}
+                      className="flex-1 py-3 rounded-xl bg-[var(--color-primary)] text-white font-semibold active:opacity-80"
+                    >
+                      거래 신청하기
+                    </button>
+                  )}
+                  {selectedItem.status === 'reserved' && (
+                    <p className="flex-1 py-3 text-center text-body-emphasis text-secondary">예약된 물품이에요</p>
+                  )}
+                  {selectedItem.status === 'done' && (
+                    <p className="flex-1 py-3 text-center text-body-emphasis text-tertiary">거래가 완료되었어요</p>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>

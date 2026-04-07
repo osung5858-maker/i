@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {MapIcon, BabyIcon, PenIcon, ClockIcon, UsersIcon, ChatIcon} from '@/components/ui/Icons'
@@ -37,10 +37,15 @@ const FREQUENCY_LABELS: Record<string, string> = {
   irregular: '비정기',
 }
 
+const GATHER_PAGE_SIZE = 15
+
 export default function TownGatherTab({ range }: { range: number }) {
   const [gatherings, setGatherings] = useState<Gathering[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(true) // 목록 펼침/접기
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const observerRef = useRef<HTMLDivElement>(null)
 
   // 소모임 만들기 모달
   const [createOpen, setCreateOpen] = useState(false)
@@ -80,7 +85,7 @@ export default function TownGatherTab({ range }: { range: number }) {
         .eq('status', 'open')
         .lte('created_at', now)
         .order('created_at', { ascending: false })
-        .limit(20)
+        .limit(GATHER_PAGE_SIZE)
 
       if (data) {
         const { data: { user } } = await supabase.auth.getUser()
@@ -115,6 +120,7 @@ export default function TownGatherTab({ range }: { range: number }) {
           }
         })
         setGatherings(gatherings)
+        setHasMore(data.length >= GATHER_PAGE_SIZE)
       }
     } catch (err) {
       console.error('Failed to load gatherings:', err)
@@ -122,6 +128,59 @@ export default function TownGatherTab({ range }: { range: number }) {
       setLoading(false)
     }
   }
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || gatherings.length === 0) return
+    setLoadingMore(true)
+    try {
+      const supabase = createClient()
+      const now = new Date().toISOString()
+      const last = gatherings[gatherings.length - 1] as any
+      const { data } = await supabase
+        .from('town_gatherings')
+        .select(`*, gathering_participants(count), gathering_posts(content, created_at)`)
+        .eq('status', 'open')
+        .lte('created_at', now)
+        .lt('created_at', last.created_at)
+        .order('created_at', { ascending: false })
+        .limit(GATHER_PAGE_SIZE)
+
+      if (data) {
+        const { data: { user } } = await supabase.auth.getUser()
+        const userId = user?.id
+        let joinedIds = new Set<string>()
+        if (userId) {
+          const { data: participantData } = await supabase
+            .from('gathering_participants')
+            .select('gathering_id')
+            .eq('user_id', userId)
+          if (participantData) joinedIds = new Set(participantData.map((p: { gathering_id: string }) => p.gathering_id))
+        }
+        const more = data.map((g: any) => {
+          const posts = g.gathering_posts || []
+          const sortedPosts = posts.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          return { ...g, participant_count: g.gathering_participants[0]?.count || 0, post_count: posts.length, latest_post: sortedPosts[0] || null, is_joined: joinedIds.has(g.id), gathering_participants: undefined, gathering_posts: undefined }
+        })
+        setGatherings(prev => [...prev, ...more])
+        setHasMore(data.length >= GATHER_PAGE_SIZE)
+      }
+    } catch (err) {
+      console.error('Failed to load more gatherings:', err)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [loadingMore, hasMore, gatherings])
+
+  // IntersectionObserver
+  useEffect(() => {
+    const el = observerRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) loadMore()
+    }, { rootMargin: '200px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [loadMore])
 
   const handleCreate = async () => {
     if (!title.trim() || !userPos || creating) return
@@ -298,6 +357,13 @@ export default function TownGatherTab({ range }: { range: number }) {
           </div>
         )}
       </div>
+
+      {/* 인피니티 스크롤 센티널 */}
+      {hasMore && (
+        <div ref={observerRef} className="flex justify-center py-4">
+          {loadingMore && <div className="w-5 h-5 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />}
+        </div>
+      )}
 
       {/* 소모임 만들기 모달 */}
       {createOpen && (

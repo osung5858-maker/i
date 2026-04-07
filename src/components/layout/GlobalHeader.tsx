@@ -155,8 +155,8 @@ function GlobalHeaderComponent() {
 
   // data 로딩 전 스켈레톤 — 레이아웃 시프트 방지
   if (!data) return (
-    <header className="sticky top-0 z-40 pointer-events-none" style={{ paddingTop: '8px' }}>
-      <div className="max-w-lg mx-auto w-full px-4">
+    <header className="sticky top-0 z-40 pointer-events-none" style={{ paddingTop: 'max(16px, env(safe-area-inset-top, 16px))' }}>
+      <div className="max-w-lg mx-auto w-full px-5">
         <div style={{
           height: 52,
           padding: '0 16px',
@@ -198,8 +198,8 @@ function GlobalHeaderComponent() {
   }
 
   return (
-    <header className="sticky top-0 z-40 pointer-events-none" style={{ paddingTop: '8px' }}>
-      <div className="max-w-lg mx-auto w-full px-4 pointer-events-auto">
+    <header className="sticky top-0 z-40 pointer-events-none" style={{ paddingTop: 'max(16px, env(safe-area-inset-top, 16px))' }}>
+      <div className="max-w-lg mx-auto w-full px-5 pointer-events-auto">
         <div style={{
           height: 52,
           padding: '0 16px',

@@ -264,6 +264,12 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
   const posRef = useRef<{ lat: number; lng: number } | null>(null)
   const rangeRef = useRef(range)
 
+  // 인피니티 스크롤
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const paginationRef = useRef<any>(null)
+  const placeListEndRef = useRef<HTMLDivElement>(null)
+
   // 마커 초기화
   const clearMarkers = () => {
     markersRef.current.forEach(m => m.setMap(null))
@@ -313,10 +319,21 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
   }, [previewRange, editingRange, updateCircle])
 
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // 다음 페이지 로드 (인피니티 스크롤)
+  const loadMorePlaces = useCallback(() => {
+    const pagination = paginationRef.current
+    if (!pagination || !pagination.hasNextPage || loadingMore) return
+    setLoadingMore(true)
+    pagination.nextPage()
+  }, [loadingMore])
+
   const searchPlaces = useCallback((query: string) => {
     const cacheKey = `${query}_${rangeRef.current}`
     if (cacheRef.current[cacheKey]) {
       setPlaces(cacheRef.current[cacheKey])
+      setHasMore(false)
+      paginationRef.current = null
       setLoading(false)
       clearMarkers()
       if (mapObjRef.current) {
@@ -328,7 +345,7 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
       return
     }
 
-    setLoading(true); setPlaces([])
+    setLoading(true); setPlaces([]); setHasMore(false); paginationRef.current = null
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
     searchTimeoutRef.current = setTimeout(() => { setLoading(false); setMapError(true) }, 15000)
     if (!window.kakao?.maps) { setLoading(false); setMapError(true); return }
@@ -347,15 +364,25 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
 
         clearMarkers()
         const ps = new window.kakao.maps.services.Places()
-        ps.keywordSearch(query, (data: any[], status: string) => {
-          if (status === window.kakao.maps.services.Status.OK) {
-            const results = data.slice(0, 10).map((p: any) => ({
+        ps.keywordSearch(query, (data: any[], kakaoStatus: string, pagination: any) => {
+          if (kakaoStatus === window.kakao.maps.services.Status.OK) {
+            const results = data.map((p: any) => ({
               id: p.id, name: p.place_name, address: p.road_address_name || p.address_name,
               phone: p.phone || '', distance: p.distance ? `${Math.round(Number(p.distance))}m` : '',
               lat: Number(p.y), lng: Number(p.x),
             }))
-            setPlaces(results)
-            cacheRef.current[cacheKey] = results
+            setPlaces(prev => {
+              // 첫 페이지인 경우 새로 설정, 추가 페이지인 경우 append
+              if (pagination.current === 1) {
+                cacheRef.current[cacheKey] = results
+                return results
+              }
+              const merged = [...prev, ...results]
+              cacheRef.current[cacheKey] = merged
+              return merged
+            })
+            paginationRef.current = pagination
+            setHasMore(pagination.hasNextPage)
             if (mapObjRef.current) {
               results.forEach(p => {
                 const marker = new window.kakao.maps.Marker({ map: mapObjRef.current, position: new window.kakao.maps.LatLng(p.lat, p.lng) })
@@ -365,11 +392,13 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
           }
           if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
           setLoading(false)
+          setLoadingMore(false)
         }, { location: latlng, radius: rangeRef.current, sort: (window.kakao.maps.services as any).SortBy?.DISTANCE })
       } catch (err) {
         console.error('Kakao map error:', err)
         if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
         setLoading(false)
+        setLoadingMore(false)
         setMapError(true)
       }
     }
@@ -387,6 +416,17 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
       }, { enableHighAccuracy: true, timeout: 5000 })
     }
   }, [])
+
+  // 인피니티 스크롤 IntersectionObserver
+  useEffect(() => {
+    const el = placeListEndRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) loadMorePlaces()
+    }, { rootMargin: '200px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [loadMorePlaces])
 
   // 배치 리뷰 조회
   useEffect(() => {
@@ -490,11 +530,17 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
           <p className="text-body text-tertiary text-center py-8">주변에 검색 결과가 없어요</p>
         ) : (
           places.map((p, i) => (
-            <div key={p.id}>
+            <div key={`${p.id}-${i}`}>
               <PlaceCard place={p} stats={reviewStats[p.id]} />
               {/* {i === 2 && places.length > 4 && <AdSlot className="mt-2" />} */}
             </div>
           ))
+        )}
+        {/* 인피니티 스크롤 센티널 */}
+        {hasMore && (
+          <div ref={placeListEndRef} className="flex justify-center py-4">
+            {loadingMore && <div className="w-5 h-5 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />}
+          </div>
         )}
       </div>
     </div>

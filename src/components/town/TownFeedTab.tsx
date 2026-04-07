@@ -1,16 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {HeartIcon, ChatIcon, ClockIcon} from '@/components/ui/Icons'
+import UserAvatar from '@/components/ui/UserAvatar'
 
 interface FeedPost {
   id: string
+  user_id?: string
   user_name: string | null
   content: string
   distance?: number
   created_at: string
 }
+
+const PAGE_SIZE = 15
 
 export default function TownFeedTab({ range }: { range: number }) {
   const [posts, setPosts] = useState<FeedPost[]>([])
@@ -18,6 +22,9 @@ export default function TownFeedTab({ range }: { range: number }) {
   const [newPost, setNewPost] = useState('')
   const [posting, setPosting] = useState(false)
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const observerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadFeed()
@@ -38,15 +45,56 @@ export default function TownFeedTab({ range }: { range: number }) {
         .lte('created_at', now)
         .gte('expires_at', now)
         .order('created_at', { ascending: false })
-        .limit(20)
+        .limit(PAGE_SIZE)
 
-      if (data) setPosts(data)
+      if (data) {
+        setPosts(data)
+        setHasMore(data.length >= PAGE_SIZE)
+      }
     } catch (err) {
       console.error('Failed to load feed:', err)
     } finally {
       setLoading(false)
     }
   }
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || posts.length === 0) return
+    setLoadingMore(true)
+    try {
+      const supabase = createClient()
+      const now = new Date().toISOString()
+      const last = posts[posts.length - 1]
+      const { data } = await supabase
+        .from('town_feed')
+        .select('*')
+        .lte('created_at', now)
+        .gte('expires_at', now)
+        .lt('created_at', last.created_at)
+        .order('created_at', { ascending: false })
+        .limit(PAGE_SIZE)
+
+      if (data) {
+        setPosts(prev => [...prev, ...data])
+        setHasMore(data.length >= PAGE_SIZE)
+      }
+    } catch (err) {
+      console.error('Failed to load more feed:', err)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [loadingMore, hasMore, posts])
+
+  // IntersectionObserver
+  useEffect(() => {
+    const el = observerRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) loadMore()
+    }, { rootMargin: '200px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [loadMore])
 
   const handlePost = async () => {
     if (!newPost.trim() || !userPos || posting) return
@@ -138,11 +186,7 @@ export default function TownFeedTab({ range }: { range: number }) {
         posts.map((post) => (
           <div key={post.id} className="bg-white rounded-xl border border-[#E8E4DF] p-3">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-[#F0EDE8] flex items-center justify-center">
-                <span className="text-body font-bold text-[var(--color-primary)]">
-                  {post.user_name?.charAt(0) || '?'}
-                </span>
-              </div>
+              <UserAvatar userId={post.user_id} name={post.user_name} size={32} />
               <div className="flex-1 min-w-0">
                 <p className="text-body font-semibold text-primary">{post.user_name || '익명'}</p>
                 <div className="flex items-center gap-1.5 text-label text-tertiary">
@@ -155,6 +199,13 @@ export default function TownFeedTab({ range }: { range: number }) {
             <p className="text-body-emphasis text-primary leading-relaxed whitespace-pre-wrap">{post.content}</p>
           </div>
         ))
+      )}
+
+      {/* 인피니티 스크롤 센티널 */}
+      {hasMore && (
+        <div ref={observerRef} className="flex justify-center py-4">
+          {loadingMore && <div className="w-5 h-5 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />}
+        </div>
       )}
     </div>
   )

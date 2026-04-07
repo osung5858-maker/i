@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, useCallback, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { MapIcon, BabyIcon, UsersIcon, ChatIcon, PenIcon, ArrowLeftIcon, TrashIcon, HeartIcon, ShareIcon, CalendarIcon } from '@/components/ui/Icons'
 import { sanitizeUserInput } from '@/lib/sanitize'
+import UserAvatar from '@/components/ui/UserAvatar'
 
 interface Gathering {
   id: string
@@ -35,6 +36,15 @@ interface Post {
   created_at: string
   liked?: boolean
   likeCount?: number
+  commentCount?: number
+}
+
+interface GatheringComment {
+  id: string
+  post_id: string
+  user_id: string
+  content: string
+  created_at: string
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -52,6 +62,8 @@ const FREQUENCY_LABELS: Record<string, string> = {
   monthly: '월 1회',
   irregular: '비정기',
 }
+
+const POST_PAGE_SIZE = 20
 
 export default function GatheringDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
@@ -71,6 +83,17 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
   const [deletePostId, setDeletePostId] = useState<string | null>(null)
   const [kickMemberId, setKickMemberId] = useState<string | null>(null)
+
+  // 인피니티 스크롤
+  const [hasMorePosts, setHasMorePosts] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const observerRef = useRef<HTMLDivElement>(null)
+
+  // 댓글
+  const [openComments, setOpenComments] = useState<string | null>(null)
+  const [postComments, setPostComments] = useState<Record<string, GatheringComment[]>>({})
+  const [commentText, setCommentText] = useState('')
+  const [commentLoading, setCommentLoading] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -120,12 +143,12 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
         .select('*')
         .eq('gathering_id', resolvedParams.id)
         .order('created_at', { ascending: false })
-        .limit(50)
+        .limit(POST_PAGE_SIZE)
 
-      if (postsData && userId) {
+      if (postsData) {
         // 실제 좋아요 데이터 조회
         const postIds = postsData.map((p: Post) => p.id)
-        const [likesRes, userLikesRes] = await Promise.all([
+        const [likesRes, userLikesRes, commentCountsRes] = await Promise.all([
           supabase
             .from('gathering_post_likes')
             .select('post_id')
@@ -134,7 +157,11 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
             .from('gathering_post_likes')
             .select('post_id')
             .in('post_id', postIds)
-            .eq('user_id', userId)
+            .eq('user_id', user.id),
+          supabase
+            .from('gathering_post_comments')
+            .select('post_id')
+            .in('post_id', postIds),
         ])
 
         const likeCounts = new Map<string, number>()
@@ -142,13 +169,21 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
           likeCounts.set(like.post_id, (likeCounts.get(like.post_id) || 0) + 1)
         })
 
+        const commentCounts = new Map<string, number>()
+        commentCountsRes.data?.forEach((c: { post_id: string }) => {
+          commentCounts.set(c.post_id, (commentCounts.get(c.post_id) || 0) + 1)
+        })
+
         const userLikedIds = new Set(userLikesRes.data?.map((l: { post_id: string }) => l.post_id))
 
-        setPosts(postsData.map((p: Post) => ({
+        const enriched = postsData.map((p: Post) => ({
           ...p,
           liked: userLikedIds.has(p.id),
-          likeCount: likeCounts.get(p.id) || 0
-        })))
+          likeCount: likeCounts.get(p.id) || 0,
+          commentCount: commentCounts.get(p.id) || 0,
+        }))
+        setPosts(enriched)
+        setHasMorePosts(postsData.length >= POST_PAGE_SIZE)
       }
 
     } catch (err) {
@@ -157,6 +192,103 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
       setLoading(false)
     }
   }
+
+  // 인피니티 스크롤 — 더 불러오기
+  const loadMorePosts = useCallback(async () => {
+    if (loadingMore || !hasMorePosts || posts.length === 0 || !userId) return
+    setLoadingMore(true)
+    try {
+      const supabase = createClient()
+      const last = posts[posts.length - 1]
+      const { data: postsData } = await supabase
+        .from('gathering_posts')
+        .select('*')
+        .eq('gathering_id', resolvedParams.id)
+        .lt('created_at', last.created_at)
+        .order('created_at', { ascending: false })
+        .limit(POST_PAGE_SIZE)
+
+      if (postsData && postsData.length > 0) {
+        const postIds = postsData.map((p: Post) => p.id)
+        const [likesRes, userLikesRes, commentCountsRes] = await Promise.all([
+          supabase.from('gathering_post_likes').select('post_id').in('post_id', postIds),
+          supabase.from('gathering_post_likes').select('post_id').in('post_id', postIds).eq('user_id', userId),
+          supabase.from('gathering_post_comments').select('post_id').in('post_id', postIds),
+        ])
+        const likeCounts = new Map<string, number>()
+        likesRes.data?.forEach((l: { post_id: string }) => { likeCounts.set(l.post_id, (likeCounts.get(l.post_id) || 0) + 1) })
+        const commentCounts = new Map<string, number>()
+        commentCountsRes.data?.forEach((c: { post_id: string }) => { commentCounts.set(c.post_id, (commentCounts.get(c.post_id) || 0) + 1) })
+        const userLikedIds = new Set(userLikesRes.data?.map((l: { post_id: string }) => l.post_id))
+        const enriched = postsData.map((p: Post) => ({ ...p, liked: userLikedIds.has(p.id), likeCount: likeCounts.get(p.id) || 0, commentCount: commentCounts.get(p.id) || 0 }))
+        setPosts(prev => [...prev, ...enriched])
+        setHasMorePosts(postsData.length >= POST_PAGE_SIZE)
+      } else {
+        setHasMorePosts(false)
+      }
+    } catch (err) {
+      console.error('Failed to load more posts:', err)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [loadingMore, hasMorePosts, posts, userId, resolvedParams.id])
+
+  // IntersectionObserver
+  useEffect(() => {
+    const el = observerRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) loadMorePosts()
+    }, { rootMargin: '200px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [loadMorePosts])
+
+  // 댓글 로드
+  const loadComments = useCallback(async (postId: string) => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('gathering_post_comments')
+      .select('id, post_id, user_id, content, created_at')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true })
+    if (data) setPostComments(prev => ({ ...prev, [postId]: data as GatheringComment[] }))
+  }, [])
+
+  const toggleComments = useCallback(async (postId: string) => {
+    if (openComments === postId) {
+      setOpenComments(null)
+    } else {
+      setOpenComments(postId)
+      if (!postComments[postId]) await loadComments(postId)
+    }
+    setCommentText('')
+  }, [openComments, postComments, loadComments])
+
+  const submitComment = useCallback(async (postId: string) => {
+    if (!commentText.trim() || !userId || commentLoading) return
+    setCommentLoading(true)
+    const supabase = createClient()
+    const sanitized = sanitizeUserInput(commentText, 500)
+    if (!sanitized) { setCommentLoading(false); return }
+    const { data } = await supabase
+      .from('gathering_post_comments')
+      .insert({ post_id: postId, user_id: userId, content: sanitized })
+      .select().single()
+    if (data) {
+      setPostComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), data as GatheringComment] }))
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, commentCount: (p.commentCount || 0) + 1 } : p))
+    }
+    setCommentText('')
+    setCommentLoading(false)
+  }, [commentText, userId, commentLoading])
+
+  const deleteComment = useCallback(async (commentId: string, postId: string) => {
+    const supabase = createClient()
+    await supabase.from('gathering_post_comments').delete().eq('id', commentId)
+    setPostComments(prev => ({ ...prev, [postId]: (prev[postId] || []).filter(c => c.id !== commentId) }))
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, commentCount: Math.max(0, (p.commentCount || 0) - 1) } : p))
+  }, [])
 
   const handleJoin = async () => {
     if (!userId || isMember) return
@@ -222,7 +354,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
         return
       }
 
-      if (data) setPosts([data as Post, ...posts])
+      if (data) setPosts([{ ...(data as Post), likeCount: 0, liked: false, commentCount: 0 }, ...posts])
       setNewPost('')
     } catch (err) {
       console.error('Failed to post:', err)
@@ -267,13 +399,11 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
       const supabase = createClient()
 
       if (newLiked) {
-        // 좋아요 추가
         await supabase.from('gathering_post_likes').insert({
           post_id: postId,
           user_id: userId
         })
       } else {
-        // 좋아요 취소
         await supabase.from('gathering_post_likes').delete()
           .eq('post_id', postId)
           .eq('user_id', userId)
@@ -538,7 +668,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
               {isCreator && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-body font-bold text-amber-800">💡 소모임장 알림</span>
+                    <span className="text-body font-bold text-amber-800">소모임장 알림</span>
                   </div>
                   <p className="text-caption text-amber-700 leading-relaxed">
                     멤버들이 편안하게 활동할 수 있도록 소모임 규칙을 공지사항으로 작성해보세요.
@@ -640,9 +770,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
                   <div key={post.id} className="bg-white rounded-xl shadow-sm p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-primary)]/20 to-[var(--color-primary)]/10 flex items-center justify-center">
-                          <span className="text-body-emphasis font-bold text-[var(--color-primary)]">도</span>
-                        </div>
+                        <UserAvatar userId={post.user_id} size={36} />
                         <div>
                           <p className="text-body font-semibold text-primary">멤버</p>
                           <p className="text-label text-tertiary">{getTimeAgo(post.created_at)}</p>
@@ -699,9 +827,70 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
                           </span>
                         )}
                       </button>
+                      <button
+                        onClick={() => toggleComments(post.id)}
+                        className={`flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-[#F0EDE8] transition-colors ${openComments === post.id ? 'text-[var(--color-primary)] font-semibold' : 'text-tertiary'}`}
+                      >
+                        <ChatIcon className="w-4 h-4" />
+                        <span className="text-caption font-semibold">댓글 {(post.commentCount || 0) > 0 ? post.commentCount : ''}</span>
+                      </button>
                     </div>
+
+                    {/* 댓글 섹션 */}
+                    {openComments === post.id && (
+                      <div className="mt-3 pt-3 border-t border-[#F0EDE8]">
+                        {(postComments[post.id] || []).length > 0 ? (
+                          <div className="space-y-2 mb-3">
+                            {(postComments[post.id] || []).map((c) => (
+                              <div key={c.id} className="flex gap-2">
+                                <UserAvatar userId={c.user_id} size={24} className="mt-0.5" />
+                                <div className="flex-1">
+                                  <p className="text-body-emphasis text-primary leading-relaxed">{c.content}</p>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-body text-tertiary">{getTimeAgo(c.created_at)}</span>
+                                    {c.user_id === userId && (
+                                      <button onClick={() => { if (confirm('댓글을 삭제할까요?')) deleteComment(c.id, post.id) }} className="text-tertiary"><TrashIcon className="w-3 h-3" /></button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-body text-tertiary text-center mb-3">아직 댓글이 없어요</p>
+                        )}
+
+                        {/* 댓글 입력 */}
+                        <div className="flex gap-2">
+                          <input
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value.slice(0, 500))}
+                            placeholder="댓글을 입력하세요..."
+                            maxLength={500}
+                            className="flex-1 h-9 px-3 rounded-xl bg-[var(--color-page-bg)] text-body-emphasis focus:outline-none"
+                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(post.id) } }}
+                          />
+                          <button
+                            onClick={() => submitComment(post.id)}
+                            disabled={!commentText.trim() || commentLoading}
+                            className={`px-3 h-9 rounded-xl text-body-emphasis shrink-0 ${
+                              commentText.trim() ? 'bg-[var(--color-primary)] text-white' : 'bg-[#E8E4DF] text-tertiary'
+                            }`}
+                          >
+                            {commentLoading ? '...' : '등록'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))
+              )}
+
+              {/* 인피니티 스크롤 센티널 */}
+              {hasMorePosts && (
+                <div ref={observerRef} className="flex justify-center py-4">
+                  {loadingMore && <div className="w-5 h-5 border-2 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" />}
+                </div>
               )}
             </div>
           )}
@@ -709,12 +898,10 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
       {/* 멤버 탭 */}
       {tab === 'members' && (isMember || isCreator) && (
             <div className="px-5 py-4 space-y-2.5">
-              {members.map((member, index) => (
+              {members.map((member) => (
                 <div key={member.id} className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[var(--color-primary)]/20 to-[var(--color-primary)]/10 flex items-center justify-center">
-                      <span className="text-subtitle text-[var(--color-primary)]">도</span>
-                    </div>
+                    <UserAvatar userId={member.user_id} size={44} />
                     <div>
                       <div className="flex items-center gap-1.5">
                         <p className="text-body-emphasis text-primary">멤버</p>
