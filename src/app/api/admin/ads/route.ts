@@ -9,8 +9,40 @@ function createAdminSupabase() {
   )
 }
 
+const DEFAULT_SLOTS = [
+  { id: 'home_banner', enabled: false, provider: 'kakao', unit_id: null, width: 320, height: 50, page_path: '/' },
+  { id: 'notification_top', enabled: false, provider: 'kakao', unit_id: null, width: 320, height: 100, page_path: '/notifications' },
+  { id: 'community_feed', enabled: false, provider: 'google', unit_id: null, width: 300, height: 250, page_path: '/community' },
+  { id: 'post_detail_bottom', enabled: false, provider: 'google', unit_id: null, width: 300, height: 250, page_path: '/town' },
+]
+
+const CREATE_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS ad_settings (
+  id TEXT PRIMARY KEY,
+  enabled BOOLEAN DEFAULT FALSE,
+  provider TEXT CHECK (provider IN ('kakao', 'google')),
+  unit_id TEXT,
+  width INTEGER DEFAULT 320,
+  height INTEGER DEFAULT 100,
+  page_path TEXT NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  updated_by UUID REFERENCES auth.users(id)
+);
+ALTER TABLE ad_settings ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='ad_settings' AND policyname='ad_settings_select') THEN
+    CREATE POLICY "ad_settings_select" ON ad_settings FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='ad_settings' AND policyname='ad_settings_admin_write') THEN
+    CREATE POLICY "ad_settings_admin_write" ON ad_settings FOR ALL
+      USING ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
+      WITH CHECK ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+  END IF;
+END $$;
+`
+
 /**
- * GET /api/admin/ads — 전체 광고 슬롯 목록 조회
+ * GET /api/admin/ads — 광고 슬롯 목록
  */
 export async function GET() {
   try {
@@ -23,14 +55,70 @@ export async function GET() {
     }
 
     const supabase = createAdminSupabase()
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('ad_settings')
       .select('*')
-      .order('id', { ascending: true })
+      .order('id')
 
-    if (error) throw error
+    // 테이블이 없으면 자동 생성 시도
+    if (error && (error.code === '42P01' || error.message?.includes('does not exist'))) {
+      console.log('[Admin Ads API] Table not found, auto-creating...')
 
-    return NextResponse.json({ slots: data })
+      // Service role로 SQL 직접 실행
+      try {
+        await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/exec_sql`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+              Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
+            },
+            body: JSON.stringify({ query: CREATE_TABLE_SQL }),
+          },
+        )
+      } catch {
+        // exec_sql rpc가 없을 수 있음
+      }
+
+      // 테이블 재조회 시도
+      const retry = await supabase.from('ad_settings').select('*').order('id')
+      data = retry.data
+      error = retry.error
+    }
+
+    if (error) {
+      console.error('[Admin Ads API] Query error:', error)
+      // 테이블이 여전히 없는 경우 친절한 메시지
+      if (error.code === '42P01' || error.message?.includes('does not exist')) {
+        return NextResponse.json({
+          slots: [],
+          needsMigration: true,
+          message: 'ad_settings 테이블이 없습니다. Supabase SQL Editor에서 마이그레이션을 실행해주세요.',
+        })
+      }
+      return NextResponse.json({ slots: [] })
+    }
+
+    // 테이블이 비어있으면 기본 슬롯 자동 생성
+    if (!data || data.length === 0) {
+      const { error: seedError } = await supabase
+        .from('ad_settings')
+        .upsert(DEFAULT_SLOTS, { onConflict: 'id' })
+
+      if (seedError) {
+        console.error('[Admin Ads API] Seed error:', seedError)
+      } else {
+        const refetch = await supabase
+          .from('ad_settings')
+          .select('*')
+          .order('id')
+        data = refetch.data
+      }
+    }
+
+    return NextResponse.json({ slots: data ?? [] })
   } catch (error) {
     console.error('[Admin Ads API] GET Error:', error)
     return NextResponse.json(
@@ -42,7 +130,6 @@ export async function GET() {
 
 /**
  * PATCH /api/admin/ads — 광고 슬롯 설정 업데이트
- * Body: { id, enabled?, unit_id?, width?, height? }
  */
 export async function PATCH(request: NextRequest) {
   try {
@@ -55,41 +142,36 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { id, enabled, unit_id, width, height } = body
+    const { id, ...updates } = body
 
-    if (!id || typeof id !== 'string') {
+    if (!id) {
       return NextResponse.json({ error: '슬롯 ID가 필요합니다' }, { status: 400 })
     }
 
-    // Build update object with only provided fields
-    const updates: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-      updated_by: user.id,
+    const allowedFields: Record<string, unknown> = {}
+    if (typeof updates.enabled === 'boolean') allowedFields.enabled = updates.enabled
+    if (typeof updates.unit_id === 'string') allowedFields.unit_id = updates.unit_id
+    if (typeof updates.provider === 'string') allowedFields.provider = updates.provider
+
+    if (Object.keys(allowedFields).length === 0) {
+      return NextResponse.json({ error: '업데이트할 필드가 없습니다' }, { status: 400 })
     }
-    if (typeof enabled === 'boolean') updates.enabled = enabled
-    if (typeof unit_id === 'string') updates.unit_id = unit_id
-    if (typeof width === 'number') updates.width = width
-    if (typeof height === 'number') updates.height = height
+
+    allowedFields.updated_at = new Date().toISOString()
+    allowedFields.updated_by = user.id
 
     const supabase = createAdminSupabase()
-
     const { data, error } = await supabase
       .from('ad_settings')
-      .update(updates)
+      .update(allowedFields)
       .eq('id', id)
       .select()
       .single()
 
-    if (error) throw error
-
-    // Audit log
-    await supabase.from('admin_audit_log').insert({
-      admin_user_id: user.id,
-      action: 'update_ad_setting',
-      target_type: 'ad_settings',
-      target_id: user.id, // UUID required by schema
-      details: { slot_id: id, changes: updates },
-    })
+    if (error) {
+      console.error('[Admin Ads API] Update error:', error)
+      return NextResponse.json({ error: '광고 설정 업데이트에 실패했습니다' }, { status: 500 })
+    }
 
     return NextResponse.json({ slot: data })
   } catch (error) {

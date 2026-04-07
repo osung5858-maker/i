@@ -193,13 +193,21 @@ export default function KidsnotePage() {
     setLoadingAlbums(true); setAlbumProgress(0); setAlbumTotal(0); setAlbums([])
     try {
       const seenIds = new Set<string>()
-      let all: any[] = []; let nextCursor: string | null = null; let hasMore = true
+      let all: any[] = []; let nextCursor: string | null = null; let hasMore = true; let retries = 0
       while (hasMore) {
         const r: Response = await fetch('/api/kidsnote', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'albums', sessionCookie: cookie, childId, cursor: nextCursor }),
         })
-        const d: { results?: any[]; count?: number; next?: string | null } = await r.json()
+        if (!r.ok) {
+          retries++
+          if (retries >= 3) { setError(`앨범 가져오기 실패 (${r.status}). ${all.length}건까지 가져왔어요.`); break }
+          await new Promise(res => setTimeout(res, 1000))
+          continue
+        }
+        retries = 0
+        const d: { results?: any[]; count?: number; next?: string | null; error?: string } = await r.json()
+        if (d.error) { setError(`앨범: ${d.error}`); break }
         const items = (d.results || []).filter((item: any) => {
           if (seenIds.has(String(item.id))) return false
           seenIds.add(String(item.id)); return true
@@ -209,13 +217,14 @@ export default function KidsnotePage() {
         setAlbums([...all]); setAlbumTotal(total || all.length)
         setAlbumProgress(total ? Math.min(100, Math.round((all.length / total) * 100)) : 100)
         const newCursor = d.next || null
-        // 커서가 변하지 않으면 무한루프 방지
         hasMore = !!newCursor && newCursor !== nextCursor && items.length > 0
         nextCursor = newCursor
       }
       setAlbumProgress(100)
       safeSetItem('kn_cache_albums', JSON.stringify(all))
-    } catch { /* */ }
+    } catch (e) {
+      setError('앨범 가져오기 중 오류가 발생했어요')
+    }
     setLoadingAlbums(false)
   }
 
@@ -223,13 +232,21 @@ export default function KidsnotePage() {
     setLoadingReports(true); setReportProgress(0); setReportTotal(0); setReports([])
     try {
       const seenIds = new Set<string>()
-      let all: any[] = []; let nextCursor: string | null = null; let hasMore = true
+      let all: any[] = []; let nextCursor: string | null = null; let hasMore = true; let retries = 0
       while (hasMore) {
         const r: Response = await fetch('/api/kidsnote', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'reports', sessionCookie: cookie, childId, cursor: nextCursor }),
         })
-        const d: { results?: any[]; count?: number; next?: string | null } = await r.json()
+        if (!r.ok) {
+          retries++
+          if (retries >= 3) { setError(`알림장 가져오기 실패 (${r.status}). ${all.length}건까지 가져왔어요.`); break }
+          await new Promise(res => setTimeout(res, 1000))
+          continue
+        }
+        retries = 0
+        const d: { results?: any[]; count?: number; next?: string | null; error?: string } = await r.json()
+        if (d.error) { setError(`알림장: ${d.error}`); break }
         const items = (d.results || []).filter((item: any) => {
           if (seenIds.has(String(item.id))) return false
           seenIds.add(String(item.id)); return true
@@ -244,7 +261,9 @@ export default function KidsnotePage() {
       }
       setReportProgress(100)
       safeSetItem('kn_cache_reports', JSON.stringify(all))
-    } catch { /* */ }
+    } catch (e) {
+      setError('알림장 가져오기 중 오류가 발생했어요')
+    }
     setLoadingReports(false)
   }
 
@@ -330,7 +349,8 @@ export default function KidsnotePage() {
     let successCount = 0
     for (let i = 0; i < images.length; i++) {
       try {
-        const url = images[i].original || images[i].thumbnail
+        // rawUrl = 키즈노트 원본 URL (서버→서버 직접 fetch 가능)
+        const url = images[i].rawUrl || images[i].original || images[i].thumbnail
         if (!url) continue
 
         const res = await fetch('/api/google-drive/upload', {
@@ -354,19 +374,21 @@ export default function KidsnotePage() {
 
   // 전체 사진 일괄 저장
   const downloadAll = async (target: 'local' | 'gdrive') => {
-    const allImages: { url: string; albumId: string; index: number }[] = []
+    const allImages: { url: string; rawUrl: string; albumId: string; index: number }[] = []
     // 앨범 사진 수집
     albums.forEach((album: any) => {
       (album.images || []).forEach((img: any, i: number) => {
         const url = img.original || img.thumbnail
-        if (url) allImages.push({ url, albumId: album.id, index: i + 1 })
+        const rawUrl = img.rawUrl || url
+        if (url) allImages.push({ url, rawUrl, albumId: album.id, index: i + 1 })
       })
     })
     // 알림장 사진 수집
     reports.forEach((report: any) => {
       (report.images || []).forEach((img: any, i: number) => {
         const url = img.original || img.thumbnail
-        if (url) allImages.push({ url, albumId: report.id, index: i + 1 })
+        const rawUrl = img.rawUrl || url
+        if (url) allImages.push({ url, rawUrl, albumId: report.id, index: i + 1 })
       })
     })
 
@@ -423,10 +445,11 @@ export default function KidsnotePage() {
       let ok = 0
       for (let i = 0; i < allImages.length; i++) {
         try {
+          // rawUrl = 키즈노트 원본 URL (서버가 직접 fetch 가능)
           const res = await fetch('/api/google-drive/upload', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageUrl: allImages[i].url, fileName: `kidsnote_${allImages[i].albumId}_${allImages[i].index}.jpg`, folderId }),
+            body: JSON.stringify({ imageUrl: allImages[i].rawUrl, fileName: `kidsnote_${allImages[i].albumId}_${allImages[i].index}.jpg`, folderId }),
           })
           const data = await res.json()
           if (data.error === 'no_google_token' || data.error === 'insufficient_scope') {

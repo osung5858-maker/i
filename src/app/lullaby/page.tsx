@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { MoonIcon } from '@/components/ui/Icons'
+import PageHeader from '@/components/layout/PageHeader'
 
 type Category = 'lullaby' | 'nursery' | 'nature' | 'whitenoise'
 
@@ -425,14 +426,8 @@ export default function LullabyPage() {
   }
 
   return (
-    <div className="h-[calc(100dvh-144px)] bg-[var(--color-page-bg)] flex flex-col overflow-hidden">
-      <div className="px-4 max-w-lg mx-auto w-full flex items-center h-12 shrink-0">
-        <button onClick={() => window.history.back()} className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full active:bg-[rgba(0,0,0,0.05)]" aria-label="뒤로가기">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
-        </button>
-        <div className="flex-1 text-center"><p className="text-subtitle text-primary truncate">자장가 · 동요</p></div>
-        <div className="w-10" />
-      </div>
+    <div className="min-h-[100dvh] bg-[var(--color-page-bg)] flex flex-col pb-24">
+      <PageHeader title="수면 음악" />
 
       <div className="max-w-lg mx-auto w-full flex flex-col flex-1 min-h-0">
         {/* YouTube player */}
@@ -488,7 +483,6 @@ export default function LullabyPage() {
         {!currentTrack && (
           <div className="mx-5 mt-4 text-center">
             <MoonIcon className="w-8 h-8 mx-auto mb-2 text-[var(--color-primary)]" />
-            <p className="text-subtitle font-bold text-primary">자장가 · 동요</p>
             <p className="text-body-emphasis text-tertiary mt-1">자장가 {LULLABY_TRACKS.length}곡 · 동요 {NURSERY_TRACKS.length}곡 · 자연음 {NATURE_TRACKS.length}곡 · 백색소음 {WHITE_NOISE_TRACKS.length}종</p>
             <div className="mt-3 px-4 py-2 bg-[var(--color-accent-bg)] rounded-lg inline-block">
               <p className="text-body text-secondary">아래에서 곡을 선택해서 재생해보세요</p>

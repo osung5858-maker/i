@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 
-const HIDE_PATHS = ['/onboarding', '/invite', '/auth', '/post/', '/market-item/', '/landing', '/privacy', '/terms', '/celebration', '/birth']
+const HIDE_PATHS = ['/onboarding', '/invite', '/auth', '/post/', '/market-item/', '/landing', '/celebration', '/birth']
 
 export default function NavSpacer() {
   const pathname = usePathname()

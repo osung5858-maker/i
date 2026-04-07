@@ -9,7 +9,7 @@ function createAdminSupabase() {
   )
 }
 
-/** GET: single post detail with user info and comments */
+/** GET: single post detail */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ postId: string }> },
@@ -28,9 +28,7 @@ export async function GET(
 
     const { data: post, error: postError } = await supabase
       .from('posts')
-      .select(
-        '*, user_profiles!posts_user_id_fkey(nickname, mode)',
-      )
+      .select('*')
       .eq('id', postId)
       .single()
 
@@ -38,22 +36,16 @@ export async function GET(
       return NextResponse.json({ error: '게시글을 찾을 수 없습니다' }, { status: 404 })
     }
 
-    const { data: comments } = await supabase
-      .from('comments')
-      .select('id, user_id, content, created_at, user_profiles!comments_user_id_fkey(nickname)')
-      .eq('post_id', postId)
-      .order('created_at', { ascending: true })
-
-    return NextResponse.json({ post, comments: comments ?? [] })
+    return NextResponse.json({ post })
   } catch (error) {
     console.error('[Admin Post Detail API] Error:', error)
     return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 })
   }
 }
 
-/** PATCH: toggle hidden status */
-export async function PATCH(
-  request: NextRequest,
+/** DELETE: delete a post */
+export async function DELETE(
+  _request: NextRequest,
   { params }: { params: Promise<{ postId: string }> },
 ) {
   try {
@@ -66,43 +58,21 @@ export async function PATCH(
     }
 
     const { postId } = await params
-    const body = await request.json()
-    const { hidden } = body as { hidden: boolean }
-
-    if (typeof hidden !== 'boolean') {
-      return NextResponse.json({ error: 'hidden 값이 필요합니다' }, { status: 400 })
-    }
-
     const supabase = createAdminSupabase()
 
-    const updateData = hidden
-      ? { hidden: true, hidden_by: user.id, hidden_at: new Date().toISOString() }
-      : { hidden: false, hidden_by: null, hidden_at: null }
-
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('posts')
-      .update(updateData)
+      .delete()
       .eq('id', postId)
-      .select()
-      .single()
 
     if (error) {
-      console.error('[Admin Post Hide API] Update error:', error)
-      return NextResponse.json({ error: '게시글 상태 변경에 실패했습니다' }, { status: 500 })
+      console.error('[Admin Post Delete API] error:', error)
+      return NextResponse.json({ error: '게시글 삭제에 실패했습니다' }, { status: 500 })
     }
 
-    // Write audit log
-    await supabase.from('admin_audit_log').insert({
-      admin_user_id: user.id,
-      action: hidden ? 'post_hide' : 'post_unhide',
-      target_type: 'post',
-      target_id: postId,
-      details: { hidden, post_content_preview: data.content?.slice(0, 100) },
-    })
-
-    return NextResponse.json({ post: data })
+    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('[Admin Post Hide API] Error:', error)
+    console.error('[Admin Post Delete API] Error:', error)
     return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 })
   }
 }

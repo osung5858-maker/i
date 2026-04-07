@@ -9,11 +9,11 @@ import {
   DropletIcon, PillIcon, BreastfeedIcon, BowlIcon, DiaperIcon, HospitalIcon,
   NoteIcon, ArrowLeftIcon, CookieIcon, RiceIcon, PumpIcon, BathIcon, NapIcon, NightIcon,
   HeartFilledIcon, ActivityIcon, PenIcon, ChartIcon,
-  MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon,
+  MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodSickIcon, MoodTiredIcon, MoodExcitedIcon,
   WaterGlassIcon, FootstepsIcon, YogaIcon,
   CheckCircleIcon, BanIcon, MusicIcon,
   WarningIcon, CapsuleIcon, SproutIcon, OmegaIcon, BrainIcon, BoneIcon,
-  HeartPulseIcon,
+  HeartPulseIcon, BabyFootIcon, EdemaIcon, BreathIcon, IronIcon,
 } from '@/components/ui/Icons'
 import { getSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
@@ -208,41 +208,6 @@ interface ActiveSession {
 interface RecordCategory {
   key: string; label: string; color: string; items: RecordItem[]
 }
-
-const RECORD_CATEGORIES: RecordCategory[] = [
-  { key: 'eat', label: '수유', color: 'var(--color-primary)',
-    items: [
-      { type: 'breast_left', label: '모유 왼쪽', baseType: 'breast', tags: { side: 'left' }, isDuration: true },
-      { type: 'breast_right', label: '모유 오른쪽', baseType: 'breast', tags: { side: 'right' }, isDuration: true },
-      { type: 'feed', label: '분유',
-        step3: [{ label: '60', value: 60, unit: 'ml' }, { label: '90', value: 90, unit: 'ml' }, { label: '120', value: 120, unit: 'ml' }, { label: '150', value: 150, unit: 'ml' }, { label: '180', value: 180, unit: 'ml' }] },
-      { type: 'babyfood', label: '이유식',
-        step3: [{ label: '쌀미음', value: 'rice' }, { label: '야채죽', value: 'veggie' }, { label: '고기죽', value: 'meat' }, { label: '과일', value: 'fruit' }, { label: '기타', value: 'etc' }] },
-      { type: 'pump_left', label: '유축 왼쪽', baseType: 'pump', tags: { side: 'left' }, isDuration: true },
-      { type: 'pump_right', label: '유축 오른쪽', baseType: 'pump', tags: { side: 'right' }, isDuration: true },
-    ]
-  },
-  { key: 'sleep', label: '잠', color: '#6366F1',
-    items: [
-      { type: 'sleep', label: '수면', baseType: 'sleep', isDuration: true },
-    ]
-  },
-  { key: 'diaper', label: '기저귀', color: '#D89575',
-    items: [
-      { type: 'pee', label: '소변' },
-      { type: 'poop_normal', label: '대변 정상', baseType: 'poop', tags: { status: 'normal' } },
-      { type: 'poop_soft', label: '대변 묽음', baseType: 'poop', tags: { status: 'soft' } },
-      { type: 'poop_hard', label: '대변 단단', baseType: 'poop', tags: { status: 'hard' } },
-    ]
-  },
-  { key: 'health', label: '건강', color: '#D08068',
-    items: [
-      { type: 'temp', label: '체온', isSlider: true },
-      { type: 'bath', label: '목욕', isDuration: true },
-      { type: 'medication', label: '투약', hasMemo: true },
-    ]
-  },
-]
 
 function BottomNavComponent() {
   const pathname = usePathname()
@@ -614,16 +579,18 @@ function BottomNavComponent() {
     localStorage.removeItem('dodam_active_session')
     setActiveSession(null)
 
-    // 토스트 표시 (세부 타입 라벨 우선)
-    const sessionLabels: Record<string, string> = {
-      breast_left: '모유 왼쪽', breast_right: '모유 오른쪽',
-      pump_left: '유축 왼쪽', pump_right: '유축 오른쪽',
-      bath: '목욕', sleep: '수면', nap: '낮잠', night_sleep: '밤잠',
-      prep_meditate: '명상', prep_music: '음악감상',
-      preg_stretch: '스트레칭', preg_meditate: '명상',
+    // 토스트 표시 — page.tsx가 처리한 경우(_handled) 이미 로컬 Toast를 띄우므로 GlobalToast 중복 방지
+    if (!(event.detail as any)._handled) {
+      const sessionLabels: Record<string, string> = {
+        breast_left: '모유 왼쪽', breast_right: '모유 오른쪽',
+        pump_left: '유축 왼쪽', pump_right: '유축 오른쪽',
+        bath: '목욕', sleep: '수면', nap: '낮잠', night_sleep: '밤잠',
+        prep_meditate: '명상', prep_music: '음악감상',
+        preg_stretch: '스트레칭', preg_meditate: '명상',
+      }
+      const sessionLabel = sessionLabels[activeSession.type] || activeSession.label
+      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${sessionLabel} ${mins}분 기록 완료!` } }))
     }
-    const sessionLabel = sessionLabels[activeSession.type] || activeSession.label
-    window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${sessionLabel} ${mins}분 기록 완료!` } }))
   }, [activeSession])
 
   const formatElapsed = (s: number) => {
@@ -632,8 +599,21 @@ function BottomNavComponent() {
     return `${mm}분${ss}초`
   }
 
-  const HIDE_PATHS = ['/onboarding', '/invite', '/auth', '/post/', '/market-item/', '/landing', '/privacy', '/terms', '/celebration', '/birth']
-  if (HIDE_PATHS.some(p => pathname?.startsWith(p))) return null
+  const HIDE_PATHS = [
+    '/onboarding', '/invite', '/auth', '/post/', '/market-item/',
+    '/landing', '/celebration',
+    '/settings/children/',         // 아이 등록/수정 폼
+    '/growth/add',                 // 성장 기록 추가 폼
+    '/growth/photos',              // 사진 타임랩스
+  ]
+  const HIDE_EXACT = ['/birth', '/settings/children/add']
+  // 동적 경로 패턴: /town/gathering/xxx/edit
+  const HIDE_PATTERNS = [/^\/town\/gathering\/[^/]+\/edit/]
+  if (
+    HIDE_PATHS.some(p => pathname?.startsWith(p)) ||
+    (pathname && HIDE_EXACT.includes(pathname)) ||
+    HIDE_PATTERNS.some(r => r.test(pathname || ''))
+  ) return null
 
   return (
     <>
@@ -681,7 +661,7 @@ function BottomNavComponent() {
                             k === 'diaper'        ? <DiaperIcon className="w-8 h-8" /> :
                             k === 'health'        ? <HospitalIcon className="w-8 h-8" /> :
                             k === 'mood'          ? <HeartFilledIcon className="w-8 h-8" /> :
-                            k === 'fetal'         ? <ActivityIcon className="w-8 h-8" /> :
+                            k === 'fetal'         ? <BabyFootIcon className="w-8 h-8" /> :
                             k === 'prep_suppl'    ? <CapsuleIcon className="w-8 h-8" /> :
                             k === 'preg_suppl'    ? <CapsuleIcon className="w-8 h-8" /> :
                             k === 'prep_health'   ? <HeartIcon className="w-8 h-8" /> :
@@ -1017,25 +997,25 @@ function BottomNavComponent() {
                             t === 'preg_mood_anxious' ? <MoodAnxiousIcon className="w-7 h-7" /> :
                             t === 'preg_mood_sick'    ? <MoodSickIcon className="w-7 h-7" /> :
                             t === 'preg_mood_tired'   ? <MoodTiredIcon className="w-7 h-7" /> :
-                            t === 'preg_fetal_move'   ? <ActivityIcon className="w-7 h-7" /> :
+                            t === 'preg_fetal_move'   ? <BabyFootIcon className="w-7 h-7" /> :
                             t === 'preg_weight'       ? <ChartIcon className="w-7 h-7" /> :
                             t === 'preg_bp'           ? <HeartPulseIcon className="w-7 h-7" /> :
-                            t === 'preg_edema_mild' || t === 'preg_edema_severe' ? <WarningIcon className="w-7 h-7" /> :
+                            t === 'preg_edema_mild' || t === 'preg_edema_severe' ? <EdemaIcon className="w-7 h-7" /> :
                             t === 'preg_stretch' || t === 'preg_meditate' ? <YogaIcon className="w-7 h-7" /> :
                             t === 'preg_folic' || t === 'prep_folic'   ? <SproutIcon className="w-7 h-7" /> :
-                            t === 'preg_iron'  || t === 'prep_iron'    ? <DropletIcon className="w-7 h-7" /> :
+                            t === 'preg_iron'  || t === 'prep_iron'    ? <IronIcon className="w-7 h-7" /> :
                             t === 'preg_vitd'  || t === 'prep_vitd'   ? <SunIcon className="w-7 h-7" /> :
                             t === 'preg_dha'   || t === 'prep_omega3' ? <OmegaIcon className="w-7 h-7" /> :
                             t === 'preg_calcium'  ? <BoneIcon className="w-7 h-7" /> :
                             t === 'preg_journal'  ? <PenIcon className="w-7 h-7" /> :
                             t === 'prep_walk'     ? <FootstepsIcon className="w-7 h-7" /> :
                             t === 'prep_stretch'  ? <YogaIcon className="w-7 h-7" /> :
-                            t === 'prep_breath'   ? <ActivityIcon className="w-7 h-7" /> :
+                            t === 'prep_breath'   ? <BreathIcon className="w-7 h-7" /> :
                             t === 'prep_meditate' ? <MoonIcon className="w-7 h-7" /> :
                             t === 'prep_music'    ? <MusicIcon className="w-7 h-7" /> :
                             t === 'prep_journal'  ? <PenIcon className="w-7 h-7" /> :
                             t === 'prep_mood_happy'   ? <MoodHappyIcon className="w-7 h-7" /> :
-                            t === 'prep_mood_excited' ? <MoodHappyIcon className="w-7 h-7" /> :
+                            t === 'prep_mood_excited' ? <MoodExcitedIcon className="w-7 h-7" /> :
                             t === 'prep_mood_calm'    ? <MoodCalmIcon className="w-7 h-7" /> :
                             t === 'prep_mood_anxious' ? <MoodAnxiousIcon className="w-7 h-7" /> :
                             t === 'prep_mood_tired'   ? <MoodTiredIcon className="w-7 h-7" /> :
@@ -1295,7 +1275,7 @@ const GRID_ICON_MAP: Record<string, React.ReactNode> = {
   poop_hard: <PoopIcon className="w-6 h-6" />,
   temp: <ThermometerIcon className="w-6 h-6" />,
   bath: <BathIcon className="w-6 h-6" />,
-  memo: <PillIcon className="w-6 h-6" />,
+  medication: <PillIcon className="w-6 h-6" />,
   note: <NoteIcon className="w-6 h-6" />,
 }
 

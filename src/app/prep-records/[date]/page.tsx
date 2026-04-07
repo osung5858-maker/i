@@ -8,6 +8,7 @@ import {
   FootstepsIcon, YogaIcon, ActivityIcon, MoonIcon, MusicIcon, BookOpenIcon,
   MoodHappyIcon, MoodCalmIcon, MoodAnxiousIcon, MoodTiredIcon, NoteIcon, PillIcon,
 } from '@/components/ui/Icons'
+import PageHeader from '@/components/layout/PageHeader'
 
 function formatDateKr(dateStr: string) {
   const d = new Date(dateStr + 'T00:00:00')
@@ -124,10 +125,8 @@ export default function PrepRecordDetailPage() {
   return (
     <div className="h-[100dvh] flex flex-col bg-[#F5F1EC] overflow-hidden">
       {/* 헤더 — 고정 */}
-      <div className="shrink-0 h-12 px-5 max-w-lg mx-auto w-full flex items-center justify-between bg-[#F5F1EC] border-b border-[#E0DDD8]">
-        <button onClick={() => router.back()} className="text-sm text-tertiary">뒤로</button>
-        <h1 className="text-subtitle text-primary">기록 상세</h1>
-        <div className="w-8" />
+      <div className="shrink-0">
+        <PageHeader title="기록 상세" standalone />
       </div>
 
       {/* 날짜 네비게이션 — 고정 */}

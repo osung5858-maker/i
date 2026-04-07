@@ -128,7 +128,7 @@ export default function DashboardClient() {
 
         {/* Daily signup trend line chart */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">일별 가입 추이 (7일)</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">일별 활동 추이 (7일)</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={stats.daily_signups_7d}>
@@ -142,7 +142,7 @@ export default function DashboardClient() {
                   stroke="#6366f1"
                   strokeWidth={2}
                   dot={{ r: 4, fill: '#6366f1' }}
-                  name="가입자 수"
+                  name="게시글 수"
                 />
               </LineChart>
             </ResponsiveContainer>

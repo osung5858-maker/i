@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   useReactTable,
   getCoreRowModel,
@@ -12,11 +11,10 @@ import {
 
 interface UserRow {
   user_id: string
-  chosen_nickname: string | null
+  name: string | null
   email: string
   mode: string | null
-  region: string | null
-  my_role: string | null
+  status: string | null
   created_at: string
   updated_at: string
 }
@@ -43,7 +41,6 @@ const MODE_COLORS: Record<string, string> = {
 const columnHelper = createColumnHelper<UserRow>()
 
 export default function UserListClient() {
-  const router = useRouter()
   const [data, setData] = useState<UserRow[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -95,8 +92,8 @@ export default function UserListClient() {
 
   const columns = useMemo<ColumnDef<UserRow, unknown>[]>(
     () => [
-      columnHelper.accessor('chosen_nickname', {
-        header: '닉네임',
+      columnHelper.accessor('name', {
+        header: '이름',
         cell: (info) => (
           <span className="font-medium text-gray-900">
             {info.getValue() || '-'}
@@ -123,11 +120,15 @@ export default function UserListClient() {
           )
         },
       }) as ColumnDef<UserRow, unknown>,
-      columnHelper.accessor('region', {
-        header: '지역',
-        cell: (info) => (
-          <span className="text-gray-600 text-sm">{info.getValue() || '-'}</span>
-        ),
+      columnHelper.accessor('status', {
+        header: '상태',
+        cell: (info) => {
+          const status = info.getValue()
+          if (!status) return <span className="text-gray-400">-</span>
+          return (
+            <span className="text-gray-600 text-sm">{status}</span>
+          )
+        },
       }) as ColumnDef<UserRow, unknown>,
       columnHelper.accessor('created_at', {
         header: '가입일',
@@ -141,23 +142,8 @@ export default function UserListClient() {
           )
         },
       }) as ColumnDef<UserRow, unknown>,
-      columnHelper.display({
-        id: 'actions',
-        header: '',
-        cell: (info) => (
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              router.push(`/admin/users/${info.row.original.user_id}`)
-            }}
-            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium cursor-pointer"
-          >
-            상세
-          </button>
-        ),
-      }) as ColumnDef<UserRow, unknown>,
     ],
-    [router],
+    [],
   )
 
   const table = useReactTable({
@@ -176,7 +162,7 @@ export default function UserListClient() {
       <div className="flex flex-col sm:flex-row gap-3">
         <input
           type="text"
-          placeholder="닉네임 또는 이메일 검색..."
+          placeholder="이름 또는 이메일 검색..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
@@ -226,7 +212,7 @@ export default function UserListClient() {
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="border-b border-gray-50">
-                      {Array.from({ length: 6 }).map((_, j) => (
+                      {Array.from({ length: 5 }).map((_, j) => (
                         <td key={j} className="px-4 py-3">
                           <div className="h-4 bg-gray-100 rounded animate-pulse" />
                         </td>
@@ -235,7 +221,7 @@ export default function UserListClient() {
                   ))
                 ) : data.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center text-gray-400 text-sm">
+                    <td colSpan={5} className="px-4 py-12 text-center text-gray-400 text-sm">
                       검색 결과가 없습니다
                     </td>
                   </tr>
@@ -243,8 +229,7 @@ export default function UserListClient() {
                   table.getRowModel().rows.map((row) => (
                     <tr
                       key={row.id}
-                      onClick={() => router.push(`/admin/users/${row.original.user_id}`)}
-                      className="border-b border-gray-50 hover:bg-indigo-50/50 transition-colors cursor-pointer"
+                      className="border-b border-gray-50 hover:bg-indigo-50/50 transition-colors"
                     >
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id} className="px-4 py-3">

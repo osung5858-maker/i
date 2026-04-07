@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { getProfile } from '@/lib/supabase/userProfile'
+import PageHeader from '@/components/layout/PageHeader'
 const PROFILE_AVATARS = [
   '/images/illustrations/profile-default1.webm',
   '/images/illustrations/profile-default2.webm',
@@ -72,105 +73,93 @@ export default function AddChildPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-white flex flex-col">
-      {/* 헤더 */}
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl">
-        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-tertiary text-sm">
-            취소
-          </button>
-          <h1 className="text-subtitle text-primary">
-            {nickname ? `${nickname} 등록` : '도담이 등록'}
-          </h1>
-          <div className="w-8" />
-        </div>
-      </header>
+    <div className="h-[100dvh] bg-white flex flex-col">
+      <PageHeader title={nickname ? `${nickname} 등록` : '도담이 등록'} standalone />
 
-      {/* 폼 */}
-      <form onSubmit={handleSubmit} className="flex-1 flex flex-col px-6 pt-8 max-w-lg mx-auto w-full">
-        {/* 이름 */}
-        <div className="mb-6">
-          <label className="block text-xs font-semibold text-[#6B6B6B] mb-2 uppercase tracking-wide">
-            이름
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="도담이"
-            maxLength={20}
-            className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary placeholder-[#9B9B9B] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
-          />
-        </div>
-
-        {/* 생년월일 — button + hidden native picker */}
-        <div className="mb-6 relative isolate">
-          <label className="block text-xs font-semibold text-[#6B6B6B] mb-2 uppercase tracking-wide">
-            생년월일 <span className="text-[var(--color-primary)]">*</span>
-          </label>
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => {
-                const inp = document.getElementById('child-birthdate-input') as HTMLInputElement
-                inp?.showPicker?.()
-                inp?.focus()
-              }}
-              className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary text-left focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
-            >
-              {birthdate || <span className="text-[#9B9B9B]">생년월일 선택</span>}
-            </button>
+      {/* 폼 — 스크롤 영역 */}
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 max-w-lg mx-auto w-full">
+        <div className="flex-1 overflow-y-auto px-6 pt-8">
+          {/* 이름 */}
+          <div className="mb-6">
+            <label className="block text-xs font-semibold text-[#6B6B6B] mb-2 uppercase tracking-wide">
+              이름
+            </label>
             <input
-              id="child-birthdate-input"
-              type="date"
-              value={birthdate}
-              onChange={(e) => setBirthdate(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              className="absolute inset-0 opacity-0 pointer-events-none"
-              tabIndex={-1}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="도담이"
+              maxLength={20}
+              className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary placeholder-[#9B9B9B] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
             />
           </div>
-        </div>
 
-        {/* 성별 */}
-        <div className="mb-8">
-          <label className="block text-xs font-semibold text-[#6B6B6B] mb-3 uppercase tracking-wide">
-            성별
-          </label>
-          <div className="flex gap-3">
-            {[
-              { value: 'male', label: '남아' },
-              { value: 'female', label: '여아' },
-              { value: 'not_specified', label: '선택 안 함' },
-            ].map((option) => (
+          {/* 생년월일 — button + hidden native picker */}
+          <div className="mb-6 relative isolate">
+            <label className="block text-xs font-semibold text-[#6B6B6B] mb-2 uppercase tracking-wide">
+              생년월일 <span className="text-[var(--color-primary)]">*</span>
+            </label>
+            <div className="relative">
               <button
-                key={option.value}
                 type="button"
-                onClick={() => setSex(option.value)}
-                className={`flex-1 h-11 rounded-xl text-sm font-medium transition-all active:scale-95 ${
-                  sex === option.value
-                    ? 'bg-[var(--color-primary)] text-white shadow-[0_4px_12px_rgba(0,82,255,0.2)]'
-                    : 'bg-[#f5f5f5] text-[#6B6B6B] border border-[#E8E4DF]'
-                }`}
+                onClick={() => {
+                  const inp = document.getElementById('child-birthdate-input') as HTMLInputElement
+                  inp?.showPicker?.()
+                  inp?.focus()
+                }}
+                className="w-full h-12 px-4 rounded-xl bg-[#f5f5f5] border border-[#E8E4DF] text-subtitle text-primary text-left focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
               >
-                {option.label}
+                {birthdate || <span className="text-[#9B9B9B]">생년월일 선택</span>}
               </button>
-            ))}
+              <input
+                id="child-birthdate-input"
+                type="date"
+                value={birthdate}
+                onChange={(e) => setBirthdate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className="absolute inset-0 opacity-0 pointer-events-none"
+                tabIndex={-1}
+              />
+            </div>
           </div>
+
+          {/* 성별 */}
+          <div className="mb-8">
+            <label className="block text-xs font-semibold text-[#6B6B6B] mb-3 uppercase tracking-wide">
+              성별
+            </label>
+            <div className="flex gap-3">
+              {[
+                { value: 'male', label: '남아' },
+                { value: 'female', label: '여아' },
+                { value: 'not_specified', label: '선택 안 함' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setSex(option.value)}
+                  className={`flex-1 h-11 rounded-xl text-sm font-medium transition-all active:scale-95 ${
+                    sex === option.value
+                      ? 'bg-[var(--color-primary)] text-white shadow-[0_4px_12px_rgba(0,82,255,0.2)]'
+                      : 'bg-[#f5f5f5] text-[#6B6B6B] border border-[#E8E4DF]'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 에러 */}
+          {error && (
+            <div className="mb-4 p-3 rounded-xl bg-red-50 text-sm text-red-600 text-center">
+              {error}
+            </div>
+          )}
         </div>
 
-        {/* 에러 */}
-        {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 text-sm text-red-600 text-center">
-            {error}
-          </div>
-        )}
-
-        {/* 스페이서 */}
-        <div className="flex-1" />
-
-        {/* 제출 버튼 */}
-        <div className="pb-10 pt-4">
+        {/* 제출 버튼 — 하단 고정 */}
+        <div className="shrink-0 px-6 pb-10 pt-4">
           <button
             type="submit"
             disabled={loading || !birthdate}

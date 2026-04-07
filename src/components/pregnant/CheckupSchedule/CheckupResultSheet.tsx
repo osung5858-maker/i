@@ -479,7 +479,8 @@ export default function CheckupResultSheet({ open, onClose, checkup, onSaved }: 
                 <select
                   value={nextCheckupId}
                   onChange={e => setNextCheckupId(e.target.value)}
-                  className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] text-body-emphasis bg-white focus:border-[var(--color-primary)] focus:outline-none"
+                  className="w-full h-11 px-3 rounded-xl border border-[#E8E4DF] bg-white focus:border-[var(--color-primary)] focus:outline-none"
+                  style={{ fontSize: 16 }}
                 >
                   <option value="">선택 안 함</option>
                   {DEFAULT_CHECKUPS.map(dc => (

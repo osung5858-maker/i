@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { getAuthUser } from '@/lib/security/auth'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { checkRateLimit, getClientIP } from '@/lib/security/rate-limit'
 
-function createAdminSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+/** .ilike() 와일드카드 문자 이스케이프 */
+function escapeIlike(str: string): string {
+  return str.replace(/[%_\\]/g, c => `\\${c}`)
 }
 
 export async function GET(request: NextRequest) {
@@ -19,21 +18,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: '관리자 권한이 필요합니다' }, { status: 403 })
     }
 
+    const ip = getClientIP(request)
+    const { limited } = checkRateLimit(`admin:${user.id}:${ip}`, { limit: 60, windowMs: 60_000 })
+    if (limited) return NextResponse.json({ error: '요청이 너무 많습니다' }, { status: 429 })
+
     const { searchParams } = new URL(request.url)
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)))
     const boardType = searchParams.get('board_type')
-    const hidden = searchParams.get('hidden')
     const search = searchParams.get('search')
 
-    const supabase = createAdminSupabase()
+    const supabase = createAdminClient()
     const from = (page - 1) * limit
     const to = from + limit - 1
 
+    // posts 실제 컬럼: id, user_id, board_type, board_key, content, photos, like_count, comment_count, created_at, updated_at
     let query = supabase
       .from('posts')
       .select(
-        'id, user_id, board_type, board_key, content, photos, like_count, comment_count, hidden, hidden_by, hidden_at, created_at, updated_at, user_profiles!posts_user_id_fkey(nickname, mode)',
+        'id, user_id, board_type, board_key, content, photos, like_count, comment_count, created_at, updated_at',
         { count: 'exact' },
       )
       .order('created_at', { ascending: false })
@@ -43,14 +46,8 @@ export async function GET(request: NextRequest) {
       query = query.eq('board_type', boardType)
     }
 
-    if (hidden === 'true') {
-      query = query.eq('hidden', true)
-    } else if (hidden === 'false') {
-      query = query.eq('hidden', false)
-    }
-
     if (search) {
-      query = query.ilike('content', `%${search}%`)
+      query = query.ilike('content', `%${escapeIlike(search)}%`)
     }
 
     const { data, count, error } = await query

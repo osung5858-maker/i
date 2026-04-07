@@ -46,11 +46,18 @@ export function CircleIcon({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
-// 대변 (구름 모양)
+// 대변 (똥 이모지 스타일 — 소프트크림 나선)
 export function PoopIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11.5 6c1-2 3-2 3.5 0s-1 3-2.5 3" /><path d="M8 9c-1.5 0-3 1-3 3s1.5 3 3 3" /><path d="M16 9c1.5 0 3 1 3 3s-1.5 3-3 3" /><path d="M6 15c-1 0-2 1-2 2.5S5 20 6 20h12c1 0 2-1 2-2.5S19 15 18 15" /><path d="M8 15h8" />
+      {/* 꼭대기 꼬리 */}
+      <path d="M13 4c1.5 0 2 1 1.5 2.5" />
+      {/* 중간 나선 층 */}
+      <path d="M8.5 9c0-1.5 1.5-2.5 3.5-2.5s3.5 1 3.5 2.5c0 1-1 1.5-2 1.5" />
+      {/* 아래 나선 층 */}
+      <path d="M7 13c0-1.5 1.5-2.5 4-2.5h2c2.5 0 4 1 4 2.5" />
+      {/* 바닥 (둥근 베이스) */}
+      <path d="M5.5 17c0 2 2.9 3.5 6.5 3.5s6.5-1.5 6.5-3.5c0-1.5-1.5-2.5-4-2.5H10c-3 0-4.5 1-4.5 2.5z" />
     </svg>
   )
 }
@@ -134,11 +141,22 @@ export function XIcon({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
-// 투약 (캡슐 약)
+// 투약 (시럽병+스포이트 — 아기 투약 느낌)
 export function PillIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4.5" y="10" width="15" height="8" rx="4" /><path d="M12 10v8" /><path d="M9 6h6" /><path d="M10 3h4v3h-4z" />
+      {/* 시럽병 몸통 */}
+      <rect x="6" y="8" width="8" height="12" rx="2" />
+      {/* 병 뚜껑 */}
+      <rect x="7.5" y="5" width="5" height="3" rx="1" />
+      {/* 라벨 + 십자 */}
+      <rect x="7.5" y="11" width="5" height="4" rx="0.5" />
+      <path d="M10 12v2" />
+      <path d="M9 13h2" />
+      {/* 스포이트/스푼 (옆) */}
+      <path d="M17 7v8" />
+      <ellipse cx="17" cy="6" rx="1.5" ry="1" />
+      <path d="M15.5 15a1.5 1.5 0 0 0 3 0" />
     </svg>
   )
 }
@@ -221,11 +239,20 @@ export function PenIcon({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
-// 모유 수유
+// 모유 수유 (엄마가 아기를 안고 수유하는 실루엣)
 export function BreastfeedIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="5" r="3" /><path d="M8 10c-2 1-3 3-3 5a3 3 0 0 0 3 3" /><path d="M16 10c2 1 3 3 3 5a3 3 0 0 1-3 3" /><circle cx="12" cy="16" r="2" />
+      {/* 엄마 머리 */}
+      <circle cx="8" cy="4.5" r="2.5" />
+      {/* 엄마 상체 (곡선으로 아기를 감싸는 자세) */}
+      <path d="M5.5 7c-1.5 1-2.5 3-2.5 5v5a2 2 0 0 0 2 2h2" />
+      {/* 아기 머리 */}
+      <circle cx="14" cy="11" r="2.5" />
+      {/* 아기 몸 (엄마 품에 안긴) */}
+      <path d="M11.5 11c0 2 .5 4 1.5 5h4c1 0 2-1 2-2v-2c0-2-1.5-3.5-3.5-3.5" />
+      {/* 엄마 팔 (아기를 받치는) */}
+      <path d="M5.5 12c2 0 4 1 6 1" />
     </svg>
   )
 }
@@ -285,20 +312,36 @@ export function CookieIcon({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
-// 밥/유아식
+// 밥/유아식 (밥그릇 + 숟가락 — BowlIcon과 차별화)
 export function RiceIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 12h16" /><path d="M6 12a6 6 0 0 0 12 0" /><path d="M12 18v3" /><path d="M9 21h6" /><path d="M8 9a4 4 0 0 1 8 0" />
+      {/* 밥그릇 — 볼록한 밥 */}
+      <path d="M4 11h16" />
+      <path d="M5 11c0 4 3 7 7 7s7-3 7-7" />
+      {/* 밥 표면 (볼록) */}
+      <path d="M6 11c0-2 2.7-3.5 6-3.5s6 1.5 6 3.5" />
+      {/* 숟가락 */}
+      <path d="M18 5c1-1 2.5-.5 2.5 1s-1.5 2.5-2.5 2.5L15 11" />
     </svg>
   )
 }
 
-// 유축 (젖병 + 방울)
+// 유축 (유축기 실루엣 — 깔때기+병)
 export function PumpIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 12a6 6 0 0 0 12 0V8H6v4z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /><path d="M12 12v3" /><circle cx="12" cy="17" r="1.5" /><path d="M6 18h12" /><path d="M8 21h8" />
+      {/* 깔때기 (상단) */}
+      <path d="M7 3h10l-2 6H9L7 3z" />
+      {/* 병 (하단) */}
+      <rect x="9" y="9" width="6" height="10" rx="1.5" />
+      {/* 우유 눈금 */}
+      <path d="M9 14h3" />
+      <path d="M9 17h2" />
+      {/* 병 바닥 */}
+      <path d="M9.5 19h5" />
+      {/* 방울 */}
+      <circle cx="12" cy="12" r="0.8" fill="currentColor" />
     </svg>
   )
 }
@@ -312,11 +355,16 @@ export function BathIcon({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
-// 낮잠 (해)
+// 낮잠 (구름+Zzz — 해가 아닌 수면 느낌)
 export function NapIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="M4.93 4.93l1.41 1.41" /><path d="M17.66 17.66l1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="M6.34 17.66l-1.41 1.41" /><path d="M19.07 4.93l-1.41 1.41" />
+      {/* 구름 */}
+      <path d="M6 16a4 4 0 0 1 .6-7.9A5 5 0 0 1 16 7a4 4 0 0 1 2 7.5" />
+      <path d="M4 16h16" />
+      {/* Zzz */}
+      <path d="M15 2h4l-4 4h4" />
+      <path d="M12 5h2.5l-2.5 2.5h2.5" />
     </svg>
   )
 }
@@ -400,6 +448,15 @@ export function ChatIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  )
+}
+
+// 거래 채팅 전용 (쌍 말풍선)
+export function ChatBubbleIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
     </svg>
   )
 }
@@ -901,7 +958,80 @@ export function CapsuleIcon({ className = 'w-5 h-5' }: { className?: string }) {
   )
 }
 
+// 아기 발 (태동)
+export function BabyFootIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      {/* 발바닥 */}
+      <ellipse cx="11" cy="15" rx="5" ry="6.5" />
+      {/* 발가락 5개 (위에서 아래로 크기순) */}
+      <circle cx="6.5" cy="7" r="2" />
+      <circle cx="9.5" cy="5.5" r="2.2" />
+      <circle cx="12.8" cy="5.5" r="2" />
+      <circle cx="15.8" cy="7" r="1.8" />
+      <circle cx="17.5" cy="9.5" r="1.5" />
+    </svg>
+  )
+}
+
+// 부종 (붓기 — 손+물방울)
+export function EdemaIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      {/* 손/발 실루엣 */}
+      <path d="M12 20c-4 0-7-2-7-5s3-5 7-5 7 2 7 5-3 5-7 5z" />
+      {/* 위쪽으로 부풀어오르는 화살표 */}
+      <path d="M8 8V5" />
+      <path d="M6.5 6.5L8 5l1.5 1.5" />
+      <path d="M16 8V5" />
+      <path d="M14.5 6.5L16 5l1.5 1.5" />
+      {/* 물방울 */}
+      <circle cx="12" cy="4" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+// 심호흡 (바람/호흡)
+export function BreathIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      {/* 코/입에서 나오는 호흡 곡선 3줄 */}
+      <path d="M4 9c3-1 5 1 8 0s5-1 8 0" />
+      <path d="M4 13c3-1 5 1 8 0s5-1 8 0" />
+      <path d="M4 17c3-1 5 1 8 0s5-1 8 0" />
+      {/* 폐/가슴 암시 */}
+      <circle cx="12" cy="5" r="2" />
+    </svg>
+  )
+}
+
+// 철분 (방울+Fe 라벨 — DropletIcon과 차별화)
+export function IronIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
+      {/* 빨간 방울 */}
+      <path d="M12 3C12 3 5 11 5 16a7 7 0 0 0 14 0c0-5-7-13-7-13z" fill="currentColor" stroke="currentColor" strokeWidth={1.8} />
+      {/* Fe 텍스트 */}
+      <text x="12" y="19" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold" fontFamily="system-ui">Fe</text>
+    </svg>
+  )
+}
+
 // ===== 기분 아이콘 =====
+
+// 설렘 (별눈 반짝 — prep_mood_excited 전용)
+export function MoodExcitedIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      {/* 별 눈 */}
+      <path d="M9 9l-.7-.3.3-.7.3.7.7.3-.7.3-.3.7-.3-.7z" fill="currentColor" />
+      <path d="M15 9l-.7-.3.3-.7.3.7.7.3-.7.3-.3.7-.3-.7z" fill="currentColor" />
+      {/* 활짝 웃는 입 */}
+      <path d="M8 13c0 2.5 1.8 4 4 4s4-1.5 4-4" />
+    </svg>
+  )
+}
 
 // 행복
 export function MoodHappyIcon({ className = 'w-5 h-5' }: { className?: string }) {

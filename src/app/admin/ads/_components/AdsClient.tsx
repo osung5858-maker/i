@@ -36,6 +36,10 @@ export default function AdsClient() {
         throw new Error(d.error || `HTTP ${res.status}`)
       }
       const data = await res.json()
+      if (data.needsMigration) {
+        setError('ad_settings 테이블이 없습니다. Supabase SQL Editor에서 20260406_admin.sql 마이그레이션을 실행해주세요.')
+        return
+      }
       setSlots(data.slots || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : '데이터를 불러올 수 없습니다')

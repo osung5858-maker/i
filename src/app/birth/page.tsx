@@ -8,24 +8,11 @@ import { fetchPregRecords } from '@/lib/supabase/pregRecord'
 import { fetchUserRecords } from '@/lib/supabase/userRecord'
 import IllustVideo from '@/components/ui/IllustVideo'
 import { PregnantIcon, PenIcon, HospitalIcon, EnvelopeIcon, BottleIcon, ChartIcon, SyringeIcon, BowlIcon, MoonIcon, SproutIcon } from '@/components/ui/Icons'
-
-function makeConfetti() {
-  return Array.from({ length: 50 }, () => ({
-    left: Math.random() * 100,
-    top: Math.random() * 100,
-    delay: Math.random() * 2,
-    duration: 1.5 + Math.random() * 2,
-    size: 12 + Math.random() * 20,
-    opacity: 0.7 + Math.random() * 0.3,
-    char: ['*', '+', '·', ':', '*', '+', '·', ':', '+'][Math.floor(Math.random() * 9)],
-  }))
-}
+import Confetti from '@/components/ui/Confetti'
 
 export default function BirthPage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
-  const [showConfetti, setShowConfetti] = useState(true)
-  const [confetti, setConfetti] = useState<ReturnType<typeof makeConfetti>>([])
   const [mounted, setMounted] = useState(false)
 
   const [diaryCount, setDiaryCount] = useState(0)
@@ -34,7 +21,6 @@ export default function BirthPage() {
   const [weekCount, setWeekCount] = useState(40)
 
   useEffect(() => {
-    setConfetti(makeConfetti())
     setMounted(true)
 
     const loadCounts = async () => {
@@ -59,8 +45,6 @@ export default function BirthPage() {
     }
     loadCounts().catch(() => {})
 
-    const timer = setTimeout(() => setShowConfetti(false), 5000)
-    return () => clearTimeout(timer)
   }, [])
 
   const handleComplete = () => {
@@ -72,27 +56,8 @@ export default function BirthPage() {
   if (step === 0) {
     return (
       <div className="h-[100dvh] bg-white flex flex-col relative overflow-hidden">
-        {/* 축하 파티클 */}
-        {showConfetti && mounted && (
-          <div className="absolute inset-0 pointer-events-none z-0">
-            {confetti.map((p, i) => (
-              <div
-                key={i}
-                className="absolute animate-bounce"
-                style={{
-                  left: `${p.left}%`,
-                  top: `${p.top}%`,
-                  animationDelay: `${p.delay}s`,
-                  animationDuration: `${p.duration}s`,
-                  fontSize: `${p.size}px`,
-                  opacity: p.opacity,
-                }}
-              >
-                {p.char}
-              </div>
-            ))}
-          </div>
-        )}
+        {/* 축하 꽃가루 */}
+        {mounted && <Confetti count={70} duration={6000} />}
 
         <div className="flex-1 relative z-10 flex flex-col items-center justify-center px-6 py-5 overflow-y-auto overscroll-contain">
           <IllustVideo src="/images/illustrations/celebration-hero.webm" className="w-40 h-40 mx-auto mb-4" />

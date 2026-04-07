@@ -4,12 +4,19 @@ import { useState, useEffect, useCallback, memo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { BellIcon, MoonIcon } from '@/components/ui/Icons'
+import { BellIcon, MoonIcon, ChatBubbleIcon } from '@/components/ui/Icons'
 import { createClient } from '@/lib/supabase/client'
 import { getSecure } from '@/lib/secureStorage'
 import { fetchPrepRecords } from '@/lib/supabase/prepRecord'
 
-const NO_HEADER_PATHS = ['/onboarding', '/invite/', '/auth', '/landing', '/settings', '/celebration', '/birth']
+const NO_HEADER_PATHS = [
+  '/onboarding', '/invite/', '/auth', '/landing', '/celebration',
+  '/settings/children/',         // 아이 등록/수정 폼
+  '/growth/add',                 // 성장 기록 추가 폼
+  '/growth/photos',              // 사진 타임랩스
+]
+const NO_HEADER_EXACT = ['/birth', '/settings/children/add']
+const NO_HEADER_PATTERNS = [/^\/town\/gathering\/[^/]+\/edit/]
 
 function GlobalHeaderComponent() {
   const pathname = usePathname()
@@ -25,13 +32,13 @@ function GlobalHeaderComponent() {
   const [userPhotoUrl, setUserPhotoUrl] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
   const [smartAlertCount, setSmartAlertCount] = useState(0)
+  const [chatUnread, setChatUnread] = useState(0)
 
   useEffect(() => {
     const load = async () => {
       const m = localStorage.getItem('dodam_mode') || 'parenting'
       setMode(m)
 
-      // OAuth 프로필 사진
       let userName = ''
       try {
         const supabase = createClient()
@@ -147,11 +154,32 @@ function GlobalHeaderComponent() {
         .is('clicked_at', null)
         .limit(20)
       if (data) setUnreadCount(data.length)
+
+      // 채팅 안읽음 카운트
+      const { data: chats } = await supabase
+        .from('market_chats')
+        .select('buyer_id, seller_id, buyer_unread, seller_unread')
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+      if (chats) {
+        const total = chats.reduce((sum: number, c: { buyer_id: string; seller_id: string; buyer_unread: number; seller_unread: number }) => {
+          if (c.buyer_id === user.id) return sum + (c.buyer_unread || 0)
+          return sum + (c.seller_unread || 0)
+        }, 0)
+        setChatUnread(total)
+      }
     } catch { /* 오프라인 무시 */ }
   }, [])
 
+  // 30초마다 안읽음 뱃지 갱신 (채팅 + 알림)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!document.hidden) loadNotifications()
+    }, 30_000)
+    return () => clearInterval(interval)
+  }, [loadNotifications])
+
   if (!pathname || !mode) return null
-  if (NO_HEADER_PATHS.some(p => pathname.startsWith(p))) return null
+  if (NO_HEADER_PATHS.some(p => pathname.startsWith(p)) || NO_HEADER_EXACT.includes(pathname) || NO_HEADER_PATTERNS.some(r => r.test(pathname))) return null
 
   // data 로딩 전 스켈레톤 — 레이아웃 시프트 방지
   if (!data) return (
@@ -194,7 +222,7 @@ function GlobalHeaderComponent() {
 
   const getDaysOld = () => {
     if (!data?.birthdate) return null
-    return Math.floor((Date.now() - new Date(data.birthdate).getTime()) / 86400000)
+    return Math.max(1, Math.floor((Date.now() - new Date(data.birthdate).getTime()) / 86400000) + 1)
   }
 
   return (
@@ -215,7 +243,7 @@ function GlobalHeaderComponent() {
         }}>
           {/* 좌측: 프로필 이미지 + 텍스트 */}
           <div className="flex items-center min-w-0" style={{ gap: 10 }}>
-            <Link href="/settings" className="shrink-0 overflow-hidden active:opacity-80" style={{ width: 34, height: 34, borderRadius: '50%', background: '#F0EDE8' }}>
+            <Link href="/settings" data-guide="profile" aria-label="설정" className="shrink-0 overflow-hidden active:opacity-80" style={{ width: 34, height: 34, borderRadius: '50%', background: '#F0EDE8' }}>
               {userPhotoUrl ? (
                 <Image
                   src={userPhotoUrl}
@@ -234,7 +262,7 @@ function GlobalHeaderComponent() {
               {mode === 'parenting' && (
                 <>
                   <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-primary)', lineHeight: 1.2 }}>{getGreeting()}</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#1A1918', lineHeight: 1.3 }}>{data.name} · {getDaysOld() ?? 0}일</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#1A1918', lineHeight: 1.3 }}>{data.name} · {getDaysOld() ?? 1}일</span>
                 </>
               )}
               {mode === 'pregnant' && (
@@ -252,21 +280,33 @@ function GlobalHeaderComponent() {
             </Link>
           </div>
 
-          {/* 우측: 야간 + 알림 */}
+          {/* 우측: 야간 + 채팅 + 알림 */}
           <div className="flex items-center shrink-0" style={{ gap: 6 }}>
             {mode === 'parenting' && isNight && (
-              <Link href="/lullaby" className="flex items-center justify-center active:opacity-80" style={{ width: 32, height: 32, borderRadius: '50%', background: '#1A1918', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}>
+              <Link href="/lullaby" aria-label="자장가" className="flex items-center justify-center active:opacity-80" style={{ width: 36, height: 36, borderRadius: '50%', background: '#1A1918', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}>
                 <MoonIcon className="w-3.5 h-3.5 text-white" />
               </Link>
             )}
             <Link
-              href="/notifications"
+              href="/chat"
+              aria-label={chatUnread > 0 ? `채팅 ${chatUnread}개 안읽음` : '채팅'}
               className="relative flex items-center justify-center active:opacity-80"
-              style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,0,0,0.04)' }}
+              style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.04)' }}
+            >
+              <ChatBubbleIcon className="w-4 h-4 text-[#6D6C6A]" />
+              {chatUnread > 0 && (
+                <span className="absolute" style={{ top: -1, right: -1, minWidth: 8, height: 8, background: '#D08068', borderRadius: '50%', border: '1.5px solid white' }} aria-hidden="true" />
+              )}
+            </Link>
+            <Link
+              href="/notifications"
+              aria-label={`알림${(unreadCount + smartAlertCount) > 0 ? ` ${unreadCount + smartAlertCount}개 안읽음` : ''}`}
+              className="relative flex items-center justify-center active:opacity-80"
+              style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.04)' }}
             >
               <BellIcon className="w-4 h-4 text-[#6D6C6A]" />
               {(unreadCount + smartAlertCount) > 0 && (
-                <span className="absolute" style={{ top: -1, right: -1, width: 8, height: 8, background: '#D08068', borderRadius: '50%', border: '1.5px solid white' }} />
+                <span className="absolute" style={{ top: -1, right: -1, width: 8, height: 8, background: '#D08068', borderRadius: '50%', border: '1.5px solid white' }} aria-hidden="true" />
               )}
             </Link>
           </div>

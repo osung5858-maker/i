@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronRightIcon, UsersIcon } from '@/components/ui/Icons'
+import PageHeader from '@/components/layout/PageHeader'
 
 interface CaregiverRow {
   id: string
@@ -45,13 +46,7 @@ export default function CaregiversPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[#f5f5f5]">
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-[#E8E4DF]">
-        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-sm text-tertiary">뒤로</button>
-          <h1 className="text-subtitle text-primary">공동양육자</h1>
-          <div className="w-8" />
-        </div>
-      </header>
+      <PageHeader title="공동양육자" />
 
       <div className="max-w-lg mx-auto w-full pb-28">
         <div className="m-4 rounded-2xl bg-white border border-[#E8E4DF] overflow-hidden">

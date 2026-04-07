@@ -8,6 +8,7 @@ import { SparkleIcon, ChartIcon, ClipboardIcon } from '@/components/ui/Icons'
 import Image from 'next/image'
 import { shareGrowthAnalysis } from '@/lib/share'
 import { trackEvent } from '@/lib/analytics'
+import PageHeader from '@/components/layout/PageHeader'
 
 interface AnalysisResult {
   extracted: {
@@ -142,19 +143,17 @@ export default function AnalyzeCheckupPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-white flex flex-col">
-      <div className="sticky top-0 z-40 bg-white border-b border-[#E8E4DF] px-5 max-w-lg mx-auto w-full flex items-center justify-between h-12">
-        <button onClick={() => router.back()} className="text-body text-secondary">뒤로</button>
-        <h1 className="text-subtitle text-primary">검진결과 AI 분석</h1>
-        {history.length > 0 && (
-          <button onClick={() => setShowHistory(!showHistory)} className="text-body text-[var(--color-primary)] font-medium">
+    <div className="min-h-[calc(100dvh-144px)] bg-white flex flex-col">
+      <PageHeader
+        title="검진결과 AI 분석"
+        rightAction={history.length > 0 ? (
+          <button onClick={() => setShowHistory(!showHistory)} className="text-[13px] text-[var(--color-primary)] font-medium whitespace-nowrap">
             이력 {history.length}건
           </button>
-        )}
-        {history.length === 0 && <div className="w-8" />}
-      </div>
+        ) : undefined}
+      />
 
-      <div className="flex-1 px-5 pt-6 max-w-lg mx-auto w-full pb-10">
+      <div className="flex-1 px-5 pt-6 max-w-lg mx-auto w-full pb-28">
         {/* 검진 히스토리 */}
         {showHistory && history.length > 0 && (
           <div className="mb-4 bg-[var(--color-page-bg)] rounded-xl p-3 space-y-2">

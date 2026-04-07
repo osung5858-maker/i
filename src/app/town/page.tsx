@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { safeGetItem, safeSetItem } from '@/lib/safeStorage'
 import { MapIcon, PhoneIcon, CompassIcon, ChatIcon, PenIcon } from '@/components/ui/Icons'
-import AdSlot from '@/components/ads/AdSlot'
+import DynamicAd from '@/components/ads/DynamicAd'
 import PlaceCard from '@/components/town/PlaceCard'
 import TownFeedTab from '@/components/town/TownFeedTab'
 import TownGatherTab from '@/components/town/TownGatherTab'
@@ -532,7 +532,7 @@ function MapTab({ categories, range, editingRange, onEditRange, onRangeConfirm }
           places.map((p, i) => (
             <div key={`${p.id}-${i}`}>
               <PlaceCard place={p} stats={reviewStats[p.id]} />
-              {/* {i === 2 && places.length > 4 && <AdSlot className="mt-2" />} */}
+              {i === 2 && places.length > 4 && <DynamicAd slotId="post_detail_bottom" className="mt-2" />}
             </div>
           ))
         )}

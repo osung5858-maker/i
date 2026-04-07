@@ -28,6 +28,9 @@ export default function Toast({ message, action, duration = 5000, onDismiss }: P
 
   return (
     <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
       className={`
         fixed top-4 left-4 right-4 z-[60] max-w-lg mx-auto
         bg-[#1A1A1A] rounded-2xl px-4 py-3.5

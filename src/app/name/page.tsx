@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { SparkleIcon, PenIcon, StarIcon, ChartIcon, SearchIcon, TrophyIcon, LightbulbIcon, AlertIcon, XIcon } from '@/components/ui/Icons'
 import { shareNameAnalysis } from '@/lib/kakao/share-parenting'
 import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
+import PageHeader from '@/components/layout/PageHeader'
 
 type Tab = 'nickname' | 'suggest' | 'compare' | 'analyze'
 
@@ -181,17 +182,7 @@ export default function NamePage() {
 
   return (
     <div className="min-h-[100dvh] bg-[var(--color-page-bg)]">
-      <header className="sticky top-[72px] z-30 bg-white border-b border-[#E8E4DF]">
-        <div className="flex items-center h-12 px-4 max-w-lg mx-auto">
-          <button onClick={() => router.back()} className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full active:bg-[var(--color-page-bg)]">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
-          </button>
-          <div className="flex-1 text-center">
-            <p className="text-subtitle text-primary">이름 짓기</p>
-          </div>
-          <div className="w-10" />
-        </div>
-      </header>
+      <PageHeader title="이름 짓기" />
       {toast && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] animate-[fadeIn_0.2s_ease-out]">
           <div className="bg-[#1A1A1A] px-5 py-2.5 rounded-xl text-body font-bold shadow-[0_8px_30px_rgba(0,0,0,0.3)] max-w-[320px] text-center" style={{ color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>

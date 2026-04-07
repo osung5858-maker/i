@@ -24,10 +24,8 @@ export async function PATCH(
 
     const { reportId } = await params
     const body = await request.json()
-    const { status, admin_note, hide_post } = body as {
+    const { status } = body as {
       status: 'resolved' | 'rejected'
-      admin_note?: string
-      hide_post?: boolean
     }
 
     if (!status || !['resolved', 'rejected'].includes(status)) {
@@ -39,17 +37,12 @@ export async function PATCH(
 
     const supabase = createAdminSupabase()
 
-    // Update report
+    // gathering_post_reports 실제 컬럼: id, post_id, reporter_id, reason, status, created_at
     const { data: report, error: reportError } = await supabase
       .from('gathering_post_reports')
-      .update({
-        status,
-        reviewed_by: user.id,
-        reviewed_at: new Date().toISOString(),
-        admin_note: admin_note || null,
-      })
+      .update({ status })
       .eq('id', reportId)
-      .select('*, post:posts!gathering_post_reports_post_id_fkey(id, content)')
+      .select()
       .single()
 
     if (reportError || !report) {
@@ -57,44 +50,13 @@ export async function PATCH(
       return NextResponse.json({ error: '신고 처리에 실패했습니다' }, { status: 500 })
     }
 
-    // Optionally hide the reported post when resolving
-    if (status === 'resolved' && hide_post && report.post_id) {
-      const { error: hideError } = await supabase
-        .from('posts')
-        .update({
-          hidden: true,
-          hidden_by: user.id,
-          hidden_at: new Date().toISOString(),
-        })
+    // resolved인 경우 해당 게시글 삭제 (gathering_posts 테이블)
+    if (status === 'resolved' && report.post_id) {
+      await supabase
+        .from('gathering_posts')
+        .delete()
         .eq('id', report.post_id)
-
-      if (hideError) {
-        console.error('[Admin Report Action API] Hide post error:', hideError)
-      }
-
-      // Audit log for post hide
-      await supabase.from('admin_audit_log').insert({
-        admin_user_id: user.id,
-        action: 'post_hide_via_report',
-        target_type: 'post',
-        target_id: report.post_id,
-        details: { report_id: reportId, reason: report.reason },
-      })
     }
-
-    // Audit log for report action
-    await supabase.from('admin_audit_log').insert({
-      admin_user_id: user.id,
-      action: `report_${status}`,
-      target_type: 'report',
-      target_id: reportId,
-      details: {
-        status,
-        admin_note: admin_note || null,
-        hide_post: !!hide_post,
-        post_id: report.post_id,
-      },
-    })
 
     return NextResponse.json({ report })
   } catch (error) {

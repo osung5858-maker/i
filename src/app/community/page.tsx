@@ -5,12 +5,12 @@ import dynamic from 'next/dynamic'
 import { useRemoteContent } from '@/lib/useRemoteContent'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ChatIcon, FireIcon, TrashIcon, HeartIcon, HeartFilledIcon, BookmarkIcon, BookmarkFilledIcon, GiftIcon, PackageIcon, MapPinIcon, CameraIcon, XIcon } from '@/components/ui/Icons'
-import UserAvatar from '@/components/ui/UserAvatar'
+import { ChatIcon, FireIcon, TrashIcon, HeartIcon, HeartFilledIcon, BookmarkIcon, BookmarkFilledIcon, GiftIcon, PackageIcon, MapPinIcon, CameraIcon, XIcon, ChatBubbleIcon } from '@/components/ui/Icons'
 import { sanitizeUserInput, sanitizeTitle } from '@/lib/sanitize'
+import { getOrCreateChat, sendMessage as sendChatMessage } from '@/lib/supabase/marketChat'
 import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
 import { getProfile } from '@/lib/supabase/userProfile'
-import AdSlot from '@/components/ads/AdSlot'
+import DynamicAd from '@/components/ads/DynamicAd'
 import Image from 'next/image'
 import { trackEvent } from '@/lib/analytics'
 
@@ -53,6 +53,9 @@ interface MarketItem {
   created_at: string
   transaction_type?: TransactionType
   exchange_want?: string
+  bumped_at?: string | null
+  original_price?: number | null
+  discounted_at?: string | null
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -165,12 +168,17 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   const [userId, setUserId] = useState<string | null>(null)
   const [userLikes, setUserLikes] = useState<Set<string>>(new Set())
 
-  // 북마크 (Supabase DB)
+  // 북마크 (Supabase DB) — 게시글용
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set())
+  // 장터 찜 (Supabase DB)
+  const [marketBookmarks, setMarketBookmarks] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    fetchUserRecords(['bookmarks']).then(rows => {
-      if (rows.length) setBookmarks(new Set((rows[0].value as any).ids || []))
+    fetchUserRecords(['bookmarks', 'market_bookmarks']).then(rows => {
+      for (const r of rows) {
+        if (r.type === 'bookmarks') setBookmarks(new Set((r.value as any).ids || []))
+        if (r.type === 'market_bookmarks') setMarketBookmarks(new Set((r.value as any).ids || []))
+      }
     }).catch(() => {})
   }, [])
 
@@ -231,6 +239,9 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
 
   // 장터 상세 보기
   const [selectedItem, setSelectedItem] = useState<MarketItem | null>(null)
+  const [chatStarting, setChatStarting] = useState(false)
+  const [discountModal, setDiscountModal] = useState<MarketItem | null>(null)
+  const [newPrice, setNewPrice] = useState('')
 
   // 인피니티 스크롤
   const PAGE_SIZE = 15
@@ -243,14 +254,20 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   const supabase = createClient()
   const dailyQuestion = dailyQuestions[new Date().getDay() % dailyQuestions.length]
 
+  const BOOKMARK_DATE = '9999-12-31' // 찜은 날짜 무관 글로벌 데이터
+
   const toggleBookmark = (postId: string) => {
-    setBookmarks((prev) => {
-      const next = new Set(prev)
-      if (next.has(postId)) next.delete(postId); else next.add(postId)
-      const today = new Date().toISOString().split('T')[0]
-      upsertUserRecord(today, 'bookmarks', { ids: [...next] }).catch(() => {})
-      return next
-    })
+    const next = new Set(bookmarks)
+    if (next.has(postId)) next.delete(postId); else next.add(postId)
+    setBookmarks(next)
+    upsertUserRecord(BOOKMARK_DATE, 'bookmarks', { ids: [...next] }).catch(() => {})
+  }
+
+  const toggleMarketBookmark = (itemId: string) => {
+    const next = new Set(marketBookmarks)
+    if (next.has(itemId)) next.delete(itemId); else next.add(itemId)
+    setMarketBookmarks(next)
+    upsertUserRecord(BOOKMARK_DATE, 'market_bookmarks', { ids: [...next] }).catch(() => {})
   }
 
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://i.dodam.life'
@@ -303,25 +320,34 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
 
   useEffect(() => {
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/onboarding'); return }
-      setUserId(user.id)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { router.push('/onboarding'); return }
+        setUserId(user.id)
 
-      const { data: likes } = await supabase.from('post_likes').select('post_id').eq('user_id', user.id)
-      if (likes) setUserLikes(new Set(likes.map((l: { post_id: string }) => l.post_id)))
+        const { data: likes } = await supabase.from('post_likes').select('post_id').eq('user_id', user.id)
+        if (likes) setUserLikes(new Set(likes.map((l: { post_id: string }) => l.post_id)))
 
-      const now = new Date().toISOString()
-      const [postsRes, itemsRes] = await Promise.all([
-        supabase.from('posts').select('id, user_id, content, like_count, comment_count, created_at').lte('created_at', now).order('created_at', { ascending: false }).limit(PAGE_SIZE),
-        supabase.from('market_items').select('id, user_id, title, description, price, category, baby_age_months, region, photos, status, chat_count, created_at, transaction_type, exchange_want').lte('created_at', now).order('created_at', { ascending: false }).limit(PAGE_SIZE),
-      ])
-      const p = (postsRes.data as Post[]) || []
-      const m = (itemsRes.data as MarketItem[]) || []
-      setPosts(p)
-      setItems(m)
-      setHasMorePosts(p.length >= PAGE_SIZE)
-      setHasMoreItems(m.length >= PAGE_SIZE)
-      setLoading(false)
+        const now = new Date().toISOString()
+        const [postsRes, itemsRes] = await Promise.all([
+          supabase.from('posts').select('id, user_id, content, like_count, comment_count, created_at').lte('created_at', now).order('created_at', { ascending: false }).limit(PAGE_SIZE),
+          supabase.from('market_items').select('id, user_id, title, description, price, category, baby_age_months, region, photos, status, chat_count, created_at, transaction_type, exchange_want, bumped_at, original_price, discounted_at').order('created_at', { ascending: false }).limit(PAGE_SIZE),
+        ])
+        const p = (postsRes.data as Post[]) || []
+        const m = ((itemsRes.data as MarketItem[]) || []).map(item => ({
+          ...item,
+          photos: Array.isArray(item.photos) ? item.photos : (typeof item.photos === 'string' ? JSON.parse(item.photos) : []),
+        }))
+        setPosts(p)
+        m.sort((a, b) => new Date(b.bumped_at || b.created_at).getTime() - new Date(a.bumped_at || a.created_at).getTime())
+        setItems(m)
+        setHasMorePosts(p.length >= PAGE_SIZE)
+        setHasMoreItems(m.length >= PAGE_SIZE)
+      } catch (err) {
+        console.error('[community] init failed:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     init()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -363,12 +389,16 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
     const last = items[items.length - 1]
     const { data } = await supabase
       .from('market_items')
-      .select('id, user_id, title, description, price, category, baby_age_months, region, photos, status, chat_count, created_at, transaction_type, exchange_want')
+      .select('id, user_id, title, description, price, category, baby_age_months, region, photos, status, chat_count, created_at, transaction_type, exchange_want, bumped_at, original_price, discounted_at')
       .lt('created_at', last.created_at)
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE)
     if (data) {
-      setItems(prev => [...prev, ...(data as MarketItem[])])
+      const parsed = (data as MarketItem[]).map(item => ({
+        ...item,
+        photos: Array.isArray(item.photos) ? item.photos : (typeof item.photos === 'string' ? JSON.parse(item.photos) : []),
+      }))
+      setItems(prev => [...prev, ...parsed])
       setHasMoreItems(data.length >= PAGE_SIZE)
     }
     setLoadingMore(false)
@@ -393,9 +423,11 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
     if (!files || !userId || mPhotos.length >= MAX_PHOTOS) return
     setUploading(true)
     const newPhotos = [...mPhotos]
+    const ALLOWED_EXTS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'])
     for (let i = 0; i < Math.min(files.length, MAX_PHOTOS - mPhotos.length); i++) {
       const file = files[i]
-      const ext = file.name.split('.').pop()
+      const ext = (file.name.split('.').pop() || '').toLowerCase()
+      if (!ALLOWED_EXTS.has(ext)) continue
       const path = `market/${userId}/${Date.now()}_${i}.${ext}`
       const { error } = await supabase.storage.from('photos').upload(path, file)
       if (!error) {
@@ -430,7 +462,8 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
       return
     }
     if (data) {
-      setItems((prev) => [data as MarketItem, ...prev])
+      const parsed = { ...(data as MarketItem), photos: Array.isArray(data.photos) ? data.photos : (typeof data.photos === 'string' ? JSON.parse(data.photos) : []) }
+      setItems((prev) => [parsed, ...prev])
       trackEvent('market_item_listed', { category: mCategory })
     }
     setMTitle(''); setMDesc(''); setMPrice(0); setMPhotos([]); setMTransType('sell'); setMExchangeWant(''); setMarketOpen(false); setPosting(false)
@@ -450,9 +483,10 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
   }, [userId, userLikes, supabase])
 
   const handleDelete = useCallback(async (postId: string) => {
-    await supabase.from('posts').delete().eq('id', postId)
+    if (!userId) return
+    await supabase.from('posts').delete().eq('id', postId).eq('user_id', userId)
     setPosts((prev) => prev.filter((p) => p.id !== postId))
-  }, [supabase])
+  }, [supabase, userId])
 
   // 댓글 로드
   const loadComments = useCallback(async (postId: string) => {
@@ -492,15 +526,80 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
 
   // 댓글 삭제
   const deleteComment = useCallback(async (commentId: string, postId: string) => {
-    await supabase.from('comments').delete().eq('id', commentId)
+    if (!userId) return
+    await supabase.from('comments').delete().eq('id', commentId).eq('user_id', userId)
     setComments((prev) => ({ ...prev, [postId]: (prev[postId] || []).filter((c) => c.id !== commentId) }))
     setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, comment_count: Math.max(0, p.comment_count - 1) } : p))
-  }, [supabase])
+  }, [supabase, userId])
 
   const handleDeleteItem = useCallback(async (itemId: string) => {
-    await supabase.from('market_items').delete().eq('id', itemId)
+    if (!userId) return
+    await supabase.from('market_items').delete().eq('id', itemId).eq('user_id', userId)
     setItems((prev) => prev.filter((i) => i.id !== itemId))
-  }, [supabase])
+  }, [supabase, userId])
+
+  // 끌어올리기 (24시간 쿨타임)
+  const handleBump = useCallback(async (item: MarketItem) => {
+    if (item.bumped_at) {
+      const lastBump = new Date(item.bumped_at).getTime()
+      const hoursSince = (Date.now() - lastBump) / 3600000
+      if (hoursSince < 24) {
+        const remaining = Math.ceil(24 - hoursSince)
+        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `${remaining}시간 후에 다시 끌어올릴 수 있어요` } }))
+        return
+      }
+    }
+    const now = new Date().toISOString()
+    const { error } = await supabase.from('market_items').update({ bumped_at: now }).eq('id', item.id).eq('user_id', userId!)
+    if (error) {
+      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '끌어올리기에 실패했어요' } }))
+      return
+    }
+    setItems(prev => {
+      const updated = prev.map(i => i.id === item.id ? { ...i, bumped_at: now } : i)
+      updated.sort((a, b) => new Date(b.bumped_at || b.created_at).getTime() - new Date(a.bumped_at || a.created_at).getTime())
+      return updated
+    })
+    if (selectedItem?.id === item.id) setSelectedItem(prev => prev ? { ...prev, bumped_at: now } : null)
+    window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '상품이 끌어올려졌어요!' } }))
+  }, [supabase, selectedItem])
+
+  // 가격 할인 적용
+  const handleDiscount = useCallback(async () => {
+    if (!discountModal) return
+    const price = parseInt(newPrice, 10)
+    if (isNaN(price) || price < 0) {
+      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '올바른 가격을 입력해주세요' } }))
+      return
+    }
+    if (price >= discountModal.price) {
+      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '현재 가격보다 낮은 금액을 입력해주세요' } }))
+      return
+    }
+    const now = new Date().toISOString()
+    const updateData: Record<string, unknown> = {
+      price,
+      original_price: discountModal.original_price || discountModal.price,
+      discounted_at: now,
+    }
+    const { error } = await supabase.from('market_items').update(updateData).eq('id', discountModal.id).eq('user_id', userId!)
+    if (error) {
+      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '할인 적용에 실패했어요' } }))
+      return
+    }
+    const updated = { ...discountModal, price, original_price: (discountModal.original_price || discountModal.price), discounted_at: now }
+    setItems(prev => prev.map(i => i.id === discountModal.id ? { ...i, ...updated } : i))
+    if (selectedItem?.id === discountModal.id) setSelectedItem(updated)
+    setDiscountModal(null)
+    setNewPrice('')
+    window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '가격이 인하되었어요!' } }))
+    // 찜한 유저에게 가격 인하 알림
+    fetch('/api/push/bookmark-alert', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemId: discountModal.id, itemTitle: discountModal.title, alertType: 'price_drop', newPrice: price }),
+    }).catch(() => {})
+  }, [discountModal, newPrice, supabase, selectedItem])
 
   if (loading) {
     return (
@@ -612,11 +711,10 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 </div>
               ) : posts.map((post, pi) => (
                 <div key={post.id}>
-                {/* {pi === 3 && posts.length > 5 && <AdSlot className="mb-2" />} */}
+                {pi === 3 && posts.length > 5 && <DynamicAd slotId="community_feed" className="mb-2" />}
                 <div className="bg-white rounded-xl p-4 border border-[#E8E4DF]">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <UserAvatar userId={post.user_id} size={28} />
                       <p className="text-body-emphasis text-tertiary">{timeAgo(post.created_at)}</p>
                       {post.like_count >= 5 && <span className="text-body font-semibold text-[#D89575] flex items-center gap-0.5"><FireIcon className="w-3.5 h-3.5" /> 인기</span>}
                     </div>
@@ -660,7 +758,6 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                         <div className="space-y-2 mb-3">
                           {(comments[post.id] || []).map((c) => (
                             <div key={c.id} className="flex gap-2">
-                              <UserAvatar userId={c.user_id} size={24} className="mt-0.5" />
                               <div className="flex-1">
                                 <p className="text-body-emphasis text-primary leading-relaxed">{c.content}</p>
                                 <div className="flex items-center gap-2 mt-0.5">
@@ -730,7 +827,8 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
               <select
                 value={filterCat}
                 onChange={(e) => setFilterCat(e.target.value)}
-                className="h-8 px-2 rounded-lg border border-[#E8E4DF] text-body bg-white shrink-0"
+                className="h-9 px-3 rounded-lg border border-[#E8E4DF] bg-white shrink-0"
+                style={{ fontSize: 16 }}
               >
                 <option value="all">전체 카테고리</option>
                 {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -738,7 +836,8 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
               <select
                 value={filterPrice}
                 onChange={(e) => setFilterPrice(e.target.value)}
-                className="h-8 px-2 rounded-lg border border-[#E8E4DF] text-body bg-white shrink-0"
+                className="h-9 px-3 rounded-lg border border-[#E8E4DF] bg-white shrink-0"
+                style={{ fontSize: 16 }}
               >
                 <option value="all">전체 가격</option>
                 <option value="free">무료 나눔</option>
@@ -782,6 +881,17 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                     ) : (
                       <PackageIcon className="w-6 h-6 text-tertiary" />
                     )}
+                    {item.user_id !== userId && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleMarketBookmark(item.id) }}
+                        className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full bg-white/80"
+                      >
+                        {marketBookmarks.has(item.id)
+                          ? <HeartFilledIcon className="w-3.5 h-3.5 text-[#D08068]" />
+                          : <HeartIcon className="w-3.5 h-3.5 text-[#AEB1B9]" />
+                        }
+                      </button>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -802,6 +912,9 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                     <p className="text-body-emphasis text-tertiary mt-0.5 flex items-center gap-0.5"><MapPinIcon className="w-3 h-3 inline" /> {item.region} · {timeAgo(item.created_at)}</p>
                     <p className={`text-subtitle mt-1 ${item.price === 0 ? 'text-[var(--color-primary)]' : 'text-primary'}`}>
                       {item.price === 0 ? '무료 나눔' : `${item.price.toLocaleString()}원`}
+                      {item.original_price && item.original_price > item.price && (
+                        <span className="text-body text-tertiary line-through ml-1">{item.original_price.toLocaleString()}원</span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -828,11 +941,12 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 <div className="flex border-t border-[#E8E4DF]">
                   {item.user_id === userId ? (
                     <>
-                      {/* 내 글: 상태 변경 + 삭제 */}
+                      {/* 내 글: 상태 변경 + 끌어올리기/할인 + 삭제 */}
                       {item.status === 'active' && (
                         <button
                           onClick={async () => {
-                            await supabase.from('market_items').update({ status: 'reserved' }).eq('id', item.id)
+                            const { error } = await supabase.from('market_items').update({ status: 'reserved' }).eq('id', item.id).eq('user_id', userId!)
+                            if (error) { window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '상태 변경에 실패했어요' } })); return }
                             setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, status: 'reserved' } : i))
                           }}
                           className="flex-1 py-2.5 text-body-emphasis text-[#D89575] text-center"
@@ -843,13 +957,32 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                       {item.status === 'reserved' && (
                         <button
                           onClick={async () => {
-                            await supabase.from('market_items').update({ status: 'done' }).eq('id', item.id)
+                            const { error } = await supabase.from('market_items').update({ status: 'done' }).eq('id', item.id).eq('user_id', userId!)
+                            if (error) { window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '상태 변경에 실패했어요' } })); return }
                             setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, status: 'done' } : i))
                           }}
                           className="flex-1 py-2.5 text-body-emphasis text-[var(--color-primary)] text-center"
                         >
                           거래완료
                         </button>
+                      )}
+                      {item.status !== 'done' && (
+                        <>
+                          <button
+                            onClick={() => handleBump(item)}
+                            className="py-2.5 px-3 text-body-emphasis text-[#8B7355] text-center border-l border-[#E8E4DF]"
+                          >
+                            끌올
+                          </button>
+                          {item.price > 0 && (
+                            <button
+                              onClick={() => { setDiscountModal(item); setNewPrice('') }}
+                              className="py-2.5 px-3 text-body-emphasis text-[var(--color-primary)] text-center border-l border-[#E8E4DF]"
+                            >
+                              할인
+                            </button>
+                          )}
+                        </>
                       )}
                       <button
                         onClick={() => { if (confirm('정말 삭제할까요?')) handleDeleteItem(item.id) }}
@@ -863,10 +996,29 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                       {/* 다른 사람 글: 거래 신청 */}
                       {item.status === 'active' && (
                         <button
-                          onClick={() => window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '채팅 기능은 준비 중이에요' } }))}
-                          className="flex-1 py-2.5 text-body-emphasis text-[var(--color-primary)] text-center"
+                          disabled={chatStarting}
+                          onClick={async () => {
+                            if (chatStarting) return
+                            setChatStarting(true)
+                            try {
+                              const chat = await getOrCreateChat(item.id, item.user_id)
+                              if (!chat) { window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '채팅을 시작할 수 없어요' } })); return }
+                              if (!chat.last_message) {
+                                const safeTitle = sanitizeTitle(item.title, 60)
+                                await sendChatMessage(chat.id, `안녕하세요! "${safeTitle}" 거래 문의드려요 :)`)
+                                // 찜한 유저들에게 알림 (fire-and-forget)
+                                fetch('/api/push/bookmark-alert', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ itemId: item.id, itemTitle: item.title, alertType: 'new_chat' }),
+                                }).catch(() => {})
+                              }
+                              router.push(`/chat/${chat.id}`)
+                            } finally { setChatStarting(false) }
+                          }}
+                          className="flex-1 py-2.5 text-body-emphasis text-[var(--color-primary)] text-center flex items-center justify-center gap-1 disabled:opacity-50"
                         >
-                          거래 신청하기
+                          {chatStarting ? '연결 중...' : <><ChatBubbleIcon className="w-3.5 h-3.5" /> 거래 신청하기</>}
                         </button>
                       )}
                       {item.status === 'reserved' && (
@@ -876,6 +1028,14 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                         <p className="flex-1 py-2.5 text-body-emphasis text-tertiary text-center">거래가 완료되었어요</p>
                       )}
                     </>
+                  )}
+                  {item.user_id !== userId && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleMarketBookmark(item.id) }}
+                      className={`py-2.5 px-3 border-l border-[#E8E4DF] ${marketBookmarks.has(item.id) ? 'text-[#D08068]' : 'text-secondary'}`}
+                    >
+                      {marketBookmarks.has(item.id) ? <HeartFilledIcon className="w-4 h-4 inline" /> : <HeartIcon className="w-4 h-4 inline" />}
+                    </button>
                   )}
                   <button onClick={() => shareMarketItem(item)} className="py-2.5 px-3 text-body text-secondary border-l border-[#E8E4DF]">공유</button>
                 </div>
@@ -963,9 +1123,14 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 </div>
 
                 {/* 가격 */}
-                <p className={`text-[20px] font-bold ${selectedItem.price === 0 ? 'text-[var(--color-primary)]' : 'text-primary'}`}>
-                  {selectedItem.price === 0 ? '무료 나눔' : `${selectedItem.price.toLocaleString()}원`}
-                </p>
+                <div>
+                  <p className={`text-[20px] font-bold ${selectedItem.price === 0 ? 'text-[var(--color-primary)]' : 'text-primary'}`}>
+                    {selectedItem.price === 0 ? '무료 나눔' : `${selectedItem.price.toLocaleString()}원`}
+                  </p>
+                  {selectedItem.original_price && selectedItem.original_price > selectedItem.price && (
+                    <p className="text-body text-tertiary line-through">{selectedItem.original_price.toLocaleString()}원</p>
+                  )}
+                </div>
 
                 {/* 정보 태그 */}
                 <div className="flex flex-wrap gap-1.5">
@@ -1014,7 +1179,8 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                   {selectedItem.status === 'active' && (
                     <button
                       onClick={async () => {
-                        await supabase.from('market_items').update({ status: 'reserved' }).eq('id', selectedItem.id)
+                        const { error } = await supabase.from('market_items').update({ status: 'reserved' }).eq('id', selectedItem.id).eq('user_id', userId!)
+                        if (error) { window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '상태 변경에 실패했어요' } })); return }
                         setItems((prev) => prev.map((i) => i.id === selectedItem.id ? { ...i, status: 'reserved' } : i))
                         setSelectedItem({ ...selectedItem, status: 'reserved' })
                       }}
@@ -1026,7 +1192,8 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                   {selectedItem.status === 'reserved' && (
                     <button
                       onClick={async () => {
-                        await supabase.from('market_items').update({ status: 'done' }).eq('id', selectedItem.id)
+                        const { error } = await supabase.from('market_items').update({ status: 'done' }).eq('id', selectedItem.id).eq('user_id', userId!)
+                        if (error) { window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '상태 변경에 실패했어요' } })); return }
                         setItems((prev) => prev.map((i) => i.id === selectedItem.id ? { ...i, status: 'done' } : i))
                         setSelectedItem({ ...selectedItem, status: 'done' })
                       }}
@@ -1034,6 +1201,24 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                     >
                       거래완료
                     </button>
+                  )}
+                  {selectedItem.status !== 'done' && (
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => handleBump(selectedItem)}
+                        className="py-3 px-4 rounded-xl bg-[#F5F0EB] text-[#8B7355] font-semibold active:opacity-80 text-sm"
+                      >
+                        끌올
+                      </button>
+                      {selectedItem.price > 0 && (
+                        <button
+                          onClick={() => { setDiscountModal(selectedItem); setNewPrice('') }}
+                          className="py-3 px-4 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-semibold active:opacity-80 text-sm"
+                        >
+                          할인
+                        </button>
+                      )}
+                    </div>
                   )}
                   <button
                     onClick={() => { if (confirm('정말 삭제할까요?')) { handleDeleteItem(selectedItem.id); setSelectedItem(null) } }}
@@ -1044,15 +1229,40 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 </>
               ) : (
                 <>
-                  <button onClick={() => shareMarketItem(selectedItem)} className="py-3 px-6 rounded-xl bg-[#E8E4DF] text-secondary font-semibold">
+                  <button
+                    onClick={() => toggleMarketBookmark(selectedItem.id)}
+                    className={`py-3 px-4 rounded-xl font-semibold ${marketBookmarks.has(selectedItem.id) ? 'bg-[#D08068]/10 text-[#D08068]' : 'bg-[#E8E4DF] text-secondary'}`}
+                  >
+                    {marketBookmarks.has(selectedItem.id) ? <HeartFilledIcon className="w-5 h-5" /> : <HeartIcon className="w-5 h-5" />}
+                  </button>
+                  <button onClick={() => shareMarketItem(selectedItem)} className="py-3 px-4 rounded-xl bg-[#E8E4DF] text-secondary font-semibold">
                     공유
                   </button>
                   {selectedItem.status === 'active' && (
                     <button
-                      onClick={() => window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '채팅 기능은 준비 중이에요' } }))}
-                      className="flex-1 py-3 rounded-xl bg-[var(--color-primary)] text-white font-semibold active:opacity-80"
+                      disabled={chatStarting}
+                      onClick={async () => {
+                        if (chatStarting) return
+                        setChatStarting(true)
+                        try {
+                          const chat = await getOrCreateChat(selectedItem.id, selectedItem.user_id)
+                          if (!chat) { window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '채팅을 시작할 수 없어요' } })); return }
+                          if (!chat.last_message) {
+                            const safeTitle = sanitizeTitle(selectedItem.title, 60)
+                            await sendChatMessage(chat.id, `안녕하세요! "${safeTitle}" 거래 문의드려요 :)`)
+                            fetch('/api/push/bookmark-alert', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ itemId: selectedItem.id, itemTitle: selectedItem.title, alertType: 'new_chat' }),
+                            }).catch(() => {})
+                          }
+                          setSelectedItem(null)
+                          router.push(`/chat/${chat.id}`)
+                        } finally { setChatStarting(false) }
+                      }}
+                      className="flex-1 py-3 rounded-xl bg-[var(--color-primary)] text-white font-semibold active:opacity-80 flex items-center justify-center gap-1 disabled:opacity-50"
                     >
-                      거래 신청하기
+                      {chatStarting ? '연결 중...' : <><ChatBubbleIcon className="w-4 h-4" /> 거래 신청하기</>}
                     </button>
                   )}
                   {selectedItem.status === 'reserved' && (
@@ -1102,7 +1312,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
               <div className="flex gap-3">
                 <div className="flex-1">
                   <p className="text-body-emphasis text-secondary mb-1">아기 월령</p>
-                  <select value={mAge} onChange={(e) => setMAge(e.target.value)} className="w-full h-9 px-2 rounded-xl border border-[#E8E4DF] text-body">
+                  <select value={mAge} onChange={(e) => setMAge(e.target.value)} className="w-full h-10 px-3 rounded-xl border border-[#E8E4DF]" style={{ fontSize: 16 }}>
                     <option value="0~6">0~6개월</option>
                     <option value="6~12">6~12개월</option>
                     <option value="12~24">12~24개월</option>
@@ -1153,6 +1363,47 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
               <button onClick={handleMarketPost} disabled={!mTitle.trim() || posting}
                 className={`w-full py-3.5 rounded-xl text-subtitle transition-colors ${mTitle.trim() ? 'bg-[var(--color-primary)] text-white active:bg-[#2D6B45]' : 'bg-[#E8E4DF] text-tertiary'}`}>
                 {posting ? '등록 중...' : '등록하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 할인 모달 */}
+      {discountModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-6" onClick={() => setDiscountModal(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-sm p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-subtitle text-primary text-center">가격 할인</h3>
+            <p className="text-body text-secondary text-center">
+              현재 가격: <span className="font-semibold">{discountModal.price.toLocaleString()}원</span>
+              {discountModal.original_price && discountModal.original_price > discountModal.price && (
+                <span className="text-tertiary line-through ml-1">{discountModal.original_price.toLocaleString()}원</span>
+              )}
+            </p>
+            <div>
+              <label className="text-body-emphasis text-secondary mb-1 block">새 가격 (원)</label>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={newPrice}
+                onChange={(e) => setNewPrice(e.target.value)}
+                placeholder={`${discountModal.price.toLocaleString()}원 미만`}
+                className="w-full px-4 py-3 rounded-xl border border-[#E8E4DF] text-body focus:outline-none focus:border-[var(--color-primary)]"
+                style={{ fontSize: 16 }}
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDiscountModal(null)}
+                className="flex-1 py-3 rounded-xl bg-[#E8E4DF] text-secondary font-semibold"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDiscount}
+                className="flex-1 py-3 rounded-xl bg-[var(--color-primary)] text-white font-semibold active:opacity-80"
+              >
+                할인 적용
               </button>
             </div>
           </div>

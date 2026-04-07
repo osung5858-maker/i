@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -18,11 +19,48 @@ const NAV_ITEMS = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [authState, setAuthState] = useState<'loading' | 'ok' | 'denied'>('loading')
+
+  useEffect(() => {
+    const check = async () => {
+      const supabase = createClient()
+      // JWT refresh → app_metadata 최신화
+      await supabase.auth.refreshSession()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.replace('/onboarding')
+        return
+      }
+      if (user.app_metadata?.role !== 'admin') {
+        setAuthState('denied')
+        return
+      }
+      setAuthState('ok')
+    }
+    check()
+  }, [router])
 
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/onboarding')
+  }
+
+  if (authState === 'loading') {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-100 z-[9999]">
+        <p className="text-gray-500 text-sm">관리자 인증 확인 중...</p>
+      </div>
+    )
+  }
+
+  if (authState === 'denied') {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-gray-100 z-[9999] gap-3">
+        <p className="text-gray-700 font-semibold">관리자 권한이 없습니다</p>
+        <button onClick={() => router.replace('/')} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">홈으로</button>
+      </div>
+    )
   }
 
   const isActive = (href: string) => {

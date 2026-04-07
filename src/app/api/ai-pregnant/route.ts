@@ -120,10 +120,12 @@ JSON만 출력.`
 
     // === 임신 중 식단 추천 ===
     if (type === 'meal') {
-      const { week } = body
+      const { week, _refresh } = body
       const mealCacheKey = `preg-meal-v3-${week}-${new Date().toISOString().split('T')[0]}`
-      const mealCached = getCachedResponse(mealCacheKey)
-      if (mealCached) return NextResponse.json(mealCached)
+      if (!_refresh) {
+        const mealCached = getCachedResponse(mealCacheKey)
+        if (mealCached) return NextResponse.json(mealCached)
+      }
 
       const prompt = `임신 ${week}주차 임산부를 위한 오늘의 식단을 추천해주세요.
 임산부가 피해야 할 음식(날생선, 생고기, 알코올, 고카페인)은 절대 추천하지 마세요.

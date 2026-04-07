@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import PageHeader from '@/components/layout/PageHeader'
 
 interface PlaceData {
   id: string
@@ -86,12 +87,7 @@ export default function PlaceDetailPage() {
 
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[#F0EDE8]">
-      {/* 헤더 */}
-      <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-body text-secondary shrink-0">뒤로</button>
-        <h1 className="text-subtitle text-primary truncate mx-3 min-w-0">{place.name}</h1>
-        <div className="w-8 shrink-0" />
-      </div>
+      <PageHeader title={place.name} standalone />
 
       <div className="max-w-lg mx-auto w-full pb-4">
         {/* 기본 정보 */}

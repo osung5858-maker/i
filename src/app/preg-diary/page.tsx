@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { PenIcon, SparkleIcon } from '@/components/ui/Icons'
+import PageHeader from '@/components/layout/PageHeader'
 import { fetchPregRecords } from '@/lib/supabase/pregRecord'
 
 type DiaryEntry = { text: string; date: string; mood: string; comment: string }
@@ -27,11 +28,7 @@ export default function PregDiaryPage() {
 
   return (
     <div className="h-[calc(100dvh-144px)] flex flex-col bg-[#F5F1EC] overflow-hidden">
-      <div className="shrink-0 sticky top-0 z-40 bg-[#F5F1EC] border-b border-[#E0DDD8] px-5 max-w-lg mx-auto w-full flex items-center justify-between h-12">
-        <button onClick={() => router.back()} className="text-sm text-tertiary">뒤로</button>
-        <h1 className="text-subtitle text-primary">기다림 일기</h1>
-        <div className="w-8" />
-      </div>
+      <PageHeader title="기다림 일기" standalone />
 
       <div className="flex-1 overflow-y-auto overscroll-contain max-w-lg mx-auto w-full pb-4">
         {diaries.length === 0 ? (

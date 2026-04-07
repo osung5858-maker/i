@@ -28,10 +28,11 @@ export async function GET(request: NextRequest) {
     const from = (page - 1) * limit
     const to = from + limit - 1
 
+    // gathering_post_reports 실제 컬럼: id, post_id, reporter_id, reason, status, created_at
     let query = supabase
       .from('gathering_post_reports')
       .select(
-        'id, reporter_id, post_id, reason, status, reviewed_by, reviewed_at, admin_note, created_at, reporter:user_profiles!gathering_post_reports_reporter_id_fkey(nickname), post:posts!gathering_post_reports_post_id_fkey(content, board_type, hidden, user_id)',
+        'id, reporter_id, post_id, reason, status, created_at',
         { count: 'exact' },
       )
       .order('created_at', { ascending: false })
@@ -48,8 +49,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: '신고 목록을 가져올 수 없습니다' }, { status: 500 })
     }
 
+    // post 내용 별도 조회 (gathering_post_reports → gathering_posts 참조)
+    const postIds = [...new Set((data || []).map(r => r.post_id))]
+    let postMap: Record<string, { content: string; user_id: string }> = {}
+    if (postIds.length > 0) {
+      const { data: posts } = await supabase
+        .from('gathering_posts')
+        .select('id, content, user_id')
+        .in('id', postIds)
+      if (posts) {
+        for (const p of posts) {
+          postMap[p.id] = { content: p.content, user_id: p.user_id }
+        }
+      }
+    }
+
+    const reports = (data || []).map(r => ({
+      ...r,
+      post_content: postMap[r.post_id]?.content?.substring(0, 100) || '',
+      post_user_id: postMap[r.post_id]?.user_id || '',
+    }))
+
     return NextResponse.json({
-      reports: data ?? [],
+      reports,
       total: count ?? 0,
       page,
       limit,

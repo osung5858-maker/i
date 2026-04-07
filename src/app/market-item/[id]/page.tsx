@@ -16,7 +16,10 @@ export default function PublicMarketItemPage() {
     async function load() {
       const supabase = createClient()
       const { data } = await supabase.from('market_items').select('id, title, description, price, status, photos, region, created_at').eq('id', itemId).single()
-      if (data) setItem(data)
+      if (data) {
+        const photos = Array.isArray(data.photos) ? data.photos : (typeof data.photos === 'string' ? JSON.parse(data.photos) : [])
+        setItem({ ...data, photos })
+      }
       setLoading(false)
     }
     load()

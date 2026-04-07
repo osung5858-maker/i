@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { CameraIcon } from '@/components/ui/Icons'
+import PageHeader from '@/components/layout/PageHeader'
 import Image from 'next/image'
 import IllustVideo from '@/components/ui/IllustVideo'
 import { upsertUserRecord, fetchUserRecords } from '@/lib/supabase/userRecord'
@@ -100,16 +100,14 @@ export default function PhotoTimelapsePage() {
 
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-white">
-      <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-body text-secondary shrink-0">뒤로</button>
-        <h1 className="text-subtitle text-primary truncate mx-3">사진 타임랩스</h1>
+      <PageHeader title="사진 타임랩스" standalone rightAction={
         <button
           onClick={() => fileRef.current?.click()}
-          className="text-body font-semibold text-[var(--color-primary)] whitespace-nowrap shrink-0"
+          className="text-[13px] font-semibold text-[var(--color-primary)] whitespace-nowrap"
         >
           + 추가
         </button>
-      </div>
+      } />
 
       <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleUpload} className="hidden" />
 

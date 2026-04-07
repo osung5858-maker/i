@@ -37,8 +37,14 @@ function getAgeDays(birthdate: string): number {
 function verifyAuth(request: Request): boolean {
   const auth = request.headers.get('authorization')
   const secret = process.env.CRON_SECRET
-  if (!secret) return false
-  return auth === `Bearer ${secret}`
+  if (!secret || !auth) return false
+  const expected = `Bearer ${secret}`
+  if (auth.length !== expected.length) return false
+  let mismatch = 0
+  for (let i = 0; i < auth.length; i++) {
+    mismatch |= auth.charCodeAt(i) ^ expected.charCodeAt(i)
+  }
+  return mismatch === 0
 }
 
 export async function GET(request: Request) {

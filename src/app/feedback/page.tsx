@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import PageHeader from '@/components/layout/PageHeader'
 
 const PRESETS = [
   { label: '기능 제안', desc: '이런 기능이 있으면 좋겠어요' },
@@ -28,7 +29,9 @@ export default function FeedbackPage() {
 
   if (sent) {
     return (
-      <div className="min-h-[100dvh] flex flex-col items-center justify-center px-6 bg-white">
+      <>
+      <PageHeader title="의견 보내기" />
+      <div className="min-h-[60vh] flex flex-col items-center justify-center px-6">
         <p className="text-body-emphasis font-medium text-[var(--color-primary)] mb-4">전송 완료</p>
         <h2 className="text-heading-2 lg:text-heading-1 font-bold text-primary mb-2">감사합니다!</h2>
         <p className="text-body-emphasis lg:text-subtitle text-secondary mb-8 text-center">
@@ -47,11 +50,13 @@ export default function FeedbackPage() {
           돌아가기
         </button>
       </div>
+      </>
     )
   }
 
   return (
-    <div className="bg-white pb-28">
+    <div className="pb-28" style={{ backgroundColor: 'var(--color-page-bg)' }}>
+      <PageHeader title="의견 보내기" />
       <div className="max-w-2xl mx-auto px-5 lg:px-8 py-8 lg:py-12">
         {/* 인트로 */}
         <div className="mb-8 lg:mb-10">

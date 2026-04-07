@@ -8,30 +8,35 @@ interface PageHeaderProps {
   rightAction?: React.ReactNode
   subtitle?: string
   transparent?: boolean
+  /** standalone pages (chat etc) use top-0; pages under GlobalHeader use top-[72px] (default) */
+  standalone?: boolean
 }
 
-export default function PageHeader({ title, showBack = true, rightAction, subtitle, transparent = false }: PageHeaderProps) {
+export default function PageHeader({ title, showBack = true, rightAction, subtitle, transparent = false, standalone = false }: PageHeaderProps) {
   const router = useRouter()
 
   return (
     <header
-      className={`sticky top-[72px] z-30 ${transparent ? 'bg-transparent' : 'bg-[var(--color-page-bg)]'}`}
-      style={{
-        borderBottom: transparent ? 'none' : '1px solid var(--border-default)'
+      className={`sticky z-30 ${standalone ? 'top-0' : 'top-[72px]'}`}
+      style={transparent ? undefined : {
+        background: 'linear-gradient(180deg, var(--color-primary-bg) 0%, rgba(255,255,255,0.95) 100%)',
+        borderBottom: '1px solid var(--color-border-light)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
       }}
     >
-      <div className="flex items-center h-12 max-w-lg mx-auto" style={{ padding: '0 var(--spacing-4)' }}>
+      <div className="flex items-center h-14 px-4 max-w-lg mx-auto gap-3">
         {/* 좌측: 뒤로가기 */}
-        <div className="w-10 shrink-0">
+        <div className="w-9 shrink-0">
           {showBack && (
             <button
               onClick={() => router.back()}
-              className="flex items-center justify-center w-10 h-10 rounded-full active:bg-[var(--color-page-bg)]"
-              style={{ marginLeft: 'calc(-1 * var(--spacing-2))' }}
               aria-label="뒤로가기"
+              className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors active:scale-95"
+              style={{ background: 'var(--color-primary-bg)', color: 'var(--color-primary)' }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-text-primary)' }}>
-                <path d="M15 18l-6-6 6-6" />
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           )}
@@ -39,13 +44,22 @@ export default function PageHeader({ title, showBack = true, rightAction, subtit
 
         {/* 중앙: 제목 */}
         <div className="flex-1 min-w-0 text-center">
-          <p className="text-subtitle truncate">{title}</p>
-          {subtitle && <p className="text-caption truncate" style={{ marginTop: '-2px', color: 'var(--color-text-secondary)' }}>{subtitle}</p>}
+          <p
+            className="truncate"
+            style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text-primary)', letterSpacing: '-0.02em', lineHeight: 1.3 }}
+          >
+            {title}
+          </p>
+          {subtitle && (
+            <p className="truncate" style={{ fontSize: 11, fontWeight: 500, color: 'var(--color-primary)', marginTop: -1 }}>
+              {subtitle}
+            </p>
+          )}
         </div>
 
         {/* 우측: 액션 */}
-        <div className="shrink-0 flex justify-end" style={{ marginLeft: 'var(--spacing-2)' }}>
-          {rightAction || <div className="w-10" />}
+        <div className="w-9 shrink-0 flex justify-end">
+          {rightAction || <div className="w-9" />}
         </div>
       </div>
     </header>

@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Timeline from '@/components/timeline/Timeline'
 import { ChevronRightIcon } from '@/components/ui/Icons'
+import PageHeader from '@/components/layout/PageHeader'
 import type { CareEvent } from '@/types'
 
 function formatDateKr(dateStr: string): string {
@@ -82,10 +83,8 @@ export default function RecordDetailPage() {
   return (
     <div className="fixed inset-0 flex flex-col bg-[#f5f5f5] overflow-hidden">
       {/* 헤더 — 고정 */}
-      <div className="shrink-0 sticky top-0 z-40 bg-[#f5f5f5] border-b border-[#E8E4DF] px-5 max-w-lg mx-auto w-full flex items-center justify-between h-12">
-        <button onClick={() => router.back()} className="text-sm text-tertiary">뒤로</button>
-        <h1 className="text-subtitle text-primary">기록 상세</h1>
-        <div className="w-8" />
+      <div className="shrink-0">
+        <PageHeader title="기록 상세" standalone />
       </div>
 
       {/* 날짜 네비게이션 — 고정 */}

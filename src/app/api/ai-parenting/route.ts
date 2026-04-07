@@ -109,11 +109,13 @@ JSON만 출력. parentTip 필드 불필요.`
 
     // === 이유식 추천 ===
     if (type === 'meal') {
-      const { ageMonths } = body
+      const { ageMonths, _refresh } = body
       const today = new Date().toISOString().slice(0, 10)
       const cacheKey = `parent-meal-${ageMonths}-${today}`
-      const cached = getCachedResponse(cacheKey)
-      if (cached) return NextResponse.json(cached)
+      if (!_refresh) {
+        const cached = getCachedResponse(cacheKey)
+        if (cached) return NextResponse.json(cached)
+      }
 
       const stage = ageMonths < 6 ? '초기 (미음/퓨레)' : ageMonths < 8 ? '중기 (으깬 음식)' : ageMonths < 10 ? '후기 (잘게 다진)' : '완료기 (부드러운 밥)'
 
@@ -148,10 +150,12 @@ JSON으로 출력:
 
     // === 양육자 식단 추천 ===
     if (type === 'caregiver_meal') {
-      const { ageMonths } = body
+      const { ageMonths, _refresh } = body
       const cacheKey = `caregiver-meal-v1-${new Date().toISOString().split('T')[0]}`
-      const cached = getCachedResponse(cacheKey)
-      if (cached) return NextResponse.json(cached)
+      if (!_refresh) {
+        const cached = getCachedResponse(cacheKey)
+        if (cached) return NextResponse.json(cached)
+      }
 
       const prompt = `${ageMonths}개월 아기를 키우는 양육자를 위한 오늘의 식단을 추천해주세요.
 육아로 바쁜 현실을 고려해 간단하면서도 영양 균형 잡힌 식단으로.

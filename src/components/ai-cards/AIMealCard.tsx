@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { SparkleIcon, MapPinIcon } from '@/components/ui/Icons'
 import { shareMealPlan } from '@/lib/kakao/share-parenting'
@@ -20,9 +20,10 @@ interface MealData {
 }
 
 const MEAL_COLOR: Record<string, string> = { '아침': '#F5A96A', '점심': '#6AB0E8', '저녁': '#8B7EC8', '간식': '#7DC49A' }
+const MEAL_EMOJI: Record<string, string> = { '아침': '🌅', '점심': '☀️', '저녁': '🌙', '간식': '🍪' }
 
 function getLabel(mode: string, value: number, phase?: string) {
-  if (mode === 'parenting') return value < 6 ? '초기 이유식' : value < 8 ? '중기 이유식' : value < 10 ? '후기 이유식' : '완료기 식단'
+  if (mode === 'parenting') return value < 4 ? '수유기 식단' : value < 6 ? '초기 이유식' : value < 8 ? '중기 이유식' : value < 10 ? '후기 이유식' : '완료기 식단'
   if (mode === 'pregnant') return (value <= 13 ? '초기' : value <= 27 ? '중기' : '후기') + ' 임산부'
   const ko: Record<string, string> = { follicular: '난포기', fertile: '가임기', ovulation: '배란기', luteal: '황체기', tww: '착상대기', menstrual: '생리기' }
   return (ko[phase || ''] || '맞춤') + ' 식단'
@@ -54,6 +55,9 @@ const CUISINE_MAP: [RegExp, string, string][] = [
   [/죽|미음|호박죽|전복죽|쇠고기죽|흰죽/, '죽', '#F0FFF9'],
   [/샐러드|그릭|시저|퀴노아/, '샐러드', '#F0FFF4'],
   [/카레/, '카레', '#FFFAF0'],
+  [/요거트|요플레|치즈|우유|유제품/, '유제품', '#F5F0FF'],
+  [/사과|바나나|딸기|포도|귤|수박|블루베리|망고|키위|과일/, '과일', '#FFF5F0'],
+  [/고구마|감자|견과|아몬드|호두|땅콩|넛츠/, '간식류', '#FDF5E6'],
 ]
 
 function detectCuisine(menuText: string): { label: string; bg: string } | null {
@@ -79,74 +83,129 @@ function getRestaurantQuery(menuText: string, mode: string): string {
   return mode === 'parenting' ? '아이 동반 식당' : mode === 'pregnant' ? '임산부 맛집' : '건강식'
 }
 
-function MealRows({ meal, mode }: { meal: MealData; mode: string }) {
+function RefreshIcon({ className = 'w-3.5 h-3.5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.7L21 8" /><path d="M3 22v-6h6" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+    </svg>
+  )
+}
+
+interface MealRowsProps {
+  meal: MealData
+  mode: string
+  onRefreshMeal?: (mealKey: string) => void
+  refreshingKey?: string | null
+}
+
+function MealRows({ meal, mode, onRefreshMeal, refreshingKey }: MealRowsProps) {
   const meals = [
-    { key: '아침', data: meal.breakfast },
-    { key: '점심', data: meal.lunch },
-    ...(meal.dinner ? [{ key: '저녁', data: meal.dinner }] : []),
-    { key: '간식', data: meal.snack },
+    { key: '아침', field: 'breakfast' as const, data: meal.breakfast },
+    { key: '점심', field: 'lunch' as const, data: meal.lunch },
+    ...(meal.dinner ? [{ key: '저녁', field: 'dinner' as const, data: meal.dinner }] : []),
+    { key: '간식', field: 'snack' as const, data: meal.snack },
   ].filter(m => m.data)
 
   return (
-    <>
+    <div className="space-y-0">
       {meals.map((m, i) => {
         const cuisine = detectCuisine(m.data!.menu)
         const sides = m.data!.sides || []
+        const isRefreshing = refreshingKey === m.field
         return (
-          <div key={m.key} className={`flex items-start gap-3 py-3 ${i < meals.length - 1 ? 'border-b border-[#F0EDE8]' : ''}`}>
-            {/* 끼니 레이블 */}
-            <div className="w-8 shrink-0 flex flex-col items-center gap-1 pt-0.5">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: MEAL_COLOR[m.key] }} />
-              <span className="text-label font-medium text-tertiary">{m.key}</span>
-            </div>
-            {/* 내용 */}
-            <div className="flex-1 min-w-0">
-              {/* 태그 줄 */}
-              <div className="flex items-center gap-1 mb-1">
-                {cuisine && (
-                  <span className="text-label px-1.5 py-0.5 rounded font-medium text-secondary" style={{ backgroundColor: cuisine.bg }}>
-                    {cuisine.label}
-                  </span>
-                )}
-                {m.data!.calories && (
-                  <span className="text-label text-tertiary">{m.data!.calories}kcal</span>
+          <div key={m.key} className={`py-3 ${i < meals.length - 1 ? 'border-b border-[#F0EDE8]' : ''}`}>
+            <div className="flex items-start gap-3">
+              {/* 끼니 레이블 */}
+              <div className="w-9 shrink-0 flex flex-col items-center gap-0.5 pt-0.5">
+                <span className="text-[15px] leading-none">{MEAL_EMOJI[m.key]}</span>
+                <span className="text-label font-semibold" style={{ color: MEAL_COLOR[m.key] }}>{m.key}</span>
+              </div>
+              {/* 내용 */}
+              <div className="flex-1 min-w-0">
+                {/* 태그 + 칼로리 줄 */}
+                <div className="flex items-center gap-1.5 mb-1">
+                  {cuisine && (
+                    <span className="text-label px-1.5 py-0.5 rounded font-medium text-secondary" style={{ backgroundColor: cuisine.bg }}>
+                      {cuisine.label}
+                    </span>
+                  )}
+                  {m.data!.calories && (
+                    <span className="text-label text-tertiary font-medium">{m.data!.calories}kcal</span>
+                  )}
+                </div>
+                {/* 메인 메뉴 (bold) */}
+                <p className="text-caption font-semibold text-primary leading-snug">{m.data!.menu}</p>
+                {/* 사이드 (secondary, 분리) */}
+                {sides.length > 0 && (
+                  <p className="text-label text-tertiary leading-snug mt-0.5">{sides.join(' · ')}</p>
                 )}
               </div>
-              {/* 메뉴 전체 */}
-              <p className="text-caption text-primary leading-snug">
-                {[m.data!.menu, ...sides].join(' · ')}
-              </p>
+              {/* 액션 영역 */}
+              <div className="shrink-0 flex items-center gap-1 mt-0.5">
+                {onRefreshMeal && (
+                  <button
+                    onClick={() => onRefreshMeal(m.field)}
+                    disabled={isRefreshing}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-[#F5F3F0] active:bg-[#E8E4DF] transition-colors disabled:opacity-50"
+                    title="다른 메뉴로 변경"
+                  >
+                    <RefreshIcon className={`w-3 h-3 text-tertiary ${isRefreshing ? 'animate-spin' : ''}`} />
+                  </button>
+                )}
+                <Link href={`/map?q=${encodeURIComponent(getRestaurantQuery(m.data!.menu, mode))}`} className="shrink-0 h-7 flex items-center gap-0.5 px-2 rounded-full bg-[#F0F4FF] active:bg-[#D5DFEF] transition-colors">
+                  <MapPinIcon className="w-3 h-3 text-[#4A6FA5]" />
+                  <span className="text-[10px] font-medium text-[#4A6FA5]">주변</span>
+                </Link>
+              </div>
             </div>
-            {/* 지도 */}
-            <Link href={`/map?q=${encodeURIComponent(getRestaurantQuery(m.data!.menu, mode))}`} className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-[#F0F4FF] active:bg-[#D5DFEF] mt-0.5">
-              <MapPinIcon className="w-3.5 h-3.5 text-[#4A6FA5]" />
-            </Link>
           </div>
         )
       })}
+
+      {/* 영양소 & 주의사항 — 맥락화된 텍스트 */}
       {(meal.keyNutrient || meal.avoid) && (
-        <div className="flex gap-2 pt-2 flex-wrap">
-          {meal.keyNutrient && <span className="text-label text-[#2D7A4A] bg-[#F0F9F4] px-2 py-1 rounded-full">{meal.keyNutrient}</span>}
-          {meal.avoid && <span className="text-label text-[#D08068] bg-[#FDF2F2] px-2 py-1 rounded-full">⚠ {meal.avoid}</span>}
+        <div className="pt-3 mt-1 border-t border-[#F0EDE8] space-y-1.5">
+          {meal.keyNutrient && (
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 text-[11px] leading-none mt-0.5">💊</span>
+              <p className="text-label text-[#2D7A4A] leading-snug">
+                <span className="font-semibold">이 식단의 핵심 영양소</span>
+                <span className="mx-1 text-[#2D7A4A]/40">|</span>
+                {meal.keyNutrient}
+              </p>
+            </div>
+          )}
+          {meal.avoid && (
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 text-[11px] leading-none mt-0.5">⚠️</span>
+              <p className="text-label text-[#D08068] leading-snug">
+                <span className="font-semibold">오늘 피하면 좋은 음식</span>
+                <span className="mx-1 text-[#D08068]/40">|</span>
+                {meal.avoid}
+              </p>
+            </div>
+          )}
         </div>
       )}
-    </>
+    </div>
   )
 }
 
 export default function AIMealCard({ mode, value, phase }: Props) {
   const isParenting = mode === 'parenting'
+  // 수유기(5개월 미만)에는 아이 식단 불필요 — 양육자 식단만 표시
+  const showChildTab = !isParenting || value >= 5
+  const showTabs = isParenting && showChildTab
 
-  // 아이 식단
   const [childMeal, setChildMeal] = useState<MealData | null>(null)
   const [childLoading, setChildLoading] = useState(false)
 
-  // 양육자 식단 (parenting 전용)
   const [caregiverMeal, setCaregiverMeal] = useState<MealData | null>(null)
   const [caregiverLoading, setCaregiverLoading] = useState(false)
 
   const [expanded, setExpanded] = useState(false)
-  const [activeTab, setActiveTab] = useState<'child' | 'caregiver'>('child')
+  const [activeTab, setActiveTab] = useState<'child' | 'caregiver'>(showChildTab ? 'child' : 'caregiver')
+  const [refreshingKey, setRefreshingKey] = useState<string | null>(null)
 
   const label = getLabel(mode, value, phase)
 
@@ -191,14 +250,45 @@ export default function AIMealCard({ mode, value, phase }: Props) {
     setCaregiverLoading(false)
   }
 
+  const handleRefreshMeal = useCallback(async (mealKey: string) => {
+    setRefreshingKey(mealKey)
+    const tab = isParenting ? activeTab : undefined
+    const { url, body } = getApiConfig(mode, value, phase, tab === 'caregiver' ? 'caregiver' : undefined)
+    try {
+      // _refresh 파라미터로 서버 캐시 우회 + 해당 끼니만 교체
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...body, _refresh: `${mealKey}_${Date.now()}` }),
+      })
+      const data = await res.json()
+      if (data[mealKey]) {
+        const setter = (isParenting && activeTab === 'caregiver') ? setCaregiverMeal : setChildMeal
+        setter(prev => {
+          if (!prev) return prev
+          const updated = { ...prev, [mealKey]: data[mealKey] }
+          const cacheTab = (isParenting && activeTab === 'caregiver') ? 'caregiver' : undefined
+          try { localStorage.setItem(getCacheKey(mode, value, phase, cacheTab), JSON.stringify(updated)) } catch { /* */ }
+          return updated
+        })
+      }
+    } catch { /* */ }
+    setRefreshingKey(null)
+  }, [mode, value, phase, isParenting, activeTab])
+
   const activeMeal = isParenting ? (activeTab === 'child' ? childMeal : caregiverMeal) : childMeal
   const activeLoading = isParenting ? (activeTab === 'child' ? childLoading : caregiverLoading) : childLoading
   const fetchActive = isParenting ? (activeTab === 'child' ? fetchChildMeal : fetchCaregiverMeal) : fetchChildMeal
 
-  // 미요청 상태 (아이 식단 기준)
-  if (!childMeal && !childLoading) {
+  // 수유기: 양육자 식단을 기본으로 fetch
+  const fetchInitial = showChildTab ? fetchChildMeal : fetchCaregiverMeal
+  const initialMeal = showChildTab ? childMeal : caregiverMeal
+  const initialLoading = showChildTab ? childLoading : caregiverLoading
+
+  // 미요청 상태
+  if (!initialMeal && !initialLoading) {
     return (
-      <button onClick={fetchChildMeal} className="w-full bg-[var(--color-primary-bg)] rounded-2xl border border-[var(--color-primary)]/20 shadow-[0_4px_16px_rgba(0,0,0,0.06)] p-5 text-left active:scale-[0.98] transition-transform">
+      <button onClick={fetchInitial} className="w-full bg-[var(--color-primary-bg)] rounded-2xl border border-[var(--color-primary)]/20 shadow-[0_4px_16px_rgba(0,0,0,0.06)] p-5 text-left active:scale-[0.98] transition-transform">
         <div className="flex items-center gap-3.5">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white to-white/90 flex items-center justify-center shrink-0 shadow-[0_2px_12px_rgba(45,122,74,0.15)]">
             <SparkleIcon className="w-7 h-7 text-[var(--color-primary)]" />
@@ -208,7 +298,7 @@ export default function AIMealCard({ mode, value, phase }: Props) {
               <p className="text-subtitle text-primary">AI 오늘의 식단</p>
               <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-label font-bold">AI 맞춤</span>
             </div>
-            <p className="text-body text-secondary">{isParenting ? '아이 + 양육자 맞춤 구성' : label} · 탭해서 확인</p>
+            <p className="text-body text-secondary">{showTabs ? '아이 + 양육자 맞춤 구성' : isParenting ? '양육자 맞춤 식단' : label} · 탭해서 확인</p>
           </div>
           <div className="px-3.5 py-2 rounded-xl bg-[var(--color-primary)] font-bold shadow-[0_2px_8px_rgba(45,122,74,0.25)]" style={{ fontSize: 13, color: '#FFFFFF', fontWeight: 700 }}>추천</div>
         </div>
@@ -216,7 +306,7 @@ export default function AIMealCard({ mode, value, phase }: Props) {
     )
   }
 
-  if (childLoading && !childMeal) {
+  if (initialLoading && !initialMeal) {
     return (
       <div className="bg-[var(--color-primary-bg)] rounded-2xl border border-[var(--color-primary)]/20 shadow-[0_4px_16px_rgba(0,0,0,0.06)] p-5">
         <div className="flex items-center gap-4">
@@ -229,8 +319,6 @@ export default function AIMealCard({ mode, value, phase }: Props) {
       </div>
     )
   }
-
-  const mealForHeader = activeMeal || childMeal
 
   return (
     <div className="rounded-2xl border border-[var(--color-primary)]/20 overflow-hidden bg-white shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
@@ -245,7 +333,7 @@ export default function AIMealCard({ mode, value, phase }: Props) {
             <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-label font-bold">AI 맞춤</span>
           </div>
           <p className="text-caption text-secondary">
-            {isParenting ? '아이 · 양육자 맞춤 구성' : `${[childMeal?.breakfast, childMeal?.lunch, childMeal?.dinner, childMeal?.snack].filter(Boolean).length}끼 맞춤 구성`} · 탭해서 {expanded ? '접기' : '확인'}
+            {showTabs ? '아이 · 양육자 맞춤 구성' : isParenting ? '양육자 맞춤 식단' : `${[childMeal?.breakfast, childMeal?.lunch, childMeal?.dinner, childMeal?.snack].filter(Boolean).length}끼 맞춤 구성`} · 탭해서 {expanded ? '접기' : '확인'}
           </p>
         </div>
         <div className={`w-6 h-6 rounded-full bg-white/60 flex items-center justify-center shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}>
@@ -257,8 +345,8 @@ export default function AIMealCard({ mode, value, phase }: Props) {
 
       {expanded && (
         <div className="px-3.5 pb-3.5 pt-2 space-y-0">
-          {/* 탭 (parenting만) */}
-          {isParenting && (
+          {/* 탭 (parenting + 이유식 시작 이후만) */}
+          {showTabs && (
             <div className="flex gap-1.5 mb-3">
               <button
                 onClick={() => setActiveTab('child')}
@@ -295,12 +383,15 @@ export default function AIMealCard({ mode, value, phase }: Props) {
               <p className="text-caption text-tertiary">AI가 식단을 구성하고 있어요...</p>
             </div>
           ) : activeMeal ? (
-            <MealRows meal={activeMeal} mode={mode} />
+            <MealRows meal={activeMeal} mode={mode} onRefreshMeal={handleRefreshMeal} refreshingKey={refreshingKey} />
           ) : null}
 
           {/* 액션 */}
           <div className="flex gap-1.5 pt-3">
-            <button onClick={fetchActive} className="flex-1 py-2 text-label text-secondary font-medium bg-[var(--color-surface-alt)] rounded-lg active:bg-[var(--color-border)]">다른 식단</button>
+            <button onClick={fetchActive} className="flex-1 py-2 text-label text-secondary font-medium bg-[var(--color-surface-alt)] rounded-lg active:bg-[var(--color-border)] flex items-center justify-center gap-1">
+              <RefreshIcon className="w-3 h-3" />
+              전체 새로고침
+            </button>
             <button
               onClick={() => shareMealPlan(value, activeMeal?.breakfast?.menu || '', activeMeal?.lunch?.menu || '', activeMeal?.snack?.menu || '')}
               className="flex-1 py-2 text-label text-[var(--color-primary)] font-semibold bg-[var(--color-primary-bg)] rounded-lg active:opacity-80"

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import PageHeader from '@/components/layout/PageHeader'
 // profile avatars are .webm video files
 import type { Child } from '@/types'
 
@@ -85,13 +86,7 @@ export default function EditChildPage() {
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col">
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl">
-        <div className="flex items-center justify-between h-14 px-5 max-w-lg mx-auto w-full">
-          <button onClick={() => router.back()} className="text-sm text-tertiary shrink-0">취소</button>
-          <h1 className="text-subtitle text-primary truncate mx-3">프로필 수정</h1>
-          <div className="w-8" />
-        </div>
-      </header>
+      <PageHeader title="프로필 수정" standalone />
 
       <div className="flex-1 px-6 pt-8 max-w-lg mx-auto w-full">
         {/* 프로필 아바타 선택 */}

@@ -24,34 +24,23 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)))
     const search = searchParams.get('search')?.trim() || ''
     const mode = searchParams.get('mode') || ''
-    const sort = searchParams.get('sort') || 'created_at'
-    const order = searchParams.get('order') === 'asc' ? true : false
+    const sort = searchParams.get('sort') || 'updated_at'
+    const order = searchParams.get('order') === 'asc'
 
     const supabase = createAdminSupabase()
     const from = (page - 1) * limit
     const to = from + limit - 1
 
-    // Build query on user_profiles
+    // user_profiles 실제 컬럼: user_id, status, mode, due_date, updated_at, user_settings, partner_user_id
     let query = supabase
       .from('user_profiles')
-      .select('user_id, mode, chosen_nickname, region, my_role, created_at, updated_at', { count: 'exact' })
+      .select('user_id, mode, status, updated_at', { count: 'exact' })
 
-    // Filter by mode
     if (mode && ['preparing', 'pregnant', 'parenting'].includes(mode)) {
       query = query.eq('mode', mode)
     }
 
-    // Search by nickname
-    if (search) {
-      query = query.ilike('chosen_nickname', `%${search}%`)
-    }
-
-    // Sort
-    const sortColumn = sort === 'updated_at' ? 'updated_at' : 'created_at'
-    query = query.order(sortColumn, { ascending: order })
-
-    // Paginate
-    query = query.range(from, to)
+    query = query.order('updated_at', { ascending: order }).range(from, to)
 
     const { data: profiles, count, error: profilesError } = await query
 
@@ -60,59 +49,64 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: '유저 목록을 가져올 수 없습니다' }, { status: 500 })
     }
 
-    // Fetch emails from auth.users for the returned profiles
+    // auth.users에서 이메일 가져오기
     const userIds = (profiles || []).map((p) => p.user_id)
     let emailMap: Record<string, string> = {}
+    let nameMap: Record<string, string> = {}
+    let createdMap: Record<string, string> = {}
 
     if (userIds.length > 0) {
-      const { data: authData } = await supabase.auth.admin.listUsers({
-        perPage: 1000,
-      })
-
+      const { data: authData } = await supabase.auth.admin.listUsers({ perPage: 1000 })
       if (authData?.users) {
         for (const u of authData.users) {
           if (userIds.includes(u.id)) {
             emailMap[u.id] = u.email || ''
+            nameMap[u.id] = u.user_metadata?.name || u.user_metadata?.full_name || ''
+            createdMap[u.id] = u.created_at || ''
           }
         }
       }
     }
 
-    // If search includes email-like pattern and no nickname matches, search emails
-    let emailSearchResults: typeof profiles = []
-    if (search && search.includes('@') && (!profiles || profiles.length === 0)) {
+    // 이메일 검색: 닉네임/프로필 매치 없으면 이메일로 재검색
+    if (search) {
       const { data: authUsers } = await supabase.auth.admin.listUsers({ perPage: 1000 })
       if (authUsers?.users) {
         const matchedIds = authUsers.users
-          .filter((u) => u.email?.toLowerCase().includes(search.toLowerCase()))
+          .filter((u) =>
+            u.email?.toLowerCase().includes(search.toLowerCase()) ||
+            (u.user_metadata?.name || '').toLowerCase().includes(search.toLowerCase()) ||
+            (u.user_metadata?.full_name || '').toLowerCase().includes(search.toLowerCase())
+          )
           .map((u) => u.id)
 
         if (matchedIds.length > 0) {
-          let emailQuery = supabase
+          let filteredQuery = supabase
             .from('user_profiles')
-            .select('user_id, mode, chosen_nickname, region, my_role, created_at, updated_at', { count: 'exact' })
+            .select('user_id, mode, status, updated_at', { count: 'exact' })
             .in('user_id', matchedIds)
 
           if (mode && ['preparing', 'pregnant', 'parenting'].includes(mode)) {
-            emailQuery = emailQuery.eq('mode', mode)
+            filteredQuery = filteredQuery.eq('mode', mode)
           }
 
-          emailQuery = emailQuery.order(sortColumn, { ascending: order }).range(from, to)
-          const { data: emailProfiles, count: emailCount } = await emailQuery
+          filteredQuery = filteredQuery.order('updated_at', { ascending: order }).range(from, to)
+          const { data: filteredProfiles, count: filteredCount } = await filteredQuery
 
-          if (emailProfiles && emailProfiles.length > 0) {
-            // Update emailMap for these results
+          if (filteredProfiles) {
             for (const u of authUsers.users) {
-              if (matchedIds.includes(u.id)) {
-                emailMap[u.id] = u.email || ''
-              }
+              emailMap[u.id] = u.email || ''
+              nameMap[u.id] = u.user_metadata?.name || u.user_metadata?.full_name || ''
+              createdMap[u.id] = u.created_at || ''
             }
             return NextResponse.json({
-              users: emailProfiles.map((p) => ({
+              users: filteredProfiles.map((p) => ({
                 ...p,
                 email: emailMap[p.user_id] || '',
+                name: nameMap[p.user_id] || '',
+                created_at: createdMap[p.user_id] || '',
               })),
-              total: emailCount ?? 0,
+              total: filteredCount ?? 0,
               page,
               limit,
             })
@@ -124,6 +118,8 @@ export async function GET(request: NextRequest) {
     const users = (profiles || []).map((p) => ({
       ...p,
       email: emailMap[p.user_id] || '',
+      name: nameMap[p.user_id] || '',
+      created_at: createdMap[p.user_id] || '',
     }))
 
     return NextResponse.json({

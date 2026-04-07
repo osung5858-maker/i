@@ -22,6 +22,8 @@ function normalizeItem(item: any) {
       original: proxyImg(img.original || ''),
       thumbnail: proxyImg(img.small || img.small_resize || img.original || ''),
       large: proxyImg(img.large || img.large_resize || img.original || ''),
+      // Google Drive 업로드용 원본 URL (프록시 거치지 않는 키즈노트 직접 URL)
+      rawUrl: img.original || img.large || img.large_resize || '',
     })),
     weather: item.weather || null,
     childName: item.child_name || '',
@@ -55,8 +57,7 @@ export async function POST(request: NextRequest) {
       const cookies = setCookies.map(c => c.split(';')[0]).join('; ')
 
       if (!cookies) {
-        const errText = await res.text().catch(() => '')
-        return NextResponse.json({ error: '로그인 실패. 아이디/비밀번호를 확인해주세요.', detail: errText }, { status: 401 })
+        return NextResponse.json({ error: '로그인 실패. 아이디/비밀번호를 확인해주세요.' }, { status: 401 })
       }
 
       const infoRes = await fetch(`${KN_BASE}/v1/me/info`, { headers: { Cookie: cookies } })
@@ -90,23 +91,22 @@ export async function POST(request: NextRequest) {
       if (!cursor) return base
       // kidsnote API는 next를 전체 URL로 반환할 수 있음
       if (cursor.startsWith('http')) return cursor
-      return `${base}?cursor=${cursor}&page_size=20`
+      // base에 이미 ?가 있으면 &로 연결
+      const sep = base.includes('?') ? '&' : '?'
+      return `${base}${sep}cursor=${cursor}`
     }
 
     // === 앨범 ===
     if (action === 'albums') {
       if (!sessionCookie || !childId) return NextResponse.json({ error: '파라미터 부족' }, { status: 400 })
-      const baseUrl = `${KN_BASE}/v1_2/children/${childId}/albums?page_size=20`
+      const baseUrl = `${KN_BASE}/v1_2/children/${childId}/albums?page_size=100`
       const url = buildPageUrl(baseUrl, cursor)
       const res = await fetch(url, { headers: { Cookie: sessionCookie } })
+      if (!res.ok) return NextResponse.json({ error: `키즈노트 응답 오류 (${res.status})`, status: res.status }, { status: 502 })
       const data = await res.json()
-      // next에서 cursor 토큰만 추출 (중복 방지)
-      const nextCursor = data.next
-        ? (data.next.startsWith('http') ? data.next : data.next)
-        : null
       return NextResponse.json({
         count: data.count || 0,
-        next: nextCursor,
+        next: data.next || null,
         results: (data.results || []).map(normalizeItem),
       })
     }
@@ -114,22 +114,20 @@ export async function POST(request: NextRequest) {
     // === 알림장 ===
     if (action === 'reports') {
       if (!sessionCookie || !childId) return NextResponse.json({ error: '파라미터 부족' }, { status: 400 })
-      const baseUrl = `${KN_BASE}/v1_2/children/${childId}/reports?page_size=20`
+      const baseUrl = `${KN_BASE}/v1_2/children/${childId}/reports?page_size=100`
       const url = buildPageUrl(baseUrl, cursor)
       const res = await fetch(url, { headers: { Cookie: sessionCookie } })
+      if (!res.ok) return NextResponse.json({ error: `키즈노트 응답 오류 (${res.status})`, status: res.status }, { status: 502 })
       const data = await res.json()
-      const nextCursor = data.next
-        ? (data.next.startsWith('http') ? data.next : data.next)
-        : null
       return NextResponse.json({
         count: data.count || 0,
-        next: nextCursor,
+        next: data.next || null,
         results: (data.results || []).map(normalizeItem),
       })
     }
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
-  } catch (e) {
-    return NextResponse.json({ error: `서버 오류: ${e}` }, { status: 500 })
+  } catch {
+    return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 })
   }
 }

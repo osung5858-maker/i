@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import PageHeader from '@/components/layout/PageHeader'
 
 export default function AddGrowthPage() {
   const [childId, setChildId] = useState<string | null>(null)
@@ -78,11 +79,7 @@ export default function AddGrowthPage() {
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col">
-      <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-sm text-tertiary">취소</button>
-        <h1 className="text-subtitle text-primary">성장 기록 추가</h1>
-        <div className="w-8" />
-      </div>
+      <PageHeader title="성장 기록 추가" standalone />
 
       <form onSubmit={handleSubmit} className="flex-1 flex flex-col px-6 pt-6 max-w-lg mx-auto w-full">
         {/* 측정일 */}

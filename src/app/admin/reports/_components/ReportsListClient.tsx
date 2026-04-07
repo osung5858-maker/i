@@ -2,29 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react'
 
-interface ReportPost {
-  content: string | null
-  board_type: string | null
-  hidden: boolean
-  user_id: string
-}
-
-interface ReportReporter {
-  nickname: string | null
-}
-
 interface Report {
   id: string
   reporter_id: string
   post_id: string
   reason: string
   status: 'pending' | 'resolved' | 'rejected'
-  reviewed_by: string | null
-  reviewed_at: string | null
-  admin_note: string | null
   created_at: string
-  reporter: ReportReporter | null
-  post: ReportPost | null
+  post_content: string
+  post_user_id: string
 }
 
 interface ReportsResponse {
@@ -55,7 +41,6 @@ export default function ReportsListClient() {
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [noteInputs, setNoteInputs] = useState<Record<string, string>>({})
 
   const fetchReports = useCallback(async () => {
     setLoading(true)
@@ -79,29 +64,21 @@ export default function ReportsListClient() {
 
   useEffect(() => { fetchReports() }, [fetchReports])
 
-  const handleAction = async (report: Report, action: 'resolved' | 'rejected', hidePost: boolean) => {
-    const actionLabel = action === 'resolved' ? '승인' : '거절'
-    const msg = hidePost
-      ? `이 신고를 ${actionLabel}하고 게시글을 숨김 처리하시겠습니까?`
-      : `이 신고를 ${actionLabel} 처리하시겠습니까?`
-    if (!confirm(msg)) return
+  const handleAction = async (report: Report, action: 'resolved' | 'rejected') => {
+    const actionLabel = action === 'resolved' ? '승인 (게시글 삭제)' : '거절'
+    if (!confirm(`이 신고를 ${actionLabel} 처리하시겠습니까?`)) return
 
     setActionLoading(report.id)
     try {
       const res = await fetch(`/api/admin/reports/${report.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: action,
-          admin_note: noteInputs[report.id] || '',
-          hide_post: hidePost,
-        }),
+        body: JSON.stringify({ status: action }),
       })
       if (!res.ok) {
         const d = await res.json()
         throw new Error(d.error || '처리 실패')
       }
-      setNoteInputs((prev) => { const n = { ...prev }; delete n[report.id]; return n })
       await fetchReports()
     } catch (err) {
       alert(err instanceof Error ? err.message : '오류가 발생했습니다')
@@ -148,12 +125,11 @@ export default function ReportsListClient() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">신고자</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-600">신고자 ID</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">게시글 미리보기</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">신고 사유</th>
                     <th className="text-center px-4 py-3 font-medium text-gray-600">상태</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">신고일</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">관리자 메모</th>
                     <th className="text-center px-4 py-3 font-medium text-gray-600">관리</th>
                   </tr>
                 </thead>
@@ -163,17 +139,13 @@ export default function ReportsListClient() {
                     const isPending = report.status === 'pending'
                     return (
                       <tr key={report.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 text-gray-600">
-                          {report.reporter?.nickname || '알 수 없음'}
+                        <td className="px-4 py-3 text-gray-600 text-xs font-mono">
+                          {report.reporter_id.slice(0, 8)}...
                         </td>
                         <td className="px-4 py-3 max-w-[200px]">
                           <span className="truncate block text-gray-800">
-                            {report.post?.content?.slice(0, 40) || '(삭제된 게시글)'}
-                            {(report.post?.content?.length ?? 0) > 40 && '...'}
+                            {report.post_content || '(삭제된 게시글)'}
                           </span>
-                          {report.post?.hidden && (
-                            <span className="text-xs text-red-500">(숨김 상태)</span>
-                          )}
                         </td>
                         <td className="px-4 py-3 text-gray-600 max-w-[160px]">
                           <span className="truncate block">{report.reason}</span>
@@ -186,39 +158,19 @@ export default function ReportsListClient() {
                         <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
                           {formatDate(report.created_at)}
                         </td>
-                        <td className="px-4 py-3">
-                          {isPending ? (
-                            <input
-                              type="text"
-                              value={noteInputs[report.id] || ''}
-                              onChange={(e) => setNoteInputs((prev) => ({ ...prev, [report.id]: e.target.value }))}
-                              placeholder="관리자 메모 (선택)"
-                              className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            />
-                          ) : (
-                            <span className="text-xs text-gray-500">{report.admin_note || '-'}</span>
-                          )}
-                        </td>
                         <td className="px-4 py-3 text-center">
                           {isPending ? (
                             <div className="flex gap-1 justify-center flex-wrap">
                               <button
-                                onClick={() => handleAction(report, 'resolved', true)}
+                                onClick={() => handleAction(report, 'resolved')}
                                 disabled={actionLoading === report.id}
                                 className="px-2.5 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors cursor-pointer disabled:opacity-50"
-                                title="승인 + 게시글 숨김"
+                                title="승인 (게시글 삭제)"
                               >
-                                {actionLoading === report.id ? '...' : '승인+숨김'}
+                                {actionLoading === report.id ? '...' : '승인+삭제'}
                               </button>
                               <button
-                                onClick={() => handleAction(report, 'resolved', false)}
-                                disabled={actionLoading === report.id}
-                                className="px-2.5 py-1.5 text-xs rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors cursor-pointer disabled:opacity-50"
-                              >
-                                {actionLoading === report.id ? '...' : '승인'}
-                              </button>
-                              <button
-                                onClick={() => handleAction(report, 'rejected', false)}
+                                onClick={() => handleAction(report, 'rejected')}
                                 disabled={actionLoading === report.id}
                                 className="px-2.5 py-1.5 text-xs rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50"
                               >
@@ -279,7 +231,6 @@ function TableSkeleton() {
           <div className="h-4 bg-gray-200 rounded w-32" />
           <div className="h-4 bg-gray-200 rounded w-14" />
           <div className="h-4 bg-gray-200 rounded w-28" />
-          <div className="h-4 bg-gray-200 rounded w-32" />
           <div className="h-4 bg-gray-200 rounded w-24" />
         </div>
       ))}

@@ -47,8 +47,10 @@ export class CheckupPage extends BasePage {
     this.scheduleModal = page.locator('.fixed').filter({ hasText: '검진 예약' }).or(
       page.locator('.fixed').filter({ hasText: '예약 변경' })
     )
-    this.scheduleSaveButton = page.getByRole('button', { name: '저장' }).or(
-      page.getByRole('button', { name: '저장하기' })
+    // Bottom submit button: "저장하기" (create) or "수정하기" (edit)
+    // Avoid header "저장" button which also matches non-exact queries
+    this.scheduleSaveButton = page.getByRole('button', { name: '저장하기', exact: true }).or(
+      page.getByRole('button', { name: '수정하기', exact: true })
     )
     this.scheduleCancelButton = page.getByRole('button', { name: '취소' })
 
@@ -58,27 +60,39 @@ export class CheckupPage extends BasePage {
 
   async goto() {
     // First navigate to any page so we have a valid origin for localStorage
-    await this.page.goto('/onboarding')
-    await this.page.waitForLoadState('domcontentloaded')
+    await this.page.goto('/onboarding').catch(() => {})
+    await this.page.waitForLoadState('domcontentloaded').catch(() => {})
 
     // Set pregnant mode in localStorage
     await this.page.evaluate(() => {
       localStorage.setItem('dodam_mode', 'pregnant')
-      localStorage.setItem('dodam_guide_pregnant', 'done')
-      localStorage.setItem('dodam_guide_waiting', 'done')
+      localStorage.setItem('dodam_guide_pregnant', '1')
+      localStorage.setItem('dodam_guide_waiting', '1')
+      localStorage.setItem('dodam_push_prompt_dismissed', '1')
+      sessionStorage.setItem('dodam_splash_shown', '1')
       const dueDate = new Date()
       dueDate.setDate(dueDate.getDate() + 200)
       localStorage.setItem('dodam_preg_duedate', dueDate.toISOString().split('T')[0])
     })
 
     // Navigate to /waiting (auth cookies from storageState bypass middleware)
-    await this.page.goto('/waiting')
-    await this.page.waitForLoadState('domcontentloaded')
+    await this.page.goto('/waiting').catch(() => {})
+    await this.page.waitForLoadState('domcontentloaded').catch(() => {})
+
+    // Wait for any redirects to settle
+    await this.page.waitForLoadState('networkidle').catch(() => {})
 
     // If redirected to onboarding, auth is not configured
     if (this.page.url().includes('/onboarding')) {
       throw new Error(
         'AUTH_MISSING: Redirected to /onboarding — need SUPABASE_SERVICE_ROLE_KEY in .env.local'
+      )
+    }
+
+    // If redirected away from /waiting, the user's server-side mode isn't pregnant
+    if (!this.page.url().includes('/waiting')) {
+      throw new Error(
+        'Timeout: Redirected away from /waiting to ' + this.page.url() + ' — user mode mismatch'
       )
     }
 
@@ -121,7 +135,7 @@ export class CheckupPage extends BasePage {
    */
   async scheduleCheckup(title: string) {
     const item = this.timeline.getByRole('listitem').filter({ hasText: title })
-    await item.getByRole('button', { name: '예약하기' }).click()
+    await item.getByRole('button', { name: '예약하기' }).click({ timeout: 10000 })
   }
 
   /**
@@ -147,7 +161,9 @@ export class CheckupPage extends BasePage {
 
     // Hospital
     if (data.hospital) {
-      await this.page.getByPlaceholder('병원명 입력').fill(data.hospital)
+      const hospitalInput = this.page.getByPlaceholder('병원명 입력')
+      await hospitalInput.waitFor({ state: 'visible', timeout: 10000 })
+      await hospitalInput.fill(data.hospital)
     }
 
     // Memo
@@ -157,7 +173,8 @@ export class CheckupPage extends BasePage {
     }
 
     // Save
-    await this.scheduleSaveButton.click()
+    await this.scheduleSaveButton.waitFor({ state: 'visible', timeout: 10000 })
+    await this.scheduleSaveButton.click({ timeout: 10000 })
   }
 
   /**
@@ -165,7 +182,7 @@ export class CheckupPage extends BasePage {
    */
   async completeCheckup(title: string) {
     const item = this.timeline.getByRole('listitem').filter({ hasText: title })
-    await item.getByRole('button', { name: '검진 완료' }).click()
+    await item.getByRole('button', { name: '검진 완료' }).click({ timeout: 10000 })
   }
 
   /**
@@ -173,7 +190,7 @@ export class CheckupPage extends BasePage {
    */
   async editSchedule(title: string) {
     const item = this.timeline.getByRole('listitem').filter({ hasText: title })
-    await item.getByRole('button', { name: '변경' }).click()
+    await item.getByRole('button', { name: '변경' }).click({ timeout: 10000 })
   }
 
   /**
@@ -197,7 +214,7 @@ export class CheckupPage extends BasePage {
    */
   async deleteCheckup(title: string) {
     const item = this.timeline.getByRole('listitem').filter({ hasText: title })
-    await item.getByRole('button', { name: '삭제' }).click()
+    await item.getByRole('button', { name: '삭제' }).click({ timeout: 10000 })
   }
 
   /**
@@ -208,7 +225,7 @@ export class CheckupPage extends BasePage {
     date: string
     hospital?: string
   }) {
-    await this.addCustomButton.click()
+    await this.addCustomButton.click({ timeout: 10000 })
 
     // Fill custom title
     await this.page.getByPlaceholder(/검진명 입력/).fill(data.title)
@@ -226,10 +243,13 @@ export class CheckupPage extends BasePage {
     }, data.date)
 
     if (data.hospital) {
-      await this.page.getByPlaceholder('병원명 입력').fill(data.hospital)
+      const hospitalInput = this.page.getByPlaceholder('병원명 입력')
+      await hospitalInput.waitFor({ state: 'visible', timeout: 10000 })
+      await hospitalInput.fill(data.hospital)
     }
 
-    await this.scheduleSaveButton.click()
+    await this.scheduleSaveButton.waitFor({ state: 'visible', timeout: 10000 })
+    await this.scheduleSaveButton.click({ timeout: 10000 })
   }
 
   /**

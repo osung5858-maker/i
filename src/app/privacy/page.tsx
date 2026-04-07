@@ -1,21 +1,12 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import PageHeader from '@/components/layout/PageHeader'
 
 export default function PrivacyPage() {
-  const router = useRouter()
-
   return (
-    <div className="min-h-[100dvh] bg-white">
-      <header className="sticky top-0 z-40 bg-white border-b border-[#ECECEC]">
-        <div className="flex items-center justify-between h-14 lg:h-16 px-5 lg:px-8 max-w-lg lg:max-w-3xl mx-auto w-full">
-          <button onClick={() => router.back()} className="text-body text-secondary">닫기</button>
-          <h1 className="text-subtitle text-primary">개인정보처리방침</h1>
-          <div className="w-8" />
-        </div>
-      </header>
+    <div className="min-h-[100dvh]" style={{ backgroundColor: 'var(--color-page-bg)' }}>
+      <PageHeader title="개인정보처리방침" />
       <div className="max-w-lg lg:max-w-3xl mx-auto w-full px-5 lg:px-8 py-6 lg:py-10 text-body lg:text-subtitle text-primary leading-relaxed lg:leading-loose">
-        <h2 className="text-subtitle mb-4">도담 개인정보처리방침</h2>
         <p className="text-body-emphasis text-secondary mb-6">시행일: 2026년 3월 20일</p>
 
         <Section title="제1조 (수집하는 개인정보)">

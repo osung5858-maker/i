@@ -45,7 +45,7 @@ export class HomePage extends BasePage {
     // AI Care Card
     this.aiCareCard = page.locator('[data-guide="ai-card"]')
     this.aiCareButton = page.getByRole('button', { name: /AI 케어받기/ })
-    this.shareButton = page.getByRole('button', { name: /카톡 공유/ })
+    this.shareButton = page.getByRole('button', { name: /카카오톡|카톡 공유/ })
 
     // Today's Record
     this.todayRecordSection = page.getByText('오늘 기록').locator('..')
@@ -71,6 +71,12 @@ export class HomePage extends BasePage {
   }
 
   async goto() {
+    // Dismiss onboarding overlays before navigating
+    await this.page.evaluate(() => {
+      localStorage.setItem('dodam_guide_parenting', '1')
+      localStorage.setItem('dodam_push_prompt_dismissed', '1')
+      sessionStorage.setItem('dodam_splash_shown', '1')
+    }).catch(() => {})
     await super.goto('/')
     await this.waitForLoadingComplete()
   }

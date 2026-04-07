@@ -189,7 +189,7 @@ export default function LandingPage() {
         </div>
 
         {/* 히어로 비디오 — 스크롤시 scale 0.92→1 */}
-        <div ref={heroVideoRef} className="hero-video w-full max-w-md lg:max-w-2xl mx-auto px-6 pt-6 lg:pt-10 overflow-hidden"
+        <div ref={heroVideoRef} className="hero-video max-w-md lg:max-w-2xl mx-auto px-6 pt-6 lg:pt-10 overflow-hidden"
           style={{ transform: 'scale(0.92)', borderRadius: '32px', willChange: 'transform' }}>
           <div className="rounded-3xl lg:rounded-[32px] overflow-hidden shadow-[0_12px_48px_rgba(232,147,122,0.30)]">
             <video src="/images/illustrations/hero1.webm" autoPlay loop muted playsInline className="w-full object-cover" />
@@ -203,7 +203,7 @@ export default function LandingPage() {
             기록만 해도,<br />
             <span className="gradient-text">AI가 먼저 챙겨줘요.</span>
           </h1>
-          <p className="hero-sub text-subtitle sm:text-[17px] lg:text-heading-2 text-secondary mb-8 lg:mb-10 leading-relaxed">
+          <p className="hero-sub text-body-emphasis sm:text-subtitle lg:text-heading-3 text-secondary mb-8 lg:mb-10 leading-relaxed">
             임신 준비부터 육아까지<br />
             아침마다 오늘 할 일을 알려주는 AI 파트너
           </p>
@@ -238,8 +238,8 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 기본기 ━━━ */}
-      <section className="px-6 py-20 sm:py-24 lg:py-32 bg-white">
-        <div className="max-w-4xl mx-auto">
+      <section className="px-6 lg:px-10 py-20 sm:py-24 lg:py-32 bg-white">
+        <div className="max-w-3xl mx-auto">
           <h2 className="reveal text-center text-heading-2 sm:text-heading-1 lg:text-display font-bold text-primary mb-3"
             style={{ fontFamily: 'var(--font-display)' }}>
             다른 앱에서 하던 것, <span className="gradient-text">당연히 다 돼요</span>
@@ -265,7 +265,7 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ AI 차별점 ━━━ */}
-      <section className="px-6 py-20 sm:py-24 lg:py-32 relative overflow-hidden"
+      <section className="px-6 lg:px-10 py-20 sm:py-24 lg:py-32 relative overflow-hidden"
         style={{ background: 'linear-gradient(180deg, #FFF8F3 0%, #FFF0E8 100%)' }}>
         {/* 배경 그라디언트 오브 */}
         <div className="absolute top-0 right-0 w-[400px] h-[400px] opacity-15 pointer-events-none morph-bg"
@@ -294,7 +294,7 @@ export default function LandingPage() {
               { video: '/images/illustrations/h3.webm', before: '"잘 크고 있는 건지..." 수치만 보고 불안', after: '검진표를 찍으면 AI가 해석해주고, 성장 급등기·둔화기를 알려줘요', dir: 'left' },
             ].map((item) => (
               <div key={item.before}
-                className={`${item.dir === 'left' ? 'stagger-l' : 'stagger-r'} relative bg-white/90 backdrop-blur-sm rounded-2xl p-5 lg:p-7 border border-[#F0EDE8] shadow-[0_2px_12px_rgba(232,147,122,0.08)] hover:shadow-[0_8px_28px_rgba(232,147,122,0.15)] transition-shadow duration-300`}>
+                className={`${item.dir === 'left' ? 'stagger-l' : 'stagger-r'} relative bg-white/90 backdrop-blur-sm rounded-2xl p-5 lg:p-6 border border-[#F0EDE8] shadow-[0_2px_12px_rgba(232,147,122,0.08)] hover:shadow-[0_8px_28px_rgba(232,147,122,0.15)] transition-shadow duration-300`}>
                 <span className="absolute top-3 right-3 lg:top-4 lg:right-4 px-2 py-0.5 rounded-full text-[10px] lg:text-[11px] font-bold tracking-wide text-[#D47B62] bg-[#FFF0E8]">AI</span>
                 <div className="flex items-start gap-4 lg:gap-5">
                   <V src={item.video} className="w-12 h-12 lg:w-16 lg:h-16 mt-0.5" />
@@ -310,7 +310,7 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 3모드 ━━━ */}
-      <section className="px-6 py-20 sm:py-24 lg:py-32 bg-white">
+      <section className="px-6 lg:px-10 py-20 sm:py-24 lg:py-32 bg-white">
         <div className="max-w-3xl mx-auto">
           <h2 className="reveal text-center text-heading-2 sm:text-heading-1 lg:text-display font-bold text-primary mb-3"
             style={{ fontFamily: 'var(--font-display)' }}>
@@ -338,7 +338,7 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 이런 것도 돼요 ━━━ */}
-      <section className="px-6 py-20 sm:py-24 lg:py-32 bg-[#FAFAFA]">
+      <section className="px-6 lg:px-10 py-20 sm:py-24 lg:py-32 bg-[#FAFAFA]">
         <div className="max-w-3xl mx-auto">
           <h2 className="reveal text-center text-heading-2 sm:text-heading-1 lg:text-display font-bold text-primary mb-3"
             style={{ fontFamily: 'var(--font-display)' }}>
@@ -347,14 +347,14 @@ export default function LandingPage() {
           <p className="reveal reveal-d1 text-center text-body-emphasis lg:text-subtitle text-secondary mb-14 lg:mb-20">
             육아의 크고 작은 순간들을 함께해요
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
             {[
               { video: '/images/illustrations/f2.webm', title: '"검진 결과가 무슨 뜻이야?"', desc: '검진결과표 사진 한 장, AI가 쉽게 풀어줘요', color: '#FFF0E8', d: '' },
               { video: '/images/illustrations/t5.webm', title: '"이 이름, 괜찮을까?"', desc: 'AI 추천 · 음양오행 · 한자 획수 분석', color: '#EEF0FF', d: 'reveal-d1' },
               { video: '/images/illustrations/f3.webm', title: '"받을 수 있는 지원금이 있대"', desc: '부모급여·아동수당·보육료 혜택 한눈에', color: '#E8F5EE', d: 'reveal-d2' },
               { video: '/images/illustrations/e1.webm', title: '"예방접종 언제 맞혀야 하지?"', desc: '스케줄 알림 · 완료 체크 · 부작용 안내', color: '#FFF4E6', d: 'reveal-d3' },
             ].map(h => (
-              <div key={h.title} className={`reveal ${h.d} flex items-center gap-4 lg:gap-5 p-5 lg:p-6 rounded-2xl border border-[#F0EDE8] bg-white hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-shadow duration-300`}>
+              <div key={h.title} className={`reveal ${h.d} flex items-center gap-4 lg:gap-6 p-5 lg:p-7 rounded-2xl border border-[#F0EDE8] bg-white hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-shadow duration-300`}>
                 <div className="shrink-0 w-14 h-14 lg:w-16 lg:h-16 rounded-2xl flex items-center justify-center" style={{ background: h.color }}>
                   <V src={h.video} className="w-10 h-10 lg:w-12 lg:h-12" />
                 </div>
@@ -369,7 +369,7 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 정부 지원 ━━━ */}
-      <section className="px-6 py-20 sm:py-24 lg:py-32 overflow-hidden"
+      <section className="px-6 lg:px-10 py-20 sm:py-24 lg:py-32 overflow-hidden"
         style={{ background: 'linear-gradient(180deg, #F0FAF4 0%, #E8F5EE 50%, #D5F0E0 100%)' }}>
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-14 lg:mb-20">
@@ -392,7 +392,7 @@ export default function LandingPage() {
               style={{ background: 'linear-gradient(135deg, #FFB8A0, #FFDBB5, #FFE8D8, #D5F0E0)' }} />
             <div className="relative">
               <V src="/images/illustrations/celebration-hero.webm" className="w-16 h-16 lg:w-20 lg:h-20 mx-auto mb-4" />
-              <h3 className="text-heading-3 lg:text-heading-1 text-primary mb-2 font-bold">출산축하 혜택, 챙기셨나요?</h3>
+              <h3 className="text-subtitle lg:text-heading-2 text-primary mb-2 font-bold">출산축하 혜택, 챙기셨나요?</h3>
               <p className="text-body lg:text-subtitle text-secondary leading-relaxed">
                 지자체별 출산축하금 · 산후조리비 · 축하박스까지<br />
                 도담에서 내가 받을 수 있는 혜택을 알려드려요
@@ -401,7 +401,7 @@ export default function LandingPage() {
           </div>
 
           {/* 혜택 카드 — 카운터 숫자 */}
-          <div ref={govCardsRef} className="space-y-3 lg:space-y-4">
+          <div ref={govCardsRef} className="space-y-4 lg:space-y-6">
             {[
               { video: '/images/illustrations/t4.webm', title: '부모급여', ref: counter1Ref, value: counter1, desc: '0세 월 100만원 · 1세 월 50만원' },
               { video: '/images/illustrations/h1.webm', title: '첫만남이용권', ref: counter2Ref, value: counter2, desc: '출생아 1인당 바우처 지급' },
@@ -410,13 +410,13 @@ export default function LandingPage() {
               { video: '/images/illustrations/f5.webm', title: '산후조리비', ref: counter4Ref, value: counter4, desc: '건강보험 산후조리원 이용 지원' },
             ].map((b) => (
               <div key={b.title}
-                className="stagger-l bg-white/90 backdrop-blur-sm p-5 lg:p-7 rounded-2xl flex items-center gap-4 lg:gap-5 shadow-sm hover:shadow-md transition-shadow duration-300">
+                className="stagger-l bg-white/90 backdrop-blur-sm p-5 lg:p-7 rounded-2xl flex items-center gap-4 lg:gap-6 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <V src={b.video} className="w-12 h-12 lg:w-16 lg:h-16" />
                 <div className="flex-1 min-w-0">
                   <h3 className="text-subtitle lg:text-heading-3 text-primary font-semibold">{b.title}</h3>
                   <p className="text-body lg:text-subtitle text-secondary truncate">{b.desc}</p>
                 </div>
-                <span ref={b.ref} className="text-heading-3 lg:text-heading-2 text-[#2E8B57] font-bold shrink-0 tabular-nums">
+                <span ref={b.ref} className="text-subtitle lg:text-heading-3 text-[#2E8B57] font-bold shrink-0 tabular-nums">
                   {b.value}
                 </span>
               </div>
@@ -426,7 +426,7 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 사용자 후기 ━━━ */}
-      <section className="px-6 py-20 sm:py-24 lg:py-32 bg-white">
+      <section className="px-6 lg:px-10 py-20 sm:py-24 lg:py-32 bg-white">
         <div className="max-w-3xl mx-auto">
           <p className="reveal text-center text-[13px] lg:text-[15px] font-bold tracking-wider text-[#D47B62] mb-3">
             REAL REVIEWS
@@ -438,13 +438,13 @@ export default function LandingPage() {
           <p className="reveal reveal-d2 text-center text-body-emphasis lg:text-subtitle text-secondary mb-14 lg:mb-20">
             &ldquo;진작 쓸 걸&rdquo; 이 말이 제일 많아요
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
             {[
               { name: '윤서맘', period: '육아 5개월차', text: '아침마다 AI 브리핑이 오니까 "오늘 뭐 해야 하지?" 고민이 사라졌어요. 예방접종 알림도 놓칠 뻔한 걸 챙겨줬어요.' },
               { name: '지우아빠', period: '임신 32주', text: '검진 일정 관리가 정말 편해요. 아내랑 같이 쓰는데 파트너 알림이 와서 검진 날 깜빡 안 해요.' },
               { name: '하은맘', period: '준비 중', text: '배란일 계산부터 영양제 체크까지 한 앱에서 다 돼요. 여러 앱 쓰다가 도담으로 정착했어요.' },
             ].map((review, i) => (
-              <div key={review.name} className={`reveal ${i > 0 ? `reveal-d${i}` : ''} p-5 lg:p-6 rounded-2xl bg-[#FAFAFA] border border-[#F0EDE8] flex flex-col`}>
+              <div key={review.name} className={`reveal ${i > 0 ? `reveal-d${i}` : ''} p-5 lg:p-7 rounded-2xl bg-[#FAFAFA] border border-[#F0EDE8] flex flex-col`}>
                 <div className="text-[28px] leading-none text-[#E8937A] mb-2">&ldquo;</div>
                 <p className="text-body lg:text-subtitle text-primary leading-relaxed mb-4 flex-1">{review.text}</p>
                 <div className="flex items-center gap-2 mt-auto pt-4 border-t border-[#F0EDE8]">
@@ -463,7 +463,7 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ CTA ━━━ */}
-      <section ref={ctaSectionRef} className="relative px-6 py-20 sm:py-28 lg:py-36 text-center overflow-hidden"
+      <section ref={ctaSectionRef} className="relative px-6 lg:px-10 py-20 sm:py-28 lg:py-36 text-center overflow-hidden"
         style={{ background: 'linear-gradient(180deg, #FFE8D8, #FFD4C4, #FFC4B0)' }}>
         <div className="blob-1 pointer-events-none absolute -top-16 -left-16 w-72 h-72 rounded-full opacity-30"
           style={{ background: 'radial-gradient(circle, #FFB8A0 0%, transparent 70%)' }} />
@@ -481,7 +481,7 @@ export default function LandingPage() {
             오늘도 잘 하고 있어요.<br />
             <span className="gradient-text">도담이 옆에 있을게요.</span>
           </h2>
-          <p className="reveal reveal-d1 text-body-emphasis lg:text-[17px] text-secondary mb-10 lg:mb-12">가입도, 사용도 무료예요</p>
+          <p className="reveal reveal-d1 text-body-emphasis lg:text-subtitle text-secondary mb-10 lg:mb-12">가입도, 사용도 무료예요</p>
           <div className="flex flex-col items-center gap-5">
             <Magnetic strength={0.15}>
               <Link href="/onboarding"
@@ -501,8 +501,8 @@ export default function LandingPage() {
       {/* ━━━ 앱 다운로드 ━━━ */}
       <section className="px-6 py-14 lg:py-20 bg-[#1A1918] text-center">
         <div className="max-w-xl mx-auto">
-          <p className="reveal text-body lg:text-subtitle text-tertiary mb-3">앱으로 더 편하게</p>
-          <h3 className="reveal reveal-d1 text-heading-3 lg:text-heading-1 text-white mb-6 lg:mb-8">도담 앱 다운로드</h3>
+          <p className="reveal text-body-emphasis lg:text-subtitle text-tertiary mb-3">앱으로 더 편하게</p>
+          <h3 className="reveal reveal-d1 text-heading-3 lg:text-heading-2 text-white mb-6 lg:mb-8">도담 앱 다운로드</h3>
           <div className="flex items-center justify-center gap-4">
             <span className="inline-flex items-center gap-2.5 px-5 py-3 lg:px-6 lg:py-3.5 rounded-xl bg-white/10 text-white/60 cursor-default">
               <svg width="20" height="24" viewBox="0 0 20 24" fill="none" className="lg:w-6 lg:h-7">
@@ -526,7 +526,7 @@ export default function LandingPage() {
               </div>
             </span>
           </div>
-          <p className="mt-5 text-body lg:text-subtitle text-secondary">
+          <p className="mt-5 text-body-emphasis lg:text-subtitle text-secondary">
             지금은 <Link href="/onboarding" className="text-[#E8937A] font-semibold underline underline-offset-2">웹에서 바로 사용</Link>할 수 있어요
           </p>
         </div>
@@ -534,7 +534,7 @@ export default function LandingPage() {
 
       {/* ━━━ 푸터 ━━━ */}
       <footer className="px-6 py-10 bg-[#1A1918] border-t border-[#2E2D2B] text-center">
-        <p className="text-body lg:text-subtitle font-medium text-white/40 mb-1">도담</p>
+        <p className="text-body-emphasis lg:text-subtitle font-medium text-white/40 mb-1">도담</p>
         <p className="text-caption lg:text-body text-white/20 mb-5">AI가 먼저 챙겨주는 스마트 육아 파트너</p>
         <div className="flex items-center justify-center gap-4 mb-4 text-body text-secondary">
           <Link href="/privacy" className="hover:text-tertiary transition-colors">개인정보처리방침</Link>

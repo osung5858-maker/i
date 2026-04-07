@@ -28,18 +28,31 @@ interface StoryHistoryEntry {
 async function loadHistoryFromDb(childName: string): Promise<StoryHistoryEntry[]> {
   try {
     const rows = await fetchUserRecords(['story_history'])
-    const match = rows.find(r => (r.value as any).childName === childName)
-    if (match) {
-      const val = match.value as { entries?: StoryHistoryEntry[] }
-      return val.entries || []
+    // 모든 story_history 레코드에서 해당 아이 entries를 병합 (날짜별 레코드가 분산됨)
+    const allEntries: StoryHistoryEntry[] = []
+    for (const row of rows) {
+      const val = row.value as { childName?: string; entries?: StoryHistoryEntry[] }
+      if (val.childName === childName && val.entries) {
+        allEntries.push(...val.entries)
+      }
     }
+    // 중복 제거 (date + ageMonths 기준) 후 최신순 정렬
+    const seen = new Set<string>()
+    const unique = allEntries.filter(e => {
+      const key = `${e.date}_${e.ageMonths}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    unique.sort((a, b) => b.date.localeCompare(a.date))
+    return unique.slice(0, 50)
   } catch { /* */ }
   return []
 }
 
 function saveHistoryToDb(childName: string, entries: StoryHistoryEntry[]) {
   const today = new Date().toISOString().split('T')[0]
-  upsertUserRecord(today, 'story_history', { childName, entries: entries.slice(0, 20) } as Record<string, unknown>).catch(() => {})
+  upsertUserRecord(today, 'story_history', { childName, entries: entries.slice(0, 50) } as Record<string, unknown>).catch(() => {})
 }
 
 export default function GrowthStory({ childName, ageMonths, records, events }: Props) {
@@ -127,7 +140,7 @@ export default function GrowthStory({ childName, ageMonths, records, events }: P
     return (
       <div className="bg-white rounded-2xl border border-[#D5D0CA] shadow-sm overflow-hidden">
         <div className="px-4 py-3 flex items-center justify-between border-b border-[#E8E4DF]">
-          <p className="text-body-emphasis font-bold text-primary">성장 스토리 히스토리</p>
+          <p className="text-body-emphasis font-bold text-primary">지난 성장 스토리</p>
           <button onClick={() => setShowHistory(false)} className="text-caption text-secondary">닫기</button>
         </div>
         <div className="max-h-[400px] overflow-y-auto">
@@ -222,7 +235,7 @@ export default function GrowthStory({ childName, ageMonths, records, events }: P
         </button>
         <div className="w-px bg-[#E8E4DF]" />
         <button onClick={() => setShowHistory(true)} className="flex-1 py-3 text-body font-semibold text-secondary text-center active:bg-[#F5F1EC]">
-          히스토리 ({history.length})
+          지난 스토리 ({history.length})
         </button>
       </div>
     </div>

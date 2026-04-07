@@ -9,7 +9,18 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const DISMISS_KEY = 'dodam_pwa_dismiss'
-const DISMISS_DAYS = 7
+const SHOWN_TODAY_KEY = 'dodam_pwa_shown'
+
+function alreadyShownToday(): boolean {
+  try {
+    const v = localStorage.getItem(SHOWN_TODAY_KEY)
+    return v === new Date().toISOString().split('T')[0]
+  } catch { return false }
+}
+
+function markShownToday() {
+  try { localStorage.setItem(SHOWN_TODAY_KEY, new Date().toISOString().split('T')[0]) } catch { /* */ }
+}
 
 export default function PWAInstallToast() {
   const [show, setShow] = useState(false)
@@ -23,30 +34,36 @@ export default function PWAInstallToast() {
       document.referrer.includes('android-app://')
     if (isStandalone) return
 
-    // 7일 내 닫았으면 표시 안 함
+    // 오늘 이미 한 번 봤으면 표시 안 함
+    if (alreadyShownToday()) return
+
+    // X 버튼으로 닫은 적 있으면 7일간 표시 안 함
     const dismissed = localStorage.getItem(DISMISS_KEY)
-    if (dismissed && Date.now() - Number(dismissed) < DISMISS_DAYS * 86400000) return
+    if (dismissed && Date.now() - Number(dismissed) < 7 * 86400000) return
+
+    let prompted = false
 
     const handler = (e: Event) => {
       e.preventDefault()
+      prompted = true
       setDeferredPrompt(e as BeforeInstallPromptEvent)
       setShow(true)
+      markShownToday()
     }
     window.addEventListener('beforeinstallprompt', handler)
 
-    // Safari/iOS는 beforeinstallprompt 없음 → 3초 후 폴백 표시
+    // Safari/iOS는 beforeinstallprompt 없음 → 3초 후 폴백 (1회만)
     const fallback = setTimeout(() => {
-      setShow((prev) => {
-        if (!prev && !deferredPrompt) return true
-        return prev
-      })
+      if (!prompted) {
+        setShow(true)
+        markShownToday()
+      }
     }, 3000)
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler)
       clearTimeout(fallback)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleInstall = async () => {

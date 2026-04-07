@@ -553,14 +553,10 @@ function ParentingRecord() {
   return (
     <>
       <div className="max-w-lg mx-auto w-full px-5 pt-3 pb-3">
-        <div className="flex items-center justify-between mb-3">
-          <div />
-          <Link href="/growth/add" className="text-body font-semibold text-[var(--color-primary)]">+ 측정</Link>
-        </div>
         <div className="flex gap-2 bg-[#F0EDE8] p-1 rounded-xl">
           {PARENTING_TABS.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex-1 py-1.5 text-body font-semibold text-center rounded-lg transition-colors ${tab === t.key ? 'bg-white text-primary shadow-sm' : 'text-tertiary'}`}>
+              className={`flex-1 py-1.5 text-body font-semibold text-center rounded-lg transition-colors ${tab === t.key ? 'bg-white text-primary shadow-sm' : 'text-secondary'}`}>
               {t.label}
             </button>
           ))}
@@ -572,29 +568,77 @@ function ParentingRecord() {
           <div className="space-y-3 px-5 pt-4">
             {latestRecord ? (
               <>
-              <div className="bg-white rounded-xl border border-[#D5D0CA] shadow-sm p-4">
+              <div className="bg-white rounded-2xl border border-[#E8E4DF] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="text-subtitle text-primary">{child?.name}</p>
-                    <p className="text-body text-[#4A4744]">{ageMonths}개월</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">👶</span>
+                    <div>
+                      <p className="text-subtitle font-bold text-primary">{child?.name}</p>
+                      <p className="text-label text-secondary">{ageMonths}개월 · {latestRecord.measured_at} 측정</p>
+                    </div>
                   </div>
-                  <Link href="/growth/add" className="text-body font-semibold text-[var(--color-primary)]">+ 측정</Link>
+                  <Link href="/growth/add" className="px-3 py-1.5 rounded-lg bg-[var(--color-primary-bg)] text-body font-semibold text-[var(--color-primary)] active:opacity-80">+ 측정</Link>
                 </div>
                 <div className="flex gap-3">
                   {latestRecord.weight_kg && (
-                    <div className="flex-1 p-3 rounded-xl bg-[#F5F0EA] border border-[#E8E2DA]">
-                      <p className="text-body text-[#4A4744] font-medium">몸무게</p>
-                      <p className="text-xl font-bold text-primary">{Number(latestRecord.weight_kg).toFixed(1)}<span className="text-body font-normal text-[#4A4744] ml-0.5">kg</span></p>
+                    <div className="flex-1 p-3 rounded-xl bg-gradient-to-br from-[#F0F9F4] to-[#E8F5EE] border border-[#D5E8DC]">
+                      <p className="text-label text-secondary font-medium flex items-center gap-1">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg>
+                        몸무게
+                      </p>
+                      <p className="text-xl font-bold text-[var(--color-primary)] mt-0.5">{Number(latestRecord.weight_kg).toFixed(1)}<span className="text-body font-normal text-secondary ml-0.5">kg</span></p>
                     </div>
                   )}
                   {latestRecord.height_cm && (
-                    <div className="flex-1 p-3 rounded-xl bg-[#F5F0EA] border border-[#E8E2DA]">
-                      <p className="text-body text-[#4A4744] font-medium">키</p>
-                      <p className="text-xl font-bold text-primary">{Number(latestRecord.height_cm).toFixed(1)}<span className="text-body font-normal text-[#4A4744] ml-0.5">cm</span></p>
+                    <div className="flex-1 p-3 rounded-xl bg-gradient-to-br from-[#F0F4FF] to-[#E8EEFF] border border-[#D5DCEE]">
+                      <p className="text-label text-secondary font-medium flex items-center gap-1">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M8 6h8M8 18h8"/></svg>
+                        키
+                      </p>
+                      <p className="text-xl font-bold text-[#4A7AE8] mt-0.5">{Number(latestRecord.height_cm).toFixed(1)}<span className="text-body font-normal text-secondary ml-0.5">cm</span></p>
+                    </div>
+                  )}
+                  {latestRecord.head_cm && (
+                    <div className="flex-1 p-3 rounded-xl bg-gradient-to-br from-[#FFF8F3] to-[#FFF0E8] border border-[#EEDDD2]">
+                      <p className="text-label text-secondary font-medium flex items-center gap-1">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/></svg>
+                        머리둘레
+                      </p>
+                      <p className="text-xl font-bold text-[#C4913E] mt-0.5">{Number(latestRecord.head_cm).toFixed(1)}<span className="text-body font-normal text-secondary ml-0.5">cm</span></p>
                     </div>
                   )}
                 </div>
               </div>
+              {/* 측정 기록 히스토리 */}
+              {records.length > 1 && (
+                <div className="bg-white rounded-2xl border border-[#E8E4DF] shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
+                  <div className="px-4 py-3 flex items-center justify-between border-b border-[#E8E4DF]">
+                    <p className="text-body-emphasis font-bold text-primary">측정 기록</p>
+                    <p className="text-label text-tertiary">총 {records.length}회</p>
+                  </div>
+                  <div>
+                    {/* 컬럼 헤더 */}
+                    <div className="px-4 py-2.5 flex items-center justify-between bg-[#F5F3F0] border-b border-[#E8E4DF]">
+                      <p className="text-label font-semibold text-secondary">날짜</p>
+                      <div className="flex items-center gap-3 text-label font-semibold text-secondary">
+                        <span className="w-14 text-right">몸무게</span>
+                        <span className="w-14 text-right">키</span>
+                        <span className="w-14 text-right">머리둘레</span>
+                      </div>
+                    </div>
+                    {[...records].reverse().map((r, idx) => (
+                      <div key={r.id} className={`px-4 py-3 flex items-center justify-between border-b border-[#F5F3F0] last:border-0 ${idx % 2 === 1 ? 'bg-[#FAFAF8]' : ''}`}>
+                        <p className="text-body text-secondary">{r.measured_at}</p>
+                        <div className="flex items-center gap-3 text-body-emphasis text-primary">
+                          <span className="w-14 text-right">{r.weight_kg ? `${Number(r.weight_kg).toFixed(1)}kg` : '-'}</span>
+                          <span className="w-14 text-right">{r.height_cm ? `${Number(r.height_cm).toFixed(1)}cm` : '-'}</span>
+                          <span className="w-14 text-right">{r.head_cm ? `${Number(r.head_cm).toFixed(1)}cm` : '-'}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {/* AI 성장 스토리 */}
               <GrowthStory childName={child?.name || '도담이'} ageMonths={ageMonths} records={records} events={events} />
               {/* 형제자매 비교 AI */}

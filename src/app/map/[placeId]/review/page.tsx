@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { sanitizeUserInput } from '@/lib/sanitize'
+import PageHeader from '@/components/layout/PageHeader'
 
 const PRESET_TAGS = [
   '피부 잘 봄', '대기 짧음', '주차 편함', '친절함',
@@ -65,8 +66,17 @@ export default function WriteReviewPage() {
 
     const sanitizedContent = sanitizeUserInput(content, 500, { preserveNewlines: true })
     if (!sanitizedContent) { setError('내용을 입력해주세요.'); setLoading(false); return }
+
+    // sessionStorage에서 장소명 가져오기
+    let placeName: string | null = null
+    try {
+      const saved = sessionStorage.getItem(`place-${placeId}`)
+      if (saved) placeName = JSON.parse(saved).name || null
+    } catch { /* ignore */ }
+
     const { error: insertError } = await supabase.from('reviews').insert({
       place_id: placeId,
+      place_name: placeName,
       user_id: user.id,
       rating,
       content: sanitizedContent,
@@ -84,7 +94,6 @@ export default function WriteReviewPage() {
       return
     }
 
-    // 등록 성공 → 뒤로가기
     window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '리뷰가 등록되었어요!' } }))
     router.back()
   }
@@ -93,11 +102,7 @@ export default function WriteReviewPage() {
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col">
-      <div className="pt-4 pb-2 px-5 max-w-lg mx-auto w-full flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-sm text-tertiary shrink-0">취소</button>
-        <h1 className="text-subtitle text-primary truncate mx-3">리뷰 쓰기</h1>
-        <div className="w-8" />
-      </div>
+      <PageHeader title="리뷰 쓰기" />
 
       <div className="flex-1 px-6 pt-6 max-w-lg mx-auto w-full">
         {/* 별점 */}
@@ -172,8 +177,8 @@ export default function WriteReviewPage() {
         )}
       </div>
 
-      {/* 하단 고정 등록 버튼 */}
-      <div className="sticky bottom-0 bg-white border-t border-[#E8E4DF] px-5 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+      {/* 하단 고정 등록 버튼 — GNB 위 */}
+      <div className="sticky bottom-[80px] bg-white border-t border-[#E8E4DF] px-5 py-3">
         <button
           onClick={handleSubmit}
           disabled={loading || !isValid}

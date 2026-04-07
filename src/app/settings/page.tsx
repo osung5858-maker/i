@@ -11,8 +11,6 @@ import { loadNotificationSettings, loadNotificationSettingsFromDB, saveNotificat
 import { subscribePush, unsubscribePush, isPushSubscribed } from '@/lib/push/subscribe'
 // child avatars are .webm video files
 import ThemeSelector from '@/components/settings/ThemeSelector'
-import dynamic from 'next/dynamic'
-const DemoDataSeeder = dynamic(() => import('@/components/dev/DemoDataSeeder'), { ssr: false })
 import type { User } from '@supabase/supabase-js'
 import type { Child } from '@/types'
 
@@ -214,6 +212,9 @@ export default function SettingsPage() {
               </div>
             </div>
             <button
+              role="switch"
+              aria-checked={pushActive}
+              aria-label="푸시 알림"
               onClick={() => toggleNoti('enabled')}
               className={`w-12 h-7 rounded-full transition-colors relative ${pushActive ? 'bg-[var(--color-primary)]' : 'bg-[#D1D5DB]'}`}
             >
@@ -236,6 +237,9 @@ export default function SettingsPage() {
                     <p className="text-xs text-tertiary">{item.desc}</p>
                   </div>
                   <button
+                    role="switch"
+                    aria-checked={notiSettings[item.key]}
+                    aria-label={item.label}
                     onClick={() => toggleNoti(item.key)}
                     className={`w-11 h-6 rounded-full transition-colors relative ${notiSettings[item.key] ? 'bg-[var(--color-primary)]' : 'bg-[#D1D5DB]'}`}
                   >
@@ -308,9 +312,10 @@ export default function SettingsPage() {
         </div>
 
         {/* 회원 탈퇴 5-depth 플로우 */}
-        {deleteStep > 0 && (
-          <div className="fixed inset-0 z-[100] bg-black/40" onClick={() => setDeleteStep(0)}>
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white rounded-t-2xl pb-[env(safe-area-inset-bottom)]" onClick={e => e.stopPropagation()}>
+        {deleteStep > 0 && (<>
+          <div className="fixed inset-0 z-[100] bg-black/40" onClick={() => setDeleteStep(0)} aria-hidden="true" />
+          <div role="dialog" aria-modal="true" aria-label="회원 탈퇴" className="fixed inset-0 z-[100] pointer-events-none">
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white rounded-t-2xl pb-[env(safe-area-inset-bottom)] pointer-events-auto" onClick={e => e.stopPropagation()}>
               <div className="flex justify-center pt-3 pb-2"><div className="w-10 h-1 bg-[#E0E0E0] rounded-full" /></div>
               <div className="px-5 pb-6">
                 {/* Step 1: 탈퇴 안내 */}
@@ -384,12 +389,7 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* 개발용: 데모 데이터 시더 */}
-        <div className="mx-4 mt-4">
-          <DemoDataSeeder />
-        </div>
+        </>)}
 
         <p className="text-center text-xs text-tertiary mt-6">
           오늘도 도담하게

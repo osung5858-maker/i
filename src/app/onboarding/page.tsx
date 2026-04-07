@@ -47,7 +47,7 @@ export default function OnboardingPage() {
 
             if (mode === 'pregnant') { router.push('/pregnant'); return }
             if (mode === 'parenting') { router.push('/'); return }
-            if (mode === 'preparing') { router.push('/'); return }
+            if (mode === 'preparing') { router.push('/preparing'); return }
           } catch {
             // getProfile 실패해도 모드 선택 카드 표시
           }

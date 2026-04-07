@@ -36,10 +36,10 @@ export async function GET() {
         .select('created_at')
         .gte('created_at', thirtyDaysAgo)
         .order('created_at', { ascending: true }),
-      // Mode distribution over time
+      // Mode distribution (user_profiles has no created_at)
       supabase
         .from('user_profiles')
-        .select('mode, created_at'),
+        .select('mode'),
       // Top pages
       supabase
         .from('page_views')

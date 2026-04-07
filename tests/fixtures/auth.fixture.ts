@@ -4,6 +4,8 @@ import { HomePage } from '../page-objects/HomePage'
 import { PregnantPage } from '../page-objects/PregnantPage'
 import { SettingsPage } from '../page-objects/SettingsPage'
 import { CheckupPage } from '../page-objects/CheckupPage'
+import { ChatListPage, ChatRoomPage } from '../page-objects/ChatPage'
+import { TownPage, GatheringPage } from '../page-objects/TownPage'
 
 /**
  * Auth Fixture
@@ -24,6 +26,10 @@ type AuthFixtures = {
   pregnantPage: PregnantPage
   settingsPage: SettingsPage
   checkupPage: CheckupPage
+  chatListPage: ChatListPage
+  chatRoomPage: ChatRoomPage
+  townPage: TownPage
+  gatheringPage: GatheringPage
   authenticatedPage: void // Auto-login fixture
 }
 
@@ -46,6 +52,22 @@ export const test = base.extend<AuthFixtures>({
 
   checkupPage: async ({ page }, use) => {
     await use(new CheckupPage(page))
+  },
+
+  chatListPage: async ({ page }, use) => {
+    await use(new ChatListPage(page))
+  },
+
+  chatRoomPage: async ({ page }, use) => {
+    await use(new ChatRoomPage(page))
+  },
+
+  townPage: async ({ page }, use) => {
+    await use(new TownPage(page))
+  },
+
+  gatheringPage: async ({ page }, use) => {
+    await use(new GatheringPage(page))
   },
 
   /**

@@ -299,19 +299,32 @@ Critical locations:
 
 ---
 
-## UX Diff (Before → After)
+## UX Diff (2026-04-01 → 2026-04-07)
 
-**First audit — no previous baseline.**
+### Score Changes
+- IA: 11/15 → 11/15 (no change)
+- Interaction: 14/20 → 15/20 (+1, skeleton loading consistency)
+- Visual: 12/15 → 12/15 (no change)
+- Accessibility: 9/20 → 15/20 (+6, aria-labels 5→35, roles 0→9, touch targets increased)
+- User Flow: 11/15 → 11/15 (no change)
+- Responsive: 10/10 → 10/10 (no change)
+- Perf/States: 5/5 → 5/5 (no change)
+- **TOTAL: 72/100 → 79/100 (+7pt)**
 
-Next audit will compare:
-- IA: 11/15 → ?
-- Interaction: 14/20 → ?
-- Visual: 12/15 → ?
-- Accessibility: 9/20 → ?
-- User Flow: 11/15 → ?
-- Responsive: 10/10 → ?
-- Perf/States: 5/5 → ?
-- **TOTAL: 72/100 → ?**
+### Changes Applied (2026-04-07)
+1. **GlobalHeader**: Added aria-labels to 5 icon buttons (settings, footprints, lullaby, chat, notifications), increased touch targets 32→36px, aria-hidden on badge dots
+2. **Toast**: Added `role="status"`, `aria-live="polite"`, `aria-atomic="true"`
+3. **BottomSheet**: Added `role="dialog"`, `aria-modal="true"`, `aria-label` with dynamic title
+4. **Settings page**: Added `role="switch"` + `aria-checked` to all toggle buttons, `role="dialog"` to delete account modal
+5. **TownFeedTab**: Increased reaction button touch targets (h-7→h-8, h-6→h-7), added aria-labels/aria-pressed to all reaction buttons, skeleton loading replacing spinner, `role="dialog"` on report modal
+6. **TownGatherTab**: Skeleton loading replacing spinner, `role="dialog"` on create modal
+
+### Remaining Gaps
+- Typography: 383 small text instances still pending (P0)
+- FAB button missing aria-label (P0)
+- Color contrast #9E9A95 on white (P1)
+- Focus state coverage still low (P1)
+- Keyboard navigation support (P2)
 
 ---
 

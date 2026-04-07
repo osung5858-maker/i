@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { BellIcon } from '@/components/ui/Icons'
+import PageHeader from '@/components/layout/PageHeader'
 import { getSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
 import { fetchPrepRecords } from '@/lib/supabase/prepRecord'
-import KakaoAdFit from '@/components/ads/KakaoAdFit'
-// import GoogleAdBanner from '@/components/ads/GoogleAdBanner' // AdSense 승인 후 활성화
+import DynamicAd from '@/components/ads/DynamicAd'
 
 interface NotificationLog {
   id: string
@@ -148,27 +148,12 @@ export default function NotificationsPage() {
   const hasAnything = smartAlerts.length > 0 || notifications.length > 0
 
   return (
-    <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]">
-      {/* 헤더 */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
-        <div className="flex items-center h-12 px-4 max-w-lg mx-auto gap-3">
-          <button onClick={() => router.back()} className="w-8 h-8 rounded-full flex items-center justify-center text-primary active:bg-[#F0EDE8]">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <p className="text-subtitle font-bold text-primary flex-1">알림</p>
-        </div>
-      </div>
+    <div className="min-h-[100dvh] bg-[var(--color-page-bg)]">
+      <PageHeader title="알림" />
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-4">
-        {/* 상단 배너 광고 */}
-        {/* <KakaoAdFit
-          unit="DAN-iVBs4WEVxAqEzceP"
-          width={320}
-          height={50}
-          className="mx-auto my-4"
-        /> */}
+        {/* 광고 배너 — 어드민에서 켜고 끌 수 있음 */}
+        <DynamicAd slotId="notification_top" className="mx-auto my-4" />
 
         {loading ? (
           <div className="flex justify-center py-12">

@@ -39,7 +39,9 @@ export async function GET(request: NextRequest) {
       .lte('created_at', endDate)
       .order('created_at', { ascending: true })
 
-    if (error) throw error
+    if (error) {
+      console.error('[Admin Analytics API] page_views query error:', error.message)
+    }
 
     const rows = views || []
 

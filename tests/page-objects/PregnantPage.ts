@@ -50,6 +50,12 @@ export class PregnantPage extends BasePage {
   }
 
   async goto() {
+    // Dismiss onboarding overlays before navigating
+    await this.page.evaluate(() => {
+      localStorage.setItem('dodam_guide_pregnant', '1')
+      localStorage.setItem('dodam_push_prompt_dismissed', '1')
+      sessionStorage.setItem('dodam_splash_shown', '1')
+    }).catch(() => {})
     await super.goto('/pregnant')
     await this.waitForLoadingComplete()
   }

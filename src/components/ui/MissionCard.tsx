@@ -205,8 +205,9 @@ function MissionCard({ mode }: { mode: Mode }) {
 
   const level = getLevel(streak)
 
-  // 배우자 미등록 시 카드 숨김
-  if (roleLoaded && !myRole) return null
+  // 로딩 중이거나 배우자 미등록 시 카드 숨김
+  if (!roleLoaded) return null
+  if (!myRole) return null
   if (dismissed) return null
 
   const handleDismiss = () => {

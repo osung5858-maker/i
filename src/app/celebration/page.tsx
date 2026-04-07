@@ -8,24 +8,11 @@ import { setSecure, getSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
 import { fetchUserRecords } from '@/lib/supabase/userRecord'
 import { fetchPrepRecords } from '@/lib/supabase/prepRecord'
-
-function makeConfetti() {
-  return Array.from({ length: 40 }, () => ({
-    left: Math.random() * 100,
-    top: Math.random() * 100,
-    delay: Math.random() * 2,
-    duration: 1.5 + Math.random() * 2,
-    size: 12 + Math.random() * 16,
-    opacity: 0.7 + Math.random() * 0.3,
-    char: ['*', '+', '·', ':', '*', '+', '·', ':'][Math.floor(Math.random() * 8)],
-  }))
-}
+import Confetti from '@/components/ui/Confetti'
 
 export default function CelebrationPage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
-  const [showConfetti, setShowConfetti] = useState(true)
-  const [confetti, setConfetti] = useState<ReturnType<typeof makeConfetti>>([])
   const [mounted, setMounted] = useState(false)
 
   // 기본값: 현재 날짜 + 9개월 (클라이언트에서만 계산)
@@ -39,7 +26,6 @@ export default function CelebrationPage() {
     setDueY(d.getFullYear())
     setDueM(d.getMonth() + 1)
     setDueD(d.getDate())
-    setConfetti(makeConfetti())
     setMounted(true)
   }, [])
 
@@ -54,15 +40,10 @@ export default function CelebrationPage() {
         fetchPrepRecords(['checklist']),
       ])
       const lastPeriod = await getSecure('dodam_last_period')
-      const days = lastPeriod ? Math.floor((Date.now() - new Date(lastPeriod).getTime()) / 86400000) : 0
+      const days = lastPeriod ? Math.max(1, Math.floor((Date.now() - new Date(lastPeriod).getTime()) / 86400000) + 1) : 0
       setJourney({ letters: letterRows.length, days, supplements: 0, checks: checkRows.length })
     }
     loadJourney().catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowConfetti(false), 5000)
-    return () => clearTimeout(timer)
   }, [])
 
   const handleComplete = async () => {
@@ -80,27 +61,8 @@ export default function CelebrationPage() {
   if (step === 0) {
     return (
       <div className="h-[100dvh] bg-white flex flex-col relative overflow-hidden">
-        {/* 축하 파티클 */}
-        {showConfetti && mounted && (
-          <div className="absolute inset-0 pointer-events-none z-0">
-            {confetti.map((p, i) => (
-              <div
-                key={i}
-                className="absolute animate-bounce"
-                style={{
-                  left: `${p.left}%`,
-                  top: `${p.top}%`,
-                  animationDelay: `${p.delay}s`,
-                  animationDuration: `${p.duration}s`,
-                  fontSize: `${p.size}px`,
-                  opacity: p.opacity,
-                }}
-              >
-                {p.char}
-              </div>
-            ))}
-          </div>
-        )}
+        {/* 축하 꽃가루 */}
+        {mounted && <Confetti count={60} duration={5000} />}
 
         <div className="flex-1 relative z-10 flex flex-col items-center justify-center px-6 py-5 overflow-hidden">
           <IllustVideo src="/images/illustrations/celebration-hero.webm" className="w-40 h-40 mx-auto mb-4" />
@@ -184,7 +146,8 @@ export default function CelebrationPage() {
               <select
                 value={dueY}
                 onChange={(e) => setDueY(Number(e.target.value))}
-                className="flex-1 h-12 rounded-xl border border-[#E8E4DF] px-3 text-body-emphasis bg-white focus:outline-none focus:border-[var(--color-primary)]"
+                className="flex-1 h-12 rounded-xl border border-[#E8E4DF] px-3 bg-white focus:outline-none focus:border-[var(--color-primary)]"
+                style={{ fontSize: 16 }}
               >
                 {Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + i).map((y) => (
                   <option key={y} value={y}>{y}년</option>
@@ -193,7 +156,8 @@ export default function CelebrationPage() {
               <select
                 value={dueM}
                 onChange={(e) => setDueM(Number(e.target.value))}
-                className="flex-1 h-12 rounded-xl border border-[#E8E4DF] px-3 text-body-emphasis bg-white focus:outline-none focus:border-[var(--color-primary)]"
+                className="flex-1 h-12 rounded-xl border border-[#E8E4DF] px-3 bg-white focus:outline-none focus:border-[var(--color-primary)]"
+                style={{ fontSize: 16 }}
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                   <option key={m} value={m}>{m}월</option>
@@ -202,7 +166,8 @@ export default function CelebrationPage() {
               <select
                 value={dueD}
                 onChange={(e) => setDueD(Number(e.target.value))}
-                className="flex-1 h-12 rounded-xl border border-[#E8E4DF] px-3 text-body-emphasis bg-white focus:outline-none focus:border-[var(--color-primary)]"
+                className="flex-1 h-12 rounded-xl border border-[#E8E4DF] px-3 bg-white focus:outline-none focus:border-[var(--color-primary)]"
+                style={{ fontSize: 16 }}
               >
                 {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                   <option key={d} value={d}>{d}일</option>

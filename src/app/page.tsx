@@ -20,7 +20,7 @@ import type { RecordTile } from '@/components/ui/TodayRecordSection'
 import PushPrompt from '@/components/push/PushPrompt'
 import CareFlowCard from '@/components/care-flow/CareFlowCard'
 import ReviewPrompt from '@/components/review/ReviewPrompt'
-import KakaoAdFit from '@/components/ads/KakaoAdFit'
+import DynamicAd from '@/components/ads/DynamicAd'
 
 const FeedSheet = dynamic(() => import('@/components/quick-buttons/FeedSheet'), { ssr: false })
 const PoopSheet = dynamic(() => import('@/components/quick-buttons/PoopSheet'), { ssr: false })
@@ -458,7 +458,7 @@ export default function HomePage() {
       } else {
         setEvents((prev) => [data as CareEvent, ...prev])
         setToast({ message: `${durationLabel} ${mins}분 기록 완료!`, undoId: data.id })
-      }
+          }
       return
     }
 
@@ -765,13 +765,8 @@ export default function HomePage() {
           {/* 키즈노트 — 조건부 노출 */}
           <KidsnoteCard ageMonths={ageMonths} userId={user?.id} />
 
-          {/* 카카오 AdFit 배너 */}
-          {/* <KakaoAdFit
-            unit="DAN-N5Q1Lo0fA64Zbida"
-            width={320}
-            height={50}
-            className="mx-auto"
-          /> */}
+          {/* 광고 배너 — 어드민에서 켜고 끌 수 있음 */}
+          <DynamicAd slotId="home_banner" className="mx-auto" />
 
           {/* 심심풀이 */}
           <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden hover-lift">

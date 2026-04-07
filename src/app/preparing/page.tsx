@@ -270,12 +270,6 @@ export default function PreparingPage() {
   const [showGuide, setShowGuide] = useState(false)
   const [foodQuery, setFoodQuery] = useState('')
 
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  useEffect(() => {
-    createClient().auth.getUser().then(({ data }: any) => {
-      setAvatarUrl(data.user?.user_metadata?.avatar_url || null)
-    })
-  }, [])
 
   const [lastPeriod, setLastPeriod] = useState<string>('')
   const [cycleLength, setCycleLength] = useState<number>(28)

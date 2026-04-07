@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import Link from 'next/link'
+import PageHeader from '@/components/layout/PageHeader'
 
 // ===== 임신 준비 콘텐츠 =====
 const PREPARING_GUIDES = {
@@ -187,10 +189,7 @@ function GuideContent({ guideKey }: { guideKey: string }) {
 
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[#FFF9F5]">
-      <div className="sticky top-[72px] z-30 bg-[#FFF9F5] border-b border-[#E8E4DF] px-5 max-w-lg mx-auto w-full flex items-center h-12">
-        <button onClick={() => router.back()} className="text-body text-secondary mr-3">← 뒤로</button>
-        <h1 className="text-subtitle text-primary truncate">{guide.icon} {guide.title}</h1>
-      </div>
+      <PageHeader title={`${guide.icon} ${guide.title}`} />
 
       <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-3">
         {/* Q&A 타입 (난임 FAQ) */}
@@ -329,9 +328,109 @@ function ChecklistSection({ cat, checks }: { cat: string; checks: string[] }) {
   )
 }
 
+const GUIDE_META: Record<string, { title: string; emoji: string; keys: { key: string; title: string; desc: string }[] }> = {
+  preparing: {
+    title: '임신 준비 가이드',
+    emoji: '🤰',
+    keys: [
+      { key: 'infertility-faq', title: '난임 Q&A 30선', desc: '자주 묻는 질문과 전문의 답변' },
+      { key: 'couple-health', title: '부부 건강 체크리스트', desc: '임신 전 필수 검사 항목' },
+      { key: 'lifestyle', title: '임신 확률 높이는 생활 습관', desc: '타이밍 · 영양 · 생활 팁' },
+      { key: 'hospital-first', title: '산부인과 첫 방문 가이드', desc: '준비물 · 검사 · 비용 안내' },
+    ],
+  },
+  pregnant: {
+    title: '임신 중 가이드',
+    emoji: '🍼',
+    keys: [
+      { key: 'birth-prep', title: '출산 준비물 체크리스트', desc: '병원 가방 · 아기 용품 · 구매 시기' },
+      { key: 'postpartum-center', title: '산후조리원 체크리스트', desc: '필수 확인 · 비용 · 예약 시기' },
+      { key: 'labor-guide', title: '진통 대응 가이드', desc: '진통 구분 · 대처법 · 무통분만' },
+      { key: 'prenatal-recommend', title: '태교 추천', desc: '음악 · 동화 · 활동 · 아빠 태교' },
+    ],
+  },
+  parenting: {
+    title: '육아 가이드',
+    emoji: '👶',
+    keys: [
+      { key: 'babyfood', title: '월령별 이유식 레시피', desc: '초기 ~ 완료기 단계별 레시피' },
+      { key: 'emergency-first-aid', title: '아기 응급처치 가이드', desc: '열경련 · 이물질 · 화상 대처' },
+      { key: 'sleep-training', title: '수면 교육 가이드', desc: '퍼버법 · 쉬닥법 · 수면 루틴' },
+      { key: 'play-by-age', title: '월령별 놀이/장난감 추천', desc: '0~36개월 발달에 맞는 놀이' },
+    ],
+  },
+}
+
+function GuideIndex() {
+  const [mode, setMode] = useState('preparing')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('dodam_mode')
+    if (saved && GUIDE_META[saved]) setMode(saved)
+  }, [])
+
+  const currentMeta = GUIDE_META[mode]
+  const otherModes = Object.entries(GUIDE_META).filter(([k]) => k !== mode)
+
+  return (
+    <div className="min-h-[calc(100dvh-144px)] bg-[#FFF9F5]">
+      <PageHeader title={`${currentMeta.emoji} ${currentMeta.title}`} />
+
+      <div className="max-w-lg mx-auto w-full px-5 pt-4 pb-28 space-y-6">
+        {/* 현재 모드 가이드 */}
+        <div>
+          <div className="space-y-2">
+            {currentMeta.keys.map(g => (
+              <Link
+                key={g.key}
+                href={`/guide?id=${g.key}`}
+                className="bg-white rounded-xl border border-[#E8E4DF] p-4 flex items-center gap-3 active:bg-[#FFF9F5] transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-body font-semibold text-primary truncate">{g.title}</p>
+                  <p className="text-caption text-secondary truncate">{g.desc}</p>
+                </div>
+                <svg className="w-4 h-4 text-muted shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* 다른 모드 가이드 */}
+        {otherModes.map(([key, meta]) => (
+          <div key={key}>
+            <p className="text-body font-bold text-secondary mb-3">{meta.emoji} {meta.title}</p>
+            <div className="space-y-2">
+              {meta.keys.map(g => (
+                <Link
+                  key={g.key}
+                  href={`/guide?id=${g.key}`}
+                  className="bg-white rounded-xl border border-[#E8E4DF] p-4 flex items-center gap-3 active:bg-[#FFF9F5] transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-body font-semibold text-primary truncate">{g.title}</p>
+                    <p className="text-caption text-secondary truncate">{g.desc}</p>
+                  </div>
+                  <svg className="w-4 h-4 text-muted shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function GuidePageInner() {
   const searchParams = useSearchParams()
   const guideKey = searchParams.get('id') || ''
+
+  if (!guideKey) return <GuideIndex />
   return <GuideContent guideKey={guideKey} />
 }
 

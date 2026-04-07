@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { PhoneIcon, CompassIcon, ChatIcon, PenIcon, HeartIcon, BellIcon } from '@/components/ui/Icons'
+
+const REVIEW_EMOJIS = ['❤️', '😂', '👍', '😢', '🥰', '👶']
 
 interface Place {
   id: string
@@ -24,6 +26,8 @@ interface Review {
   child_age_months: number | null
   created_at: string
   photos?: { photo_url: string }[]
+  reactions?: Record<string, number>
+  myReactions?: Set<string>
 }
 
 interface PlaceTip {
@@ -47,6 +51,7 @@ export default function PlaceCard({ place: p, stats }: { place: Place; stats?: {
   const [crowdStatus, setCrowdStatus] = useState<{ status: string; timestamp: string } | null>(null)
   const [showReviews, setShowReviews] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
   const reviewCount = stats?.count || 0
   const avgRating = stats?.avg || null
 
@@ -54,6 +59,8 @@ export default function PlaceCard({ place: p, stats }: { place: Place; stats?: {
     if (loaded) { setShowReviews(!showReviews); return }
 
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) setUserId(user.id)
 
     // 리뷰 + 사진
     const { data: reviewData } = await supabase
@@ -66,7 +73,40 @@ export default function PlaceCard({ place: p, stats }: { place: Place; stats?: {
       .order('created_at', { ascending: false })
       .limit(5)
 
-    if (reviewData) setReviews(reviewData as Review[])
+    let enrichedReviews: Review[] = (reviewData || []) as Review[]
+
+    // 리뷰 이모지 반응 불러오기
+    if (enrichedReviews.length > 0) {
+      const reviewIds = enrichedReviews.map(r => r.id)
+      const [allReactionsRes, myReactionsRes] = await Promise.all([
+        supabase.from('review_reactions').select('review_id, emoji').in('review_id', reviewIds),
+        user
+          ? supabase.from('review_reactions').select('review_id, emoji').in('review_id', reviewIds).eq('user_id', user.id)
+          : Promise.resolve({ data: [] }),
+      ])
+
+      const reactionMap = new Map<string, Record<string, number>>()
+      allReactionsRes.data?.forEach((r: { review_id: string; emoji: string }) => {
+        const e = r.emoji || '❤️'
+        if (!reactionMap.has(r.review_id)) reactionMap.set(r.review_id, {})
+        const c = reactionMap.get(r.review_id)!
+        c[e] = (c[e] || 0) + 1
+      })
+
+      const myReactionMap = new Map<string, Set<string>>()
+      ;(myReactionsRes as { data: { review_id: string; emoji: string }[] | null }).data?.forEach((r) => {
+        if (!myReactionMap.has(r.review_id)) myReactionMap.set(r.review_id, new Set())
+        myReactionMap.get(r.review_id)!.add(r.emoji || '❤️')
+      })
+
+      enrichedReviews = enrichedReviews.map(rev => ({
+        ...rev,
+        reactions: reactionMap.get(rev.id) || {},
+        myReactions: myReactionMap.get(rev.id) || new Set<string>(),
+      }))
+    }
+
+    setReviews(enrichedReviews)
 
     // 팁 태그 (투표 많은 순)
     const { data: tipData } = await supabase
@@ -121,6 +161,32 @@ export default function PlaceCard({ place: p, stats }: { place: Place; stats?: {
       console.error('Failed to vote tip:', err)
     }
   }
+
+  const handleReviewReaction = useCallback(async (reviewId: string, emoji: string) => {
+    if (!userId) return
+    const review = reviews.find(r => r.id === reviewId)
+    if (!review) return
+    const myReactions = review.myReactions || new Set<string>()
+    const reactions = { ...(review.reactions || {}) }
+    const already = myReactions.has(emoji)
+    const newMyReactions = new Set(myReactions)
+    if (already) {
+      newMyReactions.delete(emoji)
+      reactions[emoji] = Math.max(0, (reactions[emoji] || 0) - 1)
+      if (reactions[emoji] === 0) delete reactions[emoji]
+    } else {
+      newMyReactions.add(emoji)
+      reactions[emoji] = (reactions[emoji] || 0) + 1
+    }
+    setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, reactions, myReactions: newMyReactions } : r))
+    try {
+      const supabase = createClient()
+      if (already) { await supabase.from('review_reactions').delete().eq('review_id', reviewId).eq('user_id', userId).eq('emoji', emoji) }
+      else { await supabase.from('review_reactions').insert({ review_id: reviewId, user_id: userId, emoji }) }
+    } catch {
+      setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, reactions: review.reactions, myReactions: review.myReactions } : r))
+    }
+  }, [userId, reviews])
 
   const getCrowdLabel = (status: string) => {
     const labels: Record<string, { text: string; color: string; emoji: string }> = {
@@ -286,6 +352,27 @@ export default function PlaceCard({ place: p, stats }: { place: Place; stats?: {
                       {r.tags.map(t => <span key={t} className="text-body px-1.5 py-0.5 rounded-full bg-white text-secondary">{t}</span>)}
                     </div>
                   )}
+
+                  {/* 이모지 반응 */}
+                  <div className="flex items-center gap-1 mt-2 flex-wrap">
+                    {REVIEW_EMOJIS.map(emoji => {
+                      const count = r.reactions?.[emoji] || 0
+                      const isMine = r.myReactions?.has(emoji)
+                      return (
+                        <button key={emoji} onClick={() => handleReviewReaction(r.id, emoji)}
+                          className={`flex items-center gap-0.5 h-6 px-1.5 rounded-full text-[12px] transition-all ${
+                            isMine
+                              ? 'bg-[var(--color-primary-bg)] ring-1 ring-[var(--color-primary)]/30'
+                              : count > 0
+                                ? 'bg-white'
+                                : 'opacity-40 hover:opacity-70'
+                          }`}>
+                          <span className="leading-none">{emoji}</span>
+                          {count > 0 && <span className={`text-[10px] font-semibold ${isMine ? 'text-[var(--color-primary)]' : 'text-secondary'}`}>{count}</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
               ))}
             </div>

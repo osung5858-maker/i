@@ -161,10 +161,12 @@ JSON만 출력하세요.`
 
     // === 주기별 식단 추천 ===
     if (type === 'meal') {
-      const { phase, cycleDay } = body
+      const { phase, cycleDay, _refresh } = body
       const mealCacheKey = `prep-meal-v3-${phase}-${new Date().toISOString().split('T')[0]}`
-      const mealCached = getCachedResponse(mealCacheKey)
-      if (mealCached) return NextResponse.json(mealCached)
+      if (!_refresh) {
+        const mealCached = getCachedResponse(mealCacheKey)
+        if (mealCached) return NextResponse.json(mealCached)
+      }
 
       const prompt = `당신은 임신 준비 영양 전문가입니다.
 현재 생리주기 ${cycleDay}일차, 단계: ${phase}에 맞는 오늘의 식단을 추천해주세요.

@@ -11,7 +11,6 @@ import ThemeInitializer from '@/components/ThemeInitializer'
 import SplashProvider from '@/components/SplashProvider'
 import SecurityMigrator from '@/components/SecurityMigrator'
 import DataMigrator from '@/components/DataMigrator'
-import DevPanel from '@/components/dev/DevPanel'
 import PWAInstallToast from '@/components/ui/PWAInstallToast'
 import AnalyticsPageView from '@/components/AnalyticsPageView'
 
@@ -230,7 +229,6 @@ export default function RootLayout({
           <PWAInstallToast />
           <AnalyticsPageView />
           <Analytics />
-          {process.env.NODE_ENV === 'development' && <DevPanel />}
         </div>
       </body>
     </html>

@@ -2,11 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react'
 
-interface PostUser {
-  nickname: string | null
-  mode: string | null
-}
-
 interface Post {
   id: string
   user_id: string
@@ -16,12 +11,8 @@ interface Post {
   photos: unknown
   like_count: number
   comment_count: number
-  hidden: boolean
-  hidden_by: string | null
-  hidden_at: string | null
   created_at: string
   updated_at: string
-  user_profiles: PostUser | null
 }
 
 interface PostsResponse {
@@ -46,7 +37,6 @@ export default function PostsListClient() {
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [boardTypeFilter, setBoardTypeFilter] = useState('')
-  const [hiddenFilter, setHiddenFilter] = useState('')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   const fetchPosts = useCallback(async () => {
@@ -56,7 +46,6 @@ export default function PostsListClient() {
       const params = new URLSearchParams({ page: String(page), limit: '20' })
       if (search) params.set('search', search)
       if (boardTypeFilter) params.set('board_type', boardTypeFilter)
-      if (hiddenFilter) params.set('hidden', hiddenFilter)
 
       const res = await fetch(`/api/admin/posts?${params}`)
       if (!res.ok) {
@@ -69,7 +58,7 @@ export default function PostsListClient() {
     } finally {
       setLoading(false)
     }
-  }, [page, search, boardTypeFilter, hiddenFilter])
+  }, [page, search, boardTypeFilter])
 
   useEffect(() => { fetchPosts() }, [fetchPosts])
 
@@ -78,21 +67,17 @@ export default function PostsListClient() {
     setSearch(searchInput)
   }
 
-  const handleToggleHidden = async (post: Post) => {
-    const newHidden = !post.hidden
-    const msg = newHidden ? '이 게시글을 숨김 처리하시겠습니까?' : '이 게시글의 숨김을 해제하시겠습니까?'
-    if (!confirm(msg)) return
+  const handleDelete = async (post: Post) => {
+    if (!confirm('이 게시글을 삭제하시겠습니까? 복구할 수 없습니다.')) return
 
     setActionLoading(post.id)
     try {
       const res = await fetch(`/api/admin/posts/${post.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hidden: newHidden }),
+        method: 'DELETE',
       })
       if (!res.ok) {
         const d = await res.json()
-        throw new Error(d.error || '처리 실패')
+        throw new Error(d.error || '삭제 실패')
       }
       await fetchPosts()
     } catch (err) {
@@ -144,18 +129,6 @@ export default function PostsListClient() {
               <option value="market">장터</option>
             </select>
           </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">상태</label>
-            <select
-              value={hiddenFilter}
-              onChange={(e) => { setHiddenFilter(e.target.value); setPage(1) }}
-              className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">전체</option>
-              <option value="false">공개</option>
-              <option value="true">숨김</option>
-            </select>
-          </div>
         </div>
       </div>
 
@@ -175,10 +148,9 @@ export default function PostsListClient() {
                   <tr className="border-b border-gray-100 bg-gray-50">
                     <th className="text-left px-4 py-3 font-medium text-gray-600">내용</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">게시판</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">작성자</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-600">작성자 ID</th>
                     <th className="text-center px-4 py-3 font-medium text-gray-600">좋아요</th>
                     <th className="text-center px-4 py-3 font-medium text-gray-600">댓글</th>
-                    <th className="text-center px-4 py-3 font-medium text-gray-600">상태</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">작성일</th>
                     <th className="text-center px-4 py-3 font-medium text-gray-600">관리</th>
                   </tr>
@@ -197,30 +169,19 @@ export default function PostsListClient() {
                           {BOARD_TYPE_LABELS[post.board_type] || post.board_type}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {post.user_profiles?.nickname || '알 수 없음'}
+                      <td className="px-4 py-3 text-gray-600 text-xs font-mono">
+                        {post.user_id.slice(0, 8)}...
                       </td>
                       <td className="px-4 py-3 text-center text-gray-600">{post.like_count}</td>
                       <td className="px-4 py-3 text-center text-gray-600">{post.comment_count}</td>
-                      <td className="px-4 py-3 text-center">
-                        {post.hidden ? (
-                          <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-red-50 text-red-600 font-medium">숨김</span>
-                        ) : (
-                          <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-green-50 text-green-600 font-medium">공개</span>
-                        )}
-                      </td>
                       <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{formatDate(post.created_at)}</td>
                       <td className="px-4 py-3 text-center">
                         <button
-                          onClick={() => handleToggleHidden(post)}
+                          onClick={() => handleDelete(post)}
                           disabled={actionLoading === post.id}
-                          className={`px-3 py-1.5 text-xs rounded-lg transition-colors cursor-pointer disabled:opacity-50 ${
-                            post.hidden
-                              ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                              : 'bg-red-50 text-red-700 hover:bg-red-100'
-                          }`}
+                          className="px-3 py-1.5 text-xs rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors cursor-pointer disabled:opacity-50"
                         >
-                          {actionLoading === post.id ? '처리중...' : post.hidden ? '숨김 해제' : '숨김'}
+                          {actionLoading === post.id ? '...' : '삭제'}
                         </button>
                       </td>
                     </tr>
@@ -272,7 +233,6 @@ function TableSkeleton() {
           <div className="h-4 bg-gray-200 rounded w-20" />
           <div className="h-4 bg-gray-200 rounded w-10" />
           <div className="h-4 bg-gray-200 rounded w-10" />
-          <div className="h-4 bg-gray-200 rounded w-12" />
           <div className="h-4 bg-gray-200 rounded w-28" />
           <div className="h-4 bg-gray-200 rounded w-16" />
         </div>

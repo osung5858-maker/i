@@ -1,24 +1,12 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import BabyItemChecklist from '@/components/pregnant/BabyItemChecklist'
+import PageHeader from '@/components/layout/PageHeader'
 
 export default function BirthPrepPage() {
-  const router = useRouter()
-
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]">
-      {/* 헤더 */}
-      <div className="sticky top-[72px] z-30 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
-        <div className="flex items-center h-12 px-4 max-w-lg mx-auto gap-3">
-          <button onClick={() => router.back()} className="w-8 h-8 rounded-full flex items-center justify-center text-primary active:bg-[#F0EDE8]">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <p className="text-subtitle font-bold text-primary flex-1">출산 준비물 체크리스트</p>
-        </div>
-      </div>
+      <PageHeader title="출산 준비물 체크리스트" />
 
       <div className="max-w-lg mx-auto w-full px-4 pt-4 pb-8 space-y-3">
         {/* 안내 */}

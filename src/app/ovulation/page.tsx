@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { upsertProfile, getProfile } from '@/lib/supabase/userProfile'
+import PageHeader from '@/components/layout/PageHeader'
 
 function addDays(date: Date, days: number): Date {
   const d = new Date(date); d.setDate(d.getDate() + days); return d
@@ -37,17 +38,18 @@ function DatePicker({ value, onChange }: { value: string; onChange: (v: string) 
     onChange(dateStr)
   }, [year, month, day]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const sel = 'flex-1 appearance-none bg-[var(--color-page-bg)] border border-[#E8E4DF] rounded-xl px-3 py-2.5 text-body-emphasis text-primary text-center focus:outline-none focus:border-[var(--color-primary)]'
+  const sel = 'flex-1 appearance-none bg-[var(--color-page-bg)] border border-[#E8E4DF] rounded-xl px-3 py-2.5 text-primary text-center focus:outline-none focus:border-[var(--color-primary)]'
+  const selStyle = { fontSize: 16 } as const
 
   return (
     <div className="flex gap-2">
-      <select value={year} onChange={e => setYear(Number(e.target.value))} className={sel}>
+      <select value={year} onChange={e => setYear(Number(e.target.value))} className={sel} style={selStyle}>
         {years.map(y => <option key={y} value={y}>{y}년</option>)}
       </select>
-      <select value={month} onChange={e => setMonth(Number(e.target.value))} className={sel}>
+      <select value={month} onChange={e => setMonth(Number(e.target.value))} className={sel} style={selStyle}>
         {months.map(m => <option key={m} value={m}>{m}월</option>)}
       </select>
-      <select value={day} onChange={e => setDay(Number(e.target.value))} className={sel}>
+      <select value={day} onChange={e => setDay(Number(e.target.value))} className={sel} style={selStyle}>
         {days.map(d => <option key={d} value={d}>{d}일</option>)}
       </select>
     </div>
@@ -107,17 +109,7 @@ export default function OvulationPage() {
 
   return (
     <div className="min-h-[calc(100dvh-144px)] bg-[var(--color-page-bg)]">
-      {/* 헤더 */}
-      <div className="sticky top-[72px] z-30 bg-white/95 backdrop-blur-lg border-b border-[#E8E4DF]/60">
-        <div className="flex items-center h-12 px-4 max-w-lg mx-auto gap-3">
-          <button onClick={() => router.back()} className="w-8 h-8 rounded-full flex items-center justify-center text-primary active:bg-[#F0EDE8]">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <p className="text-subtitle font-bold text-primary flex-1">배란일 계산기</p>
-        </div>
-      </div>
+      <PageHeader title="배란일 계산기" />
 
       <div className="max-w-lg mx-auto w-full px-4 pt-4 pb-8 space-y-4">
         {/* 입력 카드 */}
