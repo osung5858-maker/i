@@ -48,6 +48,10 @@ next-env.d.ts
 *.keystore
 *.jks
 
+# local scripts & assets
+/scripts/
+/create/
+
 # capacitor android build outputs
 android/app/build/
 android/.gradle/
