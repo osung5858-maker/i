@@ -36,6 +36,8 @@ export function isAllowedImageUrl(url: string): boolean {
   if (!url) return false
   try {
     const parsed = new URL(url)
+    // 프로토콜 제한 (SSRF 방지: file://, ftp:// 등 차단)
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false
     const allowed = [
       'kakaocdn.net', 'kage.kakao.com', 'k.kakaocdn.net',
       'kidsnote.com', 'www.kidsnote.com',
@@ -43,7 +45,10 @@ export function isAllowedImageUrl(url: string): boolean {
       's3.amazonaws.com', 's3.ap-northeast-2.amazonaws.com',
       'cdn.kidsnote.com',
     ]
-    return allowed.some(domain => parsed.hostname.endsWith(domain))
+    // 정확 매치 또는 서브도메인 매치 (evil-kidsnote.com 차단)
+    return allowed.some(domain =>
+      parsed.hostname === domain || parsed.hostname.endsWith('.' + domain)
+    )
   } catch {
     return false
   }

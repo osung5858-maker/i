@@ -305,50 +305,46 @@ export default function KidsnotePage() {
   const uploadToGoogleDrive = async (item: any) => {
     const images = item.images || []
     if (images.length === 0) { window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: '업로드할 사진이 없어요' } })); return }
+
+    // Google 토큰 존재 확인
+    try {
+      const statusRes = await fetch('/api/google-fit/status')
+      const status = await statusRes.json()
+      if (!status.hasToken && !status.hasRefresh) {
+        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 로그인이 필요해요. 온보딩에서 Google 계정으로 로그인해주세요.' } }))
+        return
+      }
+    } catch { /* proceed anyway */ }
+
     setDownloadProgress({ total: images.length, done: 0 })
     setShowDownloadMenu(null)
 
-    // Google OAuth 토큰 확인
-    let gToken = safeGetItem('dodam_gdrive_token')
-    if (!gToken) {
-      // Google 로그인 필요 → 간이 토스트 안내
-      window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 로그인이 필요해요. 설정에서 Google 계정을 연결해주세요.' } }))
-      setDownloadProgress(null)
-      return
-    }
+    // Dodam 폴더 확보
+    let folderId: string | undefined
+    try {
+      const folderRes = await fetch('/api/google-drive/folder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+      const folderData = await folderRes.json()
+      if (folderData.folderId) folderId = folderData.folderId
+    } catch { /* root에 업로드 */ }
 
     let successCount = 0
     for (let i = 0; i < images.length; i++) {
       try {
         const url = images[i].original || images[i].thumbnail
         if (!url) continue
-        // 이미지 다운로드
-        const imgRes = await fetch(`/api/kidsnote/image?url=${encodeURIComponent(url)}`)
-        const blob = await imgRes.blob()
 
-        // Google Drive 업로드
-        const metadata = {
-          name: `kidsnote_${item.id}_${i + 1}.jpg`,
-          parents: ['root'], // 루트 폴더
-          mimeType: 'image/jpeg',
-        }
-        const form = new FormData()
-        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }))
-        form.append('file', blob)
-
-        const driveRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        const res = await fetch('/api/google-drive/upload', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${gToken}` },
-          body: form,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: url, fileName: `kidsnote_${item.id}_${i + 1}.jpg`, folderId }),
         })
+        const data = await res.json()
 
-        if (driveRes.status === 401) {
-          // 토큰 만료
-          safeRemoveItem('dodam_gdrive_token')
-          window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 인증이 만료됐어요. 다시 연결해주세요.' } }))
+        if (data.error === 'no_google_token' || data.error === 'insufficient_scope') {
+          window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 인증이 필요해요. 온보딩에서 다시 Google 로그인해주세요.' } }))
           break
         }
-        if (driveRes.ok) successCount++
+        if (data.success) successCount++
       } catch { /* */ }
       setDownloadProgress(prev => prev ? { ...prev, done: prev.done + 1 } : null)
     }
@@ -405,30 +401,42 @@ export default function KidsnotePage() {
       }
       window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `전체 ${allImages.length}장 다운로드 완료!` } }))
     } else {
-      const gToken = safeGetItem('dodam_gdrive_token')
-      if (!gToken) {
-        window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 로그인이 필요해요' } }))
-        setDownloadProgress(null)
-        return
-      }
+      // Google 토큰 확인
+      try {
+        const statusRes = await fetch('/api/google-fit/status')
+        const status = await statusRes.json()
+        if (!status.hasToken && !status.hasRefresh) {
+          window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 로그인이 필요해요' } }))
+          setDownloadProgress(null)
+          return
+        }
+      } catch { /* proceed */ }
+
+      // Dodam 폴더 확보
+      let folderId: string | undefined
+      try {
+        const folderRes = await fetch('/api/google-drive/folder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+        const folderData = await folderRes.json()
+        if (folderData.folderId) folderId = folderData.folderId
+      } catch { /* */ }
+
       let ok = 0
       for (let i = 0; i < allImages.length; i++) {
         try {
-          const proxyRes = await fetch(`/api/kidsnote/image?url=${encodeURIComponent(allImages[i].url)}`)
-          if (!proxyRes.ok) continue
-          const blob = await proxyRes.blob()
-          if (blob.size < 100) continue
-          const meta = { name: `kidsnote_${allImages[i].albumId}_${allImages[i].index}.jpg`, parents: ['root'], mimeType: 'image/jpeg' }
-          const form = new FormData()
-          form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }))
-          form.append('file', blob)
-          const dr = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST', headers: { Authorization: `Bearer ${gToken}` }, body: form,
+          const res = await fetch('/api/google-drive/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: allImages[i].url, fileName: `kidsnote_${allImages[i].albumId}_${allImages[i].index}.jpg`, folderId }),
           })
-          if (dr.status === 401) { safeRemoveItem('dodam_gdrive_token'); window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 인증 만료' } })); break }
-          if (dr.ok) ok++
+          const data = await res.json()
+          if (data.error === 'no_google_token' || data.error === 'insufficient_scope') {
+            window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: 'Google 인증 필요' } }))
+            break
+          }
+          if (data.success) ok++
         } catch { /* */ }
         setDownloadProgress(prev => prev ? { ...prev, done: prev.done + 1 } : null)
+        if (i % 5 === 4) await new Promise(r => setTimeout(r, 300))
       }
       window.dispatchEvent(new CustomEvent('dodam-toast', { detail: { message: `전체 ${ok}장 Google Drive 업로드 완료!` } }))
     }

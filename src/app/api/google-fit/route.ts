@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getAuthUser, unauthorizedResponse } from '@/lib/security/auth'
 import { checkRateLimit, getClientIP } from '@/lib/security/rate-limit'
+import { refreshGoogleToken } from '@/lib/google/token'
 
 const GOOGLE_FIT_BASE = 'https://www.googleapis.com/fitness/v1/users/me'
 
@@ -31,27 +32,6 @@ function weekRange() {
   }
 }
 
-async function refreshToken(refreshToken: string): Promise<string | null> {
-  const clientId = process.env.GOOGLE_CLIENT_ID
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET
-  if (!clientId || !clientSecret || !refreshToken) return null
-
-  const res = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: refreshToken,
-      grant_type: 'refresh_token',
-    }),
-  })
-
-  if (!res.ok) return null
-  const data = await res.json()
-  return data.access_token || null
-}
-
 async function fetchWithRefresh(url: string, body: object | null, cookieStore: any) {
   let token = cookieStore.get('gfit_token')?.value
   const refresh = cookieStore.get('gfit_refresh')?.value
@@ -71,7 +51,7 @@ async function fetchWithRefresh(url: string, body: object | null, cookieStore: a
     const res = await doFetch(token)
     if (res.ok) return { res, newToken: null }
     if (res.status === 401 && refresh) {
-      const newToken = await refreshToken(refresh)
+      const newToken = await refreshGoogleToken(refresh)
       if (newToken) {
         const res2 = await doFetch(newToken)
         if (res2.ok) return { res: res2, newToken }
@@ -81,7 +61,7 @@ async function fetchWithRefresh(url: string, body: object | null, cookieStore: a
   }
 
   if (refresh) {
-    const newToken = await refreshToken(refresh)
+    const newToken = await refreshGoogleToken(refresh)
     if (newToken) {
       const res = await doFetch(newToken)
       return { res, newToken }

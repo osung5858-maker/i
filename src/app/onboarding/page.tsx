@@ -68,7 +68,7 @@ export default function OnboardingPage() {
 
     const scopes = provider === 'kakao'
       ? 'profile_nickname profile_image'
-      : 'profile email https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.sleep.read https://www.googleapis.com/auth/fitness.body.read https://www.googleapis.com/auth/fitness.heart_rate.read'
+      : 'profile email https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.sleep.read https://www.googleapis.com/auth/fitness.body.read https://www.googleapis.com/auth/fitness.heart_rate.read https://www.googleapis.com/auth/drive.file'
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
