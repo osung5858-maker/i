@@ -116,7 +116,7 @@ export default function TownPage() {
           { key: 'town' as SubTab, label: '장소' },
           { key: 'feed' as SubTab, label: '소식' },
           { key: 'gather' as SubTab, label: '소모임' },
-          { key: 'market' as SubTab, label: '거래' },
+          { key: 'market' as SubTab, label: '도담장터' },
         ].map(t => (
           <button key={t.key} onClick={() => setSubTab(t.key)}
             className={`flex-1 py-1.5 text-body font-semibold text-center rounded-lg transition-colors ${subTab === t.key ? 'bg-white text-primary shadow-sm' : 'text-tertiary'}`}>
