@@ -69,16 +69,17 @@ export async function POST(request: Request) {
   try {
     // === 데일리 브리핑 ===
     if (type === 'daily') {
-      const { cycleDay, cycleLength, phase, motherAge, fatherAge, mood, supplements, exercise, partnerChecks, sleep, steps, stress } = body
+      const { cycleDay, cycleLength, phase, motherAge, fatherAge, mood, supplements, exercise, partnerChecks, sleep, steps, stress, myRole } = body
+      const roleLabel = myRole === 'dad' ? '예비파파' : '예비맘'
 
-      // 서버 캐시 (주기+단계+기분이 같으면 재사용)
-      const cacheKey = `prep-daily-${cycleDay}-${phase}-${mood || 'none'}-${supplements || 0}`
+      // 서버 캐시 (주기+단계+기분+역할이 같으면 재사용)
+      const cacheKey = `prep-daily-${cycleDay}-${phase}-${mood || 'none'}-${supplements || 0}-${myRole || 'mom'}`
       const cached = getCachedResponse(cacheKey)
       if (cached) return NextResponse.json(cached)
 
       const prompt = `당신은 "도담" 앱의 AI 임신 준비 코치입니다. 따뜻하면서도 전문적인 톤으로 조언해주세요.
 절대 의료 진단을 하지 마세요. "도담하게"라는 표현을 자연스럽게 사용하세요.
-사용자는 아직 임신 전 준비 단계입니다. "엄마"가 아닌 "예비맘" 또는 이름 없이 자연스럽게 호칭하세요.
+사용자는 아직 임신 전 준비 단계의 ${roleLabel}입니다. "엄마"나 "아빠"가 아닌 "${roleLabel}" 또는 이름 없이 자연스럽게 호칭하세요.${myRole === 'dad' ? ' 남성(예비 아빠) 관점에서 조언해주세요.' : ''}
 
 [사용자 상태]
 - 생리 주기: ${cycleLength}일 / 현재 ${cycleDay}일차
@@ -126,9 +127,10 @@ JSON만 출력하세요.`
 
     // === 기다림 일기 AI 코멘트 ===
     if (type === 'diary') {
-      const { text: diaryText } = body
+      const { text: diaryText, myRole: diaryRole } = body
+      const dRoleLabel = diaryRole === 'dad' ? '예비파파' : '예비맘'
       const safeDiaryText = sanitizeForPrompt(diaryText, 1000)
-      const prompt = `임신을 준비 중인 예비맘이 기다림 일기를 썼어요. 따뜻하게 1-2문장으로 코멘트해주세요. 이모지 1개 포함.
+      const prompt = `임신을 준비 중인 ${dRoleLabel}이 기다림 일기를 썼어요. 따뜻하게 1-2문장으로 코멘트해주세요. 이모지 1개 포함.
 일기: "${safeDiaryText}"
 코멘트만 출력.`
       const { text } = await callGemini(prompt, 100)
@@ -137,26 +139,28 @@ JSON만 출력하세요.`
 
     // === 편지 AI 답장 ===
     if (type === 'letter') {
-      const { letterText, letterCount } = body
+      const { letterText, letterCount, myRole: letterRole } = body
+      const parentLabel = letterRole === 'dad' ? '아빠' : '엄마'
       const safeLetterText = sanitizeForPrompt(letterText, 1000)
 
-      const prompt = `당신은 아직 세상에 오지 않은 아기입니다. 엄마(또는 아빠)가 편지를 보냈어요.
+      const prompt = `당신은 아직 세상에 오지 않은 아기입니다. ${parentLabel}가 편지를 보냈어요.
 아기의 시점에서 따뜻하고 순수하게 답장을 써주세요.
 
 [규칙]
-- 아기는 아직 태어나지 않았지만, 엄마 아빠의 마음을 느끼고 있어요
+- 아기는 아직 태어나지 않았지만, ${parentLabel}의 마음을 느끼고 있어요
 - 2-4문장으로 짧고 감성적으로
 - 시적이고 따뜻한 표현 사용
 - 이모지 1-2개 자연스럽게 포함
-- ${letterCount > 20 ? '많은 편지를 받아 사랑으로 가득 찬 느낌' : letterCount > 5 ? '점점 엄마 아빠를 알아가는 느낌' : '처음 인사하는 설렘'}을 담아주세요
+- ${letterCount > 20 ? '많은 편지를 받아 사랑으로 가득 찬 느낌' : letterCount > 5 ? `점점 ${parentLabel}를 알아가는 느낌` : '처음 인사하는 설렘'}을 담아주세요
 
-[엄마/아빠의 편지]
+[${parentLabel}의 편지]
 "${safeLetterText}"
 
 아기의 답장만 출력하세요. 따옴표 없이.`
 
       const r2 = await callGemini(prompt, 200, 0.8)
-      return NextResponse.json({ reply: r2.text || '엄마 아빠의 마음이 여기까지 닿고 있어요. 곧 만날게요 💛' })
+      const fallbackReply = letterRole === 'dad' ? '아빠의 마음이 여기까지 닿고 있어요. 곧 만날게요 💛' : '엄마 아빠의 마음이 여기까지 닿고 있어요. 곧 만날게요 💛'
+      return NextResponse.json({ reply: r2.text || fallbackReply })
     }
 
     // === 주기별 식단 추천 ===
@@ -202,12 +206,13 @@ calories는 해당 끼니 예상 총칼로리(숫자만). JSON만 출력.`
 
     // === 감정 분석 ===
     if (type === 'emotion') {
-      const { moodHistory, currentMood, phase, cycleDay } = body
-      const cacheKey = `prep-emotion-${phase || ''}-${cycleDay || ''}`
+      const { moodHistory, currentMood, phase, cycleDay, myRole: emotionRole } = body
+      const eRoleLabel = emotionRole === 'dad' ? '예비파파' : '예비맘'
+      const cacheKey = `prep-emotion-${phase || ''}-${cycleDay || ''}-${emotionRole || 'mom'}`
       const cached = getCachedResponse(cacheKey)
       if (cached) return NextResponse.json(cached)
 
-      const prompt = `당신은 임신 준비 중인 여성의 감정 케어 전문가입니다.
+      const prompt = `당신은 임신 준비 중인 ${eRoleLabel}의 감정 케어 전문가입니다.
 따뜻하고 공감하는 톤으로, 절대 진단하지 마세요.
 
 [최근 감정 기록]

@@ -200,16 +200,29 @@ export default function HomePage() {
   const supabase = createClient()
 
   useEffect(() => {
-    // 안전장치: 5초 후에도 로딩 중이면 강제 해제
+    // 안전장치: 15초 후에도 로딩 중이면 강제 해제 (Capacitor 웹뷰 + 네트워크 지연 고려)
     const safetyTimer = setTimeout(() => {
       setLoading(prev => {
         if (prev) router.push('/onboarding')
         return false
       })
-    }, 5000)
+    }, 15000)
 
     async function init() {
       try {
+        // Capacitor에서는 middleware가 실행되지 않아 세션이 자동 갱신되지 않음
+        // getSession()으로 localStorage에서 세션을 먼저 복원 후 getUser() 호출
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.refresh_token) {
+          const expiresAt = session.expires_at ?? 0
+          if (expiresAt * 1000 < Date.now()) {
+            try {
+              await supabase.auth.refreshSession()
+            } catch {
+              // 네트워크 오류 시 기존 세션으로 계속 시도
+            }
+          }
+        }
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) { router.push('/onboarding'); return }
         setUser(user)

@@ -435,8 +435,8 @@ export default function PreparingPage() {
       const cached = localStorage.getItem('dodam_ai_briefing')
       if (cached) {
         try {
-          const { date, data } = JSON.parse(cached)
-          if (date === today && (data.summary || data.greeting)) { setAiBriefing(data); return }
+          const { date, data, role } = JSON.parse(cached)
+          if (date === today && role === myRole && (data.summary || data.greeting)) { setAiBriefing(data); return }
         } catch { /* */ }
       }
     }
@@ -460,6 +460,7 @@ export default function PreparingPage() {
           exercise: prepTodayDone.filter(k => ['prep_walk', 'prep_stretch', 'prep_breath', 'prep_meditate', 'prep_music'].includes(k)),
           partnerChecks: Object.values(partnerChecks).filter(Boolean).length,
           sleep: todayHealth?.sleep, steps: todayHealth?.steps, stress: todayHealth?.stress,
+          myRole,
         }),
       })
       const data = await res.json()
@@ -467,7 +468,7 @@ export default function PreparingPage() {
         setAiError(`AI 오류: ${data.error}`)
       } else {
         setAiBriefing(data)
-        localStorage.setItem('dodam_ai_briefing', JSON.stringify({ date: today, data }))
+        localStorage.setItem('dodam_ai_briefing', JSON.stringify({ date: today, data, role: myRole }))
       }
     } catch (e) {
       setAiError(`요청 실패: ${e}`)
