@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>도담 배너 - 굴림 폰트 슬롯</title>
+<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/fonts-archive/GmarketSans/GmarketSans.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/GmarketSans/GmarketSans.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #f5f5f5;
+    font-family: 'Pretendard Variable', sans-serif;
+  }
+
+  .banner-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .banner-label {
+    font-size: 13px;
+    color: #999;
+    letter-spacing: 0.5px;
+  }
+
+  /* 굴림 폰트 카드 슬롯 실제 사이즈 */
+  .banner {
+    width: 426px;
+    height: 152px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 16px rgba(232, 147, 122, 0.12);
+  }
+
+  .banner:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(232, 147, 122, 0.22);
+  }
+
+  /* 배경 그래디언트 */
+  .banner-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #FFF5F2 0%, #FFE8E0 40%, #FFDDD0 70%, #FFD0C0 100%);
+  }
+
+  /* 장식 원형 블러 */
+  .banner-bg::before {
+    content: '';
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(232, 147, 122, 0.15);
+    top: -30px;
+    right: -20px;
+    filter: blur(30px);
+  }
+
+  .banner-bg::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(94, 168, 138, 0.1);
+    bottom: -20px;
+    left: -20px;
+    filter: blur(30px);
+  }
+
+  /* 콘텐츠 - 가로 레이아웃 */
+  .banner-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 32px;
+    gap: 28px;
+  }
+
+  /* 좌측: 카피 */
+  .banner-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .banner-copy {
+    font-family: 'Gmarket Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #5C5956;
+    line-height: 1.5;
+    letter-spacing: -0.3px;
+  }
+
+  /* 우측: 로고 + 태그라인 + CTA */
+  .banner-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .banner-logo {
+    font-family: 'Gmarket Sans', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: #E8937A;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .banner-tagline {
+    font-family: 'Pretendard Variable', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: #AAA7A3;
+    letter-spacing: 1.5px;
+  }
+
+  .banner-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 6px 16px;
+    background: #E8937A;
+    color: #fff;
+    font-family: 'Pretendard Variable', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 100px;
+    text-decoration: none;
+    letter-spacing: -0.2px;
+    transition: background 0.2s ease;
+  }
+
+  .banner-cta:hover {
+    background: #D07A62;
+  }
+
+  .banner-cta svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* 하단 장식 라인 */
+  .banner-bottom-accent {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #E8937A, #FFB5A7, #B5EAD7, #E8937A);
+  }
+</style>
+</head>
+<body>
+
+<div class="banner-wrapper">
+  <span class="banner-label">426 × 152 — 굴림 폰트 카드 슬롯</span>
+
+  <a href="https://i.dodam.life/landing" target="_blank" class="banner" style="text-decoration: none;">
+    <div class="banner-bg"></div>
+    <div class="banner-content">
+      <div class="banner-left">
+        <p class="banner-copy">폰트 고르는 동안,<br>아기 수유 시간 놓쳤다면</p>
+      </div>
+      <div class="banner-right">
+        <span class="banner-logo">도담</span>
+        <span class="banner-tagline">AI 육아 파트너</span>
+        <span class="banner-cta">
+          시작하기
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+    <div class="banner-bottom-accent"></div>
+  </a>
+</div>
+
+</body>
+</html>
