@@ -108,9 +108,10 @@ JSON만 출력.`
 
     // === 태교 일기 AI 코멘트 ===
     if (type === 'diary') {
-      const { text: diaryText, week, mood } = body
+      const { text: diaryText, week, mood, myRole: diaryRole } = body
+      const dRoleLabel = diaryRole === 'dad' ? '예비파파' : '예비맘'
       const safeDiaryText = sanitizeForPrompt(diaryText, 1000)
-      const prompt = `임신 ${week}주차 예비맘이 태교 일기를 썼어요. 따뜻하게 1-2문장으로 코멘트해주세요. 이모지 1개 포함.
+      const prompt = `임신 ${week}주차 ${dRoleLabel}이 태교 일기를 썼어요. 따뜻하게 1-2문장으로 코멘트해주세요. 이모지 1개 포함.
 기분: ${mood || '미기록'}
 일기: "${safeDiaryText}"
 코멘트만 출력.`

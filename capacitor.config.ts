@@ -1,11 +1,11 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'app.dodam.care',
+  appId: 'life.dodam.android',
   appName: '도담',
   webDir: 'out',
   server: {
-    url: 'https://dodam.life',
+    url: 'https://i.dodam.life',
     androidScheme: 'https',
   },
   plugins: {

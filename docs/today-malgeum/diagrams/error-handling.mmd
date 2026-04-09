@@ -1,0 +1,72 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#fef2f2','primaryTextColor':'#991b1b','primaryBorderColor':'#f87171','lineColor':'#fb923c','secondaryColor':'#fee2e2','tertiaryColor':'#fef2f2'}}}%%
+
+flowchart TD
+    Start([사용자 요청]) --> ValidateRegion{지역 검증}
+
+    ValidateRegion -->|유효| CacheCheck{캐시 확인}
+    ValidateRegion -->|무효| Error400[400 Bad Request<br/>지역 목록 제시]
+
+    CacheCheck -->|Hit| ReturnCached[캐시 데이터 반환<br/>200ms]
+    CacheCheck -->|Miss| ParallelAPI[4개 API 병렬 호출]
+
+    ParallelAPI --> AirAPI[에어코리아]
+    ParallelAPI --> ForecastAPI[기상청 단기예보]
+    ParallelAPI --> UVAPI[기상청 UV]
+    ParallelAPI --> DiseaseAPI[질병관리청]
+
+    AirAPI --> AirResult{성공?}
+    ForecastAPI --> ForecastResult{성공?}
+    UVAPI --> UVResult{성공?}
+    DiseaseAPI --> DiseaseResult{성공?}
+
+    AirResult -->|성공| AirOK[대기질 데이터]
+    AirResult -->|타임아웃| AirFallback[폴백: 측정 불가]
+    AirResult -->|5xx 에러| AirFallback
+    AirResult -->|429 Rate Limit| AirStale[Stale Cache 반환]
+
+    ForecastResult -->|성공| ForecastOK[날씨 데이터]
+    ForecastResult -->|타임아웃| ForecastFallback[폴백: 데이터 없음]
+    ForecastResult -->|5xx 에러| ForecastFallback
+
+    UVResult -->|성공| UVOK[자외선 데이터]
+    UVResult -->|타임아웃| UVFallback[폴백: 데이터 없음]
+    UVResult -->|5xx 에러| UVFallback
+
+    DiseaseResult -->|성공| DiseaseOK[감염병 데이터]
+    DiseaseResult -->|타임아웃| DiseaseFallback[폴백: 준비 중]
+    DiseaseResult -->|403 미승인| DiseaseMock[목데이터 반환]
+
+    AirOK --> Aggregate[결과 집계]
+    AirFallback --> Aggregate
+    AirStale --> Aggregate
+    ForecastOK --> Aggregate
+    ForecastFallback --> Aggregate
+    UVOK --> Aggregate
+    UVFallback --> Aggregate
+    DiseaseOK --> Aggregate
+    DiseaseFallback --> Aggregate
+    DiseaseMock --> Aggregate
+
+    Aggregate --> CheckMinData{최소 데이터<br/>충족?}
+
+    CheckMinData -->|충족<br/>대기질 OR 날씨| Calculate[점수 계산]
+    CheckMinData -->|미충족<br/>모두 실패| Error503[503 Service Unavailable<br/>잠시 후 다시 시도]
+
+    Calculate --> SaveCache[캐시 저장]
+    SaveCache --> Return200[200 OK<br/>부분 데이터 포함]
+
+    ReturnCached --> End([응답 반환])
+    Return200 --> End
+    Error400 --> End
+    Error503 --> End
+
+    style Error400 fill:#fee2e2,stroke:#f87171
+    style Error503 fill:#fee2e2,stroke:#f87171
+    style AirFallback fill:#fef3c7,stroke:#fbbf24
+    style ForecastFallback fill:#fef3c7,stroke:#fbbf24
+    style UVFallback fill:#fef3c7,stroke:#fbbf24
+    style DiseaseFallback fill:#fef3c7,stroke:#fbbf24
+    style DiseaseMock fill:#fef3c7,stroke:#fbbf24
+    style AirStale fill:#fef3c7,stroke:#fbbf24
+    style Return200 fill:#dcfce7,stroke:#22c55e
+    style ReturnCached fill:#dcfce7,stroke:#22c55e

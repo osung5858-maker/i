@@ -19,6 +19,7 @@ import { getSecure } from '@/lib/secureStorage'
 import { createClient } from '@/lib/supabase/client'
 import { upsertPregRecord, fetchPregRecords } from '@/lib/supabase/pregRecord'
 import { upsertPrepRecord, fetchPrepRecords } from '@/lib/supabase/prepRecord'
+import { getProfile } from '@/lib/supabase/userProfile'
 
 interface Tab {
   href: string
@@ -1215,10 +1216,12 @@ function BottomNavComponent() {
                       }
                     } catch { return 1 }
                   })()
+                  const profile = await getProfile()
+                  const myRole = profile?.my_role === 'dad' ? 'dad' : 'mom'
                   const res = await fetch('/api/ai-preparing', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'letter', letterText: journalText.trim(), letterCount }),
+                    body: JSON.stringify({ type: 'letter', letterText: journalText.trim(), letterCount, myRole }),
                   })
                   const data = await res.json()
                   const aiReply = data.reply || fallbackComment

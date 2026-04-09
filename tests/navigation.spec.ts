@@ -17,6 +17,14 @@ async function isAuthenticated(page: import('@playwright/test').Page): Promise<b
   return !page.url().includes('/onboarding')
 }
 
+/** Hide the Next.js dev overlay which intercepts pointer events on mobile viewports */
+async function hideNextjsDevOverlay(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    const portal = document.querySelector('nextjs-portal')
+    if (portal) (portal as HTMLElement).style.display = 'none'
+  }).catch(() => {})
+}
+
 test.describe('Navigation', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/').catch(() => {})
@@ -37,6 +45,7 @@ test.describe('Navigation', () => {
     })
     await page.reload().catch(() => {})
     await page.waitForLoadState('networkidle').catch(() => {})
+    await hideNextjsDevOverlay(page)
   })
 
   test('bottom nav tabs are visible when authenticated', async ({ page }) => {
@@ -65,6 +74,7 @@ test.describe('Navigation', () => {
 
     await recordLink.click()
     await page.waitForLoadState('networkidle').catch(() => {})
+    await hideNextjsDevOverlay(page)
     // Pages may redirect to /settings/children/add if no child data
     if (page.url().includes('/settings/children/add')) {
       test.skip(true, 'Nav redirected to child setup — server has no child data')
@@ -74,6 +84,7 @@ test.describe('Navigation', () => {
 
     await page.getByRole('link', { name: '동네', exact: true }).click()
     await page.waitForLoadState('networkidle').catch(() => {})
+    await hideNextjsDevOverlay(page)
     if (page.url().includes('/settings/children/add')) {
       test.skip(true, 'Nav redirected to child setup — server has no child data')
       return
@@ -82,6 +93,7 @@ test.describe('Navigation', () => {
 
     await page.getByRole('link', { name: '오늘', exact: true }).click()
     await page.waitForLoadState('networkidle').catch(() => {})
+    await hideNextjsDevOverlay(page)
     if (page.url().includes('/settings/children/add')) {
       test.skip(true, 'Home tab redirected to child setup — server has no child data')
       return
@@ -128,7 +140,8 @@ test.describe('Navigation', () => {
     }
 
     await recordLink.click()
-    await page.waitForLoadState('domcontentloaded').catch(() => {})
+    await page.waitForLoadState('networkidle').catch(() => {})
+    await hideNextjsDevOverlay(page)
     if (page.url().includes('/settings/children/add')) {
       test.skip(true, 'Nav redirected to child setup — server has no child data')
       return
@@ -136,7 +149,8 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL(/\/record/, { timeout: 10000 })
 
     await page.goBack()
-    await page.waitForLoadState('domcontentloaded').catch(() => {})
+    await page.waitForLoadState('networkidle').catch(() => {})
+    await hideNextjsDevOverlay(page)
     if (page.url().includes('/settings/children/add')) {
       test.skip(true, 'Back navigated to child setup — server has no child data')
       return

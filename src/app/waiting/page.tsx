@@ -94,12 +94,15 @@ function PreparingWaitingPage() {
   const [ovulationTests, setOvulationTests] = useState<Record<string, boolean>>({})
   const [intimacyDates, setIntimacyDates] = useState<Record<string, boolean>>({})
 
+  const [myRole, setMyRole] = useState<'mom' | 'dad'>('mom')
+
   // DB에서 프로필 로드 → localStorage 동기화
   useEffect(() => {
     getProfile().then(p => {
       if (p?.chosen_nickname) setChosenNickname(p.chosen_nickname)
       if (p?.last_period) { setLastPeriod(p.last_period); localStorage.setItem('dodam_last_period', p.last_period) }
       if (p?.cycle_length) { setCycleLength(p.cycle_length); localStorage.setItem('dodam_cycle_length', String(p.cycle_length)) }
+      if (p?.my_role) setMyRole(p.my_role as 'mom' | 'dad')
     })
     fetchPrepRecords(['bbt', 'ovulation_test', 'intimacy', 'preg_test']).then(records => {
       const tests = records
@@ -160,7 +163,7 @@ function PreparingWaitingPage() {
     const letterCount = journals.length + 1
     fetch('/api/ai-preparing', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'letter', letterText: savedText, letterCount }),
+      body: JSON.stringify({ type: 'letter', letterText: savedText, letterCount, myRole }),
     }).then(r => r.json()).then(data => {
       const aiReply = data.reply
       if (!aiReply) return
