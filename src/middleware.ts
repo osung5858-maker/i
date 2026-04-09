@@ -1,36 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
-/** 서브도메인 → 경로 매핑 (도담 생태계) */
-const SUBDOMAIN_ROUTES: Record<string, string> = {
-  today: '/today',
-  // 향후 서비스 추가 시:
-  // map: '/map',
-  // town: '/town',
-  // growth: '/growth',
-  // community: '/community',
-}
-
 export async function middleware(request: NextRequest) {
-  const hostname = request.headers.get('host') || ''
-  const pathname = request.nextUrl.pathname
-
-  // 서브도메인 추출: "today.dodam.life" → "today"
-  const subdomain = hostname.split('.')[0]
-
-  // 서브도메인 라우팅: today.dodam.life/ → /today
-  if (subdomain in SUBDOMAIN_ROUTES) {
-    const targetPath = SUBDOMAIN_ROUTES[subdomain]
-
-    // 루트 경로만 rewrite (API, _next 등은 그대로 통과)
-    if (pathname === '/' || pathname === '') {
-      const url = request.nextUrl.clone()
-      url.pathname = targetPath
-      return NextResponse.rewrite(url)
-    }
-  }
-
-  // 기존 인증 미들웨어
   try {
     return await updateSession(request)
   } catch {

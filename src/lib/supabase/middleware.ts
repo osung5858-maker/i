@@ -55,7 +55,6 @@ export async function updateSession(request: NextRequest) {
     '/privacy', '/terms',
     '/map', '/emergency',
     '/babyfood', '/gov-support', '/guide',
-    '/today',       // 오늘도,맑음 (로그인 불필요)
   ]
   const isPublic = publicPaths.some((p) => pathname.startsWith(p))
 
