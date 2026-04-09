@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import ScoreCard from '@/components/today/ScoreCard';
 import InfoRow from '@/components/today/InfoRow';
 import ClothingCard from '@/components/today/ClothingCard';
 import RegionSelector from '@/components/today/RegionSelector';
 import ShareButton from '@/components/today/ShareButton';
+import { trackEvent } from '@/lib/today/analytics';
 
 /** API 응답 타입 — /api/today/score 실제 응답과 일치 */
 interface ScoreData {
@@ -77,6 +78,22 @@ export default function TodayPage() {
   const [data, setData] = useState<ScoreData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const prevRegionRef = useRef(region);
+
+  // Track page view on mount
+  useEffect(() => {
+    trackEvent('page_view', { page: 'today', region });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Track region change
+  useEffect(() => {
+    if (prevRegionRef.current !== region) {
+      trackEvent('region_change', { from: prevRegionRef.current, to: region });
+      prevRegionRef.current = region;
+    }
+  }, [region]);
 
   const fetchScore = useCallback(async (regionId: string) => {
     setLoading(true);
@@ -206,7 +223,7 @@ export default function TodayPage() {
 
         {/* Actions */}
         <div className="mt-6 space-y-3">
-          <ShareButton />
+          <ShareButton region={region} score={data.score} message={data.message} />
         </div>
 
         {/* Update Time */}
