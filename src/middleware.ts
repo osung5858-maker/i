@@ -18,14 +18,14 @@ export async function middleware(request: NextRequest) {
   // 서브도메인 추출: "today.dodam.life" → "today"
   const subdomain = hostname.split('.')[0]
 
-  // 서브도메인 라우팅: today.dodam.life → /today
+  // 서브도메인 라우팅: today.dodam.life/ → /today
   if (subdomain in SUBDOMAIN_ROUTES) {
     const targetPath = SUBDOMAIN_ROUTES[subdomain]
 
-    // 이미 올바른 경로에 있으면 통과
-    if (!pathname.startsWith(targetPath)) {
+    // 루트 경로만 rewrite (API, _next 등은 그대로 통과)
+    if (pathname === '/' || pathname === '') {
       const url = request.nextUrl.clone()
-      url.pathname = targetPath + pathname
+      url.pathname = targetPath
       return NextResponse.rewrite(url)
     }
   }
