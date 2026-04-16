@@ -780,6 +780,8 @@ export default function HomePage() {
 
           {/* 광고 배너 — 어드민에서 켜고 끌 수 있음 */}
           <DynamicAd slotId="home_banner" className="mx-auto" />
+          {/* 네이티브 AdMob 배너 (Capacitor 앱에서만 표시) */}
+          <DynamicAd slotId="native_home_bottom" className="mx-auto" />
 
           {/* 심심풀이 */}
           <div className="bg-white rounded-xl border border-[#E8E4DF] overflow-hidden hover-lift">

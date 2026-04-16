@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense } from 'react'
-import { CommunityPageInner } from '@/app/community/page'
+import { CommunityPageInner } from '@/app/(app)/community/page'
 
 // 도담장터는 기존 커뮤니티의 장터 기능을 사용합니다
 export default function TownMarketTab({ range }: { range: number }) {

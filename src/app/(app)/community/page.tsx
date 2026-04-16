@@ -711,7 +711,12 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
                 </div>
               ) : posts.map((post, pi) => (
                 <div key={post.id}>
-                {pi === 3 && posts.length > 5 && <DynamicAd slotId="community_feed" className="mb-2" />}
+                {pi === 3 && posts.length > 5 && (
+                  <>
+                    <DynamicAd slotId="community_feed" className="mb-2" />
+                    <DynamicAd slotId="native_community_bottom" className="mb-2" />
+                  </>
+                )}
                 <div className="bg-white rounded-xl p-4 border border-[#E8E4DF]">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -827,8 +832,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
               <select
                 value={filterCat}
                 onChange={(e) => setFilterCat(e.target.value)}
-                className="h-9 px-3 rounded-lg border border-[#E8E4DF] bg-white shrink-0"
-                style={{ fontSize: 16 }}
+                className="h-9 px-3 rounded-lg border border-[#E8E4DF] bg-white shrink-0 text-[13px]"
               >
                 <option value="all">전체 카테고리</option>
                 {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -836,8 +840,7 @@ export function CommunityPageInner({ initialTab: propTab, hideHeader }: { initia
               <select
                 value={filterPrice}
                 onChange={(e) => setFilterPrice(e.target.value)}
-                className="h-9 px-3 rounded-lg border border-[#E8E4DF] bg-white shrink-0"
-                style={{ fontSize: 16 }}
+                className="h-9 px-3 rounded-lg border border-[#E8E4DF] bg-white shrink-0 text-[13px]"
               >
                 <option value="all">전체 가격</option>
                 <option value="free">무료 나눔</option>

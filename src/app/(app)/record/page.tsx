@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import IllustVideo from '@/components/ui/IllustVideo'
 import type { Child, GrowthRecord, CareEvent } from '@/types'
-import { PregnantWaitingPage } from '@/app/waiting/page'
+import { PregnantWaitingPage } from '@/app/(app)/waiting/page'
 import dynamic from 'next/dynamic'
 import { fetchPregRecords } from '@/lib/supabase/pregRecord'
 import { fetchUserRecords, upsertUserRecord } from '@/lib/supabase/userRecord'
@@ -16,7 +16,7 @@ import { getProfile } from '@/lib/supabase/userProfile'
 const LoadingSpinner = () => <div className="flex items-center justify-center h-[60vh]"><div className="w-8 h-8 border-3 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin" /></div>
 
 // Lazy load heavy components
-const WaitingPage = dynamic(() => import('@/app/waiting/page'), { loading: LoadingSpinner })
+const WaitingPage = dynamic(() => import('@/app/(app)/waiting/page'), { loading: LoadingSpinner })
 const StatsReport = dynamic(() => import('@/components/growth-chart/StatsReport'), { loading: LoadingSpinner })
 const DevelopmentCheck = dynamic(() => import('@/components/growth-chart/DevelopmentCheck'), { loading: LoadingSpinner })
 const GrowthTimelapse = dynamic(() => import('@/components/growth-chart/GrowthTimelapse'), { loading: LoadingSpinner })

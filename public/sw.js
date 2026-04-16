@@ -37,7 +37,7 @@ self.addEventListener('push', (event) => {
   const options = {
     body: data.body,
     icon: '/icon-192.png',
-    badge: '/favicon-32x32.png',
+    badge: '/badge-96.png',
     tag: data.tag || 'dodam-notification',
     data: { url: data.url || '/' },
     vibrate: [100, 50, 100],

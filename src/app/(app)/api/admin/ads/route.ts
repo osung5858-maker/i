@@ -14,13 +14,16 @@ const DEFAULT_SLOTS = [
   { id: 'notification_top', enabled: false, provider: 'kakao', unit_id: null, width: 320, height: 100, page_path: '/notifications' },
   { id: 'community_feed', enabled: false, provider: 'google', unit_id: null, width: 300, height: 250, page_path: '/community' },
   { id: 'post_detail_bottom', enabled: false, provider: 'google', unit_id: null, width: 300, height: 250, page_path: '/town' },
+  // 네이티브 AdMob 슬롯 (Capacitor 앱 전용, 기본 비활성)
+  { id: 'native_home_bottom', enabled: false, provider: 'admob', unit_id: null, width: 320, height: 50, page_path: '/' },
+  { id: 'native_community_bottom', enabled: false, provider: 'admob', unit_id: null, width: 320, height: 50, page_path: '/community' },
 ]
 
 const CREATE_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS ad_settings (
   id TEXT PRIMARY KEY,
   enabled BOOLEAN DEFAULT FALSE,
-  provider TEXT CHECK (provider IN ('kakao', 'google')),
+  provider TEXT CHECK (provider IN ('kakao', 'google', 'admob')),
   unit_id TEXT,
   width INTEGER DEFAULT 320,
   height INTEGER DEFAULT 100,

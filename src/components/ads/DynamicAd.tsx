@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import KakaoAdFit from './KakaoAdFit'
 import GoogleAdBanner from './GoogleAdBanner'
+import AdMobBanner from './AdMobBanner'
 
 interface AdSlotData {
   id: string
   enabled: boolean
-  provider: 'kakao' | 'google'
+  provider: 'kakao' | 'google' | 'admob'
   unit_id: string | null
   width: number
   height: number
@@ -77,6 +78,10 @@ export default function DynamicAd({ slotId, className = '' }: DynamicAdProps) {
         className={className}
       />
     )
+  }
+
+  if (slot.provider === 'admob') {
+    return <AdMobBanner adUnitId={slot.unit_id} className={className} />
   }
 
   return null

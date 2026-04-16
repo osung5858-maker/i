@@ -55,6 +55,39 @@ function ImageViewer({ images, startIndex, onClose }: { images: { original: stri
   )
 }
 
+/* ─── Consent Checkboxes ─── */
+function ConsentCheckboxes({ onAgree }: { onAgree: () => void }) {
+  const [consent1, setConsent1] = useState(false)
+  const [consent2, setConsent2] = useState(false)
+  const allChecked = consent1 && consent2
+
+  return (
+    <div className="mt-4 space-y-2.5">
+      <label className="flex items-start gap-2.5 cursor-pointer">
+        <input type="checkbox" checked={consent1} onChange={e => setConsent1(e.target.checked)}
+          className="w-4 h-4 mt-0.5 rounded accent-[var(--color-primary)] shrink-0" />
+        <span className="text-[12px] text-secondary leading-snug">
+          개인정보 수집·이용에 동의합니다 <span className="text-[#D08068]">(필수)</span>
+        </span>
+      </label>
+      <label className="flex items-start gap-2.5 cursor-pointer">
+        <input type="checkbox" checked={consent2} onChange={e => setConsent2(e.target.checked)}
+          className="w-4 h-4 mt-0.5 rounded accent-[var(--color-primary)] shrink-0" />
+        <span className="text-[12px] text-secondary leading-snug">
+          법정대리인으로서 아동 개인정보 처리에 동의합니다 <span className="text-[#D08068]">(필수)</span>
+        </span>
+      </label>
+      <button
+        onClick={onAgree}
+        disabled={!allChecked}
+        className="w-full mt-1 py-3 bg-[var(--color-primary)] text-white font-bold text-[14px] rounded-2xl active:opacity-80 disabled:opacity-40 transition-opacity"
+      >
+        동의하고 시작하기
+      </button>
+    </div>
+  )
+}
+
 export default function KidsnotePage() {
   const [step, setStep] = useState<'login' | 'children' | 'data'>('login')
   const [viewerImages, setViewerImages] = useState<{ original: string; thumbnail: string }[] | null>(null)
@@ -74,7 +107,7 @@ export default function KidsnotePage() {
 
   const [error, setError] = useState<string | null>(null)
   const [agreed, setAgreed] = useState(() => {
-    if (typeof window !== 'undefined') return safeGetItem('kn_agreed') === 'true'
+    if (typeof window !== 'undefined') return safeGetItem('kn_agreed_v2') === 'true'
     return false
   })
   const [session, setSession] = useState<string | null>(null)
@@ -493,31 +526,43 @@ export default function KidsnotePage() {
         {step === 'login' && !agreed && (
           <div className="bg-white rounded-xl border border-[#E8E4DF] p-5">
             <div className="text-center mb-4">
-              <svg className="w-8 h-8 text-[var(--color-primary)] mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+              <div className="w-12 h-12 rounded-2xl bg-[var(--color-primary)]/10 flex items-center justify-center mx-auto mb-3 text-xl">📋</div>
               <p className="text-subtitle text-primary">키즈노트 연동</p>
               <p className="text-body text-secondary mt-1">어린이집 알림장 · 사진을 도담으로 가져와요</p>
             </div>
 
-            <div className="bg-[var(--color-page-bg)] rounded-xl p-4 space-y-3 text-body text-[#555] leading-relaxed">
-              <p className="text-body font-bold text-primary">연동 전 확인사항</p>
-              <div className="space-y-2">
-                <p>1. 도담은 키즈노트와 제휴된 서비스가 아닙니다. 키즈노트 계정 정보를 사용자의 동의 하에 직접 입력받아 데이터를 가져옵니다.</p>
-                <p>2. 입력하신 계정 정보는 <span className="font-semibold text-primary">도담 서버에 저장되지 않으며</span>, 연결 확인 후 즉시 폐기됩니다. (저장 선택 시 사용자 기기에만 보관)</p>
-                <p>3. 가져온 데이터(알림장, 사진)는 사용자 기기 내에만 저장되며, 외부로 전송되지 않습니다.</p>
-                <p>4. 키즈노트 서비스 정책 변경 시 연동이 중단될 수 있으며, 이에 대해 도담은 책임지지 않습니다.</p>
-                <p>5. 본 기능 사용으로 발생하는 키즈노트 계정 관련 문제에 대한 책임은 사용자에게 있습니다.</p>
+            {/* 개인정보 수집·이용 동의 */}
+            <div className="bg-[var(--color-page-bg)] rounded-xl p-4 space-y-2.5 text-[11px] text-[#666] leading-relaxed">
+              <p className="text-[12px] font-bold text-primary">개인정보 수집·이용 동의 (필수)</p>
+              <div className="space-y-1.5">
+                <p><strong className="text-primary">수집 항목</strong>: 키즈노트 계정 정보, 자녀 이름, 알림장 내용, 앨범 사진, 식단표</p>
+                <p><strong className="text-primary">수집 목적</strong>: 어린이집 정보를 사용자 기기에 표시</p>
+                <p><strong className="text-primary">보유 기간</strong>: 로그아웃 시 즉시 삭제 (서버 미저장, 기기 내에만 보관)</p>
               </div>
             </div>
 
-            <button onClick={() => { setAgreed(true); safeSetItem('kn_agreed', 'true') }}
-              className="w-full mt-4 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-xl active:opacity-80">
-              위 내용을 확인했으며 동의합니다
-            </button>
+            {/* 아동 개인정보 법정대리인 동의 */}
+            <div className="bg-[var(--color-page-bg)] rounded-xl p-4 mt-2 space-y-2 text-[11px] text-[#666] leading-relaxed">
+              <p className="text-[12px] font-bold text-primary">아동 개인정보 처리 동의 (필수)</p>
+              <p>본 서비스는 만 14세 미만 아동의 사진 및 알림장 정보를 처리합니다. 개인정보보호법 제22조의2에 따라 법정대리인(부모/보호자)의 동의가 필요합니다.</p>
+            </div>
 
-            <button onClick={() => history.back()}
-              className="w-full mt-2 py-2.5 text-body text-secondary active:opacity-60">
-              돌아가기
-            </button>
+            {/* 유의사항 */}
+            <div className="bg-[var(--color-page-bg)] rounded-xl p-4 mt-2 space-y-1.5 text-[11px] text-[#666] leading-relaxed">
+              <p className="text-[12px] font-bold text-primary">유의사항</p>
+              <p>• 키즈노트와 제휴된 서비스가 아닙니다</p>
+              <p>• 계정 정보는 서버에 저장되지 않습니다</p>
+              <p>• 키즈노트 정책 변경 시 연동이 중단될 수 있습니다</p>
+            </div>
+
+            {/* 동의 체크박스 */}
+            <ConsentCheckboxes onAgree={() => { setAgreed(true); safeSetItem('kn_agreed_v2', 'true') }} />
+
+            <div className="flex items-center justify-center gap-1 mt-3">
+              <a href="/privacy" className="text-[11px] text-[var(--color-primary)] font-medium">개인정보 처리방침</a>
+              <span className="text-[11px] text-secondary">·</span>
+              <button onClick={() => history.back()} className="text-[11px] text-secondary">돌아가기</button>
+            </div>
           </div>
         )}
 

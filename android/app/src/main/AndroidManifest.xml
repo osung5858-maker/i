@@ -24,6 +24,16 @@
 
         </activity>
 
+        <!-- 푸시 알림 기본 아이콘 (상태바 단색 실루엣) -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notification" />
+
+        <!-- Google AdMob App ID (테스트용 → 실제 발급 후 교체) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_app_id" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

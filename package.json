@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@anthropic-ai/claude-code": "^2.1.84",
+    "@capacitor-community/admob": "^8.0.0",
     "@capacitor/android": "^8.2.0",
     "@capacitor/cli": "^8.2.0",
     "@capacitor/core": "^8.2.0",

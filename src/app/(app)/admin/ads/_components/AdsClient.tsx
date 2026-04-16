@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from 'react'
 interface AdSlot {
   id: string
   enabled: boolean
-  provider: 'kakao' | 'google'
+  provider: 'kakao' | 'google' | 'admob'
   unit_id: string | null
   width: number
   height: number
@@ -17,6 +17,13 @@ interface AdSlot {
 const PROVIDER_LABELS: Record<string, string> = {
   kakao: '카카오 AdFit',
   google: 'Google AdSense',
+  admob: 'Google AdMob',
+}
+
+const UNIT_PLACEHOLDER: Record<string, string> = {
+  kakao: 'DAN-xxxxxxxxxx',
+  google: 'ca-pub-xxx/slot-yyy',
+  admob: 'ca-app-pub-xxx/yyy',
 }
 
 export default function AdsClient() {
@@ -99,6 +106,26 @@ export default function AdsClient() {
     }
   }
 
+  const handleChangeProvider = async (slotId: string, newProvider: string) => {
+    setSaving(slotId)
+    try {
+      const res = await fetch('/api/admin/ads', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: slotId, provider: newProvider }),
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        throw new Error(d.error || '업데이트 실패')
+      }
+      await fetchSlots()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '오류가 발생했습니다')
+    } finally {
+      setSaving(null)
+    }
+  }
+
   const formatDate = (iso: string | null) => {
     if (!iso) return '-'
     const d = new Date(iso)
@@ -149,7 +176,24 @@ export default function AdsClient() {
 
             {/* Info grid */}
             <div className="space-y-2.5 text-sm">
-              <InfoRow label="광고 제공자" value={PROVIDER_LABELS[slot.provider] || slot.provider} />
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500">광고 제공자</span>
+                <div className="flex items-center gap-1.5">
+                  {slot.provider === 'admob' && (
+                    <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">네이티브</span>
+                  )}
+                  <select
+                    value={slot.provider}
+                    onChange={(e) => handleChangeProvider(slot.id, e.target.value)}
+                    disabled={isSaving}
+                    className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+                  >
+                    <option value="kakao">카카오 AdFit</option>
+                    <option value="google">Google AdSense</option>
+                    <option value="admob">Google AdMob</option>
+                  </select>
+                </div>
+              </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">표시 페이지</span>
                 <code className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-700">{slot.page_path}</code>
@@ -179,7 +223,7 @@ export default function AdsClient() {
                   onChange={(e) =>
                     setEditingUnit((prev) => ({ ...prev, [slot.id]: e.target.value }))
                   }
-                  placeholder="DAN-xxxxxxxxxx"
+                  placeholder={UNIT_PLACEHOLDER[slot.provider] || 'ID 입력'}
                   className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
                 {isEditing && unitValue !== (slot.unit_id || '') && (
