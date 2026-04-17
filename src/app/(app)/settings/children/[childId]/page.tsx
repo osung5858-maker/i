@@ -28,6 +28,7 @@ export default function EditChildPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -89,29 +90,50 @@ export default function EditChildPage() {
       <PageHeader title="프로필 수정" standalone />
 
       <div className="flex-1 px-6 pt-8 max-w-lg mx-auto w-full">
-        {/* 프로필 아바타 선택 */}
-        <div className="mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,82,255,0.15)] bg-[#f5f5f5]">
+        {/* 프로필 아바타 — 중앙 배치 + 아이콘 오버레이 */}
+        <div className="mb-8 flex flex-col items-center">
+          <div className="relative">
+            {/* 메인 아바타 */}
+            <div className="w-28 h-28 rounded-full overflow-hidden shadow-[0_8px_30px_rgba(0,82,255,0.12)] bg-[#f5f5f5]">
               <video src={photoUrl} autoPlay loop muted playsInline className="w-full h-full object-cover" />
             </div>
+
+            {/* 변경 아이콘 — 아바타 우측 하단 */}
+            <button
+              type="button"
+              onClick={() => setShowAvatarPicker(!showAvatarPicker)}
+              className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-white border-2 border-[#E8E4DF] shadow-md flex items-center justify-center active:scale-90 transition-transform"
+              aria-label="아바타 변경"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[#6B6B6B]">
+                <path d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H4.598a.75.75 0 0 0-.75.75v3.634a.75.75 0 0 0 1.5 0v-2.033l.312.311a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.06-7.763a.75.75 0 0 0-.75.75v2.033l-.312-.312a7 7 0 0 0-11.712 3.139.75.75 0 0 0 1.449.389 5.5 5.5 0 0 1 9.201-2.466l.312.312H12.127a.75.75 0 0 0 0 1.5h3.634a.75.75 0 0 0 .75-.75V4.411a.75.75 0 0 0-.75-.75Z" />
+              </svg>
+            </button>
+
           </div>
-          <div className="flex justify-center gap-3">
-            {PROFILE_AVATARS.map((url, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setPhotoUrl(url)}
-                className={`w-14 h-14 rounded-2xl overflow-hidden transition-all ${
-                  photoUrl === url
-                    ? 'ring-[3px] ring-[var(--color-primary)] ring-offset-2 scale-105'
-                    : 'opacity-60 hover:opacity-80'
-                }`}
-              >
-                <video src={url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
+
+          {/* 아바타 선택 패널 — 토글 */}
+          {showAvatarPicker && (
+            <div className="mt-5 flex justify-center gap-3 animate-in fade-in slide-in-from-top-2">
+              {PROFILE_AVATARS.map((url, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => {
+                    setPhotoUrl(url)
+                    setShowAvatarPicker(false)
+                  }}
+                  className={`w-14 h-14 rounded-full overflow-hidden transition-all ${
+                    photoUrl === url
+                      ? 'ring-[3px] ring-[var(--color-primary)] ring-offset-2 scale-105'
+                      : 'opacity-60 hover:opacity-80'
+                  }`}
+                >
+                  <video src={url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* 이름 */}
